@@ -1,0 +1,249 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar-background: var(--sidebar-background);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  --radius: 0.625rem;
+
+  /* NachtBlau Dark Theme – Deep Midnight Blues */
+  --background: oklch(0.09 0.025 250);
+  --foreground: oklch(0.93 0.015 220);
+
+  --card: oklch(0.12 0.03 250);
+  --card-foreground: oklch(0.93 0.015 220);
+
+  --popover: oklch(0.11 0.03 250);
+  --popover-foreground: oklch(0.93 0.015 220);
+
+  /* Electric blue accent */
+  --primary: oklch(0.62 0.22 245);
+  --primary-foreground: oklch(0.98 0.005 220);
+
+  --secondary: oklch(0.16 0.04 250);
+  --secondary-foreground: oklch(0.85 0.02 220);
+
+  --muted: oklch(0.14 0.025 250);
+  --muted-foreground: oklch(0.58 0.03 230);
+
+  --accent: oklch(0.55 0.18 260);
+  --accent-foreground: oklch(0.98 0.005 220);
+
+  --destructive: oklch(0.55 0.22 25);
+
+  --border: oklch(0.22 0.04 250);
+  --input: oklch(0.16 0.035 250);
+  --ring: oklch(0.62 0.22 245);
+
+  --sidebar-background: oklch(0.08 0.025 250);
+  --sidebar-foreground: oklch(0.85 0.015 220);
+  --sidebar-primary: oklch(0.62 0.22 245);
+  --sidebar-primary-foreground: oklch(0.98 0.005 220);
+  --sidebar-accent: oklch(0.14 0.03 250);
+  --sidebar-accent-foreground: oklch(0.85 0.015 220);
+  --sidebar-border: oklch(0.18 0.03 250);
+  --sidebar-ring: oklch(0.62 0.22 245);
+
+  /* Custom NachtBlau tokens */
+  --nb-blue-deep: oklch(0.09 0.025 250);
+  --nb-blue-dark: oklch(0.13 0.04 252);
+  --nb-blue-mid: oklch(0.22 0.08 252);
+  --nb-blue-accent: oklch(0.55 0.22 248);
+  --nb-blue-electric: oklch(0.68 0.25 240);
+  --nb-blue-glow: oklch(0.72 0.28 240);
+  --nb-silver: oklch(0.82 0.02 220);
+  --nb-star: oklch(0.95 0.01 220);
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  }
+  .flex {
+    min-width: 0;
+    min-height: 0;
+  }
+  .container {
+    @apply mx-auto px-4;
+    max-width: 1280px;
+  }
+}
+
+/* ── NachtBlau Custom Utilities ────────────────────────────────────────────── */
+@layer utilities {
+  /* Glowing text effect */
+  .text-glow {
+    text-shadow:
+      0 0 10px oklch(0.68 0.25 240 / 0.8),
+      0 0 30px oklch(0.68 0.25 240 / 0.4),
+      0 0 60px oklch(0.68 0.25 240 / 0.2);
+  }
+  .text-glow-sm {
+    text-shadow:
+      0 0 6px oklch(0.68 0.25 240 / 0.6),
+      0 0 15px oklch(0.68 0.25 240 / 0.3);
+  }
+
+  /* Card glow border */
+  .card-glow {
+    box-shadow:
+      0 0 0 1px oklch(0.62 0.22 245 / 0.3),
+      0 4px 24px oklch(0.09 0.025 250 / 0.8),
+      0 0 40px oklch(0.62 0.22 245 / 0.08);
+  }
+  .card-glow:hover {
+    box-shadow:
+      0 0 0 1px oklch(0.62 0.22 245 / 0.6),
+      0 8px 32px oklch(0.09 0.025 250 / 0.9),
+      0 0 60px oklch(0.62 0.22 245 / 0.15);
+  }
+
+  /* Star field background */
+  .stars-bg {
+    background-image:
+      radial-gradient(1px 1px at 10% 15%, oklch(0.95 0.01 220 / 0.8) 0%, transparent 100%),
+      radial-gradient(1px 1px at 25% 45%, oklch(0.95 0.01 220 / 0.6) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 40% 20%, oklch(0.95 0.01 220 / 0.9) 0%, transparent 100%),
+      radial-gradient(1px 1px at 55% 70%, oklch(0.95 0.01 220 / 0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 35%, oklch(0.95 0.01 220 / 0.7) 0%, transparent 100%),
+      radial-gradient(2px 2px at 80% 55%, oklch(0.95 0.01 220 / 0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 10%, oklch(0.95 0.01 220 / 0.8) 0%, transparent 100%),
+      radial-gradient(1px 1px at 15% 80%, oklch(0.95 0.01 220 / 0.6) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 60% 90%, oklch(0.95 0.01 220 / 0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 35% 60%, oklch(0.95 0.01 220 / 0.7) 0%, transparent 100%);
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    background: linear-gradient(
+      135deg,
+      oklch(0.82 0.02 220) 0%,
+      oklch(0.68 0.25 240) 50%,
+      oklch(0.55 0.22 260) 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Divider glow */
+  .divider-glow {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      oklch(0.62 0.22 245 / 0.6) 50%,
+      transparent 100%
+    );
+  }
+
+  /* Nav blur glass */
+  .glass-nav {
+    background: oklch(0.09 0.025 250 / 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid oklch(0.22 0.04 250 / 0.5);
+  }
+
+  /* Button scale on active */
+  button:active,
+  [role="button"]:active {
+    transform: scale(0.97);
+    transition: transform 160ms var(--ease-out);
+  }
+}
+
+/* ── Scrollbar Styling ──────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: oklch(0.09 0.025 250);
+}
+::-webkit-scrollbar-thumb {
+  background: oklch(0.28 0.06 250);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.42 0.12 248);
+}
+
+/* ── Animations ─────────────────────────────────────────────────────────────── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+.animate-float { animation: float 4s ease-in-out infinite; }
+.animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+.animate-twinkle { animation: twinkle 3s ease-in-out infinite; }
+
+/* ── Typography ─────────────────────────────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Orbitron", "Inter", system-ui, sans-serif;
+  letter-spacing: 0.02em;
+}
+
+/* Prose overrides for dark theme */
+.prose {
+  --tw-prose-body: oklch(0.82 0.015 220);
+  --tw-prose-headings: oklch(0.93 0.015 220);
+  --tw-prose-links: oklch(0.68 0.25 240);
+  --tw-prose-bold: oklch(0.93 0.015 220);
+  --tw-prose-code: oklch(0.68 0.25 240);
+  --tw-prose-pre-bg: oklch(0.12 0.03 250);
+}
