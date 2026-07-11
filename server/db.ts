@@ -14,6 +14,44 @@ import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
+const DEFAULT_FORUM_CATEGORIES = [
+  {
+    name: "Allgemein",
+    slug: "allgemein",
+    description: "Allgemeine Diskussionen rund um die NachtBlau Crew.",
+    icon: "MessageSquare",
+    sortOrder: 1,
+  },
+  {
+    name: "PC Gaming",
+    slug: "pc-gaming",
+    description: "Hardware, PC-Spiele und technische Fragen.",
+    icon: "Monitor",
+    sortOrder: 2,
+  },
+  {
+    name: "Konsolen",
+    slug: "konsolen",
+    description: "PlayStation, Xbox, Nintendo und alles auf der Couch.",
+    icon: "Gamepad2",
+    sortOrder: 3,
+  },
+  {
+    name: "Steam & Deals",
+    slug: "steam-deals",
+    description: "Rabatte, Sales, Freebies und neue Entdeckungen.",
+    icon: "Gift",
+    sortOrder: 4,
+  },
+  {
+    name: "Community & Events",
+    slug: "community-events",
+    description: "Vorstellungen, gemeinsame Sessions und Community-News.",
+    icon: "Users",
+    sortOrder: 5,
+  },
+] as const;
+
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -24,6 +62,18 @@ export async function getDb() {
     }
   }
   return _db;
+}
+
+async function ensureDefaultForumCategories(db: NonNullable<Awaited<ReturnType<typeof getDb>>>) {
+  const result = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(forumCategories);
+
+  if ((result[0]?.count ?? 0) > 0) {
+    return;
+  }
+
+  await db.insert(forumCategories).values(DEFAULT_FORUM_CATEGORIES);
 }
 
 // ─── Users ────────────────────────────────────────────────────────────────────
@@ -90,6 +140,7 @@ export async function updateUserProfile(
 export async function getForumCategories(): Promise<ForumCategory[]> {
   const db = await getDb();
   if (!db) return [];
+  await ensureDefaultForumCategories(db);
   return db
     .select()
     .from(forumCategories)
@@ -99,6 +150,7 @@ export async function getForumCategories(): Promise<ForumCategory[]> {
 export async function getForumCategoryBySlug(slug: string) {
   const db = await getDb();
   if (!db) return undefined;
+  await ensureDefaultForumCategories(db);
   const result = await db
     .select()
     .from(forumCategories)

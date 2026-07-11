@@ -39,10 +39,23 @@ export default function Profile() {
   );
 
   const updateProfile = trpc.profile.updateProfile.useMutation({
-    onSuccess: () => {
+    onSuccess: async (_result, variables) => {
       toast.success("Profil aktualisiert!");
       setEditing(false);
       utils.profile.getProfile.invalidate({ userId });
+
+      if (isOwn) {
+        utils.auth.me.setData(undefined, (currentUser) =>
+          currentUser
+            ? {
+                ...currentUser,
+                name: variables.name ?? currentUser.name,
+                bio: variables.bio ?? currentUser.bio,
+              }
+            : currentUser
+        );
+        await utils.auth.me.invalidate();
+      }
     },
     onError: (err) => {
       toast.error(err.message ?? "Fehler beim Speichern");
