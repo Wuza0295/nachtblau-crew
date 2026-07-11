@@ -14,6 +14,52 @@ import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
+const DEFAULT_FORUM_CATEGORIES: (typeof forumCategories.$inferInsert)[] = [
+  {
+    name: "Allgemein",
+    slug: "allgemein",
+    description:
+      "Alles rund um die NachtBlau Crew und lockere Community-Gespraeche.",
+    icon: "MessageSquare",
+    sortOrder: 1,
+  },
+  {
+    name: "PC Gaming",
+    slug: "pc-gaming",
+    description: "Hardware, Setups, Steam, Mods und alles fuer PC-Spieler.",
+    icon: "Monitor",
+    sortOrder: 2,
+  },
+  {
+    name: "Konsolen",
+    slug: "konsolen",
+    description: "PlayStation, Xbox, Nintendo und Couch-Koop-Themen.",
+    icon: "Gamepad2",
+    sortOrder: 3,
+  },
+  {
+    name: "News & Releases",
+    slug: "news-releases",
+    description: "Neue Spiele, Updates, Trailer und Gaming-News diskutieren.",
+    icon: "Flame",
+    sortOrder: 4,
+  },
+  {
+    name: "Free Games & Deals",
+    slug: "free-games-deals",
+    description: "Kostenlose Spiele, Giveaways und Angebote teilen.",
+    icon: "Gift",
+    sortOrder: 5,
+  },
+  {
+    name: "Mitspieler finden",
+    slug: "mitspieler-finden",
+    description: "Squads, Clans, Koop-Partner und gemeinsame Sessions planen.",
+    icon: "Users",
+    sortOrder: 6,
+  },
+];
+
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -60,13 +106,20 @@ export async function upsertUser(user: InsertUser): Promise<void> {
   if (!values.lastSignedIn) values.lastSignedIn = new Date();
   if (Object.keys(updateSet).length === 0) updateSet.lastSignedIn = new Date();
 
-  await db.insert(users).values(values).onDuplicateKeyUpdate({ set: updateSet });
+  await db
+    .insert(users)
+    .values(values)
+    .onDuplicateKeyUpdate({ set: updateSet });
 }
 
 export async function getUserByOpenId(openId: string) {
   const db = await getDb();
   if (!db) return undefined;
-  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+  const result = await db
+    .select()
+    .from(users)
+    .where(eq(users.openId, openId))
+    .limit(1);
   return result.length > 0 ? result[0] : undefined;
 }
 
@@ -87,18 +140,30 @@ export async function updateUserProfile(
 }
 
 // ─── Forum Categories ─────────────────────────────────────────────────────────
+async function ensureDefaultForumCategories(db: NonNullable<typeof _db>) {
+  const existing = await db.select().from(forumCategories).limit(1);
+  if (existing.length > 0) return;
+
+  try {
+    await db.insert(forumCategories).values(DEFAULT_FORUM_CATEGORIES);
+  } catch (error) {
+    // Another request may have inserted the defaults first.
+    const categories = await db.select().from(forumCategories).limit(1);
+    if (categories.length === 0) throw error;
+  }
+}
+
 export async function getForumCategories(): Promise<ForumCategory[]> {
   const db = await getDb();
   if (!db) return [];
-  return db
-    .select()
-    .from(forumCategories)
-    .orderBy(forumCategories.sortOrder);
+  await ensureDefaultForumCategories(db);
+  return db.select().from(forumCategories).orderBy(forumCategories.sortOrder);
 }
 
 export async function getForumCategoryBySlug(slug: string) {
   const db = await getDb();
   if (!db) return undefined;
+  await ensureDefaultForumCategories(db);
   const result = await db
     .select()
     .from(forumCategories)
@@ -108,7 +173,11 @@ export async function getForumCategoryBySlug(slug: string) {
 }
 
 // ─── Forum Threads ────────────────────────────────────────────────────────────
-export async function getThreadsByCategory(categoryId: number, limit = 20, offset = 0) {
+export async function getThreadsByCategory(
+  categoryId: number,
+  limit = 20,
+  offset = 0
+) {
   const db = await getDb();
   if (!db) return [];
   const rows = await db
@@ -187,7 +256,9 @@ export async function getPostsByThread(threadId: number) {
     })
     .from(forumPosts)
     .innerJoin(users, eq(forumPosts.authorId, users.id))
-    .where(and(eq(forumPosts.threadId, threadId), eq(forumPosts.isDeleted, false)))
+    .where(
+      and(eq(forumPosts.threadId, threadId), eq(forumPosts.isDeleted, false))
+    )
     .orderBy(forumPosts.createdAt);
 }
 
@@ -225,7 +296,9 @@ export async function getUserPostCount(userId: number) {
   const result = await db
     .select({ count: sql<number>`count(*)` })
     .from(forumPosts)
-    .where(and(eq(forumPosts.authorId, userId), eq(forumPosts.isDeleted, false)));
+    .where(
+      and(eq(forumPosts.authorId, userId), eq(forumPosts.isDeleted, false))
+    );
   return result[0]?.count ?? 0;
 }
 
