@@ -50,7 +50,7 @@ const DEFAULT_FORUM_CATEGORIES = [
     icon: "Users",
     sortOrder: 5,
   },
-] as const;
+];
 
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
