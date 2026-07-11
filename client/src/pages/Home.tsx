@@ -16,7 +16,11 @@ import {
   Star,
   Users,
   Zap,
+  Github,
+  Globe,
+  ExternalLink,
 } from "lucide-react";
+import { SITE } from "@/lib/site";
 
 function StarField() {
   return (
@@ -55,7 +59,7 @@ function HeroSection() {
       <div
         className="absolute inset-0 bg-cover bg-center opacity-20"
         style={{
-          backgroundImage: `url(https://d2xsxph8kpxj0f.cloudfront.net/310519663739653758/PbtcqHtcftAKnwDnhmoduf/nachtblau-hero-bg-HgRTyjrF5BBTepdctiJ8Mj.webp)`,
+          backgroundImage: `url(${SITE.heroBgUrl})`,
         }}
       />
       <StarField />
@@ -142,7 +146,7 @@ function HeroSection() {
                 style={{ background: "oklch(0.62 0.22 245)" }}
               />
               <img
-                src="https://d2xsxph8kpxj0f.cloudfront.net/310519663739653758/PbtcqHtcftAKnwDnhmoduf/nachtblau-logo-Li7umgFb8XhrYaRtYVFm4Z.webp"
+                src={SITE.logoUrl}
                 alt="NachtBlau Crew"
                 className="relative w-72 h-72 md:w-96 md:h-96 object-contain animate-float drop-shadow-2xl"
               />
@@ -409,6 +413,81 @@ function FeatureBanner() {
   );
 }
 
+function NetworkLinksSection() {
+  return (
+    <section className="py-16 bg-card/30 border-t border-border">
+      <div className="container">
+        <div className="text-center mb-8">
+          <h2
+            className="text-2xl font-bold text-foreground"
+            style={{ fontFamily: "Orbitron, sans-serif" }}
+          >
+            NachtBlau Netzwerk
+          </h2>
+          <p className="text-muted-foreground mt-1">
+            Verknüpft mit unserem Webspace und dem GitHub-Repository
+          </p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
+          <a
+            href={SITE.webspaceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group block"
+          >
+            <Card className="card-glow bg-card border-border transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 h-full">
+              <CardContent className="p-5 flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
+                  <Globe className="h-6 w-6" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                    {SITE.webspaceLabel}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    Offizielle NachtBlau GbR Website
+                  </p>
+                </div>
+                <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+              </CardContent>
+            </Card>
+          </a>
+          <a
+            href={SITE.githubUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group block"
+          >
+            <Card className="card-glow bg-card border-border transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 h-full">
+              <CardContent className="p-5 flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
+                  <Github className="h-6 w-6" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                    {SITE.githubLabel}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    Quellcode, Issues und Beiträge
+                  </p>
+                </div>
+                <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+              </CardContent>
+            </Card>
+          </a>
+        </div>
+        <div className="text-center mt-6">
+          <Link href="/ueber-uns">
+            <Button variant="ghost" className="text-primary hover:text-primary/80 gap-1">
+              Mehr erfahren <ChevronRight className="h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function Home() {
   return (
     <div>
@@ -417,6 +496,7 @@ export default function Home() {
       <FreeGamesPreview />
       <NewsPreview />
       <ForumPreview />
+      <NetworkLinksSection />
     </div>
   );
 }

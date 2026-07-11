@@ -1,5 +1,10 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { DEFAULT_FORUM_CATEGORIES, ensureForumCategories } from "./seed";
+import {
+  DEFAULT_FORUM_CATEGORIES,
+  WELCOME_THREAD,
+  ensureForumCategories,
+  ensureWelcomeThread,
+} from "./seed";
 
 const mockSelect = vi.fn();
 const mockFrom = vi.fn();
@@ -52,9 +57,26 @@ describe("ensureForumCategories", () => {
     expect(mockValues).toHaveBeenCalledWith([...DEFAULT_FORUM_CATEGORIES]);
   });
 
+  it("exports welcome thread content with external links", () => {
+    expect(WELCOME_THREAD.title).toContain("Willkommen");
+    expect(WELCOME_THREAD.content).toContain("nacht-blau.de");
+    expect(WELCOME_THREAD.content).toContain("github.com");
+  });
+
   it("no-ops when database is unavailable", async () => {
     vi.mocked(getDb).mockResolvedValue(null);
     await expect(ensureForumCategories()).resolves.toBeUndefined();
     expect(mockInsert).not.toHaveBeenCalled();
+  });
+});
+
+describe("ensureWelcomeThread", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("no-ops when database is unavailable", async () => {
+    vi.mocked(getDb).mockResolvedValue(null);
+    await expect(ensureWelcomeThread()).resolves.toBeUndefined();
   });
 });
