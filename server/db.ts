@@ -14,6 +14,54 @@ import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
+type Db = NonNullable<Awaited<ReturnType<typeof getDb>>>;
+type InsertForumCategory = typeof forumCategories.$inferInsert;
+
+export const DEFAULT_FORUM_CATEGORIES: InsertForumCategory[] = [
+  {
+    name: "Allgemein",
+    slug: "allgemein",
+    description: "Allgemeine Diskussionen rund um die NachtBlau Crew.",
+    icon: "MessageSquare",
+    sortOrder: 1,
+  },
+  {
+    name: "PC Gaming",
+    slug: "pc-gaming",
+    description: "Hardware, Builds, Setups und PC-Spiele.",
+    icon: "Monitor",
+    sortOrder: 2,
+  },
+  {
+    name: "Konsolen",
+    slug: "konsolen",
+    description: "PlayStation, Xbox, Nintendo und Couch-Coop.",
+    icon: "Gamepad2",
+    sortOrder: 3,
+  },
+  {
+    name: "News & Geruechte",
+    slug: "news-geruechte",
+    description: "Aktuelle Gaming-News, Leaks und Ankuendigungen.",
+    icon: "Flame",
+    sortOrder: 4,
+  },
+  {
+    name: "Free Games",
+    slug: "free-games",
+    description: "Hinweise auf kostenlose Spiele, Giveaways und Deals.",
+    icon: "Gift",
+    sortOrder: 5,
+  },
+  {
+    name: "Mitspieler finden",
+    slug: "mitspieler-finden",
+    description: "Suche Squads, Clans, Duos oder neue Gaming-Freunde.",
+    icon: "Users",
+    sortOrder: 6,
+  },
+];
+
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -24,6 +72,29 @@ export async function getDb() {
     }
   }
   return _db;
+}
+
+async function ensureDefaultForumCategories(db: Db) {
+  const existing = await db
+    .select({ id: forumCategories.id })
+    .from(forumCategories)
+    .limit(1);
+
+  if (existing.length > 0) return;
+
+  try {
+    await db.insert(forumCategories).values(DEFAULT_FORUM_CATEGORIES);
+  } catch (error) {
+    // Another request may have seeded the categories first. Re-check before surfacing the error.
+    const categoriesAfterRace = await db
+      .select({ id: forumCategories.id })
+      .from(forumCategories)
+      .limit(1);
+
+    if (categoriesAfterRace.length === 0) {
+      throw error;
+    }
+  }
 }
 
 // ─── Users ────────────────────────────────────────────────────────────────────
@@ -90,6 +161,7 @@ export async function updateUserProfile(
 export async function getForumCategories(): Promise<ForumCategory[]> {
   const db = await getDb();
   if (!db) return [];
+  await ensureDefaultForumCategories(db);
   return db
     .select()
     .from(forumCategories)
@@ -99,6 +171,7 @@ export async function getForumCategories(): Promise<ForumCategory[]> {
 export async function getForumCategoryBySlug(slug: string) {
   const db = await getDb();
   if (!db) return undefined;
+  await ensureDefaultForumCategories(db);
   const result = await db
     .select()
     .from(forumCategories)

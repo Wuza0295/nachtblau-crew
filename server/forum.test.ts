@@ -9,7 +9,7 @@ vi.mock("./db", () => ({
       id: 1,
       name: "Allgemein",
       slug: "allgemein",
-      description: "Allgemeine Diskussionen",
+      description: "Allgemeine Diskussionen rund um die NachtBlau Crew.",
       icon: "MessageSquare",
       sortOrder: 1,
       createdAt: new Date(),
@@ -21,6 +21,42 @@ vi.mock("./db", () => ({
       description: "PC-Spiele",
       icon: "Monitor",
       sortOrder: 2,
+      createdAt: new Date(),
+    },
+    {
+      id: 3,
+      name: "Konsolen",
+      slug: "konsolen",
+      description: "PlayStation, Xbox, Nintendo und Couch-Coop.",
+      icon: "Gamepad2",
+      sortOrder: 3,
+      createdAt: new Date(),
+    },
+    {
+      id: 4,
+      name: "News & Geruechte",
+      slug: "news-geruechte",
+      description: "Aktuelle Gaming-News, Leaks und Ankuendigungen.",
+      icon: "Flame",
+      sortOrder: 4,
+      createdAt: new Date(),
+    },
+    {
+      id: 5,
+      name: "Free Games",
+      slug: "free-games",
+      description: "Hinweise auf kostenlose Spiele, Giveaways und Deals.",
+      icon: "Gift",
+      sortOrder: 5,
+      createdAt: new Date(),
+    },
+    {
+      id: 6,
+      name: "Mitspieler finden",
+      slug: "mitspieler-finden",
+      description: "Suche Squads, Clans, Duos oder neue Gaming-Freunde.",
+      icon: "Users",
+      sortOrder: 6,
       createdAt: new Date(),
     },
   ]),
@@ -107,13 +143,21 @@ function createAuthCtx(): TrpcContext {
 }
 
 describe("forum.getCategories", () => {
-  it("returns forum categories for public users", async () => {
+  it("returns restored default forum categories for public users", async () => {
     const caller = appRouter.createCaller(createPublicCtx());
     const categories = await caller.forum.getCategories();
     expect(Array.isArray(categories)).toBe(true);
-    expect(categories.length).toBe(2);
+    expect(categories.length).toBe(6);
     expect(categories[0].name).toBe("Allgemein");
     expect(categories[1].slug).toBe("pc-gaming");
+    expect(categories.map((category) => category.slug)).toEqual([
+      "allgemein",
+      "pc-gaming",
+      "konsolen",
+      "news-geruechte",
+      "free-games",
+      "mitspieler-finden",
+    ]);
   });
 });
 
