@@ -63,17 +63,33 @@ export default function Footer() {
             </h4>
             <div className="flex gap-3">
               {[
-                { icon: MessageSquare, label: "Discord" },
-                { icon: Twitter, label: "Twitter" },
-                { icon: Github, label: "GitHub" },
-              ].map(({ icon: Icon, label }) => (
-                <button
+                {
+                  icon: MessageSquare,
+                  label: "Kontakt",
+                  href: "mailto:info@nacht-blau.de",
+                },
+                {
+                  icon: Twitter,
+                  label: "Website",
+                  href: "https://nacht-blau.de",
+                },
+                {
+                  icon: Github,
+                  label: "GitHub",
+                  href: "https://github.com/Wuza0295/nachtblau-crew",
+                },
+              ].map(({ icon: Icon, label, href }) => (
+                <a
                   key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="p-2 rounded-lg bg-secondary hover:bg-primary/20 text-muted-foreground hover:text-primary transition-all duration-200"
                   title={label}
+                  aria-label={label}
                 >
                   <Icon className="h-5 w-5" />
-                </button>
+                </a>
               ))}
             </div>
             <p className="text-xs text-muted-foreground">
