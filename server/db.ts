@@ -14,6 +14,88 @@ import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
+const DEFAULT_FORUM_CATEGORY_SEEDS = [
+  {
+    name: "Allgemein",
+    slug: "allgemein",
+    description: "Allgemeine Diskussionen rund um die NachtBlau Crew.",
+    icon: "MessageSquare",
+    sortOrder: 1,
+  },
+  {
+    name: "PC Gaming",
+    slug: "pc-gaming",
+    description: "Hardware, Setups und alles rund um PC-Spiele.",
+    icon: "Monitor",
+    sortOrder: 2,
+  },
+  {
+    name: "Konsolen",
+    slug: "konsolen",
+    description: "PlayStation, Xbox, Nintendo und weitere Konsolen-Themen.",
+    icon: "Gamepad2",
+    sortOrder: 3,
+  },
+  {
+    name: "Free Games & Deals",
+    slug: "free-games-deals",
+    description: "Kostenlose Spiele, Angebote und zeitlich begrenzte Aktionen.",
+    icon: "Gift",
+    sortOrder: 4,
+  },
+  {
+    name: "Community & Events",
+    slug: "community-events",
+    description: "Vorstellungen, Community-Aktionen und gemeinsame Events.",
+    icon: "Users",
+    sortOrder: 5,
+  },
+] as const;
+
+type DefaultForumCategorySeed = (typeof DEFAULT_FORUM_CATEGORY_SEEDS)[number];
+
+function getFallbackForumCategories(): ForumCategory[] {
+  const createdAt = new Date();
+
+  return DEFAULT_FORUM_CATEGORY_SEEDS.map((category, index) => ({
+    id: index + 1,
+    name: category.name,
+    slug: category.slug,
+    description: category.description,
+    icon: category.icon,
+    sortOrder: category.sortOrder,
+    createdAt,
+  }));
+}
+
+async function readForumCategories(db: ReturnType<typeof drizzle>) {
+  return db.select().from(forumCategories).orderBy(forumCategories.sortOrder);
+}
+
+async function ensureForumCategories(db: ReturnType<typeof drizzle> | null): Promise<ForumCategory[]> {
+  if (!db) {
+    return getFallbackForumCategories();
+  }
+
+  const existingCategories = await readForumCategories(db);
+  if (existingCategories.length > 0) {
+    return existingCategories;
+  }
+
+  try {
+    await db.insert(forumCategories).values(
+      DEFAULT_FORUM_CATEGORY_SEEDS.map((category: DefaultForumCategorySeed) => ({
+        ...category,
+      }))
+    );
+  } catch (error) {
+    console.warn("[Database] Failed to seed default forum categories:", error);
+  }
+
+  const seededCategories = await readForumCategories(db);
+  return seededCategories.length > 0 ? seededCategories : getFallbackForumCategories();
+}
+
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -89,22 +171,13 @@ export async function updateUserProfile(
 // ─── Forum Categories ─────────────────────────────────────────────────────────
 export async function getForumCategories(): Promise<ForumCategory[]> {
   const db = await getDb();
-  if (!db) return [];
-  return db
-    .select()
-    .from(forumCategories)
-    .orderBy(forumCategories.sortOrder);
+  return ensureForumCategories(db);
 }
 
 export async function getForumCategoryBySlug(slug: string) {
   const db = await getDb();
-  if (!db) return undefined;
-  const result = await db
-    .select()
-    .from(forumCategories)
-    .where(eq(forumCategories.slug, slug))
-    .limit(1);
-  return result[0];
+  const categories = await ensureForumCategories(db);
+  return categories.find((category) => category.slug === slug);
 }
 
 // ─── Forum Threads ────────────────────────────────────────────────────────────
@@ -160,7 +233,10 @@ export async function createThread(data: {
     ...data,
     lastReplyAt: new Date(),
   });
-  return result[0];
+  const rawInsertResult = Array.isArray(result) ? result[0] : result;
+  const insertId = Number((rawInsertResult as { insertId?: number } | undefined)?.insertId ?? 0);
+
+  return { insertId };
 }
 
 export async function incrementThreadView(id: number) {

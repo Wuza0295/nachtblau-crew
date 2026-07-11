@@ -152,7 +152,7 @@ describe("forum.createThread", () => {
       title: "Test Thread",
       content: "This is test content for the thread",
     });
-    expect(result).toBeDefined();
+    expect(result).toEqual({ insertId: 42 });
   });
 
   it("validates minimum title length", async () => {

@@ -32,10 +32,9 @@ export default function NewThread() {
   const { data: categories } = trpc.forum.getCategories.useQuery();
 
   const createThread = trpc.forum.createThread.useMutation({
-    onSuccess: (result) => {
+    onSuccess: ({ insertId }) => {
       toast.success("Thread erstellt!");
-      // Navigate to the new thread
-      navigate(`/forum/thread/${(result as { insertId?: number })?.insertId ?? ""}`);
+      navigate(insertId > 0 ? `/forum/thread/${insertId}` : "/forum");
     },
     onError: (err) => {
       toast.error(err.message ?? "Fehler beim Erstellen");
