@@ -243,3 +243,62 @@ export async function getUserRecentThreads(userId: number, limit = 5) {
     .orderBy(desc(forumThreads.createdAt))
     .limit(limit);
 }
+
+// ─── Seed ──────────────────────────────────────────────────────────────────
+const DEFAULT_CATEGORIES = [
+  {
+    name: "Allgemein",
+    slug: "allgemein",
+    description: "Allgemeine Diskussionen rund um Gaming und die Community.",
+    icon: "MessageSquare",
+    sortOrder: 0,
+  },
+  {
+    name: "PC Gaming",
+    slug: "pc-gaming",
+    description: "Alles über PC-Spiele, Hardware, Mods und mehr.",
+    icon: "Monitor",
+    sortOrder: 1,
+  },
+  {
+    name: "Konsolen",
+    slug: "konsolen",
+    description: "PlayStation, Xbox, Nintendo Switch – hier seid ihr richtig.",
+    icon: "Gamepad2",
+    sortOrder: 2,
+  },
+  {
+    name: "Steam & Deals",
+    slug: "steam-deals",
+    description: "Steam-Angebote, Wishlist-Tipps und Erfahrungen mit digitalen Stores.",
+    icon: "Flame",
+    sortOrder: 3,
+  },
+  {
+    name: "Kostenlose Spiele",
+    slug: "kostenlose-spiele",
+    description: "Teile deine Erfahrungen mit Free2Play-Titeln und Giveaways.",
+    icon: "Gift",
+    sortOrder: 4,
+  },
+  {
+    name: "Community",
+    slug: "community",
+    description: "Stell dich vor, finde Mitspieler oder organisiere Events.",
+    icon: "Users",
+    sortOrder: 5,
+  },
+];
+
+export async function seedForumCategories(): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  try {
+    const existing = await db.select({ id: forumCategories.id }).from(forumCategories).limit(1);
+    if (existing.length > 0) return;
+    await db.insert(forumCategories).values(DEFAULT_CATEGORIES);
+    console.log("[DB] Forum categories seeded.");
+  } catch (err) {
+    console.warn("[DB] Could not seed forum categories:", err);
+  }
+}
