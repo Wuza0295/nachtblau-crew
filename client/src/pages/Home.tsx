@@ -36,106 +36,87 @@ export default function Home() {
 
   return (
     <div>
-      {/* Hero */}
-      <section
-        className="relative min-h-[80vh] flex items-center overflow-hidden"
-        style={{
-          background:
-            "radial-gradient(ellipse at 50% 0%, oklch(0.22 0.06 55 / 0.25) 0%, transparent 55%), oklch(0.09 0.02 250)",
-        }}
-      >
-        <div className="absolute inset-0 opacity-10">
-          <img
-            src="/autic-tresures-logo.png"
-            alt=""
-            className="w-full h-full object-cover"
-          />
-        </div>
+      {/* Full-bleed hero with brand image */}
+      <section className="relative min-h-[92vh] flex items-end overflow-hidden">
+        <img
+          src="/autic-treasures-hero.jpg"
+          alt="Autic Treasures – Trading Card Community"
+          className="absolute inset-0 w-full h-full object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-transparent to-transparent" />
 
-        <div className="container relative z-10 py-16">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-6">
-              <Badge
-                variant="outline"
-                className="border-primary/40 text-primary bg-primary/10 text-xs tracking-widest uppercase"
+        <div className="container relative z-10 pb-16 pt-32 space-y-6 max-w-2xl">
+          <Badge
+            variant="outline"
+            className="border-primary/50 text-primary bg-background/40 backdrop-blur-sm text-xs tracking-[0.2em] uppercase"
+          >
+            Trading Card Community
+          </Badge>
+
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black leading-[1.05]">
+            <span className="font-serif text-primary tracking-wide">AUTIC</span>
+            <br />
+            <span className="font-serif text-primary tracking-wide">TREASURES</span>
+          </h1>
+
+          <p className="text-base md:text-lg text-foreground/85 max-w-md leading-relaxed">
+            Kaufe, verkaufe und bewerte Trading Cards – transparenter und schneller als Cardmarket.
+          </p>
+
+          <div className="flex flex-wrap gap-3">
+            <Link href="/marktplatz">
+              <Button
+                size="lg"
+                className="bg-primary hover:bg-primary/85 text-primary-foreground font-bold shadow-xl shadow-primary/30"
               >
-                <Star className="h-3 w-3 mr-1 fill-primary" />
-                TCG Marktplatz
-              </Badge>
-
-              <h1 className="text-5xl md:text-6xl font-black leading-tight">
-                <span className="font-serif text-primary">Autic</span>{" "}
-                <span className="text-foreground italic">tresures</span>
-              </h1>
-
-              <p className="text-lg text-muted-foreground leading-relaxed max-w-lg">
-                Kaufe, verkaufe und bewerte Trading Cards – moderner, schneller und
-                transparenter als Cardmarket. Alle großen TCGs an einem Ort.
-              </p>
-
-              <div className="flex flex-wrap gap-3">
-                <Link href="/marktplatz">
-                  <Button
-                    size="lg"
-                    className="bg-primary hover:bg-primary/80 text-primary-foreground font-bold shadow-xl shadow-primary/25"
-                  >
-                    <Search className="mr-2 h-5 w-5" />
-                    Karten entdecken
-                  </Button>
-                </Link>
-                <Link href="/verkaufen">
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="border-primary/40 text-primary hover:bg-primary/10 font-semibold"
-                  >
-                    <ShoppingBag className="mr-2 h-5 w-5" />
-                    Karte verkaufen
-                  </Button>
-                </Link>
-                {!isAuthenticated && (
-                  <Button
-                    size="lg"
-                    variant="ghost"
-                    className="text-muted-foreground"
-                    onClick={handleJoin}
-                  >
-                    {isOAuthConfigured() ? "Anmelden" : "Demo starten"}
-                  </Button>
-                )}
-              </div>
-
-              {stats && (
-                <div className="flex flex-wrap gap-6 pt-2">
-                  {[
-                    { icon: ShoppingBag, label: "Angebote", value: stats.activeListings },
-                    { icon: Users, label: "Verkäufer", value: stats.totalSellers },
-                    { icon: Star, label: "Ø Bewertung", value: stats.avgRating },
-                  ].map(({ icon: Icon, label, value }) => (
-                    <div key={label} className="flex items-center gap-2">
-                      <Icon className="h-4 w-4 text-primary" />
-                      <div>
-                        <div className="text-sm font-semibold text-foreground">{value}</div>
-                        <div className="text-xs text-muted-foreground">{label}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="flex justify-center">
-              <img
-                src="/autic-tresures-logo.png"
-                alt="Autic tresures"
-                className="w-72 h-72 md:w-96 md:h-96 object-contain drop-shadow-2xl rounded-2xl"
-              />
-            </div>
+                <Search className="mr-2 h-5 w-5" />
+                Karten entdecken
+              </Button>
+            </Link>
+            <Link href="/verkaufen">
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-primary/50 bg-background/40 backdrop-blur-sm text-primary hover:bg-primary/15 font-semibold"
+              >
+                <ShoppingBag className="mr-2 h-5 w-5" />
+                Karte verkaufen
+              </Button>
+            </Link>
+            {!isAuthenticated && (
+              <Button
+                size="lg"
+                variant="ghost"
+                className="text-foreground/70 hover:text-foreground"
+                onClick={handleJoin}
+              >
+                {isOAuthConfigured() ? "Anmelden" : "Demo starten"}
+              </Button>
+            )}
           </div>
+
+          {stats && (
+            <div className="flex flex-wrap gap-6 pt-2">
+              {[
+                { icon: ShoppingBag, label: "Angebote", value: stats.activeListings },
+                { icon: Users, label: "Verkäufer", value: stats.totalSellers },
+                { icon: Star, label: "Ø Bewertung", value: stats.avgRating },
+              ].map(({ icon: Icon, label, value }) => (
+                <div key={label} className="flex items-center gap-2">
+                  <Icon className="h-4 w-4 text-primary" />
+                  <div>
+                    <div className="text-sm font-semibold text-foreground">{value}</div>
+                    <div className="text-xs text-muted-foreground">{label}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
-      {/* USPs vs Cardmarket */}
+      {/* USPs */}
       <section className="py-12 border-y border-border bg-card/20">
         <div className="container">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -173,7 +154,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Game categories */}
       {stats && (
         <section className="py-12">
           <div className="container">
@@ -195,7 +175,6 @@ export default function Home() {
         </section>
       )}
 
-      {/* Featured cards */}
       <section className="py-12 bg-card/30">
         <div className="container">
           <div className="flex items-center justify-between mb-8">

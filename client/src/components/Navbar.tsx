@@ -53,16 +53,16 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-3 group">
             <img
-              src="/autic-tresures-logo.png"
-              alt="Autic tresures Logo"
-              className="h-10 w-10 object-contain rounded-lg transition-transform duration-300 group-hover:scale-110"
+              src="/autic-treasures-logo.png"
+              alt="Autic Treasures Logo"
+              className="h-10 w-10 object-cover rounded-lg transition-transform duration-300 group-hover:scale-110"
             />
             <div className="hidden sm:block">
-              <span className="font-serif font-bold text-lg leading-none text-primary">
-                Autic
+              <span className="font-serif font-bold text-lg leading-none text-primary tracking-wide">
+                AUTIC
               </span>
-              <div className="text-xs text-muted-foreground leading-none mt-0.5 tracking-widest italic">
-                tresures
+              <div className="text-[10px] text-primary/80 leading-none mt-0.5 tracking-[0.18em] uppercase">
+                Treasures
               </div>
             </div>
           </Link>

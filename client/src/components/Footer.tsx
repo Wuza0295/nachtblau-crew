@@ -8,15 +8,16 @@ export default function Footer() {
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <img
-                src="/autic-tresures-logo.png"
-                alt="Autic tresures"
-                className="h-10 w-10 object-contain rounded-lg"
+                src="/autic-treasures-logo.png"
+                alt="Autic Treasures"
+                className="h-10 w-10 object-cover rounded-lg"
               />
-              <span className="font-serif font-bold text-lg text-primary">Autic tresures</span>
+              <span className="font-serif font-bold text-lg text-primary tracking-wide">
+                Autic Treasures
+              </span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Dein moderner TCG-Marktplatz. Kaufe, verkaufe und bewerte Trading Cards –
-              transparenter und schneller als Cardmarket.
+              Deine Trading Card Community. Kaufe, verkaufe und bewerte – modern, klar und fair.
             </p>
           </div>
 
@@ -59,8 +60,8 @@ export default function Footer() {
         <div className="divider-glow mt-8 mb-6" />
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
-          <span>© {new Date().getFullYear()} Autic tresures. Alle Rechte vorbehalten.</span>
-          <span className="text-primary/60">Sammle. Handle. Bewerte.</span>
+          <span>© {new Date().getFullYear()} Autic Treasures. Alle Rechte vorbehalten.</span>
+          <span className="text-primary/60">Trading Card Community</span>
         </div>
       </div>
     </footer>
