@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl, isOAuthConfigured } from "@/const";
-import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,13 +15,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { useCreateListing, useMarketplaceCards } from "@/lib/useMarketplace";
 import { toast } from "sonner";
 import { ArrowLeft, Tag, CheckCircle } from "lucide-react";
 
 export default function SellCard() {
-  const { isAuthenticated, loginDemo } = useAuth();
+  const { isAuthenticated, loginDemo, user } = useAuth();
   const [, navigate] = useLocation();
-  const { data: cards } = trpc.marketplace.getCards.useQuery();
+  const { data: cards } = useMarketplaceCards();
 
   const [cardId, setCardId] = useState("");
   const [price, setPrice] = useState("");
@@ -32,13 +32,7 @@ export default function SellCard() {
   const [isFoil, setIsFoil] = useState(false);
   const [description, setDescription] = useState("");
 
-  const createMutation = trpc.marketplace.createListing.useMutation({
-    onSuccess: (listing) => {
-      toast.success("Angebot erfolgreich erstellt!");
-      navigate(`/karte/${listing.cardId}`);
-    },
-    onError: (err) => toast.error(err.message),
-  });
+  const createMutation = useCreateListing();
 
   if (!isAuthenticated) {
     return (
@@ -68,15 +62,26 @@ export default function SellCard() {
       toast.error("Bitte Karte und Preis auswählen");
       return;
     }
-    createMutation.mutate({
-      cardId,
-      price: parseFloat(price),
-      condition: condition as "mint" | "near_mint" | "excellent" | "good" | "played",
-      language,
-      quantity: parseInt(quantity) || 1,
-      isFoil,
-      description: description || `${condition} – schneller Versand`,
-    });
+    createMutation.mutate(
+      {
+        cardId,
+        price: parseFloat(price),
+        condition: condition as "mint" | "near_mint" | "excellent" | "good" | "played",
+        language,
+        quantity: parseInt(quantity) || 1,
+        isFoil,
+        description: description || `${condition} – schneller Versand`,
+        sellerId: user?.id,
+        sellerName: user?.name ?? undefined,
+      },
+      {
+        onSuccess: (listing) => {
+          toast.success("Angebot erfolgreich erstellt!");
+          navigate(`/karte/${listing.cardId}`);
+        },
+        onError: (err) => toast.error(err.message),
+      }
+    );
   };
 
   return (

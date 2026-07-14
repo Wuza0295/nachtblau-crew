@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useRoute, Link } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl, isOAuthConfigured } from "@/const";
-import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,6 +15,11 @@ import {
 } from "@/components/ui/dialog";
 import PriceChart from "@/components/marketplace/PriceChart";
 import StarRating from "@/components/marketplace/StarRating";
+import {
+  useCreateReview,
+  useMarketplaceCard,
+  usePurchaseListing,
+} from "@/lib/useMarketplace";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -47,8 +51,7 @@ const GAME_LABELS: Record<string, string> = {
 export default function CardDetail() {
   const [, params] = useRoute("/karte/:id");
   const cardId = params?.id ?? "";
-  const { isAuthenticated, loginDemo } = useAuth();
-  const utils = trpc.useUtils();
+  const { isAuthenticated, loginDemo, user } = useAuth();
 
   const ensureAuth = () => {
     if (isAuthenticated) return true;
@@ -68,33 +71,9 @@ export default function CardDetail() {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
 
-  const { data, isLoading } = trpc.marketplace.getCard.useQuery(
-    { cardId },
-    { enabled: !!cardId }
-  );
-
-  const purchaseMutation = trpc.marketplace.purchase.useMutation({
-    onSuccess: (result) => {
-      toast.success(result.message);
-      setBuyDialog(null);
-      utils.marketplace.getCard.invalidate({ cardId });
-      setReviewDialog({
-        sellerId: result.listing.sellerId,
-        listingId: result.listing.id,
-      });
-    },
-    onError: (err) => toast.error(err.message),
-  });
-
-  const reviewMutation = trpc.marketplace.createReview.useMutation({
-    onSuccess: () => {
-      toast.success("Bewertung abgegeben – danke!");
-      setReviewDialog(null);
-      setComment("");
-      setRating(5);
-    },
-    onError: (err) => toast.error(err.message),
-  });
+  const { data, isLoading } = useMarketplaceCard(cardId);
+  const purchaseMutation = usePurchaseListing();
+  const reviewMutation = useCreateReview();
 
   if (isLoading) {
     return (
@@ -263,7 +242,27 @@ export default function CardDetail() {
           </div>
           <Button
             className="w-full bg-primary hover:bg-primary/80"
-            onClick={() => buyDialog && purchaseMutation.mutate({ listingId: buyDialog })}
+            onClick={() =>
+              buyDialog &&
+              purchaseMutation.mutate(
+                {
+                  listingId: buyDialog,
+                  buyerId: user?.id,
+                  buyerName: user?.name ?? undefined,
+                },
+                {
+                  onSuccess: (result) => {
+                    toast.success(result.message);
+                    setBuyDialog(null);
+                    setReviewDialog({
+                      sellerId: result.listing.sellerId,
+                      listingId: result.listing.id,
+                    });
+                  },
+                  onError: (err) => toast.error(err.message),
+                }
+              )
+            }
             disabled={purchaseMutation.isPending}
           >
             <CheckCircle className="mr-2 h-4 w-4" />
@@ -303,12 +302,25 @@ export default function CardDetail() {
               className="w-full"
               onClick={() =>
                 reviewDialog &&
-                reviewMutation.mutate({
-                  sellerId: reviewDialog.sellerId,
-                  listingId: reviewDialog.listingId,
-                  rating,
-                  comment,
-                })
+                reviewMutation.mutate(
+                  {
+                    sellerId: reviewDialog.sellerId,
+                    listingId: reviewDialog.listingId,
+                    rating,
+                    comment,
+                    buyerId: user?.id,
+                    buyerName: user?.name ?? undefined,
+                  },
+                  {
+                    onSuccess: () => {
+                      toast.success("Bewertung abgegeben – danke!");
+                      setReviewDialog(null);
+                      setComment("");
+                      setRating(5);
+                    },
+                    onError: (err) => toast.error(err.message),
+                  }
+                )
               }
               disabled={reviewMutation.isPending || comment.length < 5}
             >

@@ -111,12 +111,14 @@ export default function Navbar() {
                     </p>
                   </div>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href={`/profil/${user.id}`} className="cursor-pointer">
-                      <User className="mr-2 h-4 w-4" />
-                      Mein Profil
-                    </Link>
-                  </DropdownMenuItem>
+                  {user.openId !== "demo" && (
+                    <DropdownMenuItem asChild>
+                      <Link href={`/profil/${user.id}`} className="cursor-pointer">
+                        <User className="mr-2 h-4 w-4" />
+                        Mein Profil
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={handleLogout}

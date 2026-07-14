@@ -2,9 +2,12 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl, isOAuthConfigured } from "@/const";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import CardTile from "@/components/marketplace/CardTile";
+import {
+  useMarketplaceSearch,
+  useMarketplaceStats,
+} from "@/lib/useMarketplace";
 import {
   ShoppingBag,
   TrendingUp,
@@ -16,14 +19,13 @@ import {
   Search,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useMemo } from "react";
 
 export default function Home() {
   const { isAuthenticated, loginDemo } = useAuth();
-  const { data: stats } = trpc.marketplace.getStats.useQuery();
-  const { data: featured } = trpc.marketplace.search.useQuery({
-    sort: "popular",
-    limit: 8,
-  });
+  const { data: stats } = useMarketplaceStats();
+  const searchFilters = useMemo(() => ({ sort: "popular" as const, limit: 8 }), []);
+  const { data: featured } = useMarketplaceSearch(searchFilters);
 
   const handleJoin = () => {
     if (isOAuthConfigured()) {
@@ -36,7 +38,6 @@ export default function Home() {
 
   return (
     <div>
-      {/* Full-bleed hero with brand image */}
       <section className="relative min-h-[92vh] flex items-end overflow-hidden">
         <img
           src="/autic-treasures-hero.jpg"
@@ -61,7 +62,8 @@ export default function Home() {
           </h1>
 
           <p className="text-base md:text-lg text-foreground/85 max-w-md leading-relaxed">
-            Kaufe, verkaufe und bewerte Trading Cards – transparenter und schneller als Cardmarket.
+            Kaufe, verkaufe und bewerte Trading Cards – transparenter und schneller als
+            Cardmarket.
           </p>
 
           <div className="flex flex-wrap gap-3">
@@ -116,7 +118,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* USPs */}
       <section className="py-12 border-y border-border bg-card/20">
         <div className="container">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

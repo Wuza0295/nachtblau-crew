@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useSearch } from "wouter";
-import { trpc } from "@/lib/trpc";
 import CardTile from "@/components/marketplace/CardTile";
 import MarketplaceFilters, { type FilterState } from "@/components/marketplace/MarketplaceFilters";
+import { useMarketplaceSearch } from "@/lib/useMarketplace";
+import type { CardCondition, TcgGame } from "@/lib/marketplaceStore";
 import { Skeleton } from "@/components/ui/skeleton";
 
 function useQueryParam(key: string): string | null {
@@ -32,28 +33,21 @@ export default function Marketplace() {
     }
   }, [gameParam]);
 
-  const { data, isLoading } = trpc.marketplace.search.useQuery({
-    query: applied.query || undefined,
-    game:
-      applied.game !== "all"
-        ? (applied.game as
-            | "pokemon"
-            | "yugioh"
-            | "mtg"
-            | "onepiece"
-            | "lorcana"
-            | "sports"
-            | "digimon")
-        : undefined,
-    condition:
-      applied.condition !== "all"
-        ? (applied.condition as "mint" | "near_mint" | "excellent" | "good" | "played")
-        : undefined,
-    sort: applied.sort as "price_asc" | "price_desc" | "newest" | "popular",
-    minPrice: applied.minPrice ? parseFloat(applied.minPrice) : undefined,
-    maxPrice: applied.maxPrice ? parseFloat(applied.maxPrice) : undefined,
-    limit: 24,
-  });
+  const searchInput = useMemo(
+    () => ({
+      query: applied.query || undefined,
+      game: applied.game !== "all" ? (applied.game as TcgGame) : undefined,
+      condition:
+        applied.condition !== "all" ? (applied.condition as CardCondition) : undefined,
+      sort: applied.sort as "price_asc" | "price_desc" | "newest" | "popular",
+      minPrice: applied.minPrice ? parseFloat(applied.minPrice) : undefined,
+      maxPrice: applied.maxPrice ? parseFloat(applied.maxPrice) : undefined,
+      limit: 24,
+    }),
+    [applied]
+  );
+
+  const { data, isLoading } = useMarketplaceSearch(searchInput);
 
   return (
     <div className="container py-8 space-y-6">

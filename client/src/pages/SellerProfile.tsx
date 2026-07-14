@@ -1,9 +1,9 @@
 import { useRoute, Link } from "wouter";
-import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import StarRating from "@/components/marketplace/StarRating";
+import { useMarketplaceSeller } from "@/lib/useMarketplace";
 import { ArrowLeft, Shield, Clock, Package, MessageSquare } from "lucide-react";
 
 const CONDITION_LABELS: Record<string, string> = {
@@ -18,10 +18,7 @@ export default function SellerProfile() {
   const [, params] = useRoute("/verkaeufer/:id");
   const sellerId = parseInt(params?.id ?? "0");
 
-  const { data, isLoading } = trpc.marketplace.getSeller.useQuery(
-    { sellerId },
-    { enabled: sellerId > 0 }
-  );
+  const { data, isLoading } = useMarketplaceSeller(sellerId);
 
   if (isLoading) {
     return (
