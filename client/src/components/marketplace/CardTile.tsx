@@ -48,40 +48,40 @@ export default function CardTile({
 }: CardTileProps) {
   return (
     <Link href={`/karte/${cardId}`}>
-      <Card className="group card-glow bg-card border-border overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 h-full">
-        <div className="relative aspect-[5/7] overflow-hidden bg-secondary/30">
+      <Card className="group card-glow bg-card border-border overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 h-full">
+        <div className="relative h-36 sm:h-40 overflow-hidden bg-secondary/30">
           <img
             src={imageUrl}
             alt={name}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="w-full h-full object-cover object-top transition-transform duration-400 group-hover:scale-105"
             loading="lazy"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent opacity-80" />
           <Badge
-            className={`absolute top-2 left-2 text-[10px] ${GAME_COLORS[game] ?? ""}`}
+            className={`absolute top-1.5 left-1.5 text-[9px] px-1.5 py-0 ${GAME_COLORS[game] ?? ""}`}
             variant="outline"
           >
             {GAME_LABELS[game] ?? game}
           </Badge>
           {isFoil && (
-            <Badge className="absolute top-2 right-2 text-[10px] bg-gradient-to-r from-amber-400/30 to-purple-400/30 text-amber-200 border-amber-400/40">
+            <Badge className="absolute top-1.5 right-1.5 text-[9px] px-1.5 py-0 bg-gradient-to-r from-amber-400/30 to-purple-400/30 text-amber-200 border-amber-400/40">
               Foil
             </Badge>
           )}
-          <div className="absolute bottom-2 left-2 right-2">
-            <p className="font-bold text-lg text-foreground drop-shadow-lg">
+          <div className="absolute bottom-1.5 left-1.5 right-1.5">
+            <p className="font-bold text-sm text-foreground drop-shadow-lg">
               ab €{price.toFixed(2)}
             </p>
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-[9px] text-muted-foreground">
               {listingCount} Angebot{listingCount !== 1 ? "e" : ""}
             </p>
           </div>
         </div>
-        <CardContent className="p-3 space-y-1.5">
-          <h3 className="font-semibold text-sm text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+        <CardContent className="p-2 space-y-0.5">
+          <h3 className="font-semibold text-xs text-foreground line-clamp-1 group-hover:text-primary transition-colors">
             {name}
           </h3>
-          <p className="text-xs text-muted-foreground line-clamp-1">{setName}</p>
+          <p className="text-[10px] text-muted-foreground line-clamp-1">{setName}</p>
           <StarRating rating={avgRating} size="sm" />
         </CardContent>
       </Card>
