@@ -105,6 +105,13 @@ def main() -> None:
         cwd_makedirs(ftp, FTP_REMOTE_DIR or "/")
         print(f"Upload nach {FTP_REMOTE_DIR or '/'} …")
         n = upload_tree(ftp, DIST)
+        # ALL-INKL DirectoryIndex prefers index.htm over index.html – remove/overwrite placeholder
+        index_html = DIST / "index.html"
+        if index_html.exists():
+            with index_html.open("rb") as fh:
+                ftp.storbinary("STOR index.htm", fh)
+            n += 1
+            print("  ↑ index.htm (mirror of index.html)")
         print(f"✓ {n} Dateien hochgeladen.")
         print("Öffne: http://autictreasures.nacht-blau.de/")
     finally:
