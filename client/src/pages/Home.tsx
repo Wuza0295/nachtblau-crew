@@ -2,12 +2,13 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl, isOAuthConfigured } from "@/const";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import CardTile from "@/components/marketplace/CardTile";
 import {
   useMarketplaceSearch,
   useMarketplaceStats,
 } from "@/lib/useMarketplace";
+import { profileSetupPath } from "@/lib/useTradingProfile";
 import {
   ShoppingBag,
   TrendingUp,
@@ -23,6 +24,7 @@ import { useMemo } from "react";
 
 export default function Home() {
   const { isAuthenticated, loginDemo } = useAuth();
+  const [, navigate] = useLocation();
   const { data: stats } = useMarketplaceStats();
   const searchFilters = useMemo(() => ({ sort: "popular" as const, limit: 8 }), []);
   const { data: featured } = useMarketplaceSearch(searchFilters);
@@ -33,7 +35,8 @@ export default function Home() {
       return;
     }
     loginDemo();
-    toast.success("Demo-Modus aktiv");
+    toast.success("Angemeldet – Händlerprofil anlegen");
+    navigate(profileSetupPath("/marktplatz"));
   };
 
   return (
@@ -93,7 +96,7 @@ export default function Home() {
                 className="text-foreground/70 hover:text-foreground"
                 onClick={handleJoin}
               >
-                {isOAuthConfigured() ? "Anmelden" : "Demo starten"}
+                {isOAuthConfigured() ? "Anmelden" : "Profil erstellen"}
               </Button>
             )}
           </div>

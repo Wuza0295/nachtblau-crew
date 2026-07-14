@@ -70,21 +70,30 @@ export function useMarketplaceSeller(sellerId: number) {
   return { data, isLoading: false, error: null };
 }
 
+export type CreateListingInput = {
+  cardId?: string;
+  title: string;
+  setName?: string;
+  game: TcgGame;
+  imageUrl: string;
+  price: number;
+  condition: CardCondition;
+  language: string;
+  quantity: number;
+  isFoil: boolean;
+  description: string;
+  sellerId?: number;
+  sellerName?: string;
+  sellerAvatar?: string;
+  sellerCountry?: string;
+  sellerCity?: string;
+};
+
 export function useCreateListing() {
   return {
     isPending: false,
     mutate: (
-      input: {
-        cardId: string;
-        price: number;
-        condition: CardCondition;
-        language: string;
-        quantity: number;
-        isFoil: boolean;
-        description: string;
-        sellerId?: number;
-        sellerName?: string;
-      },
+      input: CreateListingInput,
       opts?: {
         onSuccess?: (listing: ReturnType<typeof createListing>) => void;
         onError?: (e: Error) => void;

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useRoute, Link } from "wouter";
+import { useRoute, Link, useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl, isOAuthConfigured } from "@/const";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ import {
   useMarketplaceCard,
   usePurchaseListing,
 } from "@/lib/useMarketplace";
+import { useTradingProfile, profileSetupPath } from "@/lib/useTradingProfile";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -51,16 +52,26 @@ const GAME_LABELS: Record<string, string> = {
 export default function CardDetail() {
   const [, params] = useRoute("/karte/:id");
   const cardId = params?.id ?? "";
+  const [, navigate] = useLocation();
   const { isAuthenticated, loginDemo, user } = useAuth();
+  const { profile, isComplete } = useTradingProfile(user?.id);
 
-  const ensureAuth = () => {
-    if (isAuthenticated) return true;
-    if (isOAuthConfigured()) {
-      window.location.href = getLoginUrl();
+  const ensureCanTrade = () => {
+    if (!isAuthenticated) {
+      if (isOAuthConfigured()) {
+        window.location.href = getLoginUrl();
+        return false;
+      }
+      loginDemo();
+      toast.message("Bitte zuerst dein Händlerprofil anlegen");
+      navigate(profileSetupPath(`/karte/${cardId}`));
       return false;
     }
-    loginDemo();
-    toast.success("Demo-Modus aktiv");
+    if (!isComplete) {
+      toast.message("Profil erforderlich zum Kaufen");
+      navigate(profileSetupPath(`/karte/${cardId}`));
+      return false;
+    }
     return true;
   };
 
@@ -98,6 +109,8 @@ export default function CardDetail() {
 
   const { card, listings } = data;
   const cheapest = listings[0];
+  const heroImage = cheapest?.imageUrl || card.imageUrl;
+  const displayTitle = cheapest?.title || card.name;
 
   return (
     <div className="container py-8">
@@ -109,10 +122,9 @@ export default function CardDetail() {
       </Link>
 
       <div className="grid lg:grid-cols-2 gap-8">
-        {/* Card image */}
         <div className="space-y-4">
           <div className="relative aspect-[5/7] max-w-sm mx-auto rounded-xl overflow-hidden border border-border shadow-2xl">
-            <img src={card.imageUrl} alt={card.name} className="w-full h-full object-cover" />
+            <img src={heroImage} alt={displayTitle} className="w-full h-full object-cover" />
             {cheapest?.isFoil && (
               <Badge className="absolute top-3 right-3 bg-gradient-to-r from-amber-400/40 to-purple-400/40 text-amber-100 border-amber-400/50">
                 <Sparkles className="h-3 w-3 mr-1" />
@@ -134,7 +146,6 @@ export default function CardDetail() {
           </Card>
         </div>
 
-        {/* Details & listings */}
         <div className="space-y-6">
           <div>
             <div className="flex flex-wrap gap-2 mb-2">
@@ -144,7 +155,7 @@ export default function CardDetail() {
               <Badge variant="outline">{card.rarity}</Badge>
               <Badge variant="outline">#{card.number}</Badge>
             </div>
-            <h1 className="text-3xl font-bold">{card.name}</h1>
+            <h1 className="text-3xl font-bold">{displayTitle}</h1>
             <p className="text-muted-foreground mt-1">{card.setName}</p>
             <div className="flex items-center gap-3 mt-3">
               <StarRating rating={card.avgRating} showValue size="md" />
@@ -159,23 +170,27 @@ export default function CardDetail() {
               <p className="text-sm text-muted-foreground">Günstigstes Angebot</p>
               <p className="text-3xl font-bold text-primary mt-1">€{cheapest.price.toFixed(2)}</p>
               <p className="text-sm text-muted-foreground mt-1">
-                {CONDITION_LABELS[cheapest.condition]} · {cheapest.language}
+                {CONDITION_LABELS[cheapest.condition]} · {cheapest.language} · {cheapest.sellerName}
               </p>
               <Button
                 className="mt-3 w-full bg-primary hover:bg-primary/80 font-bold"
                 size="lg"
                 onClick={() => {
-                  if (!ensureAuth()) return;
+                  if (!ensureCanTrade()) return;
                   setBuyDialog(cheapest.id);
                 }}
               >
                 <ShoppingCart className="mr-2 h-5 w-5" />
                 Jetzt kaufen
               </Button>
+              {!isComplete && (
+                <p className="text-xs text-muted-foreground mt-2 text-center">
+                  Zum Kauf brauchst du ein Händlerprofil.
+                </p>
+              )}
             </div>
           )}
 
-          {/* All listings */}
           <div className="space-y-3">
             <h2 className="font-bold text-lg">
               {listings.length} Angebot{listings.length !== 1 ? "e" : ""}
@@ -183,38 +198,41 @@ export default function CardDetail() {
             {listings.map((listing) => (
               <Card key={listing.id} className="bg-card border-border">
                 <CardContent className="p-4 flex items-center justify-between gap-4">
-                  <div className="space-y-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-bold text-lg text-primary">
-                        €{listing.price.toFixed(2)}
-                      </span>
-                      <Badge variant="outline" className="text-xs">
-                        {CONDITION_LABELS[listing.condition]}
-                      </Badge>
-                      {listing.isFoil && (
-                        <Badge className="text-xs bg-amber-500/20 text-amber-300">Foil</Badge>
-                      )}
-                      {listing.isGraded && listing.grade && (
-                        <Badge className="text-xs bg-blue-500/20 text-blue-300">
-                          {listing.grade}
+                  <div className="flex gap-3 min-w-0 flex-1">
+                    <img
+                      src={listing.imageUrl}
+                      alt=""
+                      className="w-12 h-16 object-cover rounded border border-border shrink-0"
+                    />
+                    <div className="space-y-1 min-w-0">
+                      <p className="text-sm font-medium line-clamp-1">{listing.title || card.name}</p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-lg text-primary">
+                          €{listing.price.toFixed(2)}
+                        </span>
+                        <Badge variant="outline" className="text-xs">
+                          {CONDITION_LABELS[listing.condition]}
                         </Badge>
-                      )}
-                    </div>
-                    <Link href={`/verkaeufer/${listing.sellerId}`}>
-                      <p className="text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer">
-                        {listing.sellerName} · {listing.language} · {listing.quantity}x
+                        {listing.isFoil && (
+                          <Badge className="text-xs bg-amber-500/20 text-amber-300">Foil</Badge>
+                        )}
+                      </div>
+                      <Link href={`/verkaeufer/${listing.sellerId}`}>
+                        <p className="text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+                          {listing.sellerName} · {listing.language} · {listing.quantity}x
+                        </p>
+                      </Link>
+                      <p className="text-xs text-muted-foreground line-clamp-1">
+                        {listing.description}
                       </p>
-                    </Link>
-                    <p className="text-xs text-muted-foreground line-clamp-1">
-                      {listing.description}
-                    </p>
+                    </div>
                   </div>
                   <Button
                     size="sm"
                     variant="outline"
                     className="shrink-0 border-primary/40 text-primary hover:bg-primary/10"
                     onClick={() => {
-                      if (!ensureAuth()) return;
+                      if (!ensureCanTrade()) return;
                       setBuyDialog(listing.id);
                     }}
                   >
@@ -227,13 +245,16 @@ export default function CardDetail() {
         </div>
       </div>
 
-      {/* Buy confirmation dialog */}
       <Dialog open={!!buyDialog} onOpenChange={() => setBuyDialog(null)}>
         <DialogContent className="bg-card border-border">
           <DialogHeader>
             <DialogTitle>Kauf bestätigen</DialogTitle>
             <DialogDescription>
-              Du kaufst <strong>{card.name}</strong> zum angegebenen Preis inkl. Versand.
+              Du kaufst als <strong>{profile?.displayName}</strong> –{" "}
+              <strong>
+                {listings.find((l) => l.id === buyDialog)?.title || card.name}
+              </strong>
+              .
             </DialogDescription>
           </DialogHeader>
           <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
@@ -248,7 +269,7 @@ export default function CardDetail() {
                 {
                   listingId: buyDialog,
                   buyerId: user?.id,
-                  buyerName: user?.name ?? undefined,
+                  buyerName: profile?.displayName ?? user?.name ?? undefined,
                 },
                 {
                   onSuccess: (result) => {
@@ -271,7 +292,6 @@ export default function CardDetail() {
         </DialogContent>
       </Dialog>
 
-      {/* Review dialog */}
       <Dialog open={!!reviewDialog} onOpenChange={() => setReviewDialog(null)}>
         <DialogContent className="bg-card border-border">
           <DialogHeader>
@@ -309,7 +329,7 @@ export default function CardDetail() {
                     rating,
                     comment,
                     buyerId: user?.id,
-                    buyerName: user?.name ?? undefined,
+                    buyerName: profile?.displayName ?? user?.name ?? undefined,
                   },
                   {
                     onSuccess: () => {

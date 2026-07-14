@@ -10,6 +10,7 @@ import CardDetail from "./pages/CardDetail";
 import SellCard from "./pages/SellCard";
 import SellerProfile from "./pages/SellerProfile";
 import Profile from "./pages/Profile";
+import SetupProfile from "./pages/SetupProfile";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
@@ -24,6 +25,7 @@ function Router() {
           <Route path="/karte/:id" component={CardDetail} />
           <Route path="/verkaufen" component={SellCard} />
           <Route path="/verkaeufer/:id" component={SellerProfile} />
+          <Route path="/profil-erstellen" component={SetupProfile} />
           <Route path="/profil/:id" component={Profile} />
           <Route path="/404" component={NotFound} />
           <Route component={NotFound} />

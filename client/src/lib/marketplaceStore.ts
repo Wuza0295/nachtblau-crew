@@ -30,6 +30,8 @@ export interface CardCatalogEntry {
 export interface Listing {
   id: string;
   cardId: string;
+  /** Seller-chosen article title (Cardmarket-style) */
+  title: string;
   sellerId: number;
   sellerName: string;
   price: number;
@@ -61,6 +63,8 @@ export interface SellerProfile {
   id: number;
   name: string;
   avatar?: string;
+  country?: string;
+  city?: string;
   rating: number;
   reviewCount: number;
   salesCount: number;
@@ -281,6 +285,7 @@ function seedListings(): Listing[] {
       listings.push({
         id: `lst-${card.id}-${i}`,
         cardId: card.id,
+        title: card.name,
         sellerId: seller.id,
         sellerName: seller.name,
         price: Math.round(card.marketPrice * variance * 100) / 100,
@@ -347,11 +352,52 @@ const SEED_REVIEWS: Review[] = [
   },
 ];
 
-// In-memory store
-let cards = [...SEED_CARDS];
-let listings = seedListings();
-let reviews = [...SEED_REVIEWS];
-let sellers = [...SEED_SELLERS];
+const STORAGE_KEY = "autic-marketplace-v1";
+
+type PersistedState = {
+  cards: CardCatalogEntry[];
+  listings: Listing[];
+  reviews: Review[];
+  sellers: SellerProfile[];
+};
+
+function loadPersisted(): PersistedState | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw) as PersistedState;
+    if (!Array.isArray(data.cards) || !Array.isArray(data.listings)) return null;
+    // Backfill title for older persisted listings
+    data.listings = data.listings.map((l) => ({
+      ...l,
+      title: l.title || data.cards.find((c) => c.id === l.cardId)?.name || "Karte",
+    }));
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+function persist() {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ cards, listings, reviews, sellers } satisfies PersistedState)
+    );
+  } catch (err) {
+    console.warn("[marketplace] Speichern fehlgeschlagen (Speicher voll?)", err);
+  }
+}
+
+const persisted = loadPersisted();
+
+// In-memory store (hydrated from localStorage when available)
+let cards = persisted?.cards?.length ? persisted.cards : [...SEED_CARDS];
+let listings = persisted?.listings?.length ? persisted.listings : seedListings();
+let reviews = persisted?.reviews?.length ? persisted.reviews : [...SEED_REVIEWS];
+let sellers = persisted?.sellers?.length ? persisted.sellers : [...SEED_SELLERS];
 
 export interface SearchFilters {
   query?: string;
@@ -380,6 +426,7 @@ export function searchMarketplace(filters: SearchFilters) {
     activeListings = activeListings.filter((l) => {
       const card = cards.find((c) => c.id === l.cardId);
       return (
+        l.title.toLowerCase().includes(q) ||
         card?.name.toLowerCase().includes(q) ||
         card?.setName.toLowerCase().includes(q) ||
         l.sellerName.toLowerCase().includes(q)
@@ -397,7 +444,15 @@ export function searchMarketplace(filters: SearchFilters) {
   let results = Array.from(cardMap.values()).map((listing) => {
     const card = cards.find((c) => c.id === listing.cardId)!;
     const listingCount = activeListings.filter((l) => l.cardId === card.id).length;
-    return { listing, card, listingCount };
+    return {
+      listing,
+      card: {
+        ...card,
+        name: listing.title || card.name,
+        imageUrl: listing.imageUrl || card.imageUrl,
+      },
+      listingCount,
+    };
   });
 
   switch (sort) {
@@ -447,10 +502,50 @@ export function getSellerProfile(sellerId: number) {
   return { seller, reviews: sellerReviews, activeListings };
 }
 
+export function ensureSellerProfile(input: {
+  id: number;
+  name: string;
+  avatar?: string;
+  country?: string;
+  city?: string;
+}) {
+  let seller = sellers.find((s) => s.id === input.id);
+  if (!seller) {
+    seller = {
+      id: input.id,
+      name: input.name,
+      avatar: input.avatar,
+      country: input.country,
+      city: input.city,
+      rating: 0,
+      reviewCount: 0,
+      salesCount: 0,
+      responseTime: "< 24h",
+      memberSince: String(new Date().getFullYear()),
+      verified: false,
+    };
+    sellers.push(seller);
+  } else {
+    seller.name = input.name;
+    if (input.avatar) seller.avatar = input.avatar;
+    if (input.country) seller.country = input.country;
+    if (input.city) seller.city = input.city;
+  }
+  persist();
+  return seller;
+}
+
 export function createListing(input: {
-  cardId: string;
+  cardId?: string;
+  title: string;
+  setName?: string;
+  game: TcgGame;
+  imageUrl: string;
   sellerId: number;
   sellerName: string;
+  sellerAvatar?: string;
+  sellerCountry?: string;
+  sellerCity?: string;
   price: number;
   condition: CardCondition;
   language: string;
@@ -458,12 +553,47 @@ export function createListing(input: {
   isFoil: boolean;
   description: string;
 }) {
-  const card = cards.find((c) => c.id === input.cardId);
-  if (!card) throw new Error("Karte nicht gefunden");
+  const title = input.title.trim();
+  if (title.length < 2) throw new Error("Bitte einen Kartentitel angeben");
+  if (!input.imageUrl) throw new Error("Bitte ein Kartenbild hochladen");
+  if (!(input.price > 0)) throw new Error("Bitte einen gültigen Preis angeben");
+
+  ensureSellerProfile({
+    id: input.sellerId,
+    name: input.sellerName,
+    avatar: input.sellerAvatar,
+    country: input.sellerCountry,
+    city: input.sellerCity,
+  });
+
+  let card = input.cardId ? cards.find((c) => c.id === input.cardId) : undefined;
+  const useCatalogAsIs =
+    card &&
+    title === card.name &&
+    input.imageUrl === card.imageUrl &&
+    (!input.setName || input.setName === card.setName);
+
+  if (!useCatalogAsIs) {
+    card = {
+      id: `card-user-${nanoid(8)}`,
+      name: title,
+      setName: input.setName?.trim() || card?.setName || "User-Angebot",
+      game: input.game,
+      rarity: card?.rarity || "—",
+      number: card?.number || "—",
+      imageUrl: input.imageUrl,
+      marketPrice: input.price,
+      priceHistory: priceHistory(input.price),
+      avgRating: 0,
+      reviewCount: 0,
+    };
+    cards.unshift(card);
+  }
 
   const listing: Listing = {
     id: `lst-${nanoid(8)}`,
-    cardId: input.cardId,
+    cardId: card!.id,
+    title,
     sellerId: input.sellerId,
     sellerName: input.sellerName,
     price: input.price,
@@ -473,11 +603,12 @@ export function createListing(input: {
     isFoil: input.isFoil,
     isGraded: false,
     description: input.description,
-    imageUrl: card.imageUrl,
+    imageUrl: input.imageUrl,
     status: "active",
     createdAt: new Date().toISOString(),
   };
   listings.unshift(listing);
+  persist();
   return listing;
 }
 
@@ -485,6 +616,7 @@ export function purchaseListing(listingId: string, buyerId: number, buyerName: s
   const listing = listings.find((l) => l.id === listingId);
   if (!listing) throw new Error("Angebot nicht gefunden");
   if (listing.status !== "active") throw new Error("Angebot nicht mehr verfügbar");
+  if (listing.sellerId === buyerId) throw new Error("Du kannst nicht dein eigenes Angebot kaufen");
 
   listing.status = "sold";
   listing.quantity = Math.max(0, listing.quantity - 1);
@@ -494,12 +626,13 @@ export function purchaseListing(listingId: string, buyerId: number, buyerName: s
   const seller = sellers.find((s) => s.id === listing.sellerId);
   if (seller) seller.salesCount += 1;
 
+  persist();
   return {
     success: true,
     orderId: `ord-${nanoid(10)}`,
     listing,
     card,
-    message: `Kauf erfolgreich! ${card?.name ?? "Karte"} von ${listing.sellerName}`,
+    message: `Kauf erfolgreich! ${listing.title || card?.name || "Karte"} von ${listing.sellerName}`,
   };
 }
 
@@ -520,14 +653,13 @@ export function createReview(input: {
     buyerId: input.buyerId,
     buyerName: input.buyerName,
     listingId: input.listingId,
-    cardName: card?.name ?? "Unbekannte Karte",
+    cardName: listing?.title ?? card?.name ?? "Unbekannte Karte",
     rating: input.rating,
     comment: input.comment,
     createdAt: new Date().toISOString(),
   };
   reviews.unshift(review);
 
-  // Update seller rating
   const seller = sellers.find((s) => s.id === input.sellerId);
   if (seller) {
     const sellerReviews = reviews.filter((r) => r.sellerId === input.sellerId);
@@ -538,6 +670,7 @@ export function createReview(input: {
       ) / 10;
   }
 
+  persist();
   return review;
 }
 

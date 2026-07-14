@@ -8,11 +8,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link, useLocation } from "wouter";
-import { Menu, X, ShoppingBag, Search, Tag, LogOut, User } from "lucide-react";
+import { Menu, X, ShoppingBag, Search, Tag, LogOut, User, BadgeCheck } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTradingProfile, profileSetupPath } from "@/lib/useTradingProfile";
 
 const NAV_LINKS = [
   { href: "/marktplatz", label: "Marktplatz", icon: Search },
@@ -21,7 +22,8 @@ const NAV_LINKS = [
 
 export default function Navbar() {
   const { user, isAuthenticated, logout, loginDemo } = useAuth();
-  const [location] = useLocation();
+  const { profile, isComplete } = useTradingProfile(user?.id);
+  const [location, navigate] = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogin = () => {
@@ -30,7 +32,8 @@ export default function Navbar() {
       return;
     }
     loginDemo();
-    toast.success("Demo-Modus aktiv – du bist als DemoSammler angemeldet");
+    toast.success("Angemeldet – bitte Profil anlegen zum Handeln");
+    navigate(profileSetupPath("/marktplatz"));
   };
 
   const handleLogout = async () => {
@@ -38,14 +41,13 @@ export default function Navbar() {
     window.location.href = "/";
   };
 
-  const initials = user?.name
-    ? user.name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2)
-    : "?";
+  const displayName = profile?.displayName || user?.name || "Sammler";
+  const initials = displayName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 
   return (
     <nav className="glass-nav sticky top-0 z-50">
@@ -95,27 +97,46 @@ export default function Navbar() {
                     className="relative h-9 w-9 rounded-full p-0 ring-2 ring-primary/30 hover:ring-primary/60 transition-all"
                   >
                     <Avatar className="h-9 w-9">
+                      {profile?.avatarUrl ? <AvatarImage src={profile.avatarUrl} alt="" /> : null}
                       <AvatarFallback className="bg-primary/20 text-primary text-sm font-semibold">
                         {initials}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48 bg-card border-border">
+                <DropdownMenuContent align="end" className="w-52 bg-card border-border">
                   <div className="px-3 py-2">
-                    <p className="text-sm font-medium text-foreground truncate">
-                      {user.name ?? "Sammler"}
-                    </p>
+                    <p className="text-sm font-medium text-foreground truncate">{displayName}</p>
                     <p className="text-xs text-muted-foreground truncate">
-                      {user.email ?? ""}
+                      {isComplete
+                        ? `${profile?.country}, ${profile?.city}`
+                        : "Profil unvollständig"}
                     </p>
                   </div>
                   <DropdownMenuSeparator />
-                  {user.openId !== "demo" && (
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href={isComplete ? `/verkaeufer/${user.id}` : profileSetupPath()}
+                      className="cursor-pointer"
+                    >
+                      {isComplete ? (
+                        <>
+                          <User className="mr-2 h-4 w-4" />
+                          Mein Händlerprofil
+                        </>
+                      ) : (
+                        <>
+                          <BadgeCheck className="mr-2 h-4 w-4" />
+                          Profil erstellen
+                        </>
+                      )}
+                    </Link>
+                  </DropdownMenuItem>
+                  {isComplete && (
                     <DropdownMenuItem asChild>
-                      <Link href={`/profil/${user.id}`} className="cursor-pointer">
-                        <User className="mr-2 h-4 w-4" />
-                        Mein Profil
+                      <Link href={profileSetupPath()} className="cursor-pointer">
+                        <BadgeCheck className="mr-2 h-4 w-4" />
+                        Profil bearbeiten
                       </Link>
                     </DropdownMenuItem>
                   )}
@@ -136,7 +157,7 @@ export default function Navbar() {
                 onClick={handleLogin}
               >
                 <ShoppingBag className="mr-2 h-4 w-4" />
-                {isOAuthConfigured() ? "Anmelden" : "Demo starten"}
+                {isOAuthConfigured() ? "Anmelden" : "Konto starten"}
               </Button>
             )}
 
