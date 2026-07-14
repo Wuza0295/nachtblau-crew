@@ -1,7 +1,39 @@
-import { getLoginUrl } from "@/const";
+import { getLoginUrl, isOAuthConfigured } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { TRPCClientError } from "@trpc/client";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+
+const DEMO_USER_KEY = "autic-demo-user";
+
+export type DemoUser = {
+  id: number;
+  name: string;
+  email: string;
+};
+
+function readDemoUser(): DemoUser | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(DEMO_USER_KEY);
+    return raw ? (JSON.parse(raw) as DemoUser) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function startDemoSession(name = "DemoSammler") {
+  const user: DemoUser = {
+    id: 99,
+    name,
+    email: "demo@autic-tresures.local",
+  };
+  localStorage.setItem(DEMO_USER_KEY, JSON.stringify(user));
+  return user;
+}
+
+export function clearDemoSession() {
+  localStorage.removeItem(DEMO_USER_KEY);
+}
 
 type UseAuthOptions = {
   redirectOnUnauthenticated?: boolean;
@@ -9,9 +41,9 @@ type UseAuthOptions = {
 };
 
 export function useAuth(options?: UseAuthOptions) {
-  const { redirectOnUnauthenticated = false, redirectPath = getLoginUrl() } =
-    options ?? {};
+  const { redirectOnUnauthenticated = false, redirectPath } = options ?? {};
   const utils = trpc.useUtils();
+  const [demoUser, setDemoUser] = useState<DemoUser | null>(() => readDemoUser());
 
   const meQuery = trpc.auth.me.useQuery(undefined, {
     retry: false,
@@ -25,6 +57,8 @@ export function useAuth(options?: UseAuthOptions) {
   });
 
   const logout = useCallback(async () => {
+    clearDemoSession();
+    setDemoUser(null);
     try {
       await logoutMutation.mutateAsync();
     } catch (error: unknown) {
@@ -41,16 +75,39 @@ export function useAuth(options?: UseAuthOptions) {
     }
   }, [logoutMutation, utils]);
 
+  const loginDemo = useCallback(() => {
+    const user = startDemoSession();
+    setDemoUser(user);
+  }, []);
+
   const state = useMemo(() => {
-    localStorage.setItem(
-      "manus-runtime-user-info",
-      JSON.stringify(meQuery.data)
-    );
+    const oauthUser = meQuery.data ?? null;
+    const user = oauthUser
+      ? oauthUser
+      : demoUser
+        ? {
+            id: demoUser.id,
+            name: demoUser.name,
+            email: demoUser.email,
+            openId: "demo",
+            loginMethod: "demo",
+            role: "user" as const,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            lastSignedIn: new Date(),
+          }
+        : null;
+
+    localStorage.setItem("manus-runtime-user-info", JSON.stringify(user));
+
     return {
-      user: meQuery.data ?? null,
+      user,
       loading: meQuery.isLoading || logoutMutation.isPending,
       error: meQuery.error ?? logoutMutation.error ?? null,
-      isAuthenticated: Boolean(meQuery.data),
+      isAuthenticated: Boolean(user),
+      isDemo: Boolean(demoUser) && !oauthUser,
+      oauthConfigured: isOAuthConfigured(),
+      loginDemo,
     };
   }, [
     meQuery.data,
@@ -58,6 +115,8 @@ export function useAuth(options?: UseAuthOptions) {
     meQuery.isLoading,
     logoutMutation.error,
     logoutMutation.isPending,
+    demoUser,
+    loginDemo,
   ]);
 
   useEffect(() => {
@@ -65,9 +124,11 @@ export function useAuth(options?: UseAuthOptions) {
     if (meQuery.isLoading || logoutMutation.isPending) return;
     if (state.user) return;
     if (typeof window === "undefined") return;
-    if (window.location.pathname === redirectPath) return;
 
-    window.location.href = redirectPath
+    const target = redirectPath ?? getLoginUrl();
+    if (window.location.pathname === target) return;
+
+    window.location.href = target;
   }, [
     redirectOnUnauthenticated,
     redirectPath,

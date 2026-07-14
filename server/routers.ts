@@ -411,7 +411,7 @@ const marketplaceRouter = router({
       return result;
     }),
 
-  createListing: protectedProcedure
+  createListing: publicProcedure
     .input(
       z.object({
         cardId: z.string(),
@@ -423,22 +423,24 @@ const marketplaceRouter = router({
         description: z.string().min(5).max(500),
       })
     )
-    .mutation(({ ctx, input }) =>
-      createListing({
+    .mutation(({ ctx, input }) => {
+      const user = ctx.user ?? { id: 99, name: "DemoSammler" };
+      return createListing({
         ...input,
-        sellerId: ctx.user.id,
-        sellerName: ctx.user.name ?? `User${ctx.user.id}`,
-      })
-    ),
+        sellerId: user.id,
+        sellerName: user.name ?? `User${user.id}`,
+      });
+    }),
 
-  purchase: protectedProcedure
+  purchase: publicProcedure
     .input(z.object({ listingId: z.string() }))
     .mutation(({ ctx, input }) => {
+      const user = ctx.user ?? { id: 99, name: "DemoSammler" };
       try {
         return purchaseListing(
           input.listingId,
-          ctx.user.id,
-          ctx.user.name ?? `User${ctx.user.id}`
+          user.id,
+          user.name ?? `User${user.id}`
         );
       } catch (e) {
         throw new TRPCError({
@@ -448,7 +450,7 @@ const marketplaceRouter = router({
       }
     }),
 
-  createReview: protectedProcedure
+  createReview: publicProcedure
     .input(
       z.object({
         sellerId: z.number(),
@@ -457,13 +459,14 @@ const marketplaceRouter = router({
         comment: z.string().min(5).max(500),
       })
     )
-    .mutation(({ ctx, input }) =>
-      createReview({
+    .mutation(({ ctx, input }) => {
+      const user = ctx.user ?? { id: 99, name: "DemoSammler" };
+      return createReview({
         ...input,
-        buyerId: ctx.user.id,
-        buyerName: ctx.user.name ?? `User${ctx.user.id}`,
-      })
-    ),
+        buyerId: user.id,
+        buyerName: user.name ?? `User${user.id}`,
+      });
+    }),
 });
 
 // ─── App Router ───────────────────────────────────────────────────────────────

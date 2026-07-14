@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
+import { getLoginUrl, isOAuthConfigured } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Tag, CheckCircle } from "lucide-react";
 
 export default function SellCard() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loginDemo } = useAuth();
   const [, navigate] = useLocation();
   const { data: cards } = trpc.marketplace.getCards.useQuery();
 
@@ -44,7 +44,18 @@ export default function SellCard() {
     return (
       <div className="container py-20 text-center space-y-4">
         <p className="text-muted-foreground">Melde dich an, um Karten zu verkaufen.</p>
-        <Button onClick={() => (window.location.href = getLoginUrl())}>Anmelden</Button>
+        <Button
+          onClick={() => {
+            if (isOAuthConfigured()) {
+              window.location.href = getLoginUrl();
+              return;
+            }
+            loginDemo();
+            toast.success("Demo-Modus aktiv");
+          }}
+        >
+          {isOAuthConfigured() ? "Anmelden" : "Demo starten"}
+        </Button>
       </div>
     );
   }

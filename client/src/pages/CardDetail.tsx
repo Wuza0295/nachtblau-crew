@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useRoute, Link } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
+import { getLoginUrl, isOAuthConfigured } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -47,8 +47,19 @@ const GAME_LABELS: Record<string, string> = {
 export default function CardDetail() {
   const [, params] = useRoute("/karte/:id");
   const cardId = params?.id ?? "";
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loginDemo } = useAuth();
   const utils = trpc.useUtils();
+
+  const ensureAuth = () => {
+    if (isAuthenticated) return true;
+    if (isOAuthConfigured()) {
+      window.location.href = getLoginUrl();
+      return false;
+    }
+    loginDemo();
+    toast.success("Demo-Modus aktiv");
+    return true;
+  };
 
   const [buyDialog, setBuyDialog] = useState<string | null>(null);
   const [reviewDialog, setReviewDialog] = useState<{ sellerId: number; listingId: string } | null>(
@@ -175,10 +186,7 @@ export default function CardDetail() {
                 className="mt-3 w-full bg-primary hover:bg-primary/80 font-bold"
                 size="lg"
                 onClick={() => {
-                  if (!isAuthenticated) {
-                    window.location.href = getLoginUrl();
-                    return;
-                  }
+                  if (!ensureAuth()) return;
                   setBuyDialog(cheapest.id);
                 }}
               >
@@ -227,10 +235,7 @@ export default function CardDetail() {
                     variant="outline"
                     className="shrink-0 border-primary/40 text-primary hover:bg-primary/10"
                     onClick={() => {
-                      if (!isAuthenticated) {
-                        window.location.href = getLoginUrl();
-                        return;
-                      }
+                      if (!ensureAuth()) return;
                       setBuyDialog(listing.id);
                     }}
                   >

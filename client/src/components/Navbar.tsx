@@ -1,5 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
+import { getLoginUrl, isOAuthConfigured } from "@/const";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Link, useLocation } from "wouter";
 import { Menu, X, ShoppingBag, Search, Tag, LogOut, User } from "lucide-react";
 import { useState } from "react";
-import { trpc } from "@/lib/trpc";
+import { toast } from "sonner";
 
 const NAV_LINKS = [
   { href: "/marktplatz", label: "Marktplatz", icon: Search },
@@ -20,15 +20,23 @@ const NAV_LINKS = [
 ];
 
 export default function Navbar() {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, loginDemo } = useAuth();
   const [location] = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
-  const logoutMutation = trpc.auth.logout.useMutation({
-    onSuccess: () => {
-      logout();
-      window.location.href = "/";
-    },
-  });
+
+  const handleLogin = () => {
+    if (isOAuthConfigured()) {
+      window.location.href = getLoginUrl();
+      return;
+    }
+    loginDemo();
+    toast.success("Demo-Modus aktiv – du bist als DemoSammler angemeldet");
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    window.location.href = "/";
+  };
 
   const initials = user?.name
     ? user.name
@@ -98,7 +106,9 @@ export default function Navbar() {
                     <p className="text-sm font-medium text-foreground truncate">
                       {user.name ?? "Sammler"}
                     </p>
-                    <p className="text-xs text-muted-foreground truncate">{user.email ?? ""}</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {user.email ?? ""}
+                    </p>
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
@@ -109,7 +119,7 @@ export default function Navbar() {
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={() => logoutMutation.mutate()}
+                    onClick={handleLogout}
                     className="text-destructive focus:text-destructive cursor-pointer"
                   >
                     <LogOut className="mr-2 h-4 w-4" />
@@ -121,10 +131,10 @@ export default function Navbar() {
               <Button
                 size="sm"
                 className="bg-primary hover:bg-primary/80 text-primary-foreground font-semibold shadow-lg shadow-primary/20"
-                onClick={() => (window.location.href = getLoginUrl())}
+                onClick={handleLogin}
               >
                 <ShoppingBag className="mr-2 h-4 w-4" />
-                Anmelden
+                {isOAuthConfigured() ? "Anmelden" : "Demo starten"}
               </Button>
             )}
 

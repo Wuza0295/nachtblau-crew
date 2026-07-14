@@ -1,5 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
+import { getLoginUrl, isOAuthConfigured } from "@/const";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc";
@@ -15,14 +15,24 @@ import {
   Users,
   Search,
 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function Home() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loginDemo } = useAuth();
   const { data: stats } = trpc.marketplace.getStats.useQuery();
   const { data: featured } = trpc.marketplace.search.useQuery({
     sort: "popular",
     limit: 8,
   });
+
+  const handleJoin = () => {
+    if (isOAuthConfigured()) {
+      window.location.href = getLoginUrl();
+      return;
+    }
+    loginDemo();
+    toast.success("Demo-Modus aktiv");
+  };
 
   return (
     <div>
@@ -88,9 +98,9 @@ export default function Home() {
                     size="lg"
                     variant="ghost"
                     className="text-muted-foreground"
-                    onClick={() => (window.location.href = getLoginUrl())}
+                    onClick={handleJoin}
                   >
-                    Anmelden
+                    {isOAuthConfigured() ? "Anmelden" : "Demo starten"}
                   </Button>
                 )}
               </div>
