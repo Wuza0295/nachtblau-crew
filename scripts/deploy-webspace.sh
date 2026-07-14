@@ -8,13 +8,13 @@ DIST="${ROOT}/dist/public"
 FTP_HOST="${FTP_HOST:-w02176b7.kasserver.com}"
 FTP_USER="${FTP_USER:-}"
 FTP_PASS="${FTP_PASS:-}"
-FTP_REMOTE_DIR="${FTP_REMOTE_DIR:-/autic.nacht-blau.de}"
+FTP_REMOTE_DIR="${FTP_REMOTE_DIR:-/autictreasures.nacht-blau.de}"
 
 if [[ -z "${FTP_USER}" || -z "${FTP_PASS}" ]]; then
   echo "Fehler: FTP_USER und FTP_PASS müssen gesetzt sein."
   echo ""
   echo "Beispiel:"
-  echo "  FTP_USER=dein_login FTP_PASS='geheim' FTP_REMOTE_DIR=/autic.nacht-blau.de pnpm deploy:webspace"
+  echo "  FTP_USER=dein_login FTP_PASS='geheim' FTP_REMOTE_DIR=/autictreasures.nacht-blau.de pnpm deploy:webspace"
   echo ""
   echo "ALL-INKL Tipp: Host ist meist w02176b7.kasserver.com"
   echo "Passwort findest du in der Members Area → Passwörter / FTP-Accounts."
@@ -64,4 +64,4 @@ bye
 EOF
 
 echo "✓ Upload fertig."
-echo "Prüfen: http://autic.nacht-blau.de/"
+echo "Prüfen: http://autictreasures.nacht-blau.de/"

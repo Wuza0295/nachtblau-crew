@@ -15,7 +15,7 @@ DIST = ROOT / "dist" / "public"
 FTP_HOST = os.environ.get("FTP_HOST", "w02176b7.kasserver.com")
 FTP_USER = os.environ.get("FTP_USER", "")
 FTP_PASS = os.environ.get("FTP_PASS", "")
-FTP_REMOTE_DIR = os.environ.get("FTP_REMOTE_DIR", "/autic.nacht-blau.de").rstrip("/")
+FTP_REMOTE_DIR = os.environ.get("FTP_REMOTE_DIR", "/autictreasures.nacht-blau.de").rstrip("/")
 USE_TLS = os.environ.get("FTP_TLS", "1") != "0"
 
 HTACCESS = """Options -MultiViews
@@ -91,7 +91,7 @@ def main() -> None:
         print(
             "Fehler: FTP_USER und FTP_PASS fehlen.\n\n"
             "Beispiel:\n"
-            "  FTP_USER=wxxxxxx FTP_PASS='…' FTP_REMOTE_DIR=/autic.nacht-blau.de "
+            "  FTP_USER=wxxxxxx FTP_PASS='…' FTP_REMOTE_DIR=/autictreasures.nacht-blau.de "
             "python3 scripts/deploy-webspace.py\n\n"
             f"Host-Vorschlag für nacht-blau.de: {FTP_HOST}",
             file=sys.stderr,
@@ -106,7 +106,7 @@ def main() -> None:
         print(f"Upload nach {FTP_REMOTE_DIR or '/'} …")
         n = upload_tree(ftp, DIST)
         print(f"✓ {n} Dateien hochgeladen.")
-        print("Öffne: http://autic.nacht-blau.de/")
+        print("Öffne: http://autictreasures.nacht-blau.de/")
     finally:
         try:
             ftp.quit()
