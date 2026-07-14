@@ -5,12 +5,10 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
-import FreeGames from "./pages/FreeGames";
-import News from "./pages/News";
-import Forum from "./pages/Forum";
-import ForumCategory from "./pages/ForumCategory";
-import ForumThread from "./pages/ForumThread";
-import NewThread from "./pages/NewThread";
+import Marketplace from "./pages/Marketplace";
+import CardDetail from "./pages/CardDetail";
+import SellCard from "./pages/SellCard";
+import SellerProfile from "./pages/SellerProfile";
 import Profile from "./pages/Profile";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -22,12 +20,10 @@ function Router() {
       <main className="flex-1">
         <Switch>
           <Route path="/" component={Home} />
-          <Route path="/free-games" component={FreeGames} />
-          <Route path="/news" component={News} />
-          <Route path="/forum" component={Forum} />
-          <Route path="/forum/kategorie/:slug" component={ForumCategory} />
-          <Route path="/forum/thread/:id" component={ForumThread} />
-          <Route path="/forum/neu" component={NewThread} />
+          <Route path="/marktplatz" component={Marketplace} />
+          <Route path="/karte/:id" component={CardDetail} />
+          <Route path="/verkaufen" component={SellCard} />
+          <Route path="/verkaeufer/:id" component={SellerProfile} />
           <Route path="/profil/:id" component={Profile} />
           <Route path="/404" component={NotFound} />
           <Route component={NotFound} />

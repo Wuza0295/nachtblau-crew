@@ -10,14 +10,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Link, useLocation } from "wouter";
-import { Menu, X, Gamepad2, Newspaper, MessageSquare, Gift, LogOut, User } from "lucide-react";
+import { Menu, X, ShoppingBag, Search, Tag, LogOut, User } from "lucide-react";
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 
 const NAV_LINKS = [
-  { href: "/free-games", label: "Free Games", icon: Gift },
-  { href: "/news", label: "News", icon: Newspaper },
-  { href: "/forum", label: "Forum", icon: MessageSquare },
+  { href: "/marktplatz", label: "Marktplatz", icon: Search },
+  { href: "/verkaufen", label: "Verkaufen", icon: Tag },
 ];
 
 export default function Navbar() {
@@ -44,30 +43,22 @@ export default function Navbar() {
     <nav className="glass-nav sticky top-0 z-50">
       <div className="container">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
           <Link href="/" className="flex items-center gap-3 group">
             <img
-              src="https://d2xsxph8kpxj0f.cloudfront.net/310519663739653758/PbtcqHtcftAKnwDnhmoduf/nachtblau-logo-Li7umgFb8XhrYaRtYVFm4Z.webp"
-              alt="NachtBlau Crew Logo"
-              className="h-10 w-10 object-contain transition-transform duration-300 group-hover:scale-110"
+              src="/autic-tresures-logo.png"
+              alt="Autic tresures Logo"
+              className="h-10 w-10 object-contain rounded-lg transition-transform duration-300 group-hover:scale-110"
             />
             <div className="hidden sm:block">
-              <span
-                className="font-bold text-lg leading-none gradient-text"
-                style={{ fontFamily: "Orbitron, sans-serif" }}
-              >
-                NachtBlau
+              <span className="font-serif font-bold text-lg leading-none text-primary">
+                Autic
               </span>
-              <div
-                className="text-xs text-muted-foreground leading-none mt-0.5 tracking-widest uppercase"
-                style={{ fontFamily: "Orbitron, sans-serif" }}
-              >
-                Crew
+              <div className="text-xs text-muted-foreground leading-none mt-0.5 tracking-widest italic">
+                tresures
               </div>
             </div>
           </Link>
 
-          {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-1">
             {NAV_LINKS.map(({ href, label, icon: Icon }) => (
               <Link key={href} href={href}>
@@ -75,7 +66,7 @@ export default function Navbar() {
                   variant="ghost"
                   size="sm"
                   className={`gap-2 transition-all duration-200 ${
-                    location === href
+                    location === href || location.startsWith(href + "/")
                       ? "text-primary bg-primary/10"
                       : "text-muted-foreground hover:text-foreground hover:bg-white/5"
                   }`}
@@ -87,7 +78,6 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* Auth */}
           <div className="flex items-center gap-2">
             {isAuthenticated && user ? (
               <DropdownMenu>
@@ -103,17 +93,12 @@ export default function Navbar() {
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="end"
-                  className="w-48 bg-card border-border"
-                >
+                <DropdownMenuContent align="end" className="w-48 bg-card border-border">
                   <div className="px-3 py-2">
                     <p className="text-sm font-medium text-foreground truncate">
-                      {user.name ?? "Spieler"}
+                      {user.name ?? "Sammler"}
                     </p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {user.email ?? ""}
-                    </p>
+                    <p className="text-xs text-muted-foreground truncate">{user.email ?? ""}</p>
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
@@ -135,15 +120,14 @@ export default function Navbar() {
             ) : (
               <Button
                 size="sm"
-                className="bg-primary hover:bg-primary/80 text-primary-foreground font-semibold shadow-lg shadow-primary/20 transition-all duration-200"
+                className="bg-primary hover:bg-primary/80 text-primary-foreground font-semibold shadow-lg shadow-primary/20"
                 onClick={() => (window.location.href = getLoginUrl())}
               >
-                <Gamepad2 className="mr-2 h-4 w-4" />
+                <ShoppingBag className="mr-2 h-4 w-4" />
                 Anmelden
               </Button>
             )}
 
-            {/* Mobile menu toggle */}
             <Button
               variant="ghost"
               size="sm"
@@ -155,7 +139,6 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Nav */}
         {menuOpen && (
           <div className="md:hidden border-t border-border py-3 space-y-1">
             {NAV_LINKS.map(({ href, label, icon: Icon }) => (

@@ -5,6 +5,18 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import {
+  createListing,
+  createReview,
+  getAllCards,
+  getCardById,
+  getListingById,
+  getListingsForCard,
+  getMarketplaceStats,
+  getSellerProfile,
+  purchaseListing,
+  searchMarketplace,
+} from "./marketplace";
+import {
   createPost,
   createThread,
   getForumCategories,
@@ -341,6 +353,119 @@ const profileRouter = router({
     }),
 });
 
+// ─── Marketplace ─────────────────────────────────────────────────────────────
+const tcgGameEnum = z.enum([
+  "pokemon",
+  "yugioh",
+  "mtg",
+  "onepiece",
+  "lorcana",
+  "sports",
+  "digimon",
+]);
+
+const conditionEnum = z.enum(["mint", "near_mint", "excellent", "good", "played"]);
+
+const marketplaceRouter = router({
+  getStats: publicProcedure.query(() => getMarketplaceStats()),
+
+  getCards: publicProcedure.query(() => getAllCards()),
+
+  search: publicProcedure
+    .input(
+      z.object({
+        query: z.string().optional(),
+        game: tcgGameEnum.optional(),
+        minPrice: z.number().optional(),
+        maxPrice: z.number().optional(),
+        condition: conditionEnum.optional(),
+        sort: z.enum(["price_asc", "price_desc", "newest", "popular"]).default("popular"),
+        limit: z.number().min(1).max(50).default(24),
+        offset: z.number().min(0).default(0),
+      })
+    )
+    .query(({ input }) => searchMarketplace(input)),
+
+  getCard: publicProcedure
+    .input(z.object({ cardId: z.string() }))
+    .query(({ input }) => {
+      const card = getCardById(input.cardId);
+      if (!card) throw new TRPCError({ code: "NOT_FOUND" });
+      const cardListings = getListingsForCard(input.cardId);
+      return { card, listings: cardListings };
+    }),
+
+  getListing: publicProcedure
+    .input(z.object({ listingId: z.string() }))
+    .query(({ input }) => {
+      const result = getListingById(input.listingId);
+      if (!result) throw new TRPCError({ code: "NOT_FOUND" });
+      return result;
+    }),
+
+  getSeller: publicProcedure
+    .input(z.object({ sellerId: z.number() }))
+    .query(({ input }) => {
+      const result = getSellerProfile(input.sellerId);
+      if (!result) throw new TRPCError({ code: "NOT_FOUND" });
+      return result;
+    }),
+
+  createListing: protectedProcedure
+    .input(
+      z.object({
+        cardId: z.string(),
+        price: z.number().min(0.01),
+        condition: conditionEnum,
+        language: z.string().min(2).max(5),
+        quantity: z.number().min(1).max(99),
+        isFoil: z.boolean().default(false),
+        description: z.string().min(5).max(500),
+      })
+    )
+    .mutation(({ ctx, input }) =>
+      createListing({
+        ...input,
+        sellerId: ctx.user.id,
+        sellerName: ctx.user.name ?? `User${ctx.user.id}`,
+      })
+    ),
+
+  purchase: protectedProcedure
+    .input(z.object({ listingId: z.string() }))
+    .mutation(({ ctx, input }) => {
+      try {
+        return purchaseListing(
+          input.listingId,
+          ctx.user.id,
+          ctx.user.name ?? `User${ctx.user.id}`
+        );
+      } catch (e) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: e instanceof Error ? e.message : "Kauf fehlgeschlagen",
+        });
+      }
+    }),
+
+  createReview: protectedProcedure
+    .input(
+      z.object({
+        sellerId: z.number(),
+        listingId: z.string(),
+        rating: z.number().min(1).max(5),
+        comment: z.string().min(5).max(500),
+      })
+    )
+    .mutation(({ ctx, input }) =>
+      createReview({
+        ...input,
+        buyerId: ctx.user.id,
+        buyerName: ctx.user.name ?? `User${ctx.user.id}`,
+      })
+    ),
+});
+
 // ─── App Router ───────────────────────────────────────────────────────────────
 export const appRouter = router({
   system: systemRouter,
@@ -356,6 +481,7 @@ export const appRouter = router({
   news: newsRouter,
   forum: forumRouter,
   profile: profileRouter,
+  marketplace: marketplaceRouter,
 });
 
 export type AppRouter = typeof appRouter;
