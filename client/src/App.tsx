@@ -12,6 +12,8 @@ import ForumCategory from "./pages/ForumCategory";
 import ForumThread from "./pages/ForumThread";
 import NewThread from "./pages/NewThread";
 import Profile from "./pages/Profile";
+import ProfileRedirect from "./pages/ProfileRedirect";
+import About from "./pages/About";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
@@ -28,7 +30,9 @@ function Router() {
           <Route path="/forum/kategorie/:slug" component={ForumCategory} />
           <Route path="/forum/thread/:id" component={ForumThread} />
           <Route path="/forum/neu" component={NewThread} />
+          <Route path="/profil" component={ProfileRedirect} />
           <Route path="/profil/:id" component={Profile} />
+          <Route path="/ueber-uns" component={About} />
           <Route path="/404" component={NotFound} />
           <Route component={NotFound} />
         </Switch>
