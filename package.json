@@ -11,7 +11,9 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "db:push": "drizzle-kit generate && drizzle-kit migrate",
-    "db:seed": "tsx server/seed.ts"
+    "db:seed": "tsx server/seed.ts",
+    "webspace:connect": "python3 scripts/webspace-connect.py",
+    "deploy:webspace": "python3 scripts/deploy-webspace.py"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.693.0",
