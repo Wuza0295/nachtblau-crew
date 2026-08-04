@@ -394,19 +394,22 @@ function NewsRail() {
                     rel="noopener noreferrer"
                     className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:-translate-y-1 hover:border-primary/40"
                   >
-                    <div className="relative h-32 overflow-hidden bg-muted">
-                      {article.image ? (
+                    {article.image ? (
+                      <div className="relative h-32 overflow-hidden bg-muted">
                         <img
                           src={article.image}
                           alt=""
                           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                           onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = "none";
+                            const wrap = (e.target as HTMLImageElement).parentElement;
+                            if (wrap) wrap.style.display = "none";
                           }}
                         />
-                      ) : null}
-                      <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
-                    </div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
+                      </div>
+                    ) : (
+                      <div className="h-1.5 bg-gradient-to-r from-primary/45 via-primary/15 to-transparent" />
+                    )}
                     <div className="p-4 flex flex-col gap-2 flex-1">
                       <Badge variant="outline" className="w-fit text-[10px] border-primary/30 text-primary">
                         {article.source}
@@ -459,29 +462,46 @@ function ForumPulse() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {isLoading
-            ? Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="h-24 rounded-xl bg-card animate-pulse" />
-              ))
-            : (categories ?? []).map((cat) => (
-                <Link key={cat.id} href={`/forum/kategorie/${cat.slug}`} className="group block">
-                  <div className="h-full rounded-xl border border-border bg-card/90 p-4 flex items-start gap-3 transition-all duration-200 hover:border-primary/40 hover:-translate-y-0.5">
-                    <div className="p-2 rounded-lg bg-primary/10 text-primary flex-shrink-0 border border-primary/15">
-                      {ICONS[cat.icon ?? "MessageSquare"] ?? <MessageSquare className="h-5 w-5" />}
-                    </div>
-                    <div className="min-w-0">
-                      <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                        {cat.name}
-                      </h3>
-                      <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">
-                        {cat.description}
-                      </p>
-                    </div>
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-24 rounded-xl bg-card animate-pulse" />
+            ))}
+          </div>
+        ) : (categories ?? []).length === 0 ? (
+          <div className="rounded-xl border border-border bg-card/60 px-6 py-10 text-center">
+            <MessageSquare className="h-10 w-10 mx-auto mb-3 text-primary/50" />
+            <p className="text-foreground font-medium">Noch keine Kategorien geladen</p>
+            <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto">
+              Sobald die Datenbank verbunden ist, erscheinen hier die Forum-Bereiche der Crew.
+            </p>
+            <Link href="/forum" className="inline-block mt-4">
+              <Button variant="outline" className="border-primary/35 text-primary hover:bg-primary/10">
+                Forum öffnen
+              </Button>
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {(categories ?? []).map((cat) => (
+              <Link key={cat.id} href={`/forum/kategorie/${cat.slug}`} className="group block">
+                <div className="h-full rounded-xl border border-border bg-card/90 p-4 flex items-start gap-3 transition-all duration-200 hover:border-primary/40 hover:-translate-y-0.5">
+                  <div className="p-2 rounded-lg bg-primary/10 text-primary flex-shrink-0 border border-primary/15">
+                    {ICONS[cat.icon ?? "MessageSquare"] ?? <MessageSquare className="h-5 w-5" />}
                   </div>
-                </Link>
-              ))}
-        </div>
+                  <div className="min-w-0">
+                    <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                      {cat.name}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">
+                      {cat.description}
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
