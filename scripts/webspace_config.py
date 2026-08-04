@@ -9,11 +9,28 @@ from ftplib import FTP, FTP_TLS, error_perm
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-# Static GbR site (source of truth for https://nacht-blau.de)
-WEBSPACE_DIR = ROOT / "webspace"
+# Per-domain mirrors live under webspace/<domain>/
+WEBSPACE_ROOT = ROOT / "webspace"
+# Convenience alias: GbR profile site
+WEBSPACE_DIR = WEBSPACE_ROOT / "nacht-blau.de"
 # React SPA build output (optional deploy to a subdomain)
 DIST = ROOT / "dist" / "public"
 ENV_FILE = ROOT / ".env.webspace"
+
+# Domains / dirs to skip when syncing the whole account
+SKIP_DIRS = {"logs", "cgi-bin", ".", ".."}
+
+# Paths (relative segment names) skipped during pull/push of large or sensitive data
+SKIP_NAME_PARTS = {
+    "vendor",
+    "node_modules",
+    "__pycache__",
+    ".git",
+    "tmp",
+    "logs",
+    "uploads",
+    "storage",
+}
 
 
 def load_webspace_env() -> None:
@@ -83,10 +100,14 @@ def connect_ftp():
             ftp.prot_p()
         except error_perm:
             pass
+        ftp.set_pasv(True)
+        ftp.sock.settimeout(45)
         return ftp
     ftp = FTP()
     ftp.connect(FTP_HOST, 21, timeout=30)
     ftp.login(FTP_USER, FTP_PASS)
+    ftp.set_pasv(True)
+    ftp.sock.settimeout(45)
     return ftp
 
 
@@ -107,11 +128,50 @@ def list_dir(ftp, max_entries: int = 50) -> list[str]:
     return names[:max_entries]
 
 
+def list_entries(ftp) -> list[tuple[str, bool]]:
+    """Return [(name, is_dir), ...] for the current FTP directory."""
+    entries: list[tuple[str, bool]] = []
+    lines: list[str] = []
+    ftp.retrlines("LIST", lines.append)
+    for line in lines:
+        parts = line.split(None, 8)
+        if len(parts) < 9:
+            continue
+        name = parts[8]
+        if name in {".", ".."}:
+            continue
+        is_dir = line.startswith("d")
+        entries.append((name, is_dir))
+    return entries
+
+
+def remote_domains(ftp) -> list[str]:
+    ftp.cwd("/")
+    domains = []
+    for name, is_dir in list_entries(ftp):
+        if is_dir and name not in SKIP_DIRS:
+            domains.append(name)
+    return sorted(domains)
+
+
+def should_skip_name(name: str) -> bool:
+    if name in SKIP_NAME_PARTS:
+        return True
+    if name.endswith(".zip"):
+        return True
+    if name.startswith(".env") and name != ".env.example":
+        return True
+    return False
+
+
 def upload_tree(ftp, local: Path, remote_prefix: str = "") -> int:
     """Recursively upload local directory contents into the current FTP cwd."""
     count = 0
     for item in sorted(local.iterdir()):
-        if item.name.startswith(".") and item.name not in {".htaccess"}:
+        if should_skip_name(item.name):
+            print(f"  · skip {remote_prefix + '/' if remote_prefix else ''}{item.name}")
+            continue
+        if item.name.startswith(".") and item.name not in {".htaccess", ".gitignore", ".htaccess.passenger"}:
             continue
         remote_name = f"{remote_prefix}/{item.name}" if remote_prefix else item.name
         if item.is_dir():
@@ -123,10 +183,58 @@ def upload_tree(ftp, local: Path, remote_prefix: str = "") -> int:
             count += upload_tree(ftp, item, remote_name)
             ftp.cwd("..")
         else:
-            print(f"  ↑ {remote_name}")
+            print(f"  ↑ {remote_name}", flush=True)
             with item.open("rb") as fh:
-                ftp.storbinary(f"STOR {item.name}", fh)
+                ftp.storbinary(f"STOR {item.name}", fh, blocksize=64 * 1024)
             count += 1
+    return count
+
+
+# Skip re-downloading / hanging on very large binaries during bulk pull
+MAX_PULL_BYTES = int(os.environ.get("FTP_MAX_PULL_BYTES", str(8 * 1024 * 1024)))
+
+
+def _remote_size(ftp, name: str) -> int | None:
+    try:
+        return ftp.size(name)
+    except Exception:
+        return None
+
+
+def download_tree(ftp, local: Path, remote_prefix: str = "") -> int:
+    """Recursively download current FTP cwd into local directory."""
+    local.mkdir(parents=True, exist_ok=True)
+    count = 0
+    for name, is_dir in list_entries(ftp):
+        if should_skip_name(name):
+            print(f"  · skip {remote_prefix + '/' if remote_prefix else ''}{name}")
+            continue
+        remote_name = f"{remote_prefix}/{name}" if remote_prefix else name
+        target = local / name
+        if is_dir:
+            ftp.cwd(name)
+            count += download_tree(ftp, target, remote_name)
+            ftp.cwd("..")
+            continue
+
+        size = _remote_size(ftp, name)
+        if size is not None and size > MAX_PULL_BYTES:
+            print(f"  · skip large {remote_name} ({size} bytes)")
+            continue
+        if target.is_file() and size is not None and target.stat().st_size == size:
+            print(f"  = keep {remote_name}")
+            count += 1
+            continue
+
+        print(f"  ↓ {remote_name}", flush=True)
+        try:
+            with target.open("wb") as fh:
+                ftp.retrbinary(f"RETR {name}", fh.write, blocksize=64 * 1024)
+            count += 1
+        except Exception as exc:
+            print(f"  ! fail {remote_name}: {exc}", flush=True)
+            if target.exists() and target.stat().st_size == 0:
+                target.unlink(missing_ok=True)
     return count
 
 

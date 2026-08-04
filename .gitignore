@@ -19,6 +19,28 @@ build/
 __pycache__/
 *.pyc
 
+# Webspace mirrors: only commit the public GbR site by default.
+# Other domains are pulled/synced locally but may contain credentials.
+webspace/**
+!webspace/nacht-blau.de/
+!webspace/nacht-blau.de/**
+
+# Never commit remote secrets even if present under webspace/
+webspace/**/config/database.php
+webspace/**/db.php
+webspace/**/db_connect.php
+webspace/**/vendor/
+webspace/**/node_modules/
+webspace/**/uploads/
+webspace/**/storage/
+webspace/**/tmp/
+webspace/**/logs/
+webspace/**/*.zip
+webspace/**/.env
+webspace/**/.env.*
+!webspace/**/.env.example
+
+
 # IDE and editor files
 .vscode/
 .idea/

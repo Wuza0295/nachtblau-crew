@@ -13,7 +13,9 @@
     "db:push": "drizzle-kit generate && drizzle-kit migrate",
     "db:seed": "tsx server/seed.ts",
     "webspace:connect": "python3 scripts/webspace-connect.py",
+    "webspace:pull": "python3 scripts/pull-webspace.py",
     "webspace:sync": "python3 scripts/sync-webspace.py",
+    "webspace:sync:one": "python3 scripts/sync-one-webspace.py",
     "deploy:webspace": "python3 scripts/deploy-webspace.py"
   },
   "dependencies": {
