@@ -15,12 +15,15 @@ import {
 } from "@/components/ui/dialog";
 import PriceChart from "@/components/marketplace/PriceChart";
 import StarRating from "@/components/marketplace/StarRating";
+import Breadcrumbs from "@/components/marketplace/Breadcrumbs";
 import {
   useCreateReview,
   useMarketplaceCard,
   usePurchaseListing,
 } from "@/lib/useMarketplace";
 import { useTradingProfile, profileSetupPath } from "@/lib/useTradingProfile";
+import { CONDITION_LABELS, GAME_LABELS, formatEuro } from "@/lib/marketplaceConstants";
+import type { CardCondition, TcgGame } from "@/lib/marketplaceStore";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -30,24 +33,6 @@ import {
   Sparkles,
   MessageSquare,
 } from "lucide-react";
-
-const CONDITION_LABELS: Record<string, string> = {
-  mint: "Mint (M)",
-  near_mint: "Near Mint (NM)",
-  excellent: "Excellent (EX)",
-  good: "Good (GD)",
-  played: "Played (PL)",
-};
-
-const GAME_LABELS: Record<string, string> = {
-  pokemon: "Pokémon",
-  yugioh: "Yu-Gi-Oh!",
-  mtg: "Magic: The Gathering",
-  onepiece: "One Piece",
-  lorcana: "Disney Lorcana",
-  sports: "Sportkarten",
-  digimon: "Digimon",
-};
 
 export default function CardDetail() {
   const [, params] = useRoute("/karte/:id");
@@ -113,17 +98,26 @@ export default function CardDetail() {
   const displayTitle = cheapest?.title || card.name;
 
   return (
-    <div className="container py-8">
+    <div className="container py-6 lg:py-8">
+      <Breadcrumbs
+        items={[
+          { label: "Start", href: "/" },
+          { label: "Marktplatz", href: "/marktplatz" },
+          { label: GAME_LABELS[card.game as TcgGame], href: `/marktplatz?game=${card.game}` },
+          { label: displayTitle },
+        ]}
+      />
+
       <Link href="/marktplatz">
-        <Button variant="ghost" size="sm" className="mb-6 text-muted-foreground">
+        <Button variant="ghost" size="sm" className="mb-4 text-muted-foreground -ml-2">
           <ArrowLeft className="h-4 w-4 mr-1" />
           Marktplatz
         </Button>
       </Link>
 
-      <div className="grid lg:grid-cols-2 gap-8">
+      <div className="grid lg:grid-cols-[280px_1fr] gap-8">
         <div className="space-y-4">
-          <div className="relative aspect-[5/7] max-w-sm mx-auto rounded-xl overflow-hidden border border-border shadow-2xl">
+          <div className="relative aspect-[5/7] max-w-[280px] mx-auto lg:mx-0 rounded-xl overflow-hidden border border-border shadow-2xl bg-secondary/30">
             <img src={heroImage} alt={displayTitle} className="w-full h-full object-cover" />
             {cheapest?.isFoil && (
               <Badge className="absolute top-3 right-3 bg-gradient-to-r from-amber-400/40 to-purple-400/40 text-amber-100 border-amber-400/50">
@@ -140,22 +134,22 @@ export default function CardDetail() {
             <CardContent>
               <PriceChart data={card.priceHistory} />
               <p className="text-xs text-muted-foreground mt-2 text-center">
-                Marktpreis: €{card.marketPrice.toFixed(2)}
+                Marktpreis: {formatEuro(card.marketPrice)}
               </p>
             </CardContent>
           </Card>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-6 min-w-0">
           <div>
             <div className="flex flex-wrap gap-2 mb-2">
               <Badge variant="outline" className="border-primary/30 text-primary">
-                {GAME_LABELS[card.game]}
+                {GAME_LABELS[card.game as TcgGame]}
               </Badge>
               <Badge variant="outline">{card.rarity}</Badge>
               <Badge variant="outline">#{card.number}</Badge>
             </div>
-            <h1 className="text-3xl font-bold">{displayTitle}</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{displayTitle}</h1>
             <p className="text-muted-foreground mt-1">{card.setName}</p>
             <div className="flex items-center gap-3 mt-3">
               <StarRating rating={card.avgRating} showValue size="md" />
@@ -168,12 +162,13 @@ export default function CardDetail() {
           {cheapest && (
             <div className="p-4 rounded-xl bg-primary/10 border border-primary/30">
               <p className="text-sm text-muted-foreground">Günstigstes Angebot</p>
-              <p className="text-3xl font-bold text-primary mt-1">€{cheapest.price.toFixed(2)}</p>
+              <p className="text-3xl font-bold text-primary mt-1">{formatEuro(cheapest.price)}</p>
               <p className="text-sm text-muted-foreground mt-1">
-                {CONDITION_LABELS[cheapest.condition]} · {cheapest.language} · {cheapest.sellerName}
+                {CONDITION_LABELS[cheapest.condition as CardCondition]} · {cheapest.language} ·{" "}
+                {cheapest.sellerName}
               </p>
               <Button
-                className="mt-3 w-full bg-primary hover:bg-primary/80 font-bold"
+                className="mt-3 w-full sm:w-auto bg-primary hover:bg-primary/80 font-bold"
                 size="lg"
                 onClick={() => {
                   if (!ensureCanTrade()) return;
@@ -184,7 +179,7 @@ export default function CardDetail() {
                 Jetzt kaufen
               </Button>
               {!isComplete && (
-                <p className="text-xs text-muted-foreground mt-2 text-center">
+                <p className="text-xs text-muted-foreground mt-2">
                   Zum Kauf brauchst du ein Händlerprofil.
                 </p>
               )}
@@ -195,36 +190,36 @@ export default function CardDetail() {
             <h2 className="font-bold text-lg">
               {listings.length} Angebot{listings.length !== 1 ? "e" : ""}
             </h2>
-            {listings.map((listing) => (
-              <Card key={listing.id} className="bg-card border-border">
-                <CardContent className="p-4 flex items-center justify-between gap-4">
+            <div className="rounded-xl border border-border overflow-hidden divide-y divide-border">
+              {listings.map((listing) => (
+                <div
+                  key={listing.id}
+                  className="flex items-center justify-between gap-4 p-3 sm:p-4 bg-card/40 hover:bg-card/80 transition-colors"
+                >
                   <div className="flex gap-3 min-w-0 flex-1">
                     <img
                       src={listing.imageUrl}
                       alt=""
-                      className="w-12 h-16 object-cover rounded border border-border shrink-0"
+                      className="w-11 h-14 object-cover rounded border border-border shrink-0"
                     />
                     <div className="space-y-1 min-w-0">
-                      <p className="text-sm font-medium line-clamp-1">{listing.title || card.name}</p>
+                      <p className="text-sm font-medium line-clamp-1">
+                        {listing.title || card.name}
+                      </p>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-lg text-primary">
-                          €{listing.price.toFixed(2)}
-                        </span>
-                        <Badge variant="outline" className="text-xs">
-                          {CONDITION_LABELS[listing.condition]}
+                        <span className="font-bold text-primary">{formatEuro(listing.price)}</span>
+                        <Badge variant="outline" className="text-[10px]">
+                          {CONDITION_LABELS[listing.condition as CardCondition]}
                         </Badge>
                         {listing.isFoil && (
-                          <Badge className="text-xs bg-amber-500/20 text-amber-300">Foil</Badge>
+                          <Badge className="text-[10px] bg-amber-500/20 text-amber-300">Foil</Badge>
                         )}
                       </div>
                       <Link href={`/verkaeufer/${listing.sellerId}`}>
-                        <p className="text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+                        <p className="text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer">
                           {listing.sellerName} · {listing.language} · {listing.quantity}x
                         </p>
                       </Link>
-                      <p className="text-xs text-muted-foreground line-clamp-1">
-                        {listing.description}
-                      </p>
                     </div>
                   </div>
                   <Button
@@ -238,9 +233,9 @@ export default function CardDetail() {
                   >
                     Kaufen
                   </Button>
-                </CardContent>
-              </Card>
-            ))}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
