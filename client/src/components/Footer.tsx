@@ -1,43 +1,62 @@
 import { Link } from "wouter";
+import { GAME_OPTIONS } from "@/lib/marketplaceConstants";
 
 export default function Footer() {
   return (
-    <footer className="border-t border-border bg-card/50 mt-16">
-      <div className="container py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
+    <footer className="border-t border-border bg-card/40 mt-auto">
+      <div className="container py-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="space-y-3 sm:col-span-2 lg:col-span-1">
+            <div className="flex items-center gap-2.5">
               <img
                 src="/autic-treasures-logo.png"
                 alt="Autic Treasures"
-                className="h-10 w-10 object-cover rounded-lg"
+                className="h-9 w-9 object-cover rounded-md"
               />
-              <span className="font-serif font-bold text-lg text-primary tracking-wide">
+              <span className="font-serif font-bold text-base text-primary tracking-wide">
                 Autic Treasures
               </span>
             </div>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Deine Trading Card Community. Kaufe, verkaufe und bewerte – modern, klar und fair.
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
+              Trading-Card-Marktplatz mit Händlerprofilen, eigenen Titeln und echten Kartenfotos.
             </p>
           </div>
 
           <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-foreground uppercase tracking-widest">
+            <h4 className="text-xs font-semibold text-foreground uppercase tracking-widest">
               Marktplatz
             </h4>
             <ul className="space-y-2">
-              {[
-                { href: "/marktplatz", label: "Alle Karten" },
-                { href: "/marktplatz?game=pokemon", label: "Pokémon" },
-                { href: "/marktplatz?game=yugioh", label: "Yu-Gi-Oh!" },
-                { href: "/verkaufen", label: "Karte verkaufen" },
-              ].map(({ href, label }) => (
-                <li key={href}>
+              <li>
+                <Link href="/marktplatz" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                  Alle Produkte
+                </Link>
+              </li>
+              <li>
+                <Link href="/verkaufen" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                  Artikel verkaufen
+                </Link>
+              </li>
+              <li>
+                <Link href="/profil-erstellen" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                  Händlerprofil
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          <div className="space-y-3">
+            <h4 className="text-xs font-semibold text-foreground uppercase tracking-widest">
+              TCGs
+            </h4>
+            <ul className="space-y-2">
+              {GAME_OPTIONS.slice(0, 5).map((g) => (
+                <li key={g.value}>
                   <Link
-                    href={href}
+                    href={`/marktplatz?game=${g.value}`}
                     className="text-sm text-muted-foreground hover:text-primary transition-colors"
                   >
-                    {label}
+                    {g.label}
                   </Link>
                 </li>
               ))}
@@ -45,23 +64,23 @@ export default function Footer() {
           </div>
 
           <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-foreground uppercase tracking-widest">
-              Vorteile
+            <h4 className="text-xs font-semibold text-foreground uppercase tracking-widest">
+              Handel
             </h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>Preisverlauf für jede Karte</li>
-              <li>Verkäufer-Bewertungen nach Kauf</li>
-              <li>Sofort-Kauf mit einem Klick</li>
-              <li>Große Kartenbilder statt Tabellen</li>
+              <li>Profilpflicht für Kauf & Verkauf</li>
+              <li>Freie Artikeltitel & Fotos</li>
+              <li>Preisverlauf & Bewertungen</li>
+              <li>Listen- und Kachelansicht</li>
             </ul>
           </div>
         </div>
 
-        <div className="divider-glow mt-8 mb-6" />
+        <div className="divider-glow mt-8 mb-5" />
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
-          <span>© {new Date().getFullYear()} Autic Treasures. Alle Rechte vorbehalten.</span>
-          <span className="text-primary/60">Trading Card Community</span>
+          <span>© {new Date().getFullYear()} Autic Treasures</span>
+          <span className="text-primary/70">nacht-blau.de</span>
         </div>
       </div>
     </footer>

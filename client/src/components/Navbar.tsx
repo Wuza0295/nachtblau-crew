@@ -14,6 +14,8 @@ import { Menu, X, ShoppingBag, Search, Tag, LogOut, User, BadgeCheck } from "luc
 import { useState } from "react";
 import { toast } from "sonner";
 import { useTradingProfile, profileSetupPath } from "@/lib/useTradingProfile";
+import { GAME_OPTIONS } from "@/lib/marketplaceConstants";
+import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
   { href: "/marktplatz", label: "Marktplatz", icon: Search },
@@ -49,21 +51,23 @@ export default function Navbar() {
     .toUpperCase()
     .slice(0, 2);
 
+  const onMarketplace = location.startsWith("/marktplatz") || location.startsWith("/karte");
+
   return (
-    <nav className="glass-nav sticky top-0 z-50">
-      <div className="container">
-        <div className="flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center gap-3 group">
+    <header className="glass-nav sticky top-0 z-50">
+      <nav className="container">
+        <div className="flex items-center justify-between h-14 sm:h-16">
+          <Link href="/" className="flex items-center gap-2.5 group">
             <img
               src="/autic-treasures-logo.png"
               alt="Autic Treasures Logo"
-              className="h-10 w-10 object-cover rounded-lg transition-transform duration-300 group-hover:scale-110"
+              className="h-9 w-9 object-cover rounded-md transition-transform duration-300 group-hover:scale-105"
             />
             <div className="hidden sm:block">
-              <span className="font-serif font-bold text-lg leading-none text-primary tracking-wide">
+              <span className="font-serif font-bold text-base leading-none text-primary tracking-wide">
                 AUTIC
               </span>
-              <div className="text-[10px] text-primary/80 leading-none mt-0.5 tracking-[0.18em] uppercase">
+              <div className="text-[9px] text-primary/80 leading-none mt-0.5 tracking-[0.18em] uppercase">
                 Treasures
               </div>
             </div>
@@ -75,11 +79,12 @@ export default function Navbar() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className={`gap-2 transition-all duration-200 ${
+                  className={cn(
+                    "gap-2 transition-all duration-200",
                     location === href || location.startsWith(href + "/")
                       ? "text-primary bg-primary/10"
                       : "text-muted-foreground hover:text-foreground hover:bg-white/5"
-                  }`}
+                  )}
                 >
                   <Icon className="h-4 w-4" />
                   {label}
@@ -178,9 +183,10 @@ export default function Navbar() {
               <Link key={href} href={href} onClick={() => setMenuOpen(false)}>
                 <Button
                   variant="ghost"
-                  className={`w-full justify-start gap-2 ${
+                  className={cn(
+                    "w-full justify-start gap-2",
                     location === href ? "text-primary bg-primary/10" : "text-muted-foreground"
-                  }`}
+                  )}
                 >
                   <Icon className="h-4 w-4" />
                   {label}
@@ -189,7 +195,32 @@ export default function Navbar() {
             ))}
           </div>
         )}
+      </nav>
+
+      <div className="border-t border-border/70 bg-background/40">
+        <div className="container flex items-center gap-1 overflow-x-auto py-1.5">
+          <Link
+            href="/marktplatz"
+            className={cn(
+              "shrink-0 rounded-md px-2.5 py-1 text-xs transition-colors",
+              onMarketplace && !location.includes("game=")
+                ? "text-primary bg-primary/10"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Alle
+          </Link>
+          {GAME_OPTIONS.map((g) => (
+            <Link
+              key={g.value}
+              href={`/marktplatz?game=${g.value}`}
+              className="shrink-0 rounded-md px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors"
+            >
+              {g.short}
+            </Link>
+          ))}
+        </div>
       </div>
-    </nav>
+    </header>
   );
 }

@@ -2,26 +2,8 @@ import { Link } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import StarRating from "./StarRating";
-
-const GAME_COLORS: Record<string, string> = {
-  pokemon: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-  yugioh: "bg-purple-500/20 text-purple-300 border-purple-500/30",
-  mtg: "bg-amber-700/20 text-amber-300 border-amber-700/30",
-  onepiece: "bg-red-500/20 text-red-300 border-red-500/30",
-  lorcana: "bg-blue-500/20 text-blue-300 border-blue-500/30",
-  sports: "bg-green-500/20 text-green-300 border-green-500/30",
-  digimon: "bg-orange-500/20 text-orange-300 border-orange-500/30",
-};
-
-const GAME_LABELS: Record<string, string> = {
-  pokemon: "Pokémon",
-  yugioh: "Yu-Gi-Oh!",
-  mtg: "MTG",
-  onepiece: "One Piece",
-  lorcana: "Lorcana",
-  sports: "Sport",
-  digimon: "Digimon",
-};
+import { GAME_COLORS, GAME_LABELS, formatEuro } from "@/lib/marketplaceConstants";
+import type { TcgGame } from "@/lib/marketplaceStore";
 
 interface CardTileProps {
   cardId: string;
@@ -61,7 +43,7 @@ export default function CardTile({
             className={`absolute top-1.5 left-1.5 text-[9px] px-1.5 py-0 ${GAME_COLORS[game] ?? ""}`}
             variant="outline"
           >
-            {GAME_LABELS[game] ?? game}
+            {GAME_LABELS[game as TcgGame] ?? game}
           </Badge>
           {isFoil && (
             <Badge className="absolute top-1.5 right-1.5 text-[9px] px-1.5 py-0 bg-gradient-to-r from-amber-400/30 to-purple-400/30 text-amber-200 border-amber-400/40">
@@ -70,7 +52,7 @@ export default function CardTile({
           )}
           <div className="absolute bottom-1.5 left-1.5 right-1.5">
             <p className="font-bold text-sm text-foreground drop-shadow-lg">
-              ab €{price.toFixed(2)}
+              ab {formatEuro(price)}
             </p>
             <p className="text-[9px] text-muted-foreground">
               {listingCount} Angebot{listingCount !== 1 ? "e" : ""}

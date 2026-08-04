@@ -1,15 +1,24 @@
 import { useMemo, useState, useEffect } from "react";
 import { useSearch } from "wouter";
 import CardTile from "@/components/marketplace/CardTile";
+import ListingRow from "@/components/marketplace/ListingRow";
+import GameSidebar from "@/components/marketplace/GameSidebar";
+import Breadcrumbs from "@/components/marketplace/Breadcrumbs";
 import MarketplaceFilters, { type FilterState } from "@/components/marketplace/MarketplaceFilters";
 import { useMarketplaceSearch } from "@/lib/useMarketplace";
 import type { CardCondition, TcgGame } from "@/lib/marketplaceStore";
+import { GAME_LABELS } from "@/lib/marketplaceConstants";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { LayoutGrid, List } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 function useQueryParam(key: string): string | null {
   const search = useSearch();
   return new URLSearchParams(search).get(key);
 }
+
+type ViewMode = "list" | "grid";
 
 export default function Marketplace() {
   const gameParam = useQueryParam("game");
@@ -24,12 +33,18 @@ export default function Marketplace() {
   });
 
   const [applied, setApplied] = useState(filters);
+  const [view, setView] = useState<ViewMode>(() => {
+    if (typeof window === "undefined") return "list";
+    return (localStorage.getItem("autic-mp-view") as ViewMode) || "list";
+  });
 
   useEffect(() => {
     if (gameParam) {
       const f = { ...filters, game: gameParam };
       setFilters(f);
       setApplied(f);
+    } else if (filters.game !== "all" && !gameParam) {
+      // keep local filter when navigating without query
     }
   }, [gameParam]);
 
@@ -42,57 +57,143 @@ export default function Marketplace() {
       sort: applied.sort as "price_asc" | "price_desc" | "newest" | "popular",
       minPrice: applied.minPrice ? parseFloat(applied.minPrice) : undefined,
       maxPrice: applied.maxPrice ? parseFloat(applied.maxPrice) : undefined,
-      limit: 24,
+      limit: 48,
     }),
     [applied]
   );
 
   const { data, isLoading } = useMarketplaceSearch(searchInput);
 
-  return (
-    <div className="container py-8 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Marktplatz</h1>
-        <p className="text-muted-foreground mt-1">
-          {data ? `${data.total} Karten gefunden` : "Karten werden geladen…"}
-        </p>
-      </div>
+  const setViewMode = (mode: ViewMode) => {
+    setView(mode);
+    localStorage.setItem("autic-mp-view", mode);
+  };
 
-      <MarketplaceFilters
-        filters={filters}
-        onChange={setFilters}
-        onSearch={() => setApplied({ ...filters })}
+  const activeGame = applied.game !== "all" ? applied.game : gameParam ?? "all";
+  const gameLabel =
+    activeGame !== "all" ? GAME_LABELS[activeGame as TcgGame] ?? activeGame : "Alle TCGs";
+
+  return (
+    <div className="container py-6 lg:py-8">
+      <Breadcrumbs
+        items={[
+          { label: "Start", href: "/" },
+          { label: "Marktplatz", href: "/marktplatz" },
+          ...(activeGame !== "all" ? [{ label: gameLabel }] : []),
+        ]}
       />
 
-      {isLoading ? (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
-          {Array.from({ length: 14 }).map((_, i) => (
-            <Skeleton key={i} className="h-36 sm:h-40 rounded-lg" />
-          ))}
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+        <div className="hidden lg:block w-52 shrink-0">
+          <div className="sticky top-20 rounded-xl border border-border bg-card/40 p-3">
+            <GameSidebar activeGame={activeGame} />
+          </div>
         </div>
-      ) : data?.results.length === 0 ? (
-        <div className="text-center py-20 text-muted-foreground">
-          <p className="text-lg">Keine Karten gefunden</p>
-          <p className="text-sm mt-2">Versuche andere Filter oder Suchbegriffe</p>
+
+        <div className="flex-1 min-w-0 space-y-5">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{gameLabel}</h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                {data ? `${data.total} Produkte mit aktiven Angeboten` : "Lade Marktplatz…"}
+              </p>
+            </div>
+            <div className="flex items-center gap-1 rounded-lg border border-border bg-secondary/30 p-0.5">
+              <Button
+                size="sm"
+                variant="ghost"
+                className={cn("h-8 px-2.5", view === "list" && "bg-primary/15 text-primary")}
+                onClick={() => setViewMode("list")}
+                aria-label="Listenansicht"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className={cn("h-8 px-2.5", view === "grid" && "bg-primary/15 text-primary")}
+                onClick={() => setViewMode("grid")}
+                aria-label="Kachelansicht"
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          <div className="lg:hidden">
+            <GameSidebar activeGame={activeGame} variant="pills" />
+          </div>
+
+          <MarketplaceFilters
+            filters={filters}
+            onChange={setFilters}
+            onSearch={(next) => setApplied(next ?? { ...filters })}
+          />
+
+          {isLoading ? (
+            view === "list" ? (
+              <div className="space-y-2">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <Skeleton key={i} className="h-20 rounded-lg" />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                {Array.from({ length: 12 }).map((_, i) => (
+                  <Skeleton key={i} className="h-36 sm:h-40 rounded-lg" />
+                ))}
+              </div>
+            )
+          ) : data?.results.length === 0 ? (
+            <div className="text-center py-16 text-muted-foreground border border-dashed border-border rounded-xl">
+              <p className="text-lg">Keine Angebote gefunden</p>
+              <p className="text-sm mt-2">Filter anpassen oder anderen TCG wählen</p>
+            </div>
+          ) : view === "list" ? (
+            <div className="space-y-2">
+              <div className="hidden sm:grid grid-cols-[1fr_auto_auto] gap-4 px-3 text-[10px] uppercase tracking-wider text-muted-foreground">
+                <span>Produkt</span>
+                <span className="w-24 text-center">Bewertung</span>
+                <span className="w-28 text-right pr-10">ab Preis</span>
+              </div>
+              {data?.results.map(({ card, listing, listingCount }) => (
+                <ListingRow
+                  key={card.id}
+                  cardId={card.id}
+                  name={card.name}
+                  setName={card.setName}
+                  game={card.game}
+                  imageUrl={card.imageUrl}
+                  price={listing.price}
+                  listingCount={listingCount}
+                  avgRating={card.avgRating}
+                  condition={listing.condition}
+                  language={listing.language}
+                  sellerName={listing.sellerName}
+                  isFoil={listing.isFoil}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+              {data?.results.map(({ card, listing, listingCount }) => (
+                <CardTile
+                  key={card.id}
+                  cardId={card.id}
+                  name={card.name}
+                  setName={card.setName}
+                  game={card.game}
+                  imageUrl={card.imageUrl}
+                  price={listing.price}
+                  listingCount={listingCount}
+                  avgRating={card.avgRating}
+                  isFoil={listing.isFoil}
+                />
+              ))}
+            </div>
+          )}
         </div>
-      ) : (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
-          {data?.results.map(({ card, listing, listingCount }) => (
-            <CardTile
-              key={card.id}
-              cardId={card.id}
-              name={card.name}
-              setName={card.setName}
-              game={card.game}
-              imageUrl={card.imageUrl}
-              price={listing.price}
-              listingCount={listingCount}
-              avgRating={card.avgRating}
-              isFoil={listing.isFoil}
-            />
-          ))}
-        </div>
-      )}
+      </div>
     </div>
   );
 }

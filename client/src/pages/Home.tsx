@@ -16,7 +16,6 @@ import {
   Star,
   ChevronRight,
   Zap,
-  Users,
   Search,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -41,7 +40,7 @@ export default function Home() {
 
   return (
     <div>
-      <section className="relative min-h-[92vh] flex items-end overflow-hidden">
+      <section className="relative min-h-[88vh] flex items-end overflow-hidden">
         <img
           src="/autic-treasures-hero.jpg"
           alt="Autic Treasures – Trading Card Community"
@@ -51,22 +50,17 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-transparent to-transparent" />
 
         <div className="container relative z-10 pb-16 pt-32 space-y-6 max-w-2xl">
-          <Badge
-            variant="outline"
-            className="border-primary/50 text-primary bg-background/40 backdrop-blur-sm text-xs tracking-[0.2em] uppercase"
-          >
-            Trading Card Community
-          </Badge>
+          <p className="font-serif text-primary text-sm tracking-[0.28em] uppercase">
+            Trading Card Marketplace
+          </p>
 
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-black leading-[1.05]">
-            <span className="font-serif text-primary tracking-wide">AUTIC</span>
-            <br />
-            <span className="font-serif text-primary tracking-wide">TREASURES</span>
+            <span className="font-serif text-primary tracking-wide">AUTIC TREASURES</span>
           </h1>
 
           <p className="text-base md:text-lg text-foreground/85 max-w-md leading-relaxed">
-            Kaufe, verkaufe und bewerte Trading Cards – transparenter und schneller als
-            Cardmarket.
+            Kaufen, verkaufen und bewerten – klarer als Cardmarket, mit eigenem Profil und echten
+            Kartenfotos.
           </p>
 
           <div className="flex flex-wrap gap-3">
@@ -76,7 +70,7 @@ export default function Home() {
                 className="bg-primary hover:bg-primary/85 text-primary-foreground font-bold shadow-xl shadow-primary/30"
               >
                 <Search className="mr-2 h-5 w-5" />
-                Karten entdecken
+                Zum Marktplatz
               </Button>
             </Link>
             <Link href="/verkaufen">
@@ -86,7 +80,7 @@ export default function Home() {
                 className="border-primary/50 bg-background/40 backdrop-blur-sm text-primary hover:bg-primary/15 font-semibold"
               >
                 <ShoppingBag className="mr-2 h-5 w-5" />
-                Karte verkaufen
+                Artikel verkaufen
               </Button>
             </Link>
             {!isAuthenticated && (
@@ -100,58 +94,53 @@ export default function Home() {
               </Button>
             )}
           </div>
-
-          {stats && (
-            <div className="flex flex-wrap gap-6 pt-2">
-              {[
-                { icon: ShoppingBag, label: "Angebote", value: stats.activeListings },
-                { icon: Users, label: "Verkäufer", value: stats.totalSellers },
-                { icon: Star, label: "Ø Bewertung", value: stats.avgRating },
-              ].map(({ icon: Icon, label, value }) => (
-                <div key={label} className="flex items-center gap-2">
-                  <Icon className="h-4 w-4 text-primary" />
-                  <div>
-                    <div className="text-sm font-semibold text-foreground">{value}</div>
-                    <div className="text-xs text-muted-foreground">{label}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       </section>
 
-      <section className="py-12 border-y border-border bg-card/20">
+      {stats && (
+        <section className="border-y border-border bg-card/30">
+          <div className="container py-6 flex flex-wrap gap-8 sm:gap-12">
+            {[
+              { label: "Aktive Angebote", value: stats.activeListings },
+              { label: "Produkte", value: stats.totalCards },
+              { label: "Verkäufer", value: stats.totalSellers },
+              { label: "Ø Bewertung", value: stats.avgRating },
+            ].map((s) => (
+              <div key={s.label}>
+                <div className="text-xl font-bold text-primary">{s.value}</div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wider">{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="py-14">
         <div className="container">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-4xl">
             {[
               {
                 icon: TrendingUp,
                 title: "Preisverlauf",
-                desc: "30-Tage-Charts für jede Karte – keine Überraschungen",
+                desc: "30-Tage-Charts für jedes Produkt",
               },
               {
                 icon: Shield,
-                title: "Verkäufer-Bewertungen",
-                desc: "Echte Reviews nach jedem Kauf – Vertrauen statt Rätselraten",
+                title: "Händlerprofile",
+                desc: "Pflichtprofil vor Kauf und Verkauf",
               },
               {
                 icon: Zap,
                 title: "Sofort-Kauf",
-                desc: "Ein Klick – kein umständliches Warenkorb-System",
-              },
-              {
-                icon: Star,
-                title: "Große Kartenbilder",
-                desc: "Visuell statt Tabellen – endlich ein Marktplatz der sich gut anfühlt",
+                desc: "Angebot wählen und direkt abschließen",
               },
             ].map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="text-center space-y-2 p-4">
-                <div className="inline-flex p-3 rounded-full bg-primary/15 text-primary">
+              <div key={title} className="space-y-2">
+                <div className="inline-flex p-2.5 rounded-lg bg-primary/15 text-primary">
                   <Icon className="h-5 w-5" />
                 </div>
                 <h3 className="font-bold text-foreground">{title}</h3>
-                <p className="text-sm text-muted-foreground">{desc}</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
               </div>
             ))}
           </div>
@@ -159,18 +148,18 @@ export default function Home() {
       </section>
 
       {stats && (
-        <section className="py-12">
-          <div className="container">
-            <h2 className="text-xl font-bold mb-6">TCGs entdecken</h2>
+        <section className="py-10 border-t border-border">
+          <div className="container space-y-4">
+            <h2 className="text-xl font-bold">Nach TCG browsen</h2>
             <div className="flex flex-wrap gap-2">
               {stats.games.map((g) => (
                 <Link key={g.game} href={`/marktplatz?game=${g.game}`}>
                   <Badge
                     variant="outline"
-                    className="px-4 py-2 text-sm cursor-pointer hover:bg-primary/10 hover:border-primary/40 transition-colors"
+                    className="px-3.5 py-1.5 text-sm cursor-pointer hover:bg-primary/10 hover:border-primary/40 transition-colors"
                   >
                     {g.label}
-                    <span className="ml-2 text-muted-foreground">({g.count})</span>
+                    <span className="ml-2 text-muted-foreground">{g.count}</span>
                   </Badge>
                 </Link>
               ))}
@@ -179,12 +168,12 @@ export default function Home() {
         </section>
       )}
 
-      <section className="py-12 bg-card/30">
+      <section className="py-12 bg-card/30 border-t border-border">
         <div className="container">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold">Beliebte Karten</h2>
-              <p className="text-muted-foreground mt-1">Top-Angebote der Community</p>
+              <h2 className="text-2xl font-bold">Beliebte Produkte</h2>
+              <p className="text-muted-foreground text-sm mt-1">Aktuelle Top-Angebote</p>
             </div>
             <Link href="/marktplatz">
               <Button variant="ghost" className="text-primary gap-1">

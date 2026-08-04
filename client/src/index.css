@@ -94,7 +94,7 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    font-family: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
   }
   .font-serif {
     font-family: "Cinzel", Georgia, serif;
@@ -105,7 +105,7 @@
   }
   .container {
     @apply mx-auto px-4;
-    max-width: 1280px;
+    max-width: 1360px;
   }
 }
 
