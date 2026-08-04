@@ -57,11 +57,11 @@ describe("marketplace router", () => {
     expect(seller.reviews.length).toBeGreaterThan(0);
   });
 
-  it("creates listing only for admins", async () => {
-    const userCaller = appRouter.createCaller(createAuthContext("user"));
-    const cards = await userCaller.marketplace.getCards();
+  it("creates listing when authenticated", async () => {
+    const publicCaller = appRouter.createCaller(createPublicContext());
+    const cards = await publicCaller.marketplace.getCards();
     await expect(
-      userCaller.marketplace.createListing({
+      publicCaller.marketplace.createListing({
         cardId: cards[0].id,
         price: 19.99,
         condition: "near_mint",
@@ -72,8 +72,8 @@ describe("marketplace router", () => {
       })
     ).rejects.toThrow();
 
-    const adminCaller = appRouter.createCaller(createAuthContext("admin"));
-    const listing = await adminCaller.marketplace.createListing({
+    const userCaller = appRouter.createCaller(createAuthContext("user"));
+    const listing = await userCaller.marketplace.createListing({
       cardId: cards[0].id,
       price: 19.99,
       condition: "near_mint",
@@ -82,7 +82,7 @@ describe("marketplace router", () => {
       isFoil: false,
       description: "Test-Angebot in sehr gutem Zustand",
     });
-    expect(listing.sellerId).toBe(1);
+    expect(listing.sellerId).toBe(99);
     expect(listing.price).toBe(19.99);
   });
 

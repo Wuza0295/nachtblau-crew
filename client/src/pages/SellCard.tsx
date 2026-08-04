@@ -18,7 +18,7 @@ import { useCreateListing, useMarketplaceCards, type TcgGame } from "@/lib/useMa
 import { useTradingProfile, profileSetupPath } from "@/lib/useTradingProfile";
 import { fileToCompressedDataUrl } from "@/lib/imageUpload";
 import { toast } from "sonner";
-import { ArrowLeft, ImagePlus, ShieldAlert, CheckCircle, UserRound } from "lucide-react";
+import { ArrowLeft, ImagePlus, CheckCircle, UserRound, LogIn } from "lucide-react";
 
 const GAMES: { value: TcgGame; label: string }[] = [
   { value: "pokemon", label: "Pokémon" },
@@ -31,7 +31,7 @@ const GAMES: { value: TcgGame; label: string }[] = [
 ];
 
 export default function SellCard() {
-  const { isAuthenticated, isAdmin, user } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [, navigate] = useLocation();
   const { profile, isComplete } = useTradingProfile(user?.id);
   const { data: catalog } = useMarketplaceCards();
@@ -55,32 +55,16 @@ export default function SellCard() {
   if (!isAuthenticated) {
     return (
       <div className="container py-20 text-center space-y-4 max-w-lg">
-        <ShieldAlert className="h-12 w-12 mx-auto text-primary" />
-        <h1 className="text-xl font-bold">Admin-Verkauf</h1>
+        <LogIn className="h-12 w-12 mx-auto text-primary" />
+        <h1 className="text-xl font-bold">Anmelden zum Verkaufen</h1>
         <p className="text-muted-foreground text-sm">
-          Angebote einstellen dürfen nur Administratoren. Bitte mit Admin-Konto anmelden.
-        </p>
-        <Button onClick={() => navigate("/anmelden?next=/verkaufen")}>Als Admin anmelden</Button>
-      </div>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <div className="container py-20 text-center space-y-4 max-w-lg">
-        <ShieldAlert className="h-12 w-12 mx-auto text-amber-400" />
-        <h1 className="text-xl font-bold">Verkauf nur für Admins</h1>
-        <p className="text-muted-foreground text-sm">
-          Autic Treasures startet mit kuratierten Angeboten. Als Käufer kannst du browsen, merken und
-          kaufen – Verkaufen bleibt vorerst Admin-only.
+          Jeder registrierte Nutzer kann Angebote einstellen. Bitte anmelden oder Konto erstellen.
         </p>
         <div className="flex flex-wrap justify-center gap-2">
-          <Link href="/marktplatz">
-            <Button>Zum Marktplatz</Button>
-          </Link>
-          <Link href="/merkliste">
-            <Button variant="outline">Merkliste</Button>
-          </Link>
+          <Button onClick={() => navigate("/anmelden?next=/verkaufen")}>Anmelden</Button>
+          <Button variant="outline" onClick={() => navigate("/registrieren?next=/verkaufen")}>
+            Registrieren
+          </Button>
         </div>
       </div>
     );
@@ -90,9 +74,9 @@ export default function SellCard() {
     return (
       <div className="container py-20 text-center space-y-4 max-w-lg">
         <UserRound className="h-12 w-12 mx-auto text-primary" />
-        <h1 className="text-xl font-bold">Zuerst Admin-Profil anlegen</h1>
+        <h1 className="text-xl font-bold">Zuerst Händlerprofil anlegen</h1>
         <p className="text-muted-foreground text-sm">
-          Anzeigename und Standort erscheinen bei deinen Angeboten.
+          Anzeigename und Standort erscheinen bei deinen Angeboten – wie bei Cardmarket.
         </p>
         <Button onClick={() => navigate(profileSetupPath("/verkaufen"))}>Profil erstellen</Button>
       </div>
@@ -171,9 +155,9 @@ export default function SellCard() {
 
       <Card className="bg-card border-border animate-rise">
         <CardHeader>
-          <CardTitle className="text-2xl">Neues Angebot (Admin)</CardTitle>
+          <CardTitle className="text-2xl">Neues Angebot</CardTitle>
           <CardDescription>
-            Kuratiertes Listing mit Titel, Zustand und Foto – wie bei Cardmarket, nur Admin-seitig.
+            Titel, Zustand und Foto festlegen – dein Angebot erscheint sofort auf dem Marktplatz.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -342,6 +326,9 @@ export default function SellCard() {
               <CheckCircle className="mr-2 h-4 w-4" />
               Angebot veröffentlichen
             </Button>
+            <p className="text-xs text-center text-muted-foreground">
+              Käufer können per PayPal, Überweisung oder Paysafe Card zahlen.
+            </p>
           </form>
         </CardContent>
       </Card>

@@ -599,7 +599,7 @@ export function createListing(input: {
   if (title.length < 2) throw new Error("Bitte einen Kartentitel angeben");
   if (!input.imageUrl) throw new Error("Bitte ein Kartenbild hochladen");
   if (!(input.price > 0)) throw new Error("Bitte einen gültigen Preis angeben");
-  if (!input.sellerId) throw new Error("Admin-Anmeldung erforderlich");
+  if (!input.sellerId) throw new Error("Anmeldung erforderlich");
 
   ensureSellerProfile({
     id: input.sellerId,
@@ -655,11 +655,17 @@ export function createListing(input: {
   return listing;
 }
 
-export function purchaseListing(listingId: string, buyerId: number, buyerName: string) {
+export function purchaseListing(
+  listingId: string,
+  buyerId: number,
+  buyerName: string,
+  paymentMethod?: string
+) {
   const listing = listings.find((l) => l.id === listingId);
   if (!listing) throw new Error("Angebot nicht gefunden");
   if (listing.status !== "active") throw new Error("Angebot nicht mehr verfügbar");
   if (listing.sellerId === buyerId) throw new Error("Du kannst nicht dein eigenes Angebot kaufen");
+  if (!paymentMethod) throw new Error("Bitte eine Zahlungsart wählen");
 
   listing.status = "sold";
   listing.quantity = Math.max(0, listing.quantity - 1);
@@ -675,7 +681,8 @@ export function purchaseListing(listingId: string, buyerId: number, buyerName: s
     orderId: `ord-${nanoid(10)}`,
     listing,
     card,
-    message: `Kauf erfolgreich! ${listing.title || card?.name || "Karte"} von ${listing.sellerName}`,
+    paymentMethod,
+    message: `Kauf erfolgreich! ${listing.title || card?.name || "Karte"} von ${listing.sellerName} · Zahlung: ${paymentMethod}`,
   };
 }
 

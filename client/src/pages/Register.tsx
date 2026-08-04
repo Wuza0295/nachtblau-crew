@@ -45,8 +45,8 @@ export default function Register() {
             Registrieren
           </CardTitle>
           <CardDescription>
-            Käuferkonto anlegen. Verkaufen können nur Administratoren – du brauchst ein Konto zum
-            Kaufen, Merken und für den Warenkorb.
+            Konto anlegen zum Kaufen und Verkaufen. Danach Profil vervollständigen – dann kannst du
+            Angebote einstellen, merken und den Warenkorb nutzen.
           </CardDescription>
         </CardHeader>
         <CardContent>

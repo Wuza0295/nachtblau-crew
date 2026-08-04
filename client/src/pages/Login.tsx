@@ -44,7 +44,7 @@ export default function Login() {
             Anmelden
           </CardTitle>
           <CardDescription>
-            Mit deinem Käuferkonto oder Admin-Zugang anmelden. Kauf nur für registrierte Nutzer.
+            Mit deinem Käuferkonto anmelden. Kauf und Verkauf nur für registrierte Nutzer.
           </CardDescription>
         </CardHeader>
         <CardContent>

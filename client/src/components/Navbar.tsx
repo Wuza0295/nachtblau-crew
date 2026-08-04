@@ -59,9 +59,9 @@ export default function Navbar() {
 
   const navLinks = [
     { href: "/marktplatz", label: "Marktplatz", icon: Search },
+    { href: "/verkaufen", label: "Verkaufen", icon: Tag },
     { href: "/merkliste", label: "Merkliste", icon: Heart },
     { href: "/warenkorb", label: "Warenkorb", icon: ShoppingCart },
-    ...(isAdmin ? [{ href: "/verkaufen", label: "Verkaufen", icon: Tag }] : []),
   ];
 
   return (

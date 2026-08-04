@@ -15,6 +15,7 @@ import {
 import PriceChart from "@/components/marketplace/PriceChart";
 import StarRating from "@/components/marketplace/StarRating";
 import Breadcrumbs from "@/components/marketplace/Breadcrumbs";
+import PaymentMethodPicker from "@/components/marketplace/PaymentMethodPicker";
 import {
   useCreateReview,
   useMarketplaceCard,
@@ -24,6 +25,7 @@ import { useTradingProfile, profileSetupPath } from "@/lib/useTradingProfile";
 import { CONDITION_LABELS, GAME_LABELS, formatEuro } from "@/lib/marketplaceConstants";
 import type { CardCondition, TcgGame } from "@/lib/marketplaceStore";
 import { getSellerProfile } from "@/lib/marketplaceStore";
+import type { PaymentMethodId } from "@/lib/paymentMethods";
 import { addToCart } from "@/lib/cartStore";
 import {
   getWantsVersion,
@@ -69,6 +71,7 @@ export default function CardDetail() {
   };
 
   const [buyDialog, setBuyDialog] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId | "">("");
   const [reviewDialog, setReviewDialog] = useState<{ sellerId: number; listingId: string } | null>(
     null
   );
@@ -342,8 +345,16 @@ export default function CardDetail() {
         </div>
       </div>
 
-      <Dialog open={!!buyDialog} onOpenChange={() => setBuyDialog(null)}>
-        <DialogContent className="bg-card border-border">
+      <Dialog
+        open={!!buyDialog}
+        onOpenChange={(open) => {
+          if (!open) {
+            setBuyDialog(null);
+            setPaymentMethod("");
+          }
+        }}
+      >
+        <DialogContent className="bg-card border-border max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Kauf bestätigen</DialogTitle>
             <DialogDescription>
@@ -354,34 +365,46 @@ export default function CardDetail() {
               .
             </DialogDescription>
           </DialogHeader>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+          <PaymentMethodPicker
+            value={paymentMethod}
+            onChange={setPaymentMethod}
+            compact
+            className="py-1"
+          />
+          <div className="flex items-center gap-2 text-sm text-muted-foreground py-1">
             <Shield className="h-4 w-4 text-primary" />
             Käuferschutz durch Verkäufer-Bewertungen
           </div>
           <Button
             className="w-full bg-primary hover:bg-primary/80"
-            onClick={() =>
+            onClick={() => {
+              if (!paymentMethod) {
+                toast.message("Bitte eine Zahlungsart wählen");
+                return;
+              }
               buyDialog &&
-              purchaseMutation.mutate(
-                {
-                  listingId: buyDialog,
-                  buyerId: user?.id,
-                  buyerName: profile?.displayName ?? user?.name ?? undefined,
-                },
-                {
-                  onSuccess: (result) => {
-                    toast.success(result.message);
-                    setBuyDialog(null);
-                    setReviewDialog({
-                      sellerId: result.listing.sellerId,
-                      listingId: result.listing.id,
-                    });
+                purchaseMutation.mutate(
+                  {
+                    listingId: buyDialog,
+                    buyerId: user?.id,
+                    buyerName: profile?.displayName ?? user?.name ?? undefined,
+                    paymentMethod,
                   },
-                  onError: (err) => toast.error(err.message),
-                }
-              )
-            }
-            disabled={purchaseMutation.isPending}
+                  {
+                    onSuccess: (result) => {
+                      toast.success(result.message);
+                      setBuyDialog(null);
+                      setPaymentMethod("");
+                      setReviewDialog({
+                        sellerId: result.listing.sellerId,
+                        listingId: result.listing.id,
+                      });
+                    },
+                    onError: (err) => toast.error(err.message),
+                  }
+                );
+            }}
+            disabled={purchaseMutation.isPending || !paymentMethod}
           >
             <CheckCircle className="mr-2 h-4 w-4" />
             {purchaseMutation.isPending ? "Wird verarbeitet…" : "Kauf abschließen"}

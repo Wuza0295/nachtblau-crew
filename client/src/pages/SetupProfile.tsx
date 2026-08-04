@@ -91,8 +91,7 @@ export default function SetupProfile() {
             Käuferprofil anlegen
           </CardTitle>
           <CardDescription>
-            Benutzername und Standort sind Pflicht, bevor du kaufen kannst. Verkaufen bleibt
-            Admin-only.
+            Benutzername und Standort sind Pflicht, bevor du kaufen oder verkaufen kannst.
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -18,8 +18,8 @@ export default function Footer() {
               </span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
-              TCG-Marktplatz mit Merkliste, Warenkorb und Verkäufer-Ratings. Verkauf kuratiert durch
-              Admins – Käufer registrieren sich.
+              TCG-Marktplatz mit Merkliste, Warenkorb und Verkäufer-Ratings. Registrieren, kaufen und
+              eigene Angebote einstellen.
             </p>
           </div>
 
@@ -86,10 +86,10 @@ export default function Footer() {
               Handel
             </h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>Kauf nur mit Registrierung</li>
-              <li>Verkauf nur durch Admins</li>
+              <li>Kauf & Verkauf mit Registrierung</li>
+              <li>Eigene Angebote einstellen</li>
+              <li>PayPal, Überweisung, Paysafe</li>
               <li>Merkliste, Warenkorb, Filter</li>
-              <li>Preisverlauf & Verkäufer-Ratings</li>
             </ul>
           </div>
         </div>

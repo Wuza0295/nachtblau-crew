@@ -16,13 +16,12 @@ import {
   ChevronRight,
   Zap,
   Search,
-  Heart,
   UserPlus,
 } from "lucide-react";
 import { useMemo } from "react";
 
 export default function Home() {
-  const { isAuthenticated, isAdmin } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
   const { data: stats } = useMarketplaceStats();
   const searchFilters = useMemo(() => ({ sort: "best_offer" as const, limit: 8 }), []);
@@ -64,8 +63,8 @@ export default function Home() {
           </h1>
 
           <p className="text-base md:text-lg text-foreground/85 max-w-md leading-relaxed">
-            Cardmarket-Feeling: Filter, Merkliste, Warenkorb und Verkäufer-Ratings – Verkauf
-            vorerst nur durch Admins, Käufer registrieren sich.
+            Cardmarket-Feeling: Filter, Merkliste, Warenkorb und Verkäufer-Ratings – registrieren,
+            kaufen und eigene Angebote einstellen.
           </p>
 
           <div className="flex flex-wrap gap-3">
@@ -78,38 +77,26 @@ export default function Home() {
                 Zum Marktplatz
               </Button>
             </Link>
-            {!isAuthenticated ? (
+            <Link href="/verkaufen">
               <Button
                 size="lg"
                 variant="outline"
                 className="border-primary/50 bg-background/40 backdrop-blur-sm text-primary hover:bg-primary/15 font-semibold"
+              >
+                <ShoppingBag className="mr-2 h-5 w-5" />
+                Angebot einstellen
+              </Button>
+            </Link>
+            {!isAuthenticated && (
+              <Button
+                size="lg"
+                variant="ghost"
+                className="text-foreground/80 hover:text-foreground"
                 onClick={() => navigate("/registrieren")}
               >
                 <UserPlus className="mr-2 h-5 w-5" />
-                Als Käufer registrieren
+                Registrieren
               </Button>
-            ) : isAdmin ? (
-              <Link href="/verkaufen">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-primary/50 bg-background/40 backdrop-blur-sm text-primary hover:bg-primary/15 font-semibold"
-                >
-                  <ShoppingBag className="mr-2 h-5 w-5" />
-                  Angebot einstellen
-                </Button>
-              </Link>
-            ) : (
-              <Link href="/merkliste">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-primary/50 bg-background/40 backdrop-blur-sm text-primary hover:bg-primary/15 font-semibold"
-                >
-                  <Heart className="mr-2 h-5 w-5" />
-                  Merkliste
-                </Button>
-              </Link>
             )}
           </div>
         </div>
@@ -144,8 +131,8 @@ export default function Home() {
               },
               {
                 icon: Shield,
-                title: "Registrierte Käufer",
-                desc: "Konto + Profil vor Kauf – kein anonymer Checkout",
+                title: "Registrierte Händler",
+                desc: "Konto + Profil vor Kauf und Verkauf",
               },
               {
                 icon: Zap,

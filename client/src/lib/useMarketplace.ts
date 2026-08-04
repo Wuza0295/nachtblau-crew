@@ -13,6 +13,9 @@ import {
   type SearchFilters,
   type TcgGame,
 } from "./marketplaceStore";
+import type { PaymentMethodId } from "./paymentMethods";
+import { getPaymentMethod } from "./paymentMethods";
+import { paymentLabel, saveOrder } from "./orderStore";
 
 let version = 0;
 const listeners = new Set<() => void>();
@@ -103,7 +106,7 @@ export function useCreateListing() {
         const listing = createListing({
           ...input,
           sellerId: input.sellerId ?? 0,
-          sellerName: input.sellerName ?? "Admin",
+          sellerName: input.sellerName ?? "Händler",
         });
         emit();
         opts?.onSuccess?.(listing);
@@ -118,7 +121,12 @@ export function usePurchaseListing() {
   return {
     isPending: false,
     mutate: (
-      input: { listingId: string; buyerId?: number; buyerName?: string },
+      input: {
+        listingId: string;
+        buyerId?: number;
+        buyerName?: string;
+        paymentMethod?: PaymentMethodId;
+      },
       opts?: {
         onSuccess?: (result: ReturnType<typeof purchaseListing>) => void;
         onError?: (e: Error) => void;
@@ -128,7 +136,30 @@ export function usePurchaseListing() {
         if (!input.buyerId || !input.buyerName) {
           throw new Error("Registrierung und Profil erforderlich");
         }
-        const result = purchaseListing(input.listingId, input.buyerId, input.buyerName);
+        if (!input.paymentMethod) {
+          throw new Error("Bitte eine Zahlungsart wählen");
+        }
+        const method = getPaymentMethod(input.paymentMethod);
+        const result = purchaseListing(
+          input.listingId,
+          input.buyerId,
+          input.buyerName,
+          method?.label ?? input.paymentMethod
+        );
+        saveOrder({
+          orderId: result.orderId,
+          listingId: result.listing.id,
+          cardId: result.listing.cardId,
+          title: result.listing.title || result.card?.name || "Karte",
+          price: result.listing.price,
+          sellerId: result.listing.sellerId,
+          sellerName: result.listing.sellerName,
+          buyerId: input.buyerId,
+          buyerName: input.buyerName,
+          paymentMethod: input.paymentMethod,
+          paymentLabel: paymentLabel(input.paymentMethod),
+          createdAt: new Date().toISOString(),
+        });
         emit();
         opts?.onSuccess?.(result);
       } catch (e) {

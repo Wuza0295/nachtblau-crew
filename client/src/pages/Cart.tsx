@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,8 @@ import {
 import { usePurchaseListing } from "@/lib/useMarketplace";
 import { useTradingProfile, profileSetupPath } from "@/lib/useTradingProfile";
 import { formatEuro } from "@/lib/marketplaceConstants";
+import type { PaymentMethodId } from "@/lib/paymentMethods";
+import PaymentMethodPicker from "@/components/marketplace/PaymentMethodPicker";
 import { toast } from "sonner";
 import { ShoppingCart, Trash2, Shield, CheckCircle } from "lucide-react";
 
@@ -26,6 +28,7 @@ export default function CartPage() {
   void version;
   const items = getCart();
   const purchaseMutation = usePurchaseListing();
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId | "">("");
 
   const ensureBuyer = () => {
     if (!isAuthenticated) {
@@ -44,30 +47,38 @@ export default function CartPage() {
   const checkout = () => {
     if (!ensureBuyer()) return;
     if (items.length === 0) return;
+    if (!paymentMethod) {
+      toast.message("Bitte eine Zahlungsart wählen");
+      return;
+    }
 
     let ok = 0;
     let fail = 0;
-    for (const item of [...items]) {
+    const snapshot = [...items];
+    for (const item of snapshot) {
       purchaseMutation.mutate(
         {
           listingId: item.listingId,
           buyerId: user?.id,
           buyerName: profile?.displayName ?? user?.name,
+          paymentMethod,
         },
         {
-          onSuccess: () => {
+          onSuccess: (result) => {
             removeFromCart(item.listingId);
             ok += 1;
-            if (ok + fail === items.length) {
-              toast.success(`${ok} Kauf${ok === 1 ? "" : "e"} abgeschlossen`);
+            if (ok + fail === snapshot.length) {
+              toast.success(
+                `${ok} Kauf${ok === 1 ? "" : "e"} abgeschlossen · ${result.paymentMethod}`
+              );
               if (fail) toast.error(`${fail} Angebote nicht verfügbar`);
             }
           },
-          onError: () => {
+          onError: (err) => {
             fail += 1;
-            if (ok + fail === items.length) {
+            if (ok + fail === snapshot.length) {
               if (ok) toast.success(`${ok} Kauf${ok === 1 ? "" : "e"} abgeschlossen`);
-              toast.error(`${fail} Angebote nicht verfügbar`);
+              toast.error(err.message || `${fail} Angebote nicht verfügbar`);
             }
           },
         }
@@ -83,7 +94,7 @@ export default function CartPage() {
           Warenkorb
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          {cartCount()} Artikel · wie bei Cardmarket: erst merken, dann Kauf bestätigen
+          {cartCount()} Artikel · Zahlungsart wählen, dann Kauf bestätigen
         </p>
       </div>
 
@@ -141,13 +152,16 @@ export default function CartPage() {
                 <span className="text-muted-foreground">Summe</span>
                 <span className="text-xl font-bold text-primary">{formatEuro(cartTotal())}</span>
               </div>
+
+              <PaymentMethodPicker value={paymentMethod} onChange={setPaymentMethod} />
+
               <div className="flex items-start gap-2 text-xs text-muted-foreground">
                 <Shield className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                Käuferschutz über Verkäuferbewertungen. Kauf nur mit registriertem Konto und
-                vollständigem Profil.
+                Zahlung läuft zwischen dir und dem Verkäufer (PayPal, Überweisung oder Paysafe Card).
+                Kauf nur mit registriertem Konto und vollständigem Profil.
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button className="font-bold" onClick={checkout}>
+                <Button className="font-bold" onClick={checkout} disabled={!paymentMethod}>
                   <CheckCircle className="mr-2 h-4 w-4" />
                   Kauf bestätigen
                 </Button>
