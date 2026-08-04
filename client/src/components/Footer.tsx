@@ -29,22 +29,34 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/marktplatz" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link
+                  href="/marktplatz"
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
                   Alle Produkte
                 </Link>
               </li>
               <li>
-                <Link href="/merkliste" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link
+                  href="/merkliste"
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
                   Merkliste
                 </Link>
               </li>
               <li>
-                <Link href="/warenkorb" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link
+                  href="/warenkorb"
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
                   Warenkorb
                 </Link>
               </li>
               <li>
-                <Link href="/registrieren" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link
+                  href="/registrieren"
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
                   Registrieren
                 </Link>
               </li>
@@ -86,7 +98,7 @@ export default function Footer() {
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
           <span>© {new Date().getFullYear()} Autic Treasures</span>
-          <span className="text-primary/70">nacht-blau.de</span>
+          <span className="text-primary/70">nacht-blau.de · autic-treasures.com</span>
         </div>
       </div>
     </footer>

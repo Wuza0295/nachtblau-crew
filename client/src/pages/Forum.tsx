@@ -76,6 +76,12 @@ export default function Forum() {
               <div key={i} className="h-20 rounded-xl bg-card animate-pulse" />
             ))}
           </div>
+        ) : (categories ?? []).length === 0 ? (
+          <div className="text-center py-16 text-muted-foreground">
+            <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-30" />
+            <p className="text-lg">Forum wird vorbereitet</p>
+            <p className="text-sm mt-1">Kategorien werden beim nächsten Start angelegt.</p>
+          </div>
         ) : (
           <div className="space-y-3">
             {(categories ?? []).map((cat) => {

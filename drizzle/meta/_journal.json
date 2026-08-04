@@ -15,6 +15,13 @@
       "when": 1780826312302,
       "tag": "0001_hot_silverclaw",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1783778400000,
+      "tag": "0002_seed_forum_categories",
+      "breakpoints": true
     }
   ]
 }
