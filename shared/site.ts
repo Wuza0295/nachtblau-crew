@@ -1,9 +1,9 @@
 export const SITE = {
   name: "NachtBlau Crew",
   shortName: "NachtBlau",
-  tagline: "Deine Gaming Community für PC, Konsolen, Steam und mehr.",
+  tagline: "Dein Community Launcher für PC, Konsolen, Steam und mehr.",
   description:
-    "NachtBlau Crew – Deine Gaming Community für PC, Konsolen, Steam und mehr. Aktuelle News, kostenlose Spiele und ein aktives Forum.",
+    "NachtBlau Crew Launcher – Free Games, Gaming-News und Community-Forum für PC, Konsolen, Steam und mehr.",
   logoUrl:
     "https://d2xsxph8kpxj0f.cloudfront.net/310519663739653758/PbtcqHtcftAKnwDnhmoduf/nachtblau-logo-Li7umgFb8XhrYaRtYVFm4Z.webp",
   heroBgUrl:
