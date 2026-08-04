@@ -19,6 +19,7 @@ export const CONDITION_OPTIONS: { value: CardCondition; label: string; short: st
 ];
 
 export const SORT_OPTIONS = [
+  { value: "best_offer", label: "Bestes Angebot" },
   { value: "popular", label: "Beliebteste" },
   { value: "price_asc", label: "Preis aufsteigend" },
   { value: "price_desc", label: "Preis absteigend" },

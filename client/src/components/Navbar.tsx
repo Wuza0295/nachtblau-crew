@@ -1,5 +1,4 @@
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl, isOAuthConfigured } from "@/const";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,33 +9,38 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link, useLocation } from "wouter";
-import { Menu, X, ShoppingBag, Search, Tag, LogOut, User, BadgeCheck } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
+import {
+  Menu,
+  X,
+  ShoppingBag,
+  Search,
+  Tag,
+  LogOut,
+  User,
+  BadgeCheck,
+  Heart,
+  ShoppingCart,
+  LogIn,
+} from "lucide-react";
+import { useState, useSyncExternalStore } from "react";
 import { useTradingProfile, profileSetupPath } from "@/lib/useTradingProfile";
 import { GAME_OPTIONS } from "@/lib/marketplaceConstants";
+import { cartCount, getCartVersion, subscribeCart } from "@/lib/cartStore";
+import { getWants, getWantsVersion, subscribeWants } from "@/lib/wantsStore";
 import { cn } from "@/lib/utils";
 
-const NAV_LINKS = [
-  { href: "/marktplatz", label: "Marktplatz", icon: Search },
-  { href: "/verkaufen", label: "Verkaufen", icon: Tag },
-];
-
 export default function Navbar() {
-  const { user, isAuthenticated, logout, loginDemo } = useAuth();
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const { profile, isComplete } = useTradingProfile(user?.id);
   const [location, navigate] = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const handleLogin = () => {
-    if (isOAuthConfigured()) {
-      window.location.href = getLoginUrl();
-      return;
-    }
-    loginDemo();
-    toast.success("Angemeldet – bitte Profil anlegen zum Handeln");
-    navigate(profileSetupPath("/marktplatz"));
-  };
+  const cartV = useSyncExternalStore(subscribeCart, getCartVersion, getCartVersion);
+  const wantsV = useSyncExternalStore(subscribeWants, getWantsVersion, getWantsVersion);
+  void cartV;
+  void wantsV;
+  const cCount = cartCount();
+  const wCount = getWants().length;
 
   const handleLogout = async () => {
     await logout();
@@ -52,6 +56,13 @@ export default function Navbar() {
     .slice(0, 2);
 
   const onMarketplace = location.startsWith("/marktplatz") || location.startsWith("/karte");
+
+  const navLinks = [
+    { href: "/marktplatz", label: "Marktplatz", icon: Search },
+    { href: "/merkliste", label: "Merkliste", icon: Heart },
+    { href: "/warenkorb", label: "Warenkorb", icon: ShoppingCart },
+    ...(isAdmin ? [{ href: "/verkaufen", label: "Verkaufen", icon: Tag }] : []),
+  ];
 
   return (
     <header className="glass-nav sticky top-0 z-50">
@@ -74,13 +85,13 @@ export default function Navbar() {
           </Link>
 
           <div className="hidden md:flex items-center gap-1">
-            {NAV_LINKS.map(({ href, label, icon: Icon }) => (
+            {navLinks.map(({ href, label, icon: Icon }) => (
               <Link key={href} href={href}>
                 <Button
                   variant="ghost"
                   size="sm"
                   className={cn(
-                    "gap-2 transition-all duration-200",
+                    "gap-2 transition-all duration-200 relative",
                     location === href || location.startsWith(href + "/")
                       ? "text-primary bg-primary/10"
                       : "text-muted-foreground hover:text-foreground hover:bg-white/5"
@@ -88,6 +99,16 @@ export default function Navbar() {
                 >
                   <Icon className="h-4 w-4" />
                   {label}
+                  {href === "/warenkorb" && cCount > 0 && (
+                    <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-primary text-[10px] text-primary-foreground flex items-center justify-center">
+                      {cCount}
+                    </span>
+                  )}
+                  {href === "/merkliste" && wCount > 0 && (
+                    <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-primary/80 text-[10px] text-primary-foreground flex items-center justify-center">
+                      {wCount}
+                    </span>
+                  )}
                 </Button>
               </Link>
             ))}
@@ -113,9 +134,11 @@ export default function Navbar() {
                   <div className="px-3 py-2">
                     <p className="text-sm font-medium text-foreground truncate">{displayName}</p>
                     <p className="text-xs text-muted-foreground truncate">
-                      {isComplete
-                        ? `${profile?.country}, ${profile?.city}`
-                        : "Profil unvollständig"}
+                      {isAdmin
+                        ? "Administrator"
+                        : isComplete
+                          ? `${profile?.country}, ${profile?.city}`
+                          : "Profil unvollständig"}
                     </p>
                   </div>
                   <DropdownMenuSeparator />
@@ -127,7 +150,7 @@ export default function Navbar() {
                       {isComplete ? (
                         <>
                           <User className="mr-2 h-4 w-4" />
-                          Mein Händlerprofil
+                          Mein Profil
                         </>
                       ) : (
                         <>
@@ -156,14 +179,25 @@ export default function Navbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button
-                size="sm"
-                className="bg-primary hover:bg-primary/80 text-primary-foreground font-semibold shadow-lg shadow-primary/20"
-                onClick={handleLogin}
-              >
-                <ShoppingBag className="mr-2 h-4 w-4" />
-                {isOAuthConfigured() ? "Anmelden" : "Konto starten"}
-              </Button>
+              <div className="flex items-center gap-1.5">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="hidden sm:inline-flex"
+                  onClick={() => navigate("/anmelden")}
+                >
+                  <LogIn className="mr-1.5 h-4 w-4" />
+                  Anmelden
+                </Button>
+                <Button
+                  size="sm"
+                  className="bg-primary hover:bg-primary/80 text-primary-foreground font-semibold shadow-lg shadow-primary/20"
+                  onClick={() => navigate("/registrieren")}
+                >
+                  <ShoppingBag className="mr-2 h-4 w-4" />
+                  Registrieren
+                </Button>
+              </div>
             )}
 
             <Button
@@ -179,7 +213,7 @@ export default function Navbar() {
 
         {menuOpen && (
           <div className="md:hidden border-t border-border py-3 space-y-1">
-            {NAV_LINKS.map(({ href, label, icon: Icon }) => (
+            {navLinks.map(({ href, label, icon: Icon }) => (
               <Link key={href} href={href} onClick={() => setMenuOpen(false)}>
                 <Button
                   variant="ghost"
@@ -193,6 +227,22 @@ export default function Navbar() {
                 </Button>
               </Link>
             ))}
+            {!isAuthenticated && (
+              <>
+                <Link href="/anmelden" onClick={() => setMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start gap-2">
+                    <LogIn className="h-4 w-4" />
+                    Anmelden
+                  </Button>
+                </Link>
+                <Link href="/registrieren" onClick={() => setMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start gap-2 text-primary">
+                    <ShoppingBag className="h-4 w-4" />
+                    Registrieren
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         )}
       </nav>

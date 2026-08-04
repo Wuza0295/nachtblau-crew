@@ -107,6 +107,7 @@ function priceHistory(base: number): { date: string; price: number }[] {
   }));
 }
 
+/** Official / catalog art from public TCG CDNs (pokemontcg.io, ygoprodeck, scryfall). */
 const SEED_CARDS: CardCatalogEntry[] = [
   {
     id: "card-001",
@@ -115,7 +116,7 @@ const SEED_CARDS: CardCatalogEntry[] = [
     game: "pokemon",
     rarity: "Ultra Rare",
     number: "223/197",
-    imageUrl: "https://images.unsplash.com/photo-1647892591717-28c7fd63bb3f?w=400&h=560&fit=crop",
+    imageUrl: "https://images.pokemontcg.io/sv3/223_hires.png",
     marketPrice: 89.99,
     priceHistory: priceHistory(89.99),
     avgRating: 4.8,
@@ -128,7 +129,7 @@ const SEED_CARDS: CardCatalogEntry[] = [
     game: "yugioh",
     rarity: "Secret Rare",
     number: "MAGO-EN001",
-    imageUrl: "https://images.unsplash.com/photo-1674106890393-7dd7b5edd398?w=400&h=560&fit=crop",
+    imageUrl: "https://images.ygoprodeck.com/images/cards/46986414.jpg",
     marketPrice: 34.5,
     priceHistory: priceHistory(34.5),
     avgRating: 4.9,
@@ -137,11 +138,12 @@ const SEED_CARDS: CardCatalogEntry[] = [
   {
     id: "card-003",
     name: "Black Lotus",
-    setName: "Alpha",
+    setName: "Vintage Masters",
     game: "mtg",
     rarity: "Mythic",
-    number: "A-232",
-    imageUrl: "https://images.unsplash.com/photo-1593814681110-cbf22baf6d79?w=400&h=560&fit=crop",
+    number: "4",
+    imageUrl:
+      "https://cards.scryfall.io/normal/front/b/d/bd8fa327-dd41-4737-8f19-2cf5eb1f7cdd.jpg",
     marketPrice: 12500,
     priceHistory: priceHistory(12500),
     avgRating: 5.0,
@@ -149,12 +151,12 @@ const SEED_CARDS: CardCatalogEntry[] = [
   },
   {
     id: "card-004",
-    name: "Luffy (Leader)",
+    name: "Monkey D. Luffy",
     setName: "Romance Dawn",
     game: "onepiece",
     rarity: "Leader",
     number: "OP01-001",
-    imageUrl: "https://images.unsplash.com/photo-1742743032749-187b17179e0f?w=400&h=560&fit=crop",
+    imageUrl: "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/one-piece/OP01/OP01-001_p1_EN.webp",
     marketPrice: 156.0,
     priceHistory: priceHistory(156),
     avgRating: 4.7,
@@ -167,7 +169,7 @@ const SEED_CARDS: CardCatalogEntry[] = [
     game: "lorcana",
     rarity: "Legendary",
     number: "207/204",
-    imageUrl: "https://images.unsplash.com/photo-1551306667-f32e7af055f2?w=400&h=560&fit=crop",
+    imageUrl: "https://lorcana-api.com/images/mickey_mouse/brave_little_tailor/large.png",
     marketPrice: 78.0,
     priceHistory: priceHistory(78),
     avgRating: 4.6,
@@ -175,12 +177,12 @@ const SEED_CARDS: CardCatalogEntry[] = [
   },
   {
     id: "card-006",
-    name: "Rickey Henderson Rookie",
-    setName: "Topps 1980",
-    game: "sports",
-    rarity: "Rookie",
-    number: "482",
-    imageUrl: "https://images.unsplash.com/photo-1551306683-9e7cf1661af1?w=400&h=560&fit=crop",
+    name: "Umbreon VMAX",
+    setName: "Evolving Skies",
+    game: "pokemon",
+    rarity: "Secret Rare",
+    number: "215/203",
+    imageUrl: "https://images.pokemontcg.io/swsh7/215_hires.png",
     marketPrice: 420.0,
     priceHistory: priceHistory(420),
     avgRating: 4.9,
@@ -193,7 +195,7 @@ const SEED_CARDS: CardCatalogEntry[] = [
     game: "pokemon",
     rarity: "Secret Rare",
     number: "188/185",
-    imageUrl: "https://images.unsplash.com/photo-1647892591717-28c7fd63bb3f?w=400&h=560&fit=crop&crop=entropy",
+    imageUrl: "https://images.pokemontcg.io/swsh4/188_hires.png",
     marketPrice: 45.0,
     priceHistory: priceHistory(45),
     avgRating: 4.5,
@@ -206,7 +208,7 @@ const SEED_CARDS: CardCatalogEntry[] = [
     game: "yugioh",
     rarity: "Ultra Rare",
     number: "LOB-001",
-    imageUrl: "https://images.unsplash.com/photo-170885603413-ef824a69717c?w=400&h=560&fit=crop",
+    imageUrl: "https://images.ygoprodeck.com/images/cards/89631139.jpg",
     marketPrice: 62.0,
     priceHistory: priceHistory(62),
     avgRating: 4.8,
@@ -219,7 +221,8 @@ const SEED_CARDS: CardCatalogEntry[] = [
     game: "mtg",
     rarity: "Mythic",
     number: "232/280",
-    imageUrl: "https://images.unsplash.com/photo-1513002433973-e0a181372d60?w=400&h=560&fit=crop",
+    imageUrl:
+      "https://cards.scryfall.io/normal/front/4/e/4e4fb50c-a81f-44d3-93c5-fa9a0b37f617.jpg",
     marketPrice: 12.5,
     priceHistory: priceHistory(12.5),
     avgRating: 4.4,
@@ -232,7 +235,7 @@ const SEED_CARDS: CardCatalogEntry[] = [
     game: "digimon",
     rarity: "Rare",
     number: "BT1-010",
-    imageUrl: "https://images.unsplash.com/photo-1551306667-f32e7af055f2?w=400&h=560&fit=crop&crop=left",
+    imageUrl: "https://images.digimoncard.io/images/cards/BT1-010.jpg",
     marketPrice: 8.99,
     priceHistory: priceHistory(8.99),
     avgRating: 4.3,
@@ -345,14 +348,14 @@ const SEED_REVIEWS: Review[] = [
     buyerId: 13,
     buyerName: "SportsCards_DE",
     listingId: "lst-card-006-0",
-    cardName: "Rickey Henderson Rookie",
+    cardName: "Umbreon VMAX",
     rating: 5,
     comment: "Authentische Karte, professionell verpackt. Sehr zufrieden.",
     createdAt: "2026-07-01T11:45:00Z",
   },
 ];
 
-const STORAGE_KEY = "autic-marketplace-v1";
+const STORAGE_KEY = "autic-marketplace-v2";
 
 type PersistedState = {
   cards: CardCatalogEntry[];
@@ -364,11 +367,12 @@ type PersistedState = {
 function loadPersisted(): PersistedState | null {
   if (typeof window === "undefined") return null;
   try {
+    // Drop legacy Unsplash seeds
+    localStorage.removeItem("autic-marketplace-v1");
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const data = JSON.parse(raw) as PersistedState;
     if (!Array.isArray(data.cards) || !Array.isArray(data.listings)) return null;
-    // Backfill title for older persisted listings
     data.listings = data.listings.map((l) => ({
       ...l,
       title: l.title || data.cards.find((c) => c.id === l.cardId)?.name || "Karte",
@@ -405,21 +409,46 @@ export interface SearchFilters {
   minPrice?: number;
   maxPrice?: number;
   condition?: CardCondition;
-  sort?: "price_asc" | "price_desc" | "newest" | "popular";
+  language?: string;
+  foilOnly?: boolean;
+  gradedOnly?: boolean;
+  minSellerSales?: number;
+  sort?: "price_asc" | "price_desc" | "newest" | "popular" | "best_offer";
   limit?: number;
   offset?: number;
 }
 
 export function searchMarketplace(filters: SearchFilters) {
-  const { query, game, minPrice, maxPrice, condition, sort = "popular", limit = 24, offset = 0 } =
-    filters;
+  const {
+    query,
+    game,
+    minPrice,
+    maxPrice,
+    condition,
+    language,
+    foilOnly,
+    gradedOnly,
+    minSellerSales,
+    sort = "best_offer",
+    limit = 24,
+    offset = 0,
+  } = filters;
 
   let activeListings = listings.filter((l) => l.status === "active");
 
   if (game) activeListings = activeListings.filter((l) => cards.find((c) => c.id === l.cardId)?.game === game);
   if (condition) activeListings = activeListings.filter((l) => l.condition === condition);
+  if (language) activeListings = activeListings.filter((l) => l.language === language);
+  if (foilOnly) activeListings = activeListings.filter((l) => l.isFoil);
+  if (gradedOnly) activeListings = activeListings.filter((l) => l.isGraded);
   if (minPrice !== undefined) activeListings = activeListings.filter((l) => l.price >= minPrice);
   if (maxPrice !== undefined) activeListings = activeListings.filter((l) => l.price <= maxPrice);
+  if (minSellerSales !== undefined) {
+    activeListings = activeListings.filter((l) => {
+      const seller = sellers.find((s) => s.id === l.sellerId);
+      return (seller?.salesCount ?? 0) >= minSellerSales;
+    });
+  }
 
   if (query) {
     const q = query.toLowerCase();
@@ -444,6 +473,7 @@ export function searchMarketplace(filters: SearchFilters) {
   let results = Array.from(cardMap.values()).map((listing) => {
     const card = cards.find((c) => c.id === listing.cardId)!;
     const listingCount = activeListings.filter((l) => l.cardId === card.id).length;
+    const seller = sellers.find((s) => s.id === listing.sellerId);
     return {
       listing,
       card: {
@@ -452,6 +482,7 @@ export function searchMarketplace(filters: SearchFilters) {
         imageUrl: listing.imageUrl || card.imageUrl,
       },
       listingCount,
+      seller,
     };
   });
 
@@ -466,6 +497,17 @@ export function searchMarketplace(filters: SearchFilters) {
       results.sort(
         (a, b) => new Date(b.listing.createdAt).getTime() - new Date(a.listing.createdAt).getTime()
       );
+      break;
+    case "best_offer":
+      // Cardmarket-style blend: price + seller reputation
+      results.sort((a, b) => {
+        const score = (r: (typeof results)[0]) => {
+          const sales = r.seller?.salesCount ?? 0;
+          const rating = r.seller?.rating ?? 0;
+          return r.listing.price / (1 + Math.log10(1 + sales) * 0.15 + rating * 0.02);
+        };
+        return score(a) - score(b);
+      });
       break;
     default:
       results.sort((a, b) => b.card.reviewCount - a.card.reviewCount);
@@ -557,6 +599,7 @@ export function createListing(input: {
   if (title.length < 2) throw new Error("Bitte einen Kartentitel angeben");
   if (!input.imageUrl) throw new Error("Bitte ein Kartenbild hochladen");
   if (!(input.price > 0)) throw new Error("Bitte einen gültigen Preis angeben");
+  if (!input.sellerId) throw new Error("Admin-Anmeldung erforderlich");
 
   ensureSellerProfile({
     id: input.sellerId,

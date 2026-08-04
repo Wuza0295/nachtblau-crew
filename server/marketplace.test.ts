@@ -10,15 +10,15 @@ function createPublicContext(): TrpcContext {
   };
 }
 
-function createAuthContext(): TrpcContext {
+function createAuthContext(role: "user" | "admin" = "user"): TrpcContext {
   return {
     user: {
-      id: 99,
-      openId: "test-user",
-      name: "TestSammler",
-      email: "test@example.com",
+      id: role === "admin" ? 1 : 99,
+      openId: role === "admin" ? "test-admin" : "test-user",
+      name: role === "admin" ? "TestAdmin" : "TestSammler",
+      email: role === "admin" ? "admin@example.com" : "test@example.com",
       loginMethod: "manus",
-      role: "user",
+      role,
       createdAt: new Date(),
       updatedAt: new Date(),
       lastSignedIn: new Date(),
@@ -57,10 +57,23 @@ describe("marketplace router", () => {
     expect(seller.reviews.length).toBeGreaterThan(0);
   });
 
-  it("creates listing when authenticated", async () => {
-    const authCaller = appRouter.createCaller(createAuthContext());
-    const cards = await authCaller.marketplace.getCards();
-    const listing = await authCaller.marketplace.createListing({
+  it("creates listing only for admins", async () => {
+    const userCaller = appRouter.createCaller(createAuthContext("user"));
+    const cards = await userCaller.marketplace.getCards();
+    await expect(
+      userCaller.marketplace.createListing({
+        cardId: cards[0].id,
+        price: 19.99,
+        condition: "near_mint",
+        language: "DE",
+        quantity: 1,
+        isFoil: false,
+        description: "Test-Angebot in sehr gutem Zustand",
+      })
+    ).rejects.toThrow();
+
+    const adminCaller = appRouter.createCaller(createAuthContext("admin"));
+    const listing = await adminCaller.marketplace.createListing({
       cardId: cards[0].id,
       price: 19.99,
       condition: "near_mint",
@@ -69,7 +82,7 @@ describe("marketplace router", () => {
       isFoil: false,
       description: "Test-Angebot in sehr gutem Zustand",
     });
-    expect(listing.sellerId).toBe(99);
+    expect(listing.sellerId).toBe(1);
     expect(listing.price).toBe(19.99);
   });
 

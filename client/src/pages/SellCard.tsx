@@ -1,7 +1,6 @@
 import { useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl, isOAuthConfigured } from "@/const";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,7 +18,7 @@ import { useCreateListing, useMarketplaceCards, type TcgGame } from "@/lib/useMa
 import { useTradingProfile, profileSetupPath } from "@/lib/useTradingProfile";
 import { fileToCompressedDataUrl } from "@/lib/imageUpload";
 import { toast } from "sonner";
-import { ArrowLeft, ImagePlus, Tag, CheckCircle, UserRound } from "lucide-react";
+import { ArrowLeft, ImagePlus, ShieldAlert, CheckCircle, UserRound } from "lucide-react";
 
 const GAMES: { value: TcgGame; label: string }[] = [
   { value: "pokemon", label: "Pokémon" },
@@ -32,7 +31,7 @@ const GAMES: { value: TcgGame; label: string }[] = [
 ];
 
 export default function SellCard() {
-  const { isAuthenticated, loginDemo, user } = useAuth();
+  const { isAuthenticated, isAdmin, user } = useAuth();
   const [, navigate] = useLocation();
   const { profile, isComplete } = useTradingProfile(user?.id);
   const { data: catalog } = useMarketplaceCards();
@@ -55,21 +54,34 @@ export default function SellCard() {
 
   if (!isAuthenticated) {
     return (
-      <div className="container py-20 text-center space-y-4">
-        <p className="text-muted-foreground">Melde dich an, um Karten zu verkaufen.</p>
-        <Button
-          onClick={() => {
-            if (isOAuthConfigured()) {
-              window.location.href = getLoginUrl();
-              return;
-            }
-            loginDemo();
-            toast.success("Angemeldet");
-            navigate(profileSetupPath("/verkaufen"));
-          }}
-        >
-          {isOAuthConfigured() ? "Anmelden" : "Anmelden & Profil anlegen"}
-        </Button>
+      <div className="container py-20 text-center space-y-4 max-w-lg">
+        <ShieldAlert className="h-12 w-12 mx-auto text-primary" />
+        <h1 className="text-xl font-bold">Admin-Verkauf</h1>
+        <p className="text-muted-foreground text-sm">
+          Angebote einstellen dürfen nur Administratoren. Bitte mit Admin-Konto anmelden.
+        </p>
+        <Button onClick={() => navigate("/anmelden?next=/verkaufen")}>Als Admin anmelden</Button>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="container py-20 text-center space-y-4 max-w-lg">
+        <ShieldAlert className="h-12 w-12 mx-auto text-amber-400" />
+        <h1 className="text-xl font-bold">Verkauf nur für Admins</h1>
+        <p className="text-muted-foreground text-sm">
+          Autic Treasures startet mit kuratierten Angeboten. Als Käufer kannst du browsen, merken und
+          kaufen – Verkaufen bleibt vorerst Admin-only.
+        </p>
+        <div className="flex flex-wrap justify-center gap-2">
+          <Link href="/marktplatz">
+            <Button>Zum Marktplatz</Button>
+          </Link>
+          <Link href="/merkliste">
+            <Button variant="outline">Merkliste</Button>
+          </Link>
+        </div>
       </div>
     );
   }
@@ -78,9 +90,9 @@ export default function SellCard() {
     return (
       <div className="container py-20 text-center space-y-4 max-w-lg">
         <UserRound className="h-12 w-12 mx-auto text-primary" />
-        <h1 className="text-xl font-bold">Zuerst Händlerprofil anlegen</h1>
+        <h1 className="text-xl font-bold">Zuerst Admin-Profil anlegen</h1>
         <p className="text-muted-foreground text-sm">
-          Wie bei Cardmarket: Ohne vollständiges Profil kannst du keine Angebote einstellen.
+          Anzeigename und Standort erscheinen bei deinen Angeboten.
         </p>
         <Button onClick={() => navigate(profileSetupPath("/verkaufen"))}>Profil erstellen</Button>
       </div>
@@ -118,33 +130,21 @@ export default function SellCard() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) {
-      toast.error("Bitte einen Kartentitel eingeben");
-      return;
-    }
-    if (!imageUrl) {
-      toast.error("Bitte ein Foto deiner Karte hochladen");
-      return;
-    }
-    if (!price) {
-      toast.error("Bitte einen Preis angeben");
-      return;
-    }
-
+    if (!user || !profile) return;
     createMutation.mutate(
       {
         cardId: catalogId || undefined,
-        title: title.trim(),
-        setName: setName.trim() || undefined,
+        title,
+        setName: setName || undefined,
         game,
         imageUrl,
         price: parseFloat(price),
         condition: condition as "mint" | "near_mint" | "excellent" | "good" | "played",
         language,
-        quantity: parseInt(quantity) || 1,
+        quantity: parseInt(quantity, 10) || 1,
         isFoil,
-        description: description || `${condition} – schneller Versand aus ${profile.city}`,
-        sellerId: user?.id,
+        description,
+        sellerId: user.id,
         sellerName: profile.displayName,
         sellerAvatar: profile.avatarUrl,
         sellerCountry: profile.country,
@@ -152,7 +152,7 @@ export default function SellCard() {
       },
       {
         onSuccess: (listing) => {
-          toast.success("Angebot eingestellt!");
+          toast.success("Angebot eingestellt");
           navigate(`/karte/${listing.cardId}`);
         },
         onError: (err) => toast.error(err.message),
@@ -163,56 +163,47 @@ export default function SellCard() {
   return (
     <div className="container py-8 max-w-2xl">
       <Link href="/marktplatz">
-        <Button variant="ghost" size="sm" className="mb-6 text-muted-foreground">
+        <Button variant="ghost" size="sm" className="mb-4 text-muted-foreground -ml-2">
           <ArrowLeft className="h-4 w-4 mr-1" />
           Marktplatz
         </Button>
       </Link>
 
-      <Card className="bg-card border-border">
+      <Card className="bg-card border-border animate-rise">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Tag className="h-5 w-5 text-primary" />
-            Artikel verkaufen
-          </CardTitle>
+          <CardTitle className="text-2xl">Neues Angebot (Admin)</CardTitle>
           <CardDescription>
-            Eigener Titel, Produktfoto und Zustand – analog zu Cardmarket-Artikeln. Verkäufer:{" "}
-            <strong className="text-foreground">{profile.displayName}</strong> ({profile.country},{" "}
-            {profile.city})
+            Kuratiertes Listing mit Titel, Zustand und Foto – wie bei Cardmarket, nur Admin-seitig.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label>Kartentitel *</Label>
-              <Input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="z. B. Charizard ex 223/197 – Deutsch"
-                maxLength={80}
-                required
-                className="bg-secondary/50 border-border"
-              />
-              <p className="text-xs text-muted-foreground">
-                Wähle den Titel frei – so erscheint dein Angebot im Marktplatz.
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Katalog-Vorlage (optional)</Label>
+              <Label>Aus Katalog übernehmen (optional)</Label>
               <Select value={catalogId || "none"} onValueChange={applyCatalog}>
                 <SelectTrigger className="bg-secondary/50 border-border">
-                  <SelectValue placeholder="Vorlage übernehmen…" />
+                  <SelectValue placeholder="Katalogkarte" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Ohne Vorlage – komplett eigenes Angebot</SelectItem>
+                  <SelectItem value="none">— Eigenes Angebot —</SelectItem>
                   {catalog?.map((c) => (
                     <SelectItem key={c.id} value={c.id}>
-                      {c.name} – {c.setName}
+                      {c.name} ({c.setName})
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="title">Titel *</Label>
+              <Input
+                id="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                className="bg-secondary/50 border-border"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -232,33 +223,30 @@ export default function SellCard() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Set / Expansion</Label>
+                <Label htmlFor="set">Set</Label>
                 <Input
+                  id="set"
                   value={setName}
                   onChange={(e) => setSetName(e.target.value)}
-                  placeholder="z. B. Obsidian Flames"
                   className="bg-secondary/50 border-border"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label>Kartenfoto *</Label>
-              <div className="flex flex-col sm:flex-row gap-4 items-start">
-                <button
-                  type="button"
-                  onClick={() => fileRef.current?.click()}
-                  className="w-28 aspect-[5/7] rounded-lg border border-dashed border-primary/40 bg-secondary/30 flex items-center justify-center overflow-hidden hover:border-primary transition-colors"
-                >
-                  {imageUrl ? (
-                    <img src={imageUrl} alt="Vorschau" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="text-center p-2 text-muted-foreground">
-                      <ImagePlus className="h-6 w-6 mx-auto mb-1" />
-                      <span className="text-[10px]">Foto wählen</span>
-                    </div>
-                  )}
-                </button>
+              <Label>Kartenbild *</Label>
+              <div className="flex gap-3 items-start">
+                {imageUrl ? (
+                  <img
+                    src={imageUrl}
+                    alt=""
+                    className="w-20 h-28 object-cover rounded border border-border"
+                  />
+                ) : (
+                  <div className="w-20 h-28 rounded border border-dashed border-border flex items-center justify-center bg-secondary/30">
+                    <ImagePlus className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                )}
                 <div className="flex-1 space-y-2">
                   <Input
                     ref={fileRef}
@@ -266,46 +254,34 @@ export default function SellCard() {
                     accept="image/*"
                     className="bg-secondary/50 border-border"
                     onChange={(e) => handleImage(e.target.files?.[0] ?? null)}
+                    disabled={uploading}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Lade ein Foto deiner tatsächlichen Karte hoch (JPG/PNG). Wird komprimiert und lokal
-                    gespeichert.
-                  </p>
-                  {uploading && <p className="text-xs text-primary">Wird verarbeitet…</p>}
+                  <Input
+                    placeholder="oder Bild-URL"
+                    value={imageUrl.startsWith("data:") ? "" : imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                    className="bg-secondary/50 border-border text-sm"
+                  />
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="space-y-2">
-                <Label>Preis (€) *</Label>
+                <Label htmlFor="price">Preis € *</Label>
                 <Input
+                  id="price"
                   type="number"
                   step="0.01"
                   min="0.01"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
-                  placeholder="0.00"
                   required
                   className="bg-secondary/50 border-border"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Anzahl</Label>
-                <Input
-                  type="number"
-                  min="1"
-                  max="99"
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
-                  className="bg-secondary/50 border-border"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Zustand *</Label>
+                <Label>Zustand</Label>
                 <Select value={condition} onValueChange={setCondition}>
                   <SelectTrigger className="bg-secondary/50 border-border">
                     <SelectValue />
@@ -326,38 +302,45 @@ export default function SellCard() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="DE">Deutsch</SelectItem>
-                    <SelectItem value="EN">Englisch</SelectItem>
-                    <SelectItem value="JP">Japanisch</SelectItem>
-                    <SelectItem value="FR">Französisch</SelectItem>
+                    <SelectItem value="DE">DE</SelectItem>
+                    <SelectItem value="EN">EN</SelectItem>
+                    <SelectItem value="JP">JP</SelectItem>
+                    <SelectItem value="FR">FR</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="qty">Menge</Label>
+                <Input
+                  id="qty"
+                  type="number"
+                  min="1"
+                  value={quantity}
+                  onChange={(e) => setQuantity(e.target.value)}
+                  className="bg-secondary/50 border-border"
+                />
+              </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <Switch checked={isFoil} onCheckedChange={setIsFoil} id="foil" />
-              <Label htmlFor="foil">Foil / Holografisch</Label>
+            <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
+              <Label htmlFor="foil">Foil / Holo</Label>
+              <Switch id="foil" checked={isFoil} onCheckedChange={setIsFoil} />
             </div>
 
             <div className="space-y-2">
-              <Label>Beschreibung</Label>
+              <Label htmlFor="desc">Beschreibung</Label>
               <Textarea
+                id="desc"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Zustand im Detail, Versand, Besonderheiten…"
                 className="bg-secondary/50 border-border"
+                rows={3}
               />
             </div>
 
-            <Button
-              type="submit"
-              className="w-full bg-primary hover:bg-primary/80 font-bold"
-              size="lg"
-              disabled={createMutation.isPending || uploading}
-            >
-              <CheckCircle className="mr-2 h-5 w-5" />
-              {createMutation.isPending ? "Wird erstellt…" : "Angebot einstellen"}
+            <Button type="submit" className="w-full font-bold" size="lg" disabled={uploading}>
+              <CheckCircle className="mr-2 h-4 w-4" />
+              Angebot veröffentlichen
             </Button>
           </form>
         </CardContent>

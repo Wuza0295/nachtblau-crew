@@ -1,0 +1,164 @@
+import { useSyncExternalStore } from "react";
+import { Link, useLocation } from "wouter";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  cartCount,
+  cartTotal,
+  clearCart,
+  getCart,
+  getCartVersion,
+  removeFromCart,
+  subscribeCart,
+} from "@/lib/cartStore";
+import { usePurchaseListing } from "@/lib/useMarketplace";
+import { useTradingProfile, profileSetupPath } from "@/lib/useTradingProfile";
+import { formatEuro } from "@/lib/marketplaceConstants";
+import { toast } from "sonner";
+import { ShoppingCart, Trash2, Shield, CheckCircle } from "lucide-react";
+
+export default function CartPage() {
+  const { isAuthenticated, user } = useAuth();
+  const { profile, isComplete } = useTradingProfile(user?.id);
+  const [, navigate] = useLocation();
+  const version = useSyncExternalStore(subscribeCart, getCartVersion, getCartVersion);
+  void version;
+  const items = getCart();
+  const purchaseMutation = usePurchaseListing();
+
+  const ensureBuyer = () => {
+    if (!isAuthenticated) {
+      toast.message("Bitte registrieren oder anmelden");
+      navigate(`/registrieren?next=${encodeURIComponent("/warenkorb")}`);
+      return false;
+    }
+    if (!isComplete) {
+      toast.message("Käuferprofil erforderlich");
+      navigate(profileSetupPath("/warenkorb"));
+      return false;
+    }
+    return true;
+  };
+
+  const checkout = () => {
+    if (!ensureBuyer()) return;
+    if (items.length === 0) return;
+
+    let ok = 0;
+    let fail = 0;
+    for (const item of [...items]) {
+      purchaseMutation.mutate(
+        {
+          listingId: item.listingId,
+          buyerId: user?.id,
+          buyerName: profile?.displayName ?? user?.name,
+        },
+        {
+          onSuccess: () => {
+            removeFromCart(item.listingId);
+            ok += 1;
+            if (ok + fail === items.length) {
+              toast.success(`${ok} Kauf${ok === 1 ? "" : "e"} abgeschlossen`);
+              if (fail) toast.error(`${fail} Angebote nicht verfügbar`);
+            }
+          },
+          onError: () => {
+            fail += 1;
+            if (ok + fail === items.length) {
+              if (ok) toast.success(`${ok} Kauf${ok === 1 ? "" : "e"} abgeschlossen`);
+              toast.error(`${fail} Angebote nicht verfügbar`);
+            }
+          },
+        }
+      );
+    }
+  };
+
+  return (
+    <div className="container py-8 max-w-3xl space-y-6">
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
+          <ShoppingCart className="h-7 w-7 text-primary" />
+          Warenkorb
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          {cartCount()} Artikel · wie bei Cardmarket: erst merken, dann Kauf bestätigen
+        </p>
+      </div>
+
+      {items.length === 0 ? (
+        <Card className="bg-card/50 border-border">
+          <CardContent className="py-12 text-center space-y-4">
+            <p className="text-muted-foreground">Dein Warenkorb ist leer.</p>
+            <Link href="/marktplatz">
+              <Button>Zum Marktplatz</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          <div className="rounded-xl border border-border divide-y divide-border overflow-hidden">
+            {items.map((item) => (
+              <div
+                key={item.listingId}
+                className="flex gap-4 p-4 bg-card/40 hover:bg-card/70 transition-colors animate-rise"
+              >
+                <img
+                  src={item.imageUrl}
+                  alt=""
+                  className="w-14 h-[4.5rem] object-cover rounded border border-border"
+                />
+                <div className="flex-1 min-w-0">
+                  <Link href={`/karte/${item.cardId}`}>
+                    <p className="font-medium hover:text-primary transition-colors line-clamp-1">
+                      {item.title}
+                    </p>
+                  </Link>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {item.condition} · {item.language} · {item.sellerName}
+                  </p>
+                  <p className="font-bold text-primary mt-1">{formatEuro(item.price)}</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="shrink-0 text-muted-foreground hover:text-destructive"
+                  onClick={() => removeFromCart(item.listingId)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+
+          <Card className="bg-card border-border">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Checkout</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Summe</span>
+                <span className="text-xl font-bold text-primary">{formatEuro(cartTotal())}</span>
+              </div>
+              <div className="flex items-start gap-2 text-xs text-muted-foreground">
+                <Shield className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                Käuferschutz über Verkäuferbewertungen. Kauf nur mit registriertem Konto und
+                vollständigem Profil.
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button className="font-bold" onClick={checkout}>
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  Kauf bestätigen
+                </Button>
+                <Button variant="outline" onClick={() => clearCart()}>
+                  Leeren
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
+    </div>
+  );
+}

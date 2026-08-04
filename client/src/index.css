@@ -222,6 +222,29 @@
 .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
 .animate-twinkle { animation: twinkle 3s ease-in-out infinite; }
 
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes card-in {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes ken-burns {
+  from { transform: scale(1.05); }
+  to { transform: scale(1.12); }
+}
+
+.animate-rise {
+  animation: rise 0.55s ease-out both;
+}
+.animate-card-in {
+  animation: card-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-ken-burns {
+  animation: ken-burns 18s ease-out forwards;
+}
+
 /* ── Typography ─────────────────────────────────────────────────────────────── */
 h1, h2, h3, h4, h5, h6 {
   font-family: "Orbitron", "Inter", system-ui, sans-serif;

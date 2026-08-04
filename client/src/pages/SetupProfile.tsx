@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useLocation, useSearch } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl, isOAuthConfigured } from "@/const";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,7 +20,7 @@ import { toast } from "sonner";
 import { BadgeCheck, Camera, UserRound } from "lucide-react";
 
 export default function SetupProfile() {
-  const { isAuthenticated, loginDemo, user } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [, navigate] = useLocation();
   const search = useSearch();
   const next = useMemo(() => {
@@ -42,20 +41,16 @@ export default function SetupProfile() {
         <UserRound className="h-12 w-12 mx-auto text-primary" />
         <h1 className="text-2xl font-bold">Profil erforderlich</h1>
         <p className="text-muted-foreground">
-          Zum Kaufen und Verkaufen brauchst du ein Händlerprofil – analog zu Cardmarket.
+          Zum Kaufen brauchst du ein registriertes Konto und ein vollständiges Käuferprofil.
         </p>
-        <Button
-          onClick={() => {
-            if (isOAuthConfigured()) {
-              window.location.href = getLoginUrl();
-              return;
-            }
-            loginDemo();
-            toast.success("Angemeldet – jetzt Profil anlegen");
-          }}
-        >
-          {isOAuthConfigured() ? "Anmelden" : "Weiter zur Profilerstellung"}
-        </Button>
+        <div className="flex flex-wrap justify-center gap-2">
+          <Button onClick={() => navigate(`/registrieren?next=${encodeURIComponent("/profil-erstellen?next=" + encodeURIComponent(next))}`)}>
+            Registrieren
+          </Button>
+          <Button variant="outline" onClick={() => navigate(`/anmelden?next=${encodeURIComponent("/profil-erstellen?next=" + encodeURIComponent(next))}`)}>
+            Anmelden
+          </Button>
+        </div>
       </div>
     );
   }
@@ -76,7 +71,7 @@ export default function SetupProfile() {
     setSaving(true);
     try {
       save({ displayName, country, city, avatarUrl: avatarUrl || undefined });
-      toast.success("Profil gespeichert – du kannst jetzt handeln");
+      toast.success("Profil gespeichert – du kannst jetzt kaufen");
       navigate(next);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Speichern fehlgeschlagen");
@@ -89,15 +84,15 @@ export default function SetupProfile() {
 
   return (
     <div className="container py-10 max-w-xl">
-      <Card className="bg-card border-border">
+      <Card className="bg-card border-border animate-rise">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-2xl">
             <BadgeCheck className="h-6 w-6 text-primary" />
-            Händlerprofil anlegen
+            Käuferprofil anlegen
           </CardTitle>
           <CardDescription>
-            Wie bei Cardmarket: Benutzername und Standort sind Pflicht, bevor du kaufen oder verkaufen
-            kannst. Dein Profil erscheint bei Angeboten und Käufen.
+            Benutzername und Standort sind Pflicht, bevor du kaufen kannst. Verkaufen bleibt
+            Admin-only.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -134,7 +129,6 @@ export default function SetupProfile() {
                 required
                 className="bg-secondary/50 border-border"
               />
-              <p className="text-xs text-muted-foreground">Öffentlich sichtbar bei Angeboten.</p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -167,7 +161,7 @@ export default function SetupProfile() {
             </div>
 
             <Button type="submit" className="w-full font-bold" size="lg" disabled={saving}>
-              {saving ? "Speichern…" : "Profil erstellen & handeln"}
+              {saving ? "Speichern…" : "Profil speichern & weiter"}
             </Button>
 
             <p className="text-center text-xs text-muted-foreground">
@@ -176,7 +170,7 @@ export default function SetupProfile() {
                 href={`/verkaeufer/${user?.id ?? ""}`}
                 className="text-primary underline-offset-2 hover:underline"
               >
-                Mein Händlerprofil
+                Mein Profil
               </Link>
             </p>
           </form>

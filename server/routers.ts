@@ -3,7 +3,7 @@ import { z } from "zod";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { protectedProcedure, publicProcedure, adminProcedure, router } from "./_core/trpc";
 import {
   createListing,
   createReview,
@@ -411,7 +411,7 @@ const marketplaceRouter = router({
       return result;
     }),
 
-  createListing: publicProcedure
+  createListing: adminProcedure
     .input(
       z.object({
         cardId: z.string(),
@@ -424,23 +424,21 @@ const marketplaceRouter = router({
       })
     )
     .mutation(({ ctx, input }) => {
-      const user = ctx.user ?? { id: 99, name: "DemoSammler" };
       return createListing({
         ...input,
-        sellerId: user.id,
-        sellerName: user.name ?? `User${user.id}`,
+        sellerId: ctx.user.id,
+        sellerName: ctx.user.name ?? `Admin${ctx.user.id}`,
       });
     }),
 
-  purchase: publicProcedure
+  purchase: protectedProcedure
     .input(z.object({ listingId: z.string() }))
     .mutation(({ ctx, input }) => {
-      const user = ctx.user ?? { id: 99, name: "DemoSammler" };
       try {
         return purchaseListing(
           input.listingId,
-          user.id,
-          user.name ?? `User${user.id}`
+          ctx.user.id,
+          ctx.user.name ?? `User${ctx.user.id}`
         );
       } catch (e) {
         throw new TRPCError({
@@ -450,7 +448,7 @@ const marketplaceRouter = router({
       }
     }),
 
-  createReview: publicProcedure
+  createReview: protectedProcedure
     .input(
       z.object({
         sellerId: z.number(),
@@ -460,11 +458,10 @@ const marketplaceRouter = router({
       })
     )
     .mutation(({ ctx, input }) => {
-      const user = ctx.user ?? { id: 99, name: "DemoSammler" };
       return createReview({
         ...input,
-        buyerId: user.id,
-        buyerName: user.name ?? `User${user.id}`,
+        buyerId: ctx.user.id,
+        buyerName: ctx.user.name ?? `User${ctx.user.id}`,
       });
     }),
 });

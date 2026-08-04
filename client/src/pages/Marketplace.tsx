@@ -10,7 +10,7 @@ import type { CardCondition, TcgGame } from "@/lib/marketplaceStore";
 import { GAME_LABELS } from "@/lib/marketplaceConstants";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { LayoutGrid, List } from "lucide-react";
+import { LayoutGrid, List, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 function useQueryParam(key: string): string | null {
@@ -20,18 +20,25 @@ function useQueryParam(key: string): string | null {
 
 type ViewMode = "list" | "grid";
 
+const defaultFilters = (game: string): FilterState => ({
+  query: "",
+  game,
+  condition: "all",
+  language: "all",
+  sort: "best_offer",
+  minPrice: "",
+  maxPrice: "",
+  foilOnly: false,
+  gradedOnly: false,
+  minSellerSales: "",
+});
+
 export default function Marketplace() {
   const gameParam = useQueryParam("game");
 
-  const [filters, setFilters] = useState<FilterState>({
-    query: "",
-    game: gameParam ?? "all",
-    condition: "all",
-    sort: "popular",
-    minPrice: "",
-    maxPrice: "",
-  });
-
+  const [filters, setFilters] = useState<FilterState>(() =>
+    defaultFilters(gameParam ?? "all")
+  );
   const [applied, setApplied] = useState(filters);
   const [view, setView] = useState<ViewMode>(() => {
     if (typeof window === "undefined") return "list";
@@ -43,8 +50,6 @@ export default function Marketplace() {
       const f = { ...filters, game: gameParam };
       setFilters(f);
       setApplied(f);
-    } else if (filters.game !== "all" && !gameParam) {
-      // keep local filter when navigating without query
     }
   }, [gameParam]);
 
@@ -54,7 +59,18 @@ export default function Marketplace() {
       game: applied.game !== "all" ? (applied.game as TcgGame) : undefined,
       condition:
         applied.condition !== "all" ? (applied.condition as CardCondition) : undefined,
-      sort: applied.sort as "price_asc" | "price_desc" | "newest" | "popular",
+      language: applied.language !== "all" ? applied.language : undefined,
+      foilOnly: applied.foilOnly || undefined,
+      gradedOnly: applied.gradedOnly || undefined,
+      minSellerSales: applied.minSellerSales
+        ? parseInt(applied.minSellerSales, 10)
+        : undefined,
+      sort: applied.sort as
+        | "price_asc"
+        | "price_desc"
+        | "newest"
+        | "popular"
+        | "best_offer",
       minPrice: applied.minPrice ? parseFloat(applied.minPrice) : undefined,
       maxPrice: applied.maxPrice ? parseFloat(applied.maxPrice) : undefined,
       limit: 48,
@@ -84,9 +100,18 @@ export default function Marketplace() {
       />
 
       <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-        <div className="hidden lg:block w-52 shrink-0">
-          <div className="sticky top-20 rounded-xl border border-border bg-card/40 p-3">
-            <GameSidebar activeGame={activeGame} />
+        <div className="hidden lg:block w-52 shrink-0 space-y-4">
+          <div className="sticky top-20 space-y-3">
+            <div className="rounded-xl border border-border bg-card/40 p-3">
+              <GameSidebar activeGame={activeGame} />
+            </div>
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs text-muted-foreground space-y-1.5">
+              <p className="font-semibold text-primary flex items-center gap-1.5">
+                <Shield className="h-3.5 w-3.5" />
+                Käuferschutz
+              </p>
+              <p>Registrierung Pflicht · Verkäufer-Ratings · Zustandsfilter wie Cardmarket</p>
+            </div>
           </div>
         </div>
 

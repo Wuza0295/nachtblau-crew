@@ -1,5 +1,4 @@
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl, isOAuthConfigured } from "@/const";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
@@ -8,35 +7,41 @@ import {
   useMarketplaceSearch,
   useMarketplaceStats,
 } from "@/lib/useMarketplace";
-import { profileSetupPath } from "@/lib/useTradingProfile";
+import { getRecent } from "@/lib/recentStore";
+import { getCardById, getListingsForCard } from "@/lib/marketplaceStore";
 import {
   ShoppingBag,
   TrendingUp,
   Shield,
-  Star,
   ChevronRight,
   Zap,
   Search,
+  Heart,
+  UserPlus,
 } from "lucide-react";
-import { toast } from "sonner";
 import { useMemo } from "react";
 
 export default function Home() {
-  const { isAuthenticated, loginDemo } = useAuth();
+  const { isAuthenticated, isAdmin } = useAuth();
   const [, navigate] = useLocation();
   const { data: stats } = useMarketplaceStats();
-  const searchFilters = useMemo(() => ({ sort: "popular" as const, limit: 8 }), []);
+  const searchFilters = useMemo(() => ({ sort: "best_offer" as const, limit: 8 }), []);
   const { data: featured } = useMarketplaceSearch(searchFilters);
 
-  const handleJoin = () => {
-    if (isOAuthConfigured()) {
-      window.location.href = getLoginUrl();
-      return;
-    }
-    loginDemo();
-    toast.success("Angemeldet – Händlerprofil anlegen");
-    navigate(profileSetupPath("/marktplatz"));
-  };
+  const recent = useMemo(() => {
+    return getRecent()
+      .map((id) => {
+        const card = getCardById(id);
+        if (!card) return null;
+        const listings = getListingsForCard(id);
+        return {
+          card,
+          listing: listings[0],
+          listingCount: listings.length,
+        };
+      })
+      .filter((x): x is NonNullable<typeof x> => Boolean(x?.listing));
+  }, [featured]);
 
   return (
     <div>
@@ -44,12 +49,12 @@ export default function Home() {
         <img
           src="/autic-treasures-hero.jpg"
           alt="Autic Treasures – Trading Card Community"
-          className="absolute inset-0 w-full h-full object-cover object-center"
+          className="absolute inset-0 w-full h-full object-cover object-center scale-105 animate-ken-burns"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-transparent to-transparent" />
 
-        <div className="container relative z-10 pb-16 pt-32 space-y-6 max-w-2xl">
+        <div className="container relative z-10 pb-16 pt-32 space-y-6 max-w-2xl animate-rise">
           <p className="font-serif text-primary text-sm tracking-[0.28em] uppercase">
             Trading Card Marketplace
           </p>
@@ -59,8 +64,8 @@ export default function Home() {
           </h1>
 
           <p className="text-base md:text-lg text-foreground/85 max-w-md leading-relaxed">
-            Kaufen, verkaufen und bewerten – klarer als Cardmarket, mit eigenem Profil und echten
-            Kartenfotos.
+            Cardmarket-Feeling: Filter, Merkliste, Warenkorb und Verkäufer-Ratings – Verkauf
+            vorerst nur durch Admins, Käufer registrieren sich.
           </p>
 
           <div className="flex flex-wrap gap-3">
@@ -73,25 +78,38 @@ export default function Home() {
                 Zum Marktplatz
               </Button>
             </Link>
-            <Link href="/verkaufen">
+            {!isAuthenticated ? (
               <Button
                 size="lg"
                 variant="outline"
                 className="border-primary/50 bg-background/40 backdrop-blur-sm text-primary hover:bg-primary/15 font-semibold"
+                onClick={() => navigate("/registrieren")}
               >
-                <ShoppingBag className="mr-2 h-5 w-5" />
-                Artikel verkaufen
+                <UserPlus className="mr-2 h-5 w-5" />
+                Als Käufer registrieren
               </Button>
-            </Link>
-            {!isAuthenticated && (
-              <Button
-                size="lg"
-                variant="ghost"
-                className="text-foreground/70 hover:text-foreground"
-                onClick={handleJoin}
-              >
-                {isOAuthConfigured() ? "Anmelden" : "Profil erstellen"}
-              </Button>
+            ) : isAdmin ? (
+              <Link href="/verkaufen">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-primary/50 bg-background/40 backdrop-blur-sm text-primary hover:bg-primary/15 font-semibold"
+                >
+                  <ShoppingBag className="mr-2 h-5 w-5" />
+                  Angebot einstellen
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/merkliste">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-primary/50 bg-background/40 backdrop-blur-sm text-primary hover:bg-primary/15 font-semibold"
+                >
+                  <Heart className="mr-2 h-5 w-5" />
+                  Merkliste
+                </Button>
+              </Link>
             )}
           </div>
         </div>
@@ -106,7 +124,7 @@ export default function Home() {
               { label: "Verkäufer", value: stats.totalSellers },
               { label: "Ø Bewertung", value: stats.avgRating },
             ].map((s) => (
-              <div key={s.label}>
+              <div key={s.label} className="animate-rise">
                 <div className="text-xl font-bold text-primary">{s.value}</div>
                 <div className="text-xs text-muted-foreground uppercase tracking-wider">{s.label}</div>
               </div>
@@ -121,21 +139,21 @@ export default function Home() {
             {[
               {
                 icon: TrendingUp,
-                title: "Preisverlauf",
-                desc: "30-Tage-Charts für jedes Produkt",
+                title: "Bestes Angebot",
+                desc: "Sortierung nach Preis + Verkäufer-Reputation",
               },
               {
                 icon: Shield,
-                title: "Händlerprofile",
-                desc: "Pflichtprofil vor Kauf und Verkauf",
+                title: "Registrierte Käufer",
+                desc: "Konto + Profil vor Kauf – kein anonymer Checkout",
               },
               {
                 icon: Zap,
-                title: "Sofort-Kauf",
-                desc: "Angebot wählen und direkt abschließen",
+                title: "Merkliste & Warenkorb",
+                desc: "Wants speichern, Angebote sammeln, dann kaufen",
               },
             ].map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="space-y-2">
+              <div key={title} className="space-y-2 animate-rise">
                 <div className="inline-flex p-2.5 rounded-lg bg-primary/15 text-primary">
                   <Icon className="h-5 w-5" />
                 </div>
@@ -173,7 +191,7 @@ export default function Home() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-2xl font-bold">Beliebte Produkte</h2>
-              <p className="text-muted-foreground text-sm mt-1">Aktuelle Top-Angebote</p>
+              <p className="text-muted-foreground text-sm mt-1">Beste Angebote gerade jetzt</p>
             </div>
             <Link href="/marktplatz">
               <Button variant="ghost" className="text-primary gap-1">
@@ -200,6 +218,30 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {recent.length > 0 && (
+        <section className="py-12 border-t border-border">
+          <div className="container">
+            <h2 className="text-xl font-bold mb-4">Zuletzt angesehen</h2>
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+              {recent.slice(0, 6).map(({ card, listing, listingCount }) => (
+                <CardTile
+                  key={card.id}
+                  cardId={card.id}
+                  name={card.name}
+                  setName={card.setName}
+                  game={card.game}
+                  imageUrl={card.imageUrl}
+                  price={listing!.price}
+                  listingCount={listingCount}
+                  avgRating={card.avgRating}
+                  isFoil={listing!.isFoil}
+                />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

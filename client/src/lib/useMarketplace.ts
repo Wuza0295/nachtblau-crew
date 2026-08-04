@@ -102,8 +102,8 @@ export function useCreateListing() {
       try {
         const listing = createListing({
           ...input,
-          sellerId: input.sellerId ?? 99,
-          sellerName: input.sellerName ?? "DemoSammler",
+          sellerId: input.sellerId ?? 0,
+          sellerName: input.sellerName ?? "Admin",
         });
         emit();
         opts?.onSuccess?.(listing);
@@ -125,11 +125,10 @@ export function usePurchaseListing() {
       }
     ) => {
       try {
-        const result = purchaseListing(
-          input.listingId,
-          input.buyerId ?? 99,
-          input.buyerName ?? "DemoSammler"
-        );
+        if (!input.buyerId || !input.buyerName) {
+          throw new Error("Registrierung und Profil erforderlich");
+        }
+        const result = purchaseListing(input.listingId, input.buyerId, input.buyerName);
         emit();
         opts?.onSuccess?.(result);
       } catch (e) {
@@ -154,10 +153,13 @@ export function useCreateReview() {
       opts?: { onSuccess?: () => void; onError?: (e: Error) => void }
     ) => {
       try {
+        if (!input.buyerId || !input.buyerName) {
+          throw new Error("Registrierung erforderlich");
+        }
         createReview({
           ...input,
-          buyerId: input.buyerId ?? 99,
-          buyerName: input.buyerName ?? "DemoSammler",
+          buyerId: input.buyerId,
+          buyerName: input.buyerName,
         });
         emit();
         opts?.onSuccess?.();

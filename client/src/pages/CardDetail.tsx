@@ -1,7 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRoute, Link, useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl, isOAuthConfigured } from "@/const";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +23,15 @@ import {
 import { useTradingProfile, profileSetupPath } from "@/lib/useTradingProfile";
 import { CONDITION_LABELS, GAME_LABELS, formatEuro } from "@/lib/marketplaceConstants";
 import type { CardCondition, TcgGame } from "@/lib/marketplaceStore";
+import { getSellerProfile } from "@/lib/marketplaceStore";
+import { addToCart } from "@/lib/cartStore";
+import {
+  getWantsVersion,
+  isWanted,
+  subscribeWants,
+  toggleWant,
+} from "@/lib/wantsStore";
+import { pushRecent } from "@/lib/recentStore";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -32,28 +40,28 @@ import {
   CheckCircle,
   Sparkles,
   MessageSquare,
+  Heart,
+  BadgeCheck,
 } from "lucide-react";
 
 export default function CardDetail() {
   const [, params] = useRoute("/karte/:id");
   const cardId = params?.id ?? "";
   const [, navigate] = useLocation();
-  const { isAuthenticated, loginDemo, user } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { profile, isComplete } = useTradingProfile(user?.id);
+  const wantsV = useSyncExternalStore(subscribeWants, getWantsVersion, getWantsVersion);
+  void wantsV;
+  const wanted = isWanted(cardId);
 
   const ensureCanTrade = () => {
     if (!isAuthenticated) {
-      if (isOAuthConfigured()) {
-        window.location.href = getLoginUrl();
-        return false;
-      }
-      loginDemo();
-      toast.message("Bitte zuerst dein Händlerprofil anlegen");
-      navigate(profileSetupPath(`/karte/${cardId}`));
+      toast.message("Bitte registrieren, um zu kaufen");
+      navigate(`/registrieren?next=${encodeURIComponent(`/karte/${cardId}`)}`);
       return false;
     }
     if (!isComplete) {
-      toast.message("Profil erforderlich zum Kaufen");
+      toast.message("Käuferprofil erforderlich");
       navigate(profileSetupPath(`/karte/${cardId}`));
       return false;
     }
@@ -70,6 +78,10 @@ export default function CardDetail() {
   const { data, isLoading } = useMarketplaceCard(cardId);
   const purchaseMutation = usePurchaseListing();
   const reviewMutation = useCreateReview();
+
+  useEffect(() => {
+    if (cardId) pushRecent(cardId);
+  }, [cardId]);
 
   if (isLoading) {
     return (
@@ -97,6 +109,29 @@ export default function CardDetail() {
   const heroImage = cheapest?.imageUrl || card.imageUrl;
   const displayTitle = cheapest?.title || card.name;
 
+  const handleWant = () => {
+    const on = toggleWant(cardId);
+    toast.success(on ? "Zur Merkliste hinzugefügt" : "Von Merkliste entfernt");
+  };
+
+  const handleAddCart = (listingId: string) => {
+    if (!ensureCanTrade()) return;
+    const listing = listings.find((l) => l.id === listingId);
+    if (!listing) return;
+    addToCart({
+      listingId: listing.id,
+      cardId: card.id,
+      title: listing.title || card.name,
+      imageUrl: listing.imageUrl || card.imageUrl,
+      price: listing.price,
+      condition: CONDITION_LABELS[listing.condition as CardCondition],
+      language: listing.language,
+      sellerId: listing.sellerId,
+      sellerName: listing.sellerName,
+    });
+    toast.success("In den Warenkorb gelegt");
+  };
+
   return (
     <div className="container py-6 lg:py-8">
       <Breadcrumbs
@@ -117,8 +152,12 @@ export default function CardDetail() {
 
       <div className="grid lg:grid-cols-[280px_1fr] gap-8">
         <div className="space-y-4">
-          <div className="relative aspect-[5/7] max-w-[280px] mx-auto lg:mx-0 rounded-xl overflow-hidden border border-border shadow-2xl bg-secondary/30">
-            <img src={heroImage} alt={displayTitle} className="w-full h-full object-cover" />
+          <div className="relative aspect-[5/7] max-w-[280px] mx-auto lg:mx-0 rounded-xl overflow-hidden border border-border shadow-2xl bg-secondary/30 animate-card-in">
+            <img
+              src={heroImage}
+              alt={displayTitle}
+              className="w-full h-full object-cover object-top"
+            />
             {cheapest?.isFoil && (
               <Badge className="absolute top-3 right-3 bg-gradient-to-r from-amber-400/40 to-purple-400/40 text-amber-100 border-amber-400/50">
                 <Sparkles className="h-3 w-3 mr-1" />
@@ -140,7 +179,7 @@ export default function CardDetail() {
           </Card>
         </div>
 
-        <div className="space-y-6 min-w-0">
+        <div className="space-y-6 min-w-0 animate-rise">
           <div>
             <div className="flex flex-wrap gap-2 mb-2">
               <Badge variant="outline" className="border-primary/30 text-primary">
@@ -151,11 +190,20 @@ export default function CardDetail() {
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{displayTitle}</h1>
             <p className="text-muted-foreground mt-1">{card.setName}</p>
-            <div className="flex items-center gap-3 mt-3">
+            <div className="flex items-center gap-3 mt-3 flex-wrap">
               <StarRating rating={card.avgRating} showValue size="md" />
               <span className="text-sm text-muted-foreground">
                 ({card.reviewCount} Bewertungen)
               </span>
+              <Button
+                size="sm"
+                variant={wanted ? "default" : "outline"}
+                className="gap-1.5"
+                onClick={handleWant}
+              >
+                <Heart className={`h-3.5 w-3.5 ${wanted ? "fill-current" : ""}`} />
+                {wanted ? "Gemerkt" : "Merken"}
+              </Button>
             </div>
           </div>
 
@@ -167,74 +215,128 @@ export default function CardDetail() {
                 {CONDITION_LABELS[cheapest.condition as CardCondition]} · {cheapest.language} ·{" "}
                 {cheapest.sellerName}
               </p>
-              <Button
-                className="mt-3 w-full sm:w-auto bg-primary hover:bg-primary/80 font-bold"
-                size="lg"
-                onClick={() => {
-                  if (!ensureCanTrade()) return;
-                  setBuyDialog(cheapest.id);
-                }}
-              >
-                <ShoppingCart className="mr-2 h-5 w-5" />
-                Jetzt kaufen
-              </Button>
-              {!isComplete && (
+              <div className="flex flex-wrap gap-2 mt-3">
+                <Button
+                  className="bg-primary hover:bg-primary/80 font-bold"
+                  size="lg"
+                  onClick={() => {
+                    if (!ensureCanTrade()) return;
+                    setBuyDialog(cheapest.id);
+                  }}
+                >
+                  <CheckCircle className="mr-2 h-5 w-5" />
+                  Sofort kaufen
+                </Button>
+                <Button size="lg" variant="outline" onClick={() => handleAddCart(cheapest.id)}>
+                  <ShoppingCart className="mr-2 h-5 w-5" />
+                  In den Warenkorb
+                </Button>
+              </div>
+              {!isAuthenticated && (
                 <p className="text-xs text-muted-foreground mt-2">
-                  Zum Kauf brauchst du ein Händlerprofil.
+                  Kauf nur nach Registrierung ·{" "}
+                  <Link href="/registrieren" className="text-primary underline-offset-2 hover:underline">
+                    Konto erstellen
+                  </Link>
                 </p>
               )}
             </div>
           )}
+
+          <div className="flex items-start gap-2 text-xs text-muted-foreground rounded-lg border border-border/80 bg-card/40 p-3">
+            <Shield className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+            <p>
+              Angebote sortiert nach Preis. Verkäufer-Reputation (Verkäufe & Sterne) hilft bei der
+              Auswahl – analog zu Cardmarket / TCGPlayer.
+            </p>
+          </div>
 
           <div className="space-y-3">
             <h2 className="font-bold text-lg">
               {listings.length} Angebot{listings.length !== 1 ? "e" : ""}
             </h2>
             <div className="rounded-xl border border-border overflow-hidden divide-y divide-border">
-              {listings.map((listing) => (
-                <div
-                  key={listing.id}
-                  className="flex items-center justify-between gap-4 p-3 sm:p-4 bg-card/40 hover:bg-card/80 transition-colors"
-                >
-                  <div className="flex gap-3 min-w-0 flex-1">
-                    <img
-                      src={listing.imageUrl}
-                      alt=""
-                      className="w-11 h-14 object-cover rounded border border-border shrink-0"
-                    />
-                    <div className="space-y-1 min-w-0">
-                      <p className="text-sm font-medium line-clamp-1">
-                        {listing.title || card.name}
-                      </p>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-primary">{formatEuro(listing.price)}</span>
-                        <Badge variant="outline" className="text-[10px]">
-                          {CONDITION_LABELS[listing.condition as CardCondition]}
-                        </Badge>
-                        {listing.isFoil && (
-                          <Badge className="text-[10px] bg-amber-500/20 text-amber-300">Foil</Badge>
-                        )}
-                      </div>
-                      <Link href={`/verkaeufer/${listing.sellerId}`}>
-                        <p className="text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer">
-                          {listing.sellerName} · {listing.language} · {listing.quantity}x
+              <div className="hidden sm:grid grid-cols-[1fr_auto_auto_auto] gap-3 px-4 py-2 text-[10px] uppercase tracking-wider text-muted-foreground bg-secondary/20">
+                <span>Verkäufer / Zustand</span>
+                <span className="w-20 text-center">Sprache</span>
+                <span className="w-24 text-right">Preis</span>
+                <span className="w-36" />
+              </div>
+              {listings.map((listing) => {
+                const seller = getSellerProfile(listing.sellerId)?.seller;
+                return (
+                  <div
+                    key={listing.id}
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 bg-card/40 hover:bg-card/80 transition-colors"
+                  >
+                    <div className="flex gap-3 min-w-0 flex-1">
+                      <img
+                        src={listing.imageUrl}
+                        alt=""
+                        className="w-11 h-14 object-cover object-top rounded border border-border shrink-0"
+                      />
+                      <div className="space-y-1 min-w-0">
+                        <p className="text-sm font-medium line-clamp-1">
+                          {listing.title || card.name}
                         </p>
-                      </Link>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge variant="outline" className="text-[10px]">
+                            {CONDITION_LABELS[listing.condition as CardCondition]}
+                          </Badge>
+                          {listing.isFoil && (
+                            <Badge className="text-[10px] bg-amber-500/20 text-amber-300">
+                              Foil
+                            </Badge>
+                          )}
+                          {listing.isGraded && listing.grade && (
+                            <Badge className="text-[10px]" variant="secondary">
+                              {listing.grade}
+                            </Badge>
+                          )}
+                        </div>
+                        <Link href={`/verkaeufer/${listing.sellerId}`}>
+                          <p className="text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer flex items-center gap-1">
+                            {seller?.verified && <BadgeCheck className="h-3 w-3 text-primary" />}
+                            {listing.sellerName}
+                            {seller && (
+                              <span>
+                                · ★ {seller.rating} · {seller.salesCount} Verkäufe
+                              </span>
+                            )}
+                          </p>
+                        </Link>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 sm:gap-4 shrink-0 self-end sm:self-center">
+                      <span className="text-xs text-muted-foreground w-10 text-center hidden sm:block">
+                        {listing.language}
+                      </span>
+                      <span className="font-bold text-primary w-24 text-right">
+                        {formatEuro(listing.price)}
+                      </span>
+                      <div className="flex gap-1.5 w-36 justify-end">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-primary/40 text-primary hover:bg-primary/10"
+                          onClick={() => handleAddCart(listing.id)}
+                        >
+                          <ShoppingCart className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            if (!ensureCanTrade()) return;
+                            setBuyDialog(listing.id);
+                          }}
+                        >
+                          Kaufen
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="shrink-0 border-primary/40 text-primary hover:bg-primary/10"
-                    onClick={() => {
-                      if (!ensureCanTrade()) return;
-                      setBuyDialog(listing.id);
-                    }}
-                  >
-                    Kaufen
-                  </Button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>

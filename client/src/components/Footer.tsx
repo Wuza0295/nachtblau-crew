@@ -18,7 +18,8 @@ export default function Footer() {
               </span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
-              Trading-Card-Marktplatz mit Händlerprofilen, eigenen Titeln und echten Kartenfotos.
+              TCG-Marktplatz mit Merkliste, Warenkorb und Verkäufer-Ratings. Verkauf kuratiert durch
+              Admins – Käufer registrieren sich.
             </p>
           </div>
 
@@ -33,13 +34,18 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/verkaufen" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                  Artikel verkaufen
+                <Link href="/merkliste" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                  Merkliste
                 </Link>
               </li>
               <li>
-                <Link href="/profil-erstellen" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                  Händlerprofil
+                <Link href="/warenkorb" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                  Warenkorb
+                </Link>
+              </li>
+              <li>
+                <Link href="/registrieren" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                  Registrieren
                 </Link>
               </li>
             </ul>
@@ -68,10 +74,10 @@ export default function Footer() {
               Handel
             </h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>Profilpflicht für Kauf & Verkauf</li>
-              <li>Freie Artikeltitel & Fotos</li>
-              <li>Preisverlauf & Bewertungen</li>
-              <li>Listen- und Kachelansicht</li>
+              <li>Kauf nur mit Registrierung</li>
+              <li>Verkauf nur durch Admins</li>
+              <li>Merkliste, Warenkorb, Filter</li>
+              <li>Preisverlauf & Verkäufer-Ratings</li>
             </ul>
           </div>
         </div>

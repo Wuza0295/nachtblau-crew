@@ -1,39 +1,15 @@
 import { getLoginUrl, isOAuthConfigured } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { TRPCClientError } from "@trpc/client";
-import { useCallback, useEffect, useMemo, useState } from "react";
-
-const DEMO_USER_KEY = "autic-demo-user";
-
-export type DemoUser = {
-  id: number;
-  name: string;
-  email: string;
-};
-
-function readDemoUser(): DemoUser | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = localStorage.getItem(DEMO_USER_KEY);
-    return raw ? (JSON.parse(raw) as DemoUser) : null;
-  } catch {
-    return null;
-  }
-}
-
-export function startDemoSession(name = "DemoSammler") {
-  const user: DemoUser = {
-    id: 99,
-    name,
-    email: "demo@autic-tresures.local",
-  };
-  localStorage.setItem(DEMO_USER_KEY, JSON.stringify(user));
-  return user;
-}
-
-export function clearDemoSession() {
-  localStorage.removeItem(DEMO_USER_KEY);
-}
+import {
+  ensureSeedAdmin,
+  getAuthVersion,
+  getSession,
+  logoutAndNotify,
+  subscribeAuth,
+  type SessionUser,
+} from "@/lib/localAuthStore";
+import { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
 
 type UseAuthOptions = {
   redirectOnUnauthenticated?: boolean;
@@ -43,7 +19,16 @@ type UseAuthOptions = {
 export function useAuth(options?: UseAuthOptions) {
   const { redirectOnUnauthenticated = false, redirectPath } = options ?? {};
   const utils = trpc.useUtils();
-  const [demoUser, setDemoUser] = useState<DemoUser | null>(() => readDemoUser());
+
+  useEffect(() => {
+    void ensureSeedAdmin();
+  }, []);
+
+  const localVersion = useSyncExternalStore(subscribeAuth, getAuthVersion, getAuthVersion);
+  const localUser = useMemo(() => {
+    void localVersion;
+    return getSession();
+  }, [localVersion]);
 
   const meQuery = trpc.auth.me.useQuery(undefined, {
     retry: false,
@@ -57,8 +42,7 @@ export function useAuth(options?: UseAuthOptions) {
   });
 
   const logout = useCallback(async () => {
-    clearDemoSession();
-    setDemoUser(null);
+    logoutAndNotify();
     try {
       await logoutMutation.mutateAsync();
     } catch (error: unknown) {
@@ -68,46 +52,46 @@ export function useAuth(options?: UseAuthOptions) {
       ) {
         return;
       }
-      throw error;
+      // OAuth may be unavailable on static hosting – local logout is enough
     } finally {
       utils.auth.me.setData(undefined, null);
-      await utils.auth.me.invalidate();
+      try {
+        await utils.auth.me.invalidate();
+      } catch {
+        /* ignore */
+      }
     }
   }, [logoutMutation, utils]);
 
-  const loginDemo = useCallback(() => {
-    const user = startDemoSession();
-    setDemoUser(user);
-  }, []);
-
   const state = useMemo(() => {
     const oauthUser = meQuery.data ?? null;
-    const user = oauthUser
-      ? oauthUser
-      : demoUser
-        ? {
-            id: demoUser.id,
-            name: demoUser.name,
-            email: demoUser.email,
-            openId: "demo",
-            loginMethod: "demo",
-            role: "user" as const,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            lastSignedIn: new Date(),
-          }
-        : null;
+    const user: SessionUser | (typeof oauthUser) = oauthUser
+      ? {
+          id: oauthUser.id,
+          name: oauthUser.name ?? "User",
+          email: oauthUser.email ?? "",
+          openId: oauthUser.openId,
+          loginMethod: "oauth" as const,
+          role: (oauthUser.role === "admin" ? "admin" : "user") as "admin" | "user",
+          createdAt: oauthUser.createdAt ? new Date(oauthUser.createdAt) : new Date(),
+          updatedAt: oauthUser.updatedAt ? new Date(oauthUser.updatedAt) : new Date(),
+          lastSignedIn: oauthUser.lastSignedIn
+            ? new Date(oauthUser.lastSignedIn)
+            : new Date(),
+        }
+      : localUser;
 
-    localStorage.setItem("manus-runtime-user-info", JSON.stringify(user));
+    if (typeof window !== "undefined") {
+      localStorage.setItem("manus-runtime-user-info", JSON.stringify(user));
+    }
 
     return {
       user,
       loading: meQuery.isLoading || logoutMutation.isPending,
       error: meQuery.error ?? logoutMutation.error ?? null,
       isAuthenticated: Boolean(user),
-      isDemo: Boolean(demoUser) && !oauthUser,
+      isAdmin: user?.role === "admin",
       oauthConfigured: isOAuthConfigured(),
-      loginDemo,
     };
   }, [
     meQuery.data,
@@ -115,8 +99,7 @@ export function useAuth(options?: UseAuthOptions) {
     meQuery.isLoading,
     logoutMutation.error,
     logoutMutation.isPending,
-    demoUser,
-    loginDemo,
+    localUser,
   ]);
 
   useEffect(() => {
@@ -125,10 +108,13 @@ export function useAuth(options?: UseAuthOptions) {
     if (state.user) return;
     if (typeof window === "undefined") return;
 
-    const target = redirectPath ?? getLoginUrl();
+    const target = redirectPath ?? (isOAuthConfigured() ? getLoginUrl() : "/anmelden");
     if (window.location.pathname === target) return;
-
-    window.location.href = target;
+    if (target.startsWith("http")) {
+      window.location.href = target;
+    } else {
+      window.location.href = target;
+    }
   }, [
     redirectOnUnauthenticated,
     redirectPath,
