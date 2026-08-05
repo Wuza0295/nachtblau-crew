@@ -11,6 +11,7 @@ build/
 .env
 .env.local
 .env.webspace
+.env.allxion
 .env.development.local
 .env.test.local
 .env.production.local
@@ -116,6 +117,7 @@ webspace/nacht-blau.de/allxion/index.html
 webspace/nacht-blau.de/allxion/index.htm
 webspace/nacht-blau.de/allxion/__manus__/
 webspace/nacht-blau.de/allxion/manifest.json
+webspace/nacht-blau.de/allxion/release.json
 webspace/nacht-blau.de/allxion/robots.txt
 !webspace/nacht-blau.de/allxion/.htaccess
 !webspace/nacht-blau.de/allxion/README.md

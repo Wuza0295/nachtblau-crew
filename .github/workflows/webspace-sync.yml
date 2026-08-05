@@ -21,13 +21,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build Allxion for /allxion/
-        run: pnpm webspace:build-allxion
+      - name: Platform sync (build + stage + FTPS)
         env:
           VITE_API_ORIGIN: ${{ secrets.VITE_API_ORIGIN }}
-
-      - name: Upload to ALL-INKL (FTPS)
-        env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
           FTP_USER: ${{ secrets.FTP_USER }}
           FTP_PASS: ${{ secrets.FTP_PASS }}
@@ -40,4 +36,4 @@ jobs:
           fi
           export FTP_HOST="${FTP_HOST:-w02176b7.kasserver.com}"
           export FTP_REMOTE_DIR="${FTP_REMOTE_DIR:-/nacht-blau.de}"
-          python3 scripts/sync-one-webspace.py nacht-blau.de
+          pnpm platform:sync --push

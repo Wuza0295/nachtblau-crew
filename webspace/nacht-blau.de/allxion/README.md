@@ -2,19 +2,33 @@
 
 Unterseite: **https://nacht-blau.de/allxion/**
 
-## Build & Upload
+Ein Build für **Linux · Android · Webspace**.
+
+## Plattform-Sync
 
 ```bash
-# Optional: API-Backend (Manus Deploy) für Login/Daten
-# export VITE_API_ORIGIN=https://dein-backend.example
+cp .env.allxion.example .env.allxion
+# optional: VITE_API_ORIGIN=https://dein-manus-backend
+pnpm platform:sync            # build + stage
+pnpm platform:sync --push     # + FTPS nach ALL-INKL
+```
 
+| Plattform | Nutzung |
+|-----------|---------|
+| Linux | `pnpm dev` — gleiches Repo |
+| Android | PWA / WebView → https://nacht-blau.de/allxion/ |
+| Webspace | Statisches Frontend unter `/allxion/` |
+
+Version: `shared/release.ts` → `manifest.json` + `release.json`.
+
+## Manuell (ohne platform:sync)
+
+```bash
 pnpm webspace:build-allxion
 pnpm webspace:sync:nacht-blau
 ```
 
-Ohne Build liegt `index.stub.html` als Vorlage bereit (wird beim Upload durch `pnpm webspace:build-allxion` ersetzt).
-
-## GitHub Actions (ohne lokale FTP-Datei)
+## GitHub Actions
 
 Repository → **Settings → Secrets and variables → Actions**:
 
@@ -27,4 +41,5 @@ Dann **Actions → Webspace Sync (nacht-blau.de) → Run workflow**.
 
 - Vite `base`: `/allxion/`
 - Apache `.htaccess` mit `RewriteBase /allxion/`
+- PWA `manifest.json` mit `scope`/`start_url` relativ zu `/allxion/`
 - GbR-Startseite verlinkt `/allxion/` unter **Projekte**

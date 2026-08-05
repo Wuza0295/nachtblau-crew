@@ -4,9 +4,9 @@
     {
       "id": "allxion",
       "title": "Allxion",
-      "subtitle": "Hybrid-Social-Hub · NachtBlau Crew",
-      "url": "/allxion/",
-      "note": "Unterseite auf nacht-blau.de — Frontend via pnpm webspace:build-allxion deployen."
+      "subtitle": "Hybrid-Social-Hub · v1.0.0",
+      "url": "https://nacht-blau.de/allxion/",
+      "note": "Linux · Android · Webspace — pnpm platform:sync"
     }
   ]
 }

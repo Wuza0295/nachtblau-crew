@@ -1,17 +1,21 @@
 {
   "name": "NachtBlau Crew · Allxion",
   "short_name": "Allxion",
-  "description": "Allxion – Hybrid-Social-Hub plus NachtBlau Crew Gaming Community.",
-  "start_url": "/",
+  "description": "Allxion v1.0.0 – Hybrid-Social-Hub plus NachtBlau Crew Gaming Community.",
+  "start_url": "./",
+  "scope": "./",
+  "id": "https://nacht-blau.de/allxion/",
   "display": "standalone",
   "background_color": "#0a0e1a",
   "theme_color": "#0a0e1a",
   "lang": "de",
+  "version": "1.0.0",
   "icons": [
     {
       "src": "https://d2xsxph8kpxj0f.cloudfront.net/310519663739653758/PbtcqHtcftAKnwDnhmoduf/nachtblau-logo-Li7umgFb8XhrYaRtYVFm4Z.webp",
       "sizes": "512x512",
-      "type": "image/webp"
+      "type": "image/webp",
+      "purpose": "any maskable"
     }
   ]
 }

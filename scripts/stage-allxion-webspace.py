@@ -26,7 +26,7 @@ def main() -> None:
         print("Fehler: dist/public fehlt. Zuerst: pnpm build:allxion", file=sys.stderr)
         sys.exit(1)
 
-    keep = {".htaccess", ".gitkeep", "README.md", "index.stub.html"}
+    keep = {".htaccess", ".gitkeep", "README.md", "index.stub.html", "release.json"}
     if TARGET.exists():
         for child in TARGET.iterdir():
             if child.name in keep:
