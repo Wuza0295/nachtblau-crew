@@ -4,40 +4,43 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import PortalNav from "./components/portal/PortalNav";
 import Home from "./pages/Home";
-import FreeGames from "./pages/FreeGames";
-import News from "./pages/News";
-import Forum from "./pages/Forum";
-import ForumCategory from "./pages/ForumCategory";
-import ForumThread from "./pages/ForumThread";
-import NewThread from "./pages/NewThread";
+import Feed from "./pages/Feed";
+import Flashes from "./pages/Flashes";
+import Circles from "./pages/Circles";
+import CircleView from "./pages/CircleView";
+import Explore from "./pages/Explore";
+import MomentPage from "./pages/MomentPage";
+import Compose from "./pages/Compose";
+import About from "./pages/About";
 import Profile from "./pages/Profile";
 import ProfileRedirect from "./pages/ProfileRedirect";
-import About from "./pages/About";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
 
 function Router() {
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Navbar />
-      <main className="flex-1">
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
+      <PortalNav />
+      <main className="flex-1 pb-16 md:pb-0">
         <Switch>
           <Route path="/" component={Home} />
-          <Route path="/free-games" component={FreeGames} />
-          <Route path="/news" component={News} />
-          <Route path="/forum" component={Forum} />
-          <Route path="/forum/kategorie/:slug" component={ForumCategory} />
-          <Route path="/forum/thread/:id" component={ForumThread} />
-          <Route path="/forum/neu" component={NewThread} />
+          <Route path="/feed" component={Feed} />
+          <Route path="/flashes" component={Flashes} />
+          <Route path="/kreise" component={Circles} />
+          <Route path="/kreise/:slug" component={CircleView} />
+          <Route path="/entdecken" component={Explore} />
+          <Route path="/moment" component={MomentPage} />
+          <Route path="/erstellen" component={Compose} />
+          <Route path="/ueber-uns" component={About} />
           <Route path="/profil" component={ProfileRedirect} />
           <Route path="/profil/:id" component={Profile} />
-          <Route path="/ueber-uns" component={About} />
           <Route path="/404" component={NotFound} />
           <Route component={NotFound} />
         </Switch>
       </main>
-      <Footer />
+      <footer className="hidden md:block border-t border-border/50 py-6 text-center text-xs text-muted-foreground">
+        ◈ Social-Universum · Name folgt · 2026
+      </footer>
     </div>
   );
 }
@@ -51,9 +54,9 @@ function App() {
             theme="dark"
             toastOptions={{
               style: {
-                background: "oklch(0.12 0.03 250)",
-                border: "1px solid oklch(0.22 0.04 250)",
-                color: "oklch(0.93 0.015 220)",
+                background: "oklch(0.11 0.03 280)",
+                border: "1px solid oklch(0.22 0.05 280)",
+                color: "oklch(0.93 0.02 280)",
               },
             }}
           />

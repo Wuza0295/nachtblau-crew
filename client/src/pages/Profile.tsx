@@ -49,6 +49,28 @@ export default function Profile() {
     },
   });
 
+  const { data: socialStats } = trpc.social.getSocialStats.useQuery(
+    { userId },
+    { enabled: !!userId }
+  );
+  const { data: followingData } = trpc.social.isFollowing.useQuery(
+    { userId },
+    { enabled: !!userId && !!currentUser && currentUser.id !== userId }
+  );
+  const followMut = trpc.social.follow.useMutation({
+    onSuccess: () => {
+      toast.success("Du folgst jetzt!");
+      void utils.social.isFollowing.invalidate({ userId });
+      void utils.social.getSocialStats.invalidate({ userId });
+    },
+  });
+  const unfollowMut = trpc.social.unfollow.useMutation({
+    onSuccess: () => {
+      void utils.social.isFollowing.invalidate({ userId });
+      void utils.social.getSocialStats.invalidate({ userId });
+    },
+  });
+
   const isOwn = currentUser?.id === userId;
 
   if (isLoading) {
@@ -176,6 +198,21 @@ export default function Profile() {
                       <Calendar className="h-3 w-3" />
                       Mitglied seit {new Date(user.createdAt).toLocaleDateString("de-DE")}
                     </div>
+
+                    {!isOwn && currentUser && (
+                      <Button
+                        size="sm"
+                        className="mt-3 rounded-full"
+                        variant={followingData ? "outline" : "default"}
+                        onClick={() =>
+                          followingData
+                            ? unfollowMut.mutate({ userId })
+                            : followMut.mutate({ userId })
+                        }
+                      >
+                        {followingData ? "Entfolgen" : "Folgen"}
+                      </Button>
+                    )}
                   </>
                 )}
               </div>
@@ -196,15 +233,26 @@ export default function Profile() {
         </Card>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           <Card className="bg-card border-border">
             <CardContent className="p-4 flex items-center gap-3">
               <div className="p-2 rounded-lg bg-primary/10 text-primary">
                 <MessageSquare className="h-5 w-5" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-foreground">{stats.threadCount}</div>
-                <div className="text-xs text-muted-foreground">Threads erstellt</div>
+                <div className="text-2xl font-bold text-foreground">{socialStats?.postCount ?? 0}</div>
+                <div className="text-xs text-muted-foreground">Social Posts</div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-card border-border">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-accent/20 text-accent-foreground">
+                <User className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-foreground">{socialStats?.followers ?? 0}</div>
+                <div className="text-xs text-muted-foreground">Follower</div>
               </div>
             </CardContent>
           </Card>
@@ -214,8 +262,19 @@ export default function Profile() {
                 <MessageCircle className="h-5 w-5" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-foreground">{stats.postCount}</div>
-                <div className="text-xs text-muted-foreground">Antworten geschrieben</div>
+                <div className="text-2xl font-bold text-foreground">{socialStats?.following ?? 0}</div>
+                <div className="text-xs text-muted-foreground">Following</div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-card border-border">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-muted text-muted-foreground">
+                <MessageSquare className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-foreground">{stats.threadCount}</div>
+                <div className="text-xs text-muted-foreground">Forum-Threads</div>
               </div>
             </CardContent>
           </Card>

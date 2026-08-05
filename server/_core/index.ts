@@ -9,6 +9,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { runAppSeeds } from "../seed";
+import { runSocialSeeds } from "../seedSocial";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -31,6 +32,7 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 
 async function startServer() {
   await runAppSeeds();
+  await runSocialSeeds();
 
   const app = express();
   const server = createServer(app);

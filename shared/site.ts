@@ -1,39 +1,49 @@
+/** Placeholder branding — final name comes later */
 export const SITE = {
-  name: "NachtBlau Crew",
-  shortName: "NachtBlau",
-  tagline: "Deine Gaming Community für PC, Konsolen, Steam und mehr.",
+  name: "Social-Universum",
+  shortName: "◈ Portal",
+  codename: "Name folgt",
+  tagline: "Das Netzwerk, das noch fehlte — Waves, Flashes, Kreise & Moments in einer App.",
   description:
-    "NachtBlau Crew – Deine Gaming Community für PC, Konsolen, Steam und mehr. Aktuelle News, kostenlose Spiele und ein aktives Forum.",
+    "Ein hybrides Social-Media-Portal: Feed-Modi wie Bluesky, Kurzvideos wie TikTok, Communities wie Reddit, authentische Moments wie BeReal — ohne dich in Silos zu sperren.",
   logoUrl:
-    "https://d2xsxph8kpxj0f.cloudfront.net/310519663739653758/PbtcqHtcftAKnwDnhmoduf/nachtblau-logo-Li7umgFb8XhrYaRtYVFm4Z.webp",
+    "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=128&h=128&fit=crop&q=80",
   heroBgUrl:
-    "https://d2xsxph8kpxj0f.cloudfront.net/310519663739653758/PbtcqHtcftAKnwDnhmoduf/nachtblau-hero-bg-HgRTyjrF5BBTepdctiJ8Mj.webp",
-  webspaceUrl: "https://nacht-blau.de",
-  webspaceLabel: "NachtBlau Webspace",
-  githubUrl: "https://github.com/Wuza0295/nachtblau-crew",
-  githubOrgUrl: "https://github.com/Wuza0295",
-  githubLabel: "GitHub Repository",
-  contactEmail: "info@nacht-blau.de",
-  gamerPowerUrl: "https://www.gamerpower.com",
+    "https://images.unsplash.com/photo-1557683316-973673baf926?w=1600&q=80",
+  contactEmail: "hello@example.com",
 } as const;
 
-export const EXTERNAL_LINKS = [
+export const PORTAL_FEATURES = [
   {
-    href: SITE.webspaceUrl,
-    label: SITE.webspaceLabel,
-    description: "Offizielle Website der NachtBlau GbR mit Infos zum Projekt und Team.",
-    external: true,
+    title: "Waves",
+    subtitle: "X · Threads · Mastodon",
+    description: "Kurze Gedanken, Threads-fähig, chronologisch oder algorithmisch — du entscheidest.",
   },
   {
-    href: SITE.githubUrl,
-    label: SITE.githubLabel,
-    description: "Quellcode, Issues und Beiträge zur NachtBlau Crew App auf GitHub.",
-    external: true,
+    title: "Flashes",
+    subtitle: "TikTok · Reels · Shorts",
+    description: "Vertikaler Feed für Entdeckung — Bild & Text, optimiert für Scroll.",
   },
   {
-    href: `mailto:${SITE.contactEmail}`,
-    label: "Kontakt",
-    description: "Schreib uns eine E-Mail an info@nacht-blau.de.",
-    external: true,
+    title: "Kreise",
+    subtitle: "Reddit · Discord",
+    description: "Nischen-Communities mit eigenem Ton — joinen, moderieren, wachsen.",
+  },
+  {
+    title: "Moments",
+    subtitle: "BeReal · Authentic",
+    description: "Tägliche ehrliche Prompts — kein Perfektionsdruck, nur echte Sekunden.",
+  },
+  {
+    title: "Stories",
+    subtitle: "Instagram · Snapchat",
+    description: "24 Stunden sichtbar, dann weg — ephemer ohne Drama.",
+  },
+  {
+    title: "Feed-Modi",
+    subtitle: "Bluesky · Fediverse",
+    description: "Following, Entdecken oder strikt chronologisch — Transparenz statt Blackbox.",
   },
 ] as const;
+
+export const EXTERNAL_LINKS = [] as const;

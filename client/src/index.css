@@ -40,28 +40,21 @@
 :root {
   --radius: 0.625rem;
 
-  /* NachtBlau Dark Theme – Deep Midnight Blues */
-  --background: oklch(0.09 0.025 250);
-  --foreground: oklch(0.93 0.015 220);
-
-  --card: oklch(0.12 0.03 250);
-  --card-foreground: oklch(0.93 0.015 220);
-
-  --popover: oklch(0.11 0.03 250);
-  --popover-foreground: oklch(0.93 0.015 220);
-
-  /* Electric blue accent */
-  --primary: oklch(0.62 0.22 245);
-  --primary-foreground: oklch(0.98 0.005 220);
-
-  --secondary: oklch(0.16 0.04 250);
-  --secondary-foreground: oklch(0.85 0.02 220);
-
-  --muted: oklch(0.14 0.025 250);
-  --muted-foreground: oklch(0.58 0.03 230);
-
-  --accent: oklch(0.55 0.18 260);
-  --accent-foreground: oklch(0.98 0.005 220);
+  /* Portal aurora theme */
+  --background: oklch(0.08 0.03 280);
+  --foreground: oklch(0.94 0.02 280);
+  --card: oklch(0.11 0.035 280);
+  --card-foreground: oklch(0.94 0.02 280);
+  --popover: oklch(0.1 0.035 280);
+  --popover-foreground: oklch(0.94 0.02 280);
+  --primary: oklch(0.68 0.22 290);
+  --primary-foreground: oklch(0.98 0.01 280);
+  --secondary: oklch(0.16 0.04 280);
+  --secondary-foreground: oklch(0.88 0.02 280);
+  --muted: oklch(0.14 0.03 280);
+  --muted-foreground: oklch(0.58 0.04 280);
+  --accent: oklch(0.72 0.18 330);
+  --accent-foreground: oklch(0.98 0.01 280);
 
   --destructive: oklch(0.55 0.22 25);
 
@@ -184,6 +177,62 @@
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border-bottom: 1px solid oklch(0.22 0.04 250 / 0.5);
+  }
+
+  .portal-glass {
+    background: oklch(0.08 0.03 280 / 0.82);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .portal-card {
+    transition: border-color 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
+  }
+
+  .portal-hero-gradient {
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 40%, oklch(0.55 0.2 290 / 0.25), transparent),
+      radial-gradient(ellipse 60% 50% at 80% 20%, oklch(0.65 0.18 330 / 0.2), transparent),
+      oklch(0.08 0.03 280);
+  }
+
+  .portal-grid {
+    background-image:
+      linear-gradient(oklch(0.25 0.05 280 / 0.15) 1px, transparent 1px),
+      linear-gradient(90deg, oklch(0.25 0.05 280 / 0.15) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+
+  .story-ring {
+    background: linear-gradient(135deg, oklch(0.68 0.22 290), oklch(0.72 0.18 330), oklch(0.7 0.16 160));
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .font-display {
+    font-family: "Syne", "Inter", system-ui, sans-serif;
+  }
+
+  .stagger-children > * {
+    animation: fade-up 400ms var(--ease-out) both;
+  }
+  .stagger-children > *:nth-child(2) { animation-delay: 50ms; }
+  .stagger-children > *:nth-child(3) { animation-delay: 100ms; }
+  .stagger-children > *:nth-child(4) { animation-delay: 150ms; }
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stagger-children > * { animation: none; }
   }
 
   /* Button scale on active */
