@@ -341,6 +341,198 @@ const profileRouter = router({
     }),
 });
 
+// ─── MIRA Social ──────────────────────────────────────────────────────────────
+import { miraStore } from "./miraStore";
+
+const miraRouter = router({
+  meta: publicProcedure.query(() => ({
+    name: "MIRA",
+    workingTitle: true,
+    tagline: "Ein Netzwerk. Deine Absicht.",
+    modes: ["nahe", "fokus", "drift"] as const,
+  })),
+
+  me: publicProcedure.query(() => miraStore.me()),
+
+  users: publicProcedure.query(() => miraStore.users),
+
+  user: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(({ input }) => {
+      const user = miraStore.userById(input.id);
+      if (!user) throw new TRPCError({ code: "NOT_FOUND" });
+      const posts = miraStore.posts
+        .filter((p) => p.authorId === input.id)
+        .map((p) => miraStore.enrichPost(p));
+      return { user, posts };
+    }),
+
+  feed: publicProcedure
+    .input(
+      z.object({
+        mode: z.enum(["nahe", "fokus", "drift"]).default("nahe"),
+        recipeId: z.string().nullable().optional(),
+      })
+    )
+    .query(({ input }) => miraStore.getFeed(input.mode, input.recipeId)),
+
+  setMode: publicProcedure
+    .input(z.object({ mode: z.enum(["nahe", "fokus", "drift"]) }))
+    .mutation(({ input }) => ({ mode: miraStore.setMode(input.mode) })),
+
+  moments: publicProcedure.query(() =>
+    miraStore.moments.map((m) => ({
+      ...m,
+      author: miraStore.userById(m.authorId)!,
+    }))
+  ),
+
+  viewMoment: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(({ input }) => miraStore.markMomentViewed(input.id)),
+
+  circles: publicProcedure.query(() => miraStore.circles),
+
+  circle: publicProcedure
+    .input(z.object({ slug: z.string() }))
+    .query(({ input }) => {
+      const circle = miraStore.circles.find((c) => c.slug === input.slug);
+      if (!circle) throw new TRPCError({ code: "NOT_FOUND" });
+      const posts = miraStore.posts
+        .filter((p) => p.circleId === circle.id)
+        .map((p) => miraStore.enrichPost(p));
+      return { circle, posts };
+    }),
+
+  toggleCircle: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(({ input }) => {
+      const circle = miraStore.toggleCircle(input.id);
+      if (!circle) throw new TRPCError({ code: "NOT_FOUND" });
+      return circle;
+    }),
+
+  recipes: publicProcedure.query(() => miraStore.recipes),
+
+  setActiveRecipe: publicProcedure
+    .input(z.object({ id: z.string().nullable() }))
+    .mutation(({ input }) => miraStore.setActiveRecipe(input.id)),
+
+  createRecipe: publicProcedure
+    .input(
+      z.object({
+        name: z.string().min(2).max(64),
+        description: z.string().max(280),
+        intent: z.string().min(5).max(400),
+        sources: z.array(
+          z.enum(["village", "circles", "following", "discovery"])
+        ),
+        includeTags: z.array(z.string()),
+        excludeTags: z.array(z.string()),
+        preferKinds: z.array(z.enum(["signal", "frame", "pulse", "truth"])),
+      })
+    )
+    .mutation(({ input }) => miraStore.createRecipe(input)),
+
+  createPost: publicProcedure
+    .input(
+      z.object({
+        kind: z.enum(["signal", "frame", "pulse", "truth"]),
+        body: z.string().min(1).max(2000),
+        facet: z.enum(["personal", "craft", "public"]).optional(),
+        mediaUrl: z.string().url().optional(),
+        circleId: z.string().optional(),
+        tags: z.array(z.string()).optional(),
+      })
+    )
+    .mutation(({ input }) => miraStore.createPost(input)),
+
+  toggleResonance: publicProcedure
+    .input(z.object({ postId: z.string() }))
+    .mutation(({ input }) => {
+      const post = miraStore.toggleResonance(input.postId);
+      if (!post) throw new TRPCError({ code: "NOT_FOUND" });
+      return post;
+    }),
+
+  toggleSave: publicProcedure
+    .input(z.object({ postId: z.string() }))
+    .mutation(({ input }) => {
+      const post = miraStore.toggleSave(input.postId);
+      if (!post) throw new TRPCError({ code: "NOT_FOUND" });
+      return post;
+    }),
+
+  vault: publicProcedure.query(() =>
+    miraStore.vault.map((v) => {
+      const post = miraStore.posts.find((p) => p.id === v.postId);
+      return {
+        ...v,
+        post: post ? miraStore.enrichPost(post) : null,
+      };
+    })
+  ),
+
+  conversations: publicProcedure.query(() =>
+    miraStore.conversations.map((c) => ({
+      ...c,
+      participants: c.participantIds
+        .map((id) => miraStore.userById(id))
+        .filter(Boolean),
+    }))
+  ),
+
+  messages: publicProcedure
+    .input(z.object({ conversationId: z.string() }))
+    .query(({ input }) =>
+      miraStore.messages
+        .filter((m) => m.conversationId === input.conversationId)
+        .map((m) => ({
+          ...m,
+          sender: miraStore.userById(m.senderId)!,
+        }))
+    ),
+
+  sendMessage: publicProcedure
+    .input(
+      z.object({
+        conversationId: z.string(),
+        body: z.string().min(1).max(2000),
+      })
+    )
+    .mutation(({ input }) =>
+      miraStore.sendMessage(input.conversationId, input.body)
+    ),
+
+  gatherings: publicProcedure.query(() =>
+    miraStore.gatherings.map((g) => ({
+      ...g,
+      host: miraStore.userById(g.hostId)!,
+      circle: g.circleId
+        ? miraStore.circles.find((c) => c.id === g.circleId)
+        : undefined,
+    }))
+  ),
+
+  toggleGathering: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(({ input }) => {
+      const g = miraStore.toggleGathering(input.id);
+      if (!g) throw new TRPCError({ code: "NOT_FOUND" });
+      return g;
+    }),
+
+  discover: publicProcedure.query(() => ({
+    circles: miraStore.circles.filter((c) => !c.joined),
+    trending: miraStore.posts
+      .slice()
+      .sort((a, b) => b.resonance - a.resonance)
+      .slice(0, 6)
+      .map((p) => miraStore.enrichPost(p)),
+    people: miraStore.users.filter((u) => !u.isYou && !miraStore.me().villageIds.includes(u.id)),
+  })),
+});
+
 // ─── App Router ───────────────────────────────────────────────────────────────
 export const appRouter = router({
   system: systemRouter,
@@ -352,6 +544,7 @@ export const appRouter = router({
       return { success: true } as const;
     }),
   }),
+  mira: miraRouter,
   games: gamesRouter,
   news: newsRouter,
   forum: forumRouter,
