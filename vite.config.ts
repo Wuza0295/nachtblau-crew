@@ -152,8 +152,11 @@ function vitePluginManusDebugCollector(): Plugin {
 
 const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector()];
 
+const isAllxionBuild = process.env.ALLXION_BUILD === "1";
+
 export default defineConfig({
   plugins,
+  base: isAllxionBuild ? "/allxion/" : "/",
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
@@ -165,7 +168,9 @@ export default defineConfig({
   root: path.resolve(import.meta.dirname, "client"),
   publicDir: path.resolve(import.meta.dirname, "client", "public"),
   build: {
-    outDir: path.resolve(import.meta.dirname, "dist/public"),
+    outDir: isAllxionBuild
+      ? path.resolve(import.meta.dirname, "dist/allxion")
+      : path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
   },
   server: {

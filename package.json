@@ -11,7 +11,17 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "db:push": "drizzle-kit generate && drizzle-kit migrate",
-    "db:seed": "tsx server/seed.ts"
+    "db:seed": "tsx server/seed.ts",
+    "webspace:connect": "python3 scripts/webspace-connect.py",
+    "webspace:pull": "python3 scripts/pull-webspace.py",
+    "webspace:sync": "python3 scripts/sync-webspace.py",
+    "webspace:sync:one": "python3 scripts/sync-one-webspace.py",
+    "deploy:webspace": "python3 scripts/deploy-webspace.py",
+    "build:allxion": "ALLXION_BUILD=1 vite build",
+    "stage:allxion": "python3 scripts/stage-allxion.py",
+    "platform:sync": "python3 scripts/platform-sync.py",
+    "sync:platforms": "python3 scripts/platform-sync.py --push",
+    "sync:platforms:local": "python3 scripts/platform-sync.py"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.693.0",
@@ -112,5 +122,8 @@
     "overrides": {
       "tailwindcss>nanoid": "3.3.7"
     }
+  },
+  "optionalDependencies": {
+    "@esbuild/linux-x64": "^0.28.1"
   }
 }
