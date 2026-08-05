@@ -281,4 +281,9 @@ def prepare_upload_dir(local: Path):
     dest = Path(tmp.name) / "site"
     shutil.copytree(local, dest)
     patch_allxion_project_link(dest, app_url)
+    allxion = dest / "allxion"
+    stub = allxion / "index.stub.html"
+    index = allxion / "index.html"
+    if stub.is_file() and not index.is_file():
+        shutil.copy2(stub, index)
     return dest, tmp
