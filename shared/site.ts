@@ -1,39 +1,32 @@
+import { BRAND } from "./brand";
+
 export const SITE = {
-  name: "NachtBlau Crew",
-  shortName: "NachtBlau",
-  tagline: "Deine Gaming Community für PC, Konsolen, Steam und mehr.",
-  description:
-    "NachtBlau Crew – Deine Gaming Community für PC, Konsolen, Steam und mehr. Aktuelle News, kostenlose Spiele und ein aktives Forum.",
-  logoUrl:
-    "https://d2xsxph8kpxj0f.cloudfront.net/310519663739653758/PbtcqHtcftAKnwDnhmoduf/nachtblau-logo-Li7umgFb8XhrYaRtYVFm4Z.webp",
+  name: BRAND.name,
+  shortName: BRAND.name,
+  tagline: BRAND.tagline,
+  description: BRAND.description,
+  logoUrl: "",
   heroBgUrl:
-    "https://d2xsxph8kpxj0f.cloudfront.net/310519663739653758/PbtcqHtcftAKnwDnhmoduf/nachtblau-hero-bg-HgRTyjrF5BBTepdctiJ8Mj.webp",
-  webspaceUrl: "https://nacht-blau.de",
-  webspaceLabel: "NachtBlau Webspace",
+    "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1800&q=80",
+  webspaceUrl: "/",
+  webspaceLabel: `${BRAND.name} Portal`,
   githubUrl: "https://github.com/Wuza0295/nachtblau-crew",
   githubOrgUrl: "https://github.com/Wuza0295",
   githubLabel: "GitHub Repository",
-  contactEmail: "info@nacht-blau.de",
-  gamerPowerUrl: "https://www.gamerpower.com",
+  contactEmail: "hello@liora.social",
 } as const;
 
 export const EXTERNAL_LINKS = [
   {
-    href: SITE.webspaceUrl,
-    label: SITE.webspaceLabel,
-    description: "Offizielle Website der NachtBlau GbR mit Infos zum Projekt und Team.",
-    external: true,
+    href: "/konzept",
+    label: "Konzept",
+    description: "Warum dieses Portal so noch nicht existiert.",
+    external: false,
   },
   {
-    href: SITE.githubUrl,
-    label: SITE.githubLabel,
-    description: "Quellcode, Issues und Beiträge zur NachtBlau Crew App auf GitHub.",
-    external: true,
-  },
-  {
-    href: `mailto:${SITE.contactEmail}`,
-    label: "Kontakt",
-    description: "Schreib uns eine E-Mail an info@nacht-blau.de.",
-    external: true,
+    href: "/feed",
+    label: "Feed öffnen",
+    description: "Pulse, Canvas, Stream und Depth in einem Graph.",
+    external: false,
   },
 ] as const;
