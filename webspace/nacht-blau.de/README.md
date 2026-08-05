@@ -10,6 +10,13 @@ Eigenständige GbR-Webseite auf ALL-INKL — **Allxion** liegt als Unterseite un
 
 ## Sync mit ALL-INKL
 
+**Ein Befehl (Tests + Allxion-Build für Linux/Android-Browser & PWA auf nacht-blau.de):**
+
+```bash
+pnpm sync:platforms              # lokal bauen
+pnpm sync:platforms -- --upload    # zusätzlich FTPS-Upload (`.env.webspace`)
+```
+
 1. `.env.webspace.example` → `.env.webspace` (FTP-Zugang)
 2. Allxion-Frontend bauen und ins Webspace-Verzeichnis legen:
 
