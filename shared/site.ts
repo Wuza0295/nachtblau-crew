@@ -10,6 +10,8 @@ export const SITE = {
     "https://d2xsxph8kpxj0f.cloudfront.net/310519663739653758/PbtcqHtcftAKnwDnhmoduf/nachtblau-hero-bg-HgRTyjrF5BBTepdctiJ8Mj.webp",
   webspaceUrl: "https://nacht-blau.de",
   webspaceLabel: "NachtBlau Webspace",
+  allxionUrl: "https://nacht-blau.de/allxion/",
+  allxionLabel: "Allxion",
   githubUrl: "https://github.com/Wuza0295/nachtblau-crew",
   githubOrgUrl: "https://github.com/Wuza0295",
   githubLabel: "GitHub Repository",

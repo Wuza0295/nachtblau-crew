@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
+import { Route, Router, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
@@ -21,36 +21,39 @@ import SocialMomente from "./pages/social/SocialMomente";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
-function Router() {
+function AppRouter() {
+  const base = import.meta.env.BASE_URL.replace(/\/$/, "");
   return (
-    <Switch>
-      <Route path="/portal/fluss" component={SocialFluss} />
-      <Route path="/portal/kreise" component={SocialKreise} />
-      <Route path="/portal/momente" component={SocialMomente} />
-      <Route path="/portal" component={SocialHub} />
-      <Route>
-        <div className="min-h-screen flex flex-col bg-background">
-          <Navbar />
-          <main className="flex-1">
-            <Switch>
-              <Route path="/" component={Home} />
-              <Route path="/free-games" component={FreeGames} />
-              <Route path="/news" component={News} />
-              <Route path="/forum" component={Forum} />
-              <Route path="/forum/kategorie/:slug" component={ForumCategory} />
-              <Route path="/forum/thread/:id" component={ForumThread} />
-              <Route path="/forum/neu" component={NewThread} />
-              <Route path="/profil" component={ProfileRedirect} />
-              <Route path="/profil/:id" component={Profile} />
-              <Route path="/ueber-uns" component={About} />
-              <Route path="/404" component={NotFound} />
-              <Route component={NotFound} />
-            </Switch>
-          </main>
-          <Footer />
-        </div>
-      </Route>
-    </Switch>
+    <Router base={base || undefined}>
+      <Switch>
+        <Route path="/portal/fluss" component={SocialFluss} />
+        <Route path="/portal/kreise" component={SocialKreise} />
+        <Route path="/portal/momente" component={SocialMomente} />
+        <Route path="/portal" component={SocialHub} />
+        <Route>
+          <div className="min-h-screen flex flex-col bg-background">
+            <Navbar />
+            <main className="flex-1">
+              <Switch>
+                <Route path="/" component={Home} />
+                <Route path="/free-games" component={FreeGames} />
+                <Route path="/news" component={News} />
+                <Route path="/forum" component={Forum} />
+                <Route path="/forum/kategorie/:slug" component={ForumCategory} />
+                <Route path="/forum/thread/:id" component={ForumThread} />
+                <Route path="/forum/neu" component={NewThread} />
+                <Route path="/profil" component={ProfileRedirect} />
+                <Route path="/profil/:id" component={Profile} />
+                <Route path="/ueber-uns" component={About} />
+                <Route path="/404" component={NotFound} />
+                <Route component={NotFound} />
+              </Switch>
+            </main>
+            <Footer />
+          </div>
+        </Route>
+      </Switch>
+    </Router>
   );
 }
 
@@ -69,7 +72,7 @@ function App() {
               },
             }}
           />
-          <Router />
+          <AppRouter />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

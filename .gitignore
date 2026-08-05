@@ -112,3 +112,36 @@ temp/
 # Manus version file (auto-generated, not part of source)
 client/public/__manus__/version.json
 .project-config.json
+
+# ALL-INKL credentials (local only)
+.env.webspace
+
+# Optional Allxion build overrides (not committed)
+.env.allxion
+
+# Python
+__pycache__/
+*.pyc
+
+# Webspace mirrors: only commit the public GbR site by default.
+webspace/**
+!webspace/nacht-blau.de/
+!webspace/nacht-blau.de/**
+
+# Hashed Vite build chunks under /allxion/ — refresh via pnpm platform:sync
+webspace/nacht-blau.de/allxion/assets/
+
+# Never commit remote secrets even if present under webspace/
+webspace/**/config/database.php
+webspace/**/db.php
+webspace/**/db_connect.php
+webspace/**/vendor/
+webspace/**/node_modules/
+webspace/**/uploads/
+webspace/**/storage/
+webspace/**/tmp/
+webspace/**/logs/
+webspace/**/*.zip
+webspace/**/.env
+webspace/**/.env.*
+!webspace/**/.env.example
