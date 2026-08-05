@@ -152,7 +152,10 @@ function vitePluginManusDebugCollector(): Plugin {
 
 const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector()];
 
+const appBase = process.env.VITE_APP_BASE?.replace(/\/?$/, "/") || "/";
+
 export default defineConfig({
+  base: appBase,
   plugins,
   resolve: {
     alias: {

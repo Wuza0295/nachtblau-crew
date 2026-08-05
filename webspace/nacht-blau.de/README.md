@@ -28,3 +28,6 @@ pnpm webspace:sync:one nacht-blau.de  # nur GbR
 
 Die gehashten Allxion-Build-Assets (`allxion/assets/`) bleiben lokal (gitignore) und werden
 über `pnpm webspace:pull` aktualisiert — nicht ins Git-Repo gelegt.
+
+**Plattform-Sync (Linux / Android / Web):** siehe `references/platform-sync.md` und
+`pnpm sync:platforms` (Build → `webspace/…/allxion/` → FTPS).

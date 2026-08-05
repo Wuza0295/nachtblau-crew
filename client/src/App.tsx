@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
+import { Route, Router as WouterRouter, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
@@ -21,7 +21,7 @@ import SocialMomente from "./pages/social/SocialMomente";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
-function Router() {
+function AppRoutes() {
   return (
     <Switch>
       <Route path="/portal/fluss" component={SocialFluss} />
@@ -54,6 +54,8 @@ function Router() {
   );
 }
 
+const routerBase = import.meta.env.BASE_URL.replace(/\/$/, "") || "";
+
 function App() {
   return (
     <ErrorBoundary>
@@ -69,7 +71,9 @@ function App() {
               },
             }}
           />
-          <Router />
+          <WouterRouter base={routerBase}>
+            <AppRoutes />
+          </WouterRouter>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

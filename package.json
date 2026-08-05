@@ -16,7 +16,12 @@
     "webspace:pull": "python3 scripts/pull-webspace.py",
     "webspace:sync": "python3 scripts/sync-webspace.py",
     "webspace:sync:one": "python3 scripts/sync-one-webspace.py",
-    "deploy:webspace": "python3 scripts/deploy-webspace.py"
+    "deploy:webspace": "python3 scripts/deploy-webspace.py",
+    "build:web": "vite build",
+    "build:allxion": "VITE_APP_BASE=/allxion/ vite build --mode allxion",
+    "publish:allxion": "python3 scripts/publish-allxion.py",
+    "sync:platforms": "pnpm build:allxion && pnpm publish:allxion && pnpm webspace:sync:one nacht-blau.de",
+    "sync:platforms:pull": "pnpm webspace:pull nacht-blau.de"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.693.0",

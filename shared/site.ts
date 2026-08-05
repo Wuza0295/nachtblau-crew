@@ -8,6 +8,8 @@ export const SITE = {
     "https://d2xsxph8kpxj0f.cloudfront.net/310519663739653758/PbtcqHtcftAKnwDnhmoduf/nachtblau-logo-Li7umgFb8XhrYaRtYVFm4Z.webp",
   heroBgUrl:
     "https://d2xsxph8kpxj0f.cloudfront.net/310519663739653758/PbtcqHtcftAKnwDnhmoduf/nachtblau-hero-bg-HgRTyjrF5BBTepdctiJ8Mj.webp",
+  allxionUrl: "https://nacht-blau.de/allxion/",
+  allxionLabel: "Allxion App",
   webspaceUrl: "https://nacht-blau.de",
   webspaceLabel: "NachtBlau Webspace",
   githubUrl: "https://github.com/Wuza0295/nachtblau-crew",
