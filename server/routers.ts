@@ -1,347 +1,184 @@
-import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
-import {
-  createPost,
-  createThread,
-  getForumCategories,
-  getForumCategoryBySlug,
-  getPostsByThread,
-  getThreadById,
-  getThreadsByCategory,
-  getUserById,
-  getUserPostCount,
-  getUserRecentThreads,
-  getUserThreadCount,
-  incrementThreadView,
-  updateUserProfile,
-} from "./db";
+import { socialStore } from "./socialStore";
 
-// ─── Free Games via GamerPower API ───────────────────────────────────────────
-const gamesRouter = router({
-  getFreeGames: publicProcedure
-    .input(
-      z.object({
-        platform: z.string().optional(),
-        type: z.string().optional(),
-      })
-    )
-    .query(async ({ input }) => {
-      const maxRetries = 2;
-      let lastError: unknown;
+function actorFromCtx(user?: { openId: string; name?: string | null } | null) {
+  const profile = socialStore.resolveActor(user?.openId);
+  if (user?.name && profile.name === "Neues Mitglied") {
+    socialStore.updateProfile(profile.id, { name: user.name });
+  }
+  return socialStore.resolveActor(user?.openId);
+}
 
-      for (let attempt = 0; attempt <= maxRetries; attempt++) {
-        try {
-          let url = "https://www.gamerpower.com/api/giveaways?sort-by=date";
-          if (input.platform) url += `&platform=${input.platform}`;
-          if (input.type) url += `&type=${input.type}`;
+const socialRouter = router({
+  stats: publicProcedure.query(() => socialStore.getStats()),
 
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-          const res = await fetch(url, {
-            headers: { "User-Agent": "NachtBlauCrew/1.0" },
-            signal: controller.signal,
-          });
-
-          clearTimeout(timeoutId);
-
-          if (!res.ok) {
-            if (attempt < maxRetries) continue;
-            return { games: [], error: `API-Fehler: ${res.status}` };
-          }
-
-          const data = await res.json();
-          if (!Array.isArray(data)) {
-            if (attempt < maxRetries) continue;
-            return { games: [], error: "Keine Daten" };
-          }
-
-          return {
-            games: data.slice(0, 20).map((g: Record<string, unknown>) => ({
-              id: g.id as number,
-              title: g.title as string,
-              worth: g.worth as string,
-              thumbnail: g.thumbnail as string,
-              image: g.image as string,
-              description: g.description as string,
-              platforms: g.platforms as string,
-              type: g.type as string,
-              endDate: g.end_date as string,
-              publishedDate: g.published_date as string,
-              openGiveawayUrl: g.open_giveaway_url as string,
-              gamerPowerUrl: g.gamerpower_url as string,
-              status: g.status as string,
-              users: g.users as number,
-            })),
-            error: null,
-          };
-        } catch (err) {
-          lastError = err;
-          if (attempt < maxRetries) {
-            await new Promise((resolve) => setTimeout(resolve, 500 * (attempt + 1)));
-            continue;
-          }
-        }
-      }
-
-      console.error("[GamerPower API] All retries failed:", lastError);
-      return { games: [], error: "Verbindung fehlgeschlagen - bitte später erneut versuchen" };
-    })
-});
-
-// ─── Gaming News via RSS Feeds ───────────────────────────────────────────────
-const newsRouter = router({
-  getNews: publicProcedure
-    .input(
-      z.object({
-        category: z
-          .enum(["all", "pc", "konsolen", "gaming", "steam"])
-          .default("all"),
-        limit: z.number().min(1).max(30).default(12),
-      })
-    )
-    .query(async ({ input }) => {
-      // RSS feeds per category
-      const feeds: Record<string, string[]> = {
-        pc: [
-          "https://www.pcgamer.com/rss/",
-          "https://feeds.feedburner.com/RockPaperShotgun",
-        ],
-        konsolen: [
-          "https://www.eurogamer.net/?format=rss",
-          "https://www.ign.com/articles.rss",
-        ],
-        gaming: [
-          "https://kotaku.com/rss",
-          "https://www.gamespot.com/feeds/news/",
-        ],
-        steam: [
-          "https://store.steampowered.com/feeds/news/",
-          "https://www.pcgamesn.com/feed",
-        ],
-        all: [
-          "https://www.pcgamer.com/rss/",
-          "https://www.eurogamer.net/?format=rss",
-          "https://kotaku.com/rss",
-          "https://store.steampowered.com/feeds/news/",
-        ],
-      };
-
-      const selectedFeeds = feeds[input.category] ?? feeds.all;
-
-      const parseRSSFeed = async (url: string) => {
-        try {
-          const res = await fetch(url, {
-            headers: { "User-Agent": "NachtBlauCrew/1.0" },
-            signal: AbortSignal.timeout(6000),
-          });
-          if (!res.ok) return [];
-          const text = await res.text();
-
-          // Simple RSS parser using regex
-          const items: {
-            title: string;
-            link: string;
-            description: string;
-            pubDate: string;
-            image: string;
-            source: string;
-          }[] = [];
-
-          const sourceName = new URL(url).hostname
-            .replace("www.", "")
-            .replace("feeds.feedburner.com/", "")
-            .split(".")[0];
-
-          const itemRegex = /<item>([\s\S]*?)<\/item>/g;
-          let match;
-          while ((match = itemRegex.exec(text)) !== null) {
-            const item = match[1];
-            const title = (/<title><!\[CDATA\[(.*?)\]\]><\/title>/.exec(item) ||
-              /<title>(.*?)<\/title>/.exec(item))?.[1]?.trim() ?? "";
-            const link = (/<link>(.*?)<\/link>/.exec(item) ||
-              /<guid[^>]*>(.*?)<\/guid>/.exec(item))?.[1]?.trim() ?? "";
-            const desc = (
-              /<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/.exec(item) ||
-              /<description>([\s\S]*?)<\/description>/.exec(item)
-            )?.[1]?.trim() ?? "";
-            const pubDate = (/<pubDate>(.*?)<\/pubDate>/.exec(item))?.[1]?.trim() ?? "";
-
-            // Extract image from enclosure or media:content or description
-            let image = "";
-            const enclosure = /<enclosure[^>]+url="([^"]+)"/.exec(item);
-            const media = /<media:content[^>]+url="([^"]+)"/.exec(item);
-            const imgInDesc = /<img[^>]+src="([^"]+)"/.exec(desc);
-            if (enclosure) image = enclosure[1];
-            else if (media) image = media[1];
-            else if (imgInDesc) image = imgInDesc[1];
-
-            if (title && link) {
-              items.push({
-                title: title.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">"),
-                link,
-                description: desc
-                  .replace(/<[^>]+>/g, "")
-                  .replace(/&amp;/g, "&")
-                  .replace(/&lt;/g, "<")
-                  .replace(/&gt;/g, ">")
-                  .slice(0, 200),
-                pubDate,
-                image,
-                source: sourceName.charAt(0).toUpperCase() + sourceName.slice(1),
-              });
-            }
-          }
-          return items;
-        } catch {
-          return [];
-        }
-      };
-
-      const results = await Promise.all(selectedFeeds.map(parseRSSFeed));
-      const allItems = results.flat();
-
-      // Sort by date
-      allItems.sort((a, b) => {
-        const da = a.pubDate ? new Date(a.pubDate).getTime() : 0;
-        const db = b.pubDate ? new Date(b.pubDate).getTime() : 0;
-        return db - da;
-      });
-
-      return {
-        articles: allItems.slice(0, input.limit).map((item, idx) => ({
-          id: `${idx}-${Date.now()}`,
-          ...item,
-        })),
-        error: null,
-      };
-    }),
-});
-
-// ─── Forum ────────────────────────────────────────────────────────────────────
-const forumRouter = router({
-  getCategories: publicProcedure.query(async () => {
-    return getForumCategories();
+  me: publicProcedure.query(({ ctx }) => {
+    return actorFromCtx(ctx.user);
   }),
 
-  getCategoryBySlug: publicProcedure
+  feed: publicProcedure
+    .input(
+      z.object({
+        lens: z.enum(["pulse", "orbit", "circles", "depth"]).default("pulse"),
+        circleSlug: z.string().optional(),
+      })
+    )
+    .query(({ ctx, input }) => {
+      const me = actorFromCtx(ctx.user);
+      return socialStore.getFeed(input.lens, me.id, input.circleSlug);
+    }),
+
+  moments: publicProcedure.query(({ ctx }) => {
+    const me = actorFromCtx(ctx.user);
+    return socialStore.getMoments(me.id);
+  }),
+
+  gatherings: publicProcedure.query(() => socialStore.listGatherings()),
+
+  circles: publicProcedure.query(({ ctx }) => {
+    const me = actorFromCtx(ctx.user);
+    return socialStore.listCircles().map((c) => ({
+      ...c,
+      isMember: socialStore.isMember(me.id, c.id),
+    }));
+  }),
+
+  circle: publicProcedure
     .input(z.object({ slug: z.string() }))
-    .query(async ({ input }) => {
-      const cat = await getForumCategoryBySlug(input.slug);
-      if (!cat) throw new TRPCError({ code: "NOT_FOUND" });
-      return cat;
-    }),
-
-  getThreadsByCategory: publicProcedure
-    .input(
-      z.object({
-        categoryId: z.number(),
-        limit: z.number().default(20),
-        offset: z.number().default(0),
-      })
-    )
-    .query(async ({ input }) => {
-      return getThreadsByCategory(input.categoryId, input.limit, input.offset);
-    }),
-
-  getThread: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .query(async ({ input }) => {
-      const thread = await getThreadById(input.id);
-      if (!thread) throw new TRPCError({ code: "NOT_FOUND" });
-      await incrementThreadView(input.id);
-      return thread;
-    }),
-
-  getPosts: publicProcedure
-    .input(z.object({ threadId: z.number() }))
-    .query(async ({ input }) => {
-      return getPostsByThread(input.threadId);
-    }),
-
-  createThread: protectedProcedure
-    .input(
-      z.object({
-        categoryId: z.number(),
-        title: z.string().min(3).max(256),
-        content: z.string().min(10),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      return createThread({
-        categoryId: input.categoryId,
-        authorId: ctx.user.id,
-        title: input.title,
-        content: input.content,
-      });
-    }),
-
-  createPost: protectedProcedure
-    .input(
-      z.object({
-        threadId: z.number(),
-        content: z.string().min(1),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      // Check thread exists and is not locked
-      const thread = await getThreadById(input.threadId);
-      if (!thread) throw new TRPCError({ code: "NOT_FOUND" });
-      if (thread.thread.isLocked)
-        throw new TRPCError({ code: "FORBIDDEN", message: "Thread ist gesperrt" });
-
-      return createPost({
-        threadId: input.threadId,
-        authorId: ctx.user.id,
-        content: input.content,
-      });
-    }),
-});
-
-// ─── User Profile ─────────────────────────────────────────────────────────────
-const profileRouter = router({
-  getProfile: publicProcedure
-    .input(z.object({ userId: z.number() }))
-    .query(async ({ input }) => {
-      const user = await getUserById(input.userId);
-      if (!user) throw new TRPCError({ code: "NOT_FOUND" });
-      const [threadCount, postCount, recentThreads] = await Promise.all([
-        getUserThreadCount(input.userId),
-        getUserPostCount(input.userId),
-        getUserRecentThreads(input.userId),
-      ]);
+    .query(({ ctx, input }) => {
+      const me = actorFromCtx(ctx.user);
+      const circle = socialStore.getCircle(input.slug);
+      if (!circle) return null;
       return {
-        user: {
-          id: user.id,
-          name: user.name,
-          avatar: user.avatar,
-          bio: user.bio,
-          role: user.role,
-          createdAt: user.createdAt,
-        },
-        stats: { threadCount, postCount },
-        recentThreads,
+        ...circle,
+        isMember: socialStore.isMember(me.id, circle.id),
+        posts: socialStore.getFeed("circles", me.id, circle.slug),
       };
     }),
 
-  updateProfile: protectedProcedure
+  joinCircle: publicProcedure
+    .input(z.object({ circleId: z.number() }))
+    .mutation(({ ctx, input }) => {
+      const me = actorFromCtx(ctx.user);
+      return socialStore.joinCircle(me.id, input.circleId);
+    }),
+
+  leaveCircle: publicProcedure
+    .input(z.object({ circleId: z.number() }))
+    .mutation(({ ctx, input }) => {
+      const me = actorFromCtx(ctx.user);
+      return socialStore.leaveCircle(me.id, input.circleId);
+    }),
+
+  post: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .query(({ ctx, input }) => {
+      const me = actorFromCtx(ctx.user);
+      const post = socialStore.getPost(input.id, me.id);
+      if (!post) return null;
+      return {
+        post,
+        replies: socialStore.getReplies(input.id, me.id),
+      };
+    }),
+
+  createPost: publicProcedure
     .input(
       z.object({
-        name: z.string().min(1).max(64).optional(),
-        bio: z.string().max(500).optional(),
+        type: z.enum(["pulse", "frame", "signal", "moment"]),
+        content: z.string().min(1).max(8000),
+        title: z.string().max(256).optional(),
+        circleId: z.number().optional().nullable(),
+        parentId: z.number().optional().nullable(),
+        mediaLabel: z.string().max(128).optional().nullable(),
       })
     )
-    .mutation(async ({ ctx, input }) => {
-      await updateUserProfile(ctx.user.id, input);
-      return { success: true };
+    .mutation(({ ctx, input }) => {
+      const me = actorFromCtx(ctx.user);
+      return socialStore.createPost({
+        authorId: me.id,
+        type: input.type,
+        content: input.content,
+        title: input.title,
+        circleId: input.circleId,
+        parentId: input.parentId,
+        mediaLabel: input.mediaLabel,
+      });
     }),
+
+  resonate: publicProcedure
+    .input(
+      z.object({
+        postId: z.number(),
+        type: z.enum(["spark", "depth", "echo"]).nullable(),
+      })
+    )
+    .mutation(({ ctx, input }) => {
+      const me = actorFromCtx(ctx.user);
+      return socialStore.setResonance(me.id, input.postId, input.type);
+    }),
+
+  toggleFollow: publicProcedure
+    .input(z.object({ userId: z.number() }))
+    .mutation(({ ctx, input }) => {
+      const me = actorFromCtx(ctx.user);
+      return socialStore.toggleFollow(me.id, input.userId);
+    }),
+
+  profile: publicProcedure
+    .input(z.object({ handle: z.string() }))
+    .query(({ ctx, input }) => {
+      const me = actorFromCtx(ctx.user);
+      const profile = socialStore.getProfileByHandle(input.handle);
+      if (!profile) return null;
+      return {
+        profile,
+        posts: socialStore.getPostsByAuthor(profile.id, me.id),
+        isFollowing: socialStore.isFollowingUser(me.id, profile.id),
+        isSelf: me.id === profile.id,
+      };
+    }),
+
+  profileById: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .query(({ ctx, input }) => {
+      const me = actorFromCtx(ctx.user);
+      const profile = socialStore.getProfile(input.id);
+      if (!profile) return null;
+      return {
+        profile,
+        posts: socialStore.getPostsByAuthor(profile.id, me.id),
+        isFollowing: socialStore.isFollowingUser(me.id, profile.id),
+        isSelf: me.id === profile.id,
+      };
+    }),
+
+  updateProfile: publicProcedure
+    .input(
+      z.object({
+        name: z.string().min(1).max(80).optional(),
+        bio: z.string().max(280).optional(),
+        handle: z.string().min(2).max(32).optional(),
+      })
+    )
+    .mutation(({ ctx, input }) => {
+      const me = actorFromCtx(ctx.user);
+      return socialStore.updateProfile(me.id, input);
+    }),
+
+  suggested: publicProcedure.query(({ ctx }) => {
+    const me = actorFromCtx(ctx.user);
+    return socialStore
+      .listProfiles()
+      .filter((p) => p.id !== me.id)
+      .slice(0, 5);
+  }),
 });
 
-// ─── App Router ───────────────────────────────────────────────────────────────
 export const appRouter = router({
   system: systemRouter,
   auth: router({
@@ -352,10 +189,9 @@ export const appRouter = router({
       return { success: true } as const;
     }),
   }),
-  games: gamesRouter,
-  news: newsRouter,
-  forum: forumRouter,
-  profile: profileRouter,
+  social: socialRouter,
+  // Keep protectedProcedure imported for template compat
+  _health: protectedProcedure.query(() => ({ ok: true })),
 });
 
 export type AppRouter = typeof appRouter;

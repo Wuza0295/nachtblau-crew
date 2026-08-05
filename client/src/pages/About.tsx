@@ -1,139 +1,109 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
-import { EXTERNAL_LINKS, SITE } from "@/lib/site";
-import {
-  ExternalLink,
-  Github,
-  Globe,
-  Mail,
-  Gamepad2,
-  Gift,
-  Newspaper,
-  MessageSquare,
-  Users,
-} from "lucide-react";
+import { SITE, LENSES, RESONANCE, POST_TYPES } from "@shared/site";
+import { ArrowRight } from "lucide-react";
 
-const LINK_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  [SITE.webspaceUrl]: Globe,
-  [SITE.githubUrl]: Github,
-  [`mailto:${SITE.contactEmail}`]: Mail,
-};
+const SOURCES = [
+  {
+    platform: "TikTok",
+    take: "Interest-Graph Discovery — Pulse zeigt, was resoniert, nicht nur wen du kennst.",
+  },
+  {
+    platform: "Instagram",
+    take: "Visuelle Frames und Orbit-Nähe zu Menschen, denen du folgst.",
+  },
+  {
+    platform: "Reddit + Discord",
+    take: "Circles mit Normen, Stewardship und Gatherings, die wieder enden.",
+  },
+  {
+    platform: "Threads + X",
+    take: "Schnelle Conversation und Threads ohne Timeline-Lärm.",
+  },
+  {
+    platform: "LinkedIn",
+    take: "Signals — längere Gedanken mit Depth-Resonance statt Karriere-Theater.",
+  },
+  {
+    platform: "BeReal / Stories",
+    take: "Moments: authentisch, zeitgebunden, ohne Performance-Druck.",
+  },
+  {
+    platform: "Pinterest",
+    take: "Visuelle Entdeckung über Frames in themenbezogenen Circles.",
+  },
+  {
+    platform: "Bluesky-Idee",
+    take: "Ehrliche Stille: keine Zombie-Communities, Gatherings lösen sich auf.",
+  },
+];
 
 export default function About() {
   return (
-    <div className="py-12">
-      <div className="container max-w-4xl space-y-10">
-        <div className="text-center space-y-4">
-          <img
-            src={SITE.logoUrl}
-            alt={SITE.name}
-            className="h-24 w-24 mx-auto object-contain animate-float"
-          />
-          <Badge
-            variant="outline"
-            className="border-primary/40 text-primary bg-primary/10 uppercase tracking-widest"
-            style={{ fontFamily: "Orbitron, sans-serif" }}
-          >
-            Gaming Community
-          </Badge>
-          <h1
-            className="text-4xl font-black gradient-text"
-            style={{ fontFamily: "Orbitron, sans-serif" }}
-          >
-            {SITE.name}
-          </h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            {SITE.tagline} Entdecke kostenlose Spiele, aktuelle Gaming-News und tausche dich
-            im Community-Forum aus.
-          </p>
-        </div>
+    <div className="container py-10 sm:py-16 max-w-3xl">
+      <p className="text-xs font-bold uppercase tracking-[0.22em] text-primary">Konzept</p>
+      <h1 className="font-display text-4xl sm:text-5xl font-bold text-[var(--lyra-teal-deep)] mt-2 text-balance">
+        Warum {SITE.name} existiert
+      </h1>
+      <p className="mt-4 text-lg text-muted-foreground leading-relaxed">
+        {SITE.claim} Jede Plattform hat eine Stärke — und einen blinden Fleck.
+        {SITE.name} nimmt die Stärken und baut eine neue Architektur darum:
+        <strong className="text-foreground font-semibold"> Lenses + Resonance + Circles + Presence</strong>.
+      </p>
+      <p className="mt-3 text-sm text-muted-foreground/90">
+        Der Name ist ein Arbeitstitel. Das Produktprinzip bleibt.
+      </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { icon: Gift, label: "Free Games", href: "/free-games" },
-            { icon: Newspaper, label: "Gaming News", href: "/news" },
-            { icon: MessageSquare, label: "Forum", href: "/forum" },
-            { icon: Users, label: "Community", href: "/forum" },
-          ].map(({ icon: Icon, label, href }) => (
-            <Link key={label} href={href}>
-              <Card className="card-glow bg-card border-border h-full cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:border-primary/40">
-                <CardContent className="p-5 flex flex-col items-center gap-3 text-center">
-                  <div className="p-3 rounded-full bg-primary/15 text-primary">
-                    <Icon className="h-6 w-6" />
-                  </div>
-                  <span className="font-semibold text-foreground">{label}</span>
-                </CardContent>
-              </Card>
-            </Link>
+      <section className="mt-14">
+        <h2 className="font-display text-2xl font-bold">Was wir von wem gelernt haben</h2>
+        <ul className="mt-6 space-y-5">
+          {SOURCES.map((s) => (
+            <li key={s.platform} className="border-t border-border pt-4">
+              <p className="font-semibold">{s.platform}</p>
+              <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{s.take}</p>
+            </li>
           ))}
-        </div>
+        </ul>
+      </section>
 
-        <section className="space-y-4">
-          <h2
-            className="text-2xl font-bold text-foreground"
-            style={{ fontFamily: "Orbitron, sans-serif" }}
-          >
-            NachtBlau Netzwerk
-          </h2>
-          <p className="text-muted-foreground">
-            Die NachtBlau Crew App ist Teil des NachtBlau-Ökosystems. Hier findest du alle
-            wichtigen Verknüpfungen zu Webspace und GitHub.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {EXTERNAL_LINKS.map((link) => {
-              const Icon = LINK_ICONS[link.href] ?? ExternalLink;
-              return (
-                <a
-                  key={link.href}
-                  href={link.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group block"
-                >
-                  <Card className="card-glow bg-card border-border h-full transition-all duration-200 hover:-translate-y-1 hover:border-primary/40">
-                    <CardContent className="p-5 space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
-                          <Icon className="h-5 w-5" />
-                        </div>
-                        <span className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                          {link.label}
-                        </span>
-                      </div>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {link.description}
-                      </p>
-                      <span className="inline-flex items-center gap-1 text-xs text-primary">
-                        Öffnen <ExternalLink className="h-3 w-3" />
-                      </span>
-                    </CardContent>
-                  </Card>
-                </a>
-              );
-            })}
+      <section className="mt-14">
+        <h2 className="font-display text-2xl font-bold">Die eigenen Ideen</h2>
+        <div className="mt-6 space-y-6">
+          <div>
+            <h3 className="font-display text-lg font-bold">Lenses</h3>
+            <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
+              Eine Content-Welt, vier Blickwinkel: {LENSES.map((l) => l.label).join(", ")}.
+              Du wechselst die Frequenz — nicht die App.
+            </p>
           </div>
-        </section>
+          <div>
+            <h3 className="font-display text-lg font-bold">Resonance statt Likes</h3>
+            <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
+              {RESONANCE.map((r) => r.label).join(" · ")} — drei Signale für Impuls, Tiefe und Amplifikation.
+            </p>
+          </div>
+          <div>
+            <h3 className="font-display text-lg font-bold">Gatherings</h3>
+            <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
+              Live-Zusammenkünfte in Circles, die wieder verschwinden. Keine Zombie-Mitgliederlisten.
+            </p>
+          </div>
+          <div>
+            <h3 className="font-display text-lg font-bold">Compose-Formate</h3>
+            <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
+              {POST_TYPES.map((p) => p.label).join(" · ")} — Form folgt Absicht.
+            </p>
+          </div>
+        </div>
+      </section>
 
-        <Card className="bg-primary/5 border-primary/20">
-          <CardContent className="p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <Gamepad2 className="h-8 w-8 text-primary" />
-              <div>
-                <p className="font-semibold text-foreground">Bereit loszulegen?</p>
-                <p className="text-sm text-muted-foreground">
-                  Entdecke Free Games, News und das Forum.
-                </p>
-              </div>
-            </div>
-            <Link href="/">
-              <Button className="bg-primary hover:bg-primary/80 text-primary-foreground">
-                Zur Startseite
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+      <div className="mt-14 text-center">
+        <Link
+          href="/app"
+          className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-bold text-primary-foreground"
+        >
+          Jetzt ausprobieren
+          <ArrowRight className="h-4 w-4" />
+        </Link>
       </div>
     </div>
   );

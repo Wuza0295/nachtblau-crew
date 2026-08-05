@@ -1,39 +1,79 @@
 export const SITE = {
-  name: "NachtBlau Crew",
-  shortName: "NachtBlau",
-  tagline: "Deine Gaming Community für PC, Konsolen, Steam und mehr.",
+  name: "LYRA",
+  shortName: "LYRA",
+  /** Placeholder — final name comes later */
+  workingTitle: true,
+  tagline: "Eine Stimme. Jede Frequenz.",
   description:
-    "NachtBlau Crew – Deine Gaming Community für PC, Konsolen, Steam und mehr. Aktuelle News, kostenlose Spiele und ein aktives Forum.",
-  logoUrl:
-    "https://d2xsxph8kpxj0f.cloudfront.net/310519663739653758/PbtcqHtcftAKnwDnhmoduf/nachtblau-logo-Li7umgFb8XhrYaRtYVFm4Z.webp",
-  heroBgUrl:
-    "https://d2xsxph8kpxj0f.cloudfront.net/310519663739653758/PbtcqHtcftAKnwDnhmoduf/nachtblau-hero-bg-HgRTyjrF5BBTepdctiJ8Mj.webp",
-  webspaceUrl: "https://nacht-blau.de",
-  webspaceLabel: "NachtBlau Webspace",
-  githubUrl: "https://github.com/Wuza0295/nachtblau-crew",
-  githubOrgUrl: "https://github.com/Wuza0295",
-  githubLabel: "GitHub Repository",
-  contactEmail: "info@nacht-blau.de",
-  gamerPowerUrl: "https://www.gamerpower.com",
+    "LYRA vereint Discovery, Community, Conversation und Presence in einem Netzwerk — mit Resonance statt Likes und Lenses statt Chaos.",
+  claim: "Das Beste aus allen sozialen Welten. Neu zusammengesetzt.",
+  contactEmail: "hello@lyra.app",
 } as const;
 
-export const EXTERNAL_LINKS = [
+export const LENSES = [
   {
-    href: SITE.webspaceUrl,
-    label: SITE.webspaceLabel,
-    description: "Offizielle Website der NachtBlau GbR mit Infos zum Projekt und Team.",
-    external: true,
+    id: "pulse",
+    label: "Pulse",
+    description: "Entdeckung nach Interesse — wie TikTok, aber ruhiger",
+    from: "TikTok · Interest Graph",
   },
   {
-    href: SITE.githubUrl,
-    label: SITE.githubLabel,
-    description: "Quellcode, Issues und Beiträge zur NachtBlau Crew App auf GitHub.",
-    external: true,
+    id: "orbit",
+    label: "Orbit",
+    description: "Menschen, denen du folgst — klare Nähe",
+    from: "Instagram · Social Graph",
   },
   {
-    href: `mailto:${SITE.contactEmail}`,
-    label: "Kontakt",
-    description: "Schreib uns eine E-Mail an info@nacht-blau.de.",
-    external: true,
+    id: "circles",
+    label: "Circles",
+    description: "Mikro-Communities mit Vertrauen und Normen",
+    from: "Reddit · Discord",
+  },
+  {
+    id: "depth",
+    label: "Depth",
+    description: "Threads, Insights und längere Gedanken",
+    from: "Threads · LinkedIn · X",
+  },
+] as const;
+
+export const RESONANCE = [
+  {
+    id: "spark",
+    label: "Spark",
+    description: "Schneller Impuls — das hat mich getroffen",
+  },
+  {
+    id: "depth",
+    label: "Depth",
+    description: "Tiefe Resonanz — das hat mich bewegt",
+  },
+  {
+    id: "echo",
+    label: "Echo",
+    description: "Weitertragen — das braucht mehr Stimmen",
+  },
+] as const;
+
+export const POST_TYPES = [
+  {
+    id: "pulse",
+    label: "Pulse",
+    description: "Kurzer Gedanke oder Moment",
+  },
+  {
+    id: "frame",
+    label: "Frame",
+    description: "Visueller Beitrag",
+  },
+  {
+    id: "signal",
+    label: "Signal",
+    description: "Längerer Insight oder Essay",
+  },
+  {
+    id: "moment",
+    label: "Moment",
+    description: "Authentisch, 24 Stunden",
   },
 ] as const;
