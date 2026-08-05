@@ -19,6 +19,7 @@ import {
   incrementThreadView,
   updateUserProfile,
 } from "./db";
+import { socialRouter } from "./routers/social";
 
 // ─── Free Games via GamerPower API ───────────────────────────────────────────
 const gamesRouter = router({
@@ -356,6 +357,7 @@ export const appRouter = router({
   news: newsRouter,
   forum: forumRouter,
   profile: profileRouter,
+  social: socialRouter,
 });
 
 export type AppRouter = typeof appRouter;
