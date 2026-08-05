@@ -264,7 +264,7 @@ def patch_allxion_project_link(local_dir: Path, app_url: str | None = None) -> N
     for link in data.get("links", []):
         if link.get("id") == "allxion":
             link["url"] = normalized
-            link["note"] = "Unterseite auf nacht-blau.de"
+            link["note"] = "Linux · Android · Webspace — pnpm platform:sync"
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
