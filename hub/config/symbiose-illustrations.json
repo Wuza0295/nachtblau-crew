@@ -1,0 +1,66 @@
+{
+  "title": "Illustrationen — Symbiose Band 1",
+  "description": "Poster, Manga-Panels und Charakter-Referenzen aus Veridia.",
+  "minAmount": 2,
+  "currency": "EUR",
+  "paypalEmail": "hello@nachtblau-interactive.com",
+  "paypalItem": "Symbiose Band 1 — Illustrationen",
+  "items": [
+    {
+      "id": "panel_absturz",
+      "file": "panel_absturz.jpg",
+      "title": "Panel — Absturz",
+      "caption": "Die Aura rammt die Atmosphäre — Telemetrie des Verfalls.",
+      "width": 1400,
+      "height": 933
+    },
+    {
+      "id": "panel_organische_ranke",
+      "file": "panel_organische_ranke.jpg",
+      "title": "Panel — Organische Ranke",
+      "caption": "Veridia umklammert die Landekapsel.",
+      "width": 1400,
+      "height": 933
+    },
+    {
+      "id": "panel_wald_enthullung",
+      "file": "panel_wald_enthullung.jpg",
+      "title": "Panel — Waldenthüllung",
+      "caption": "Der grüne Abgrund offenbart sich.",
+      "width": 1400,
+      "height": 933
+    },
+    {
+      "id": "poster_symbiose_band1",
+      "file": "poster_symbiose_band1.jpg",
+      "title": "Poster — Band 1",
+      "caption": "Offizielles Key-Art zu Symbiose: Der grüne Abgrund.",
+      "width": 1400,
+      "height": 933
+    },
+    {
+      "id": "ref_elias",
+      "file": "ref_elias.jpg",
+      "title": "Charakter — Elias",
+      "caption": "System-Architekt der Aura.",
+      "width": 1400,
+      "height": 933
+    },
+    {
+      "id": "ref_jaro",
+      "file": "ref_jaro.jpg",
+      "title": "Charakter — Jaro",
+      "caption": "Farmer und Bodenproben-Spezialist.",
+      "width": 1400,
+      "height": 933
+    },
+    {
+      "id": "ref_nova",
+      "file": "ref_nova.jpg",
+      "title": "Charakter — Nova",
+      "caption": "Sicherheitsoffizierin der Aura.",
+      "width": 1400,
+      "height": 933
+    }
+  ]
+}

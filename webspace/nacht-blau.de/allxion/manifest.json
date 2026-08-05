@@ -1,7 +1,7 @@
 {
-  "name": "NachtBlau Crew · Allxion",
-  "short_name": "Allxion",
-  "description": "Allxion – Hybrid-Social-Hub plus NachtBlau Crew Gaming Community.",
+  "name": "NachtBlau Crew",
+  "short_name": "NachtBlau",
+  "description": "Gaming Community für PC, Konsolen, Steam und mehr.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0e1a",

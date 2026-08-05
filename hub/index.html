@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#030510">
+  <meta name="description" content="NachtBlau Hub — Twilight Crown, Bluepole, Lumina, Black Horizon und Symbiose an einem Ort.">
+  <meta property="og:title" content="NachtBlau Hub — Spiele & Symbiose">
+  <meta property="og:description" content="Twilight Crown, Bluepole, PROJECT: Black Horizon und Symbiose — spielbar im Browser.">
+  <meta property="og:type" content="website">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https:; frame-src 'self' https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self'; connect-src 'self' https://www.paypal.com">
+  <title>NachtBlau Hub — Spiele & Symbiose</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles-web.css">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+</head>
+<body class="platform-web">
+  <div class="bg-stack" aria-hidden="true">
+    <div class="bg-layer bg-default active" data-bg="default">
+      <img class="bg-photo" src="assets/games/default-cover.svg" alt="">
+      <div class="bg-tint"></div>
+    </div>
+    <div class="bg-layer bg-lumina" data-bg="lumina">
+      <img class="bg-photo" src="assets/games/lumina-cover.svg" alt="">
+      <div class="bg-tint"></div>
+    </div>
+    <div class="bg-layer bg-twilight-crown" data-bg="twilight-crown">
+      <img class="bg-photo" src="assets/games/twilight-crown-cover.svg" alt="">
+      <div class="bg-tint"></div>
+    </div>
+    <div class="bg-layer bg-bluepole" data-bg="bluepole">
+      <img class="bg-photo" src="assets/games/bluepole-cover.svg" alt="">
+      <div class="bg-tint"></div>
+    </div>
+    <div class="bg-layer bg-black-horizon" data-bg="black-horizon">
+      <img class="bg-photo" src="assets/games/black-horizon-cover.png" alt="">
+      <div class="bg-tint"></div>
+    </div>
+    <div class="bg-layer bg-nightscope" data-bg="nightscope">
+      <img class="bg-photo" src="assets/games/nightscope-cover.webp" alt="">
+      <div class="bg-tint"></div>
+    </div>
+    <div class="bg-layer bg-symbiose" data-bg="symbiose">
+      <img class="bg-photo" src="assets/games/symbiose-cover.jpg" alt="">
+      <div class="bg-tint"></div>
+    </div>
+    <div class="bg-vignette"></div>
+    <div class="bg-grain"></div>
+    <div class="bg-aurora"></div>
+    <canvas id="particles" aria-hidden="true"></canvas>
+  </div>
+
+  <div class="app">
+    <header class="header">
+      <div class="brand">
+        <img src="assets/logo.svg" alt="" class="brand-logo" width="40" height="40">
+        <div class="brand-text">
+          <span class="brand-name">NachtBlau</span>
+          <span class="brand-sub">Hub</span>
+        </div>
+      </div>
+      <nav class="header-nav" aria-label="Links">
+        <a class="header-link" id="link-main-site" href="https://nachtblau-interactive.com" target="_blank" rel="noopener">Studio-Seite</a>
+        <p class="header-tagline" id="studio-tagline">Spiele spielen · Bücher lesen · entdecken</p>
+      </nav>
+    </header>
+
+    <section class="game-rail" aria-label="Bibliothek">
+      <div class="library-bar">
+        <nav class="category-tabs" id="category-tabs" aria-label="Kategorien"></nav>
+        <nav class="category-subtabs hidden" id="category-subtabs" aria-label="Unterkategorien"></nav>
+        <ul class="game-rail-list" id="game-list" role="list"></ul>
+      </div>
+    </section>
+
+    <main class="main">
+      <section class="preview-stage" id="preview-stage" aria-label="Vorschau">
+        <div class="preview-stage-frame">
+          <div class="preview-empty" id="preview-empty">
+            <p class="preview-empty-icon">◈</p>
+            <p>Titel oben wählen · Doppelklick startet Spiele sofort</p>
+          </div>
+          <div class="preview-cover hidden" id="preview-cover">
+            <img class="preview-cover-img" id="preview-cover-img" src="" alt="">
+            <div class="preview-cover-shade"></div>
+            <div class="preview-cover-cta hidden" id="preview-cover-cta">
+              <button type="button" class="btn btn-primary btn-preview-play" id="btn-preview-play">
+                <span class="btn-icon">▶</span>
+                <span id="btn-preview-play-label">Spiel starten</span>
+              </button>
+              <p class="preview-cover-cta-hint" id="preview-cover-cta-hint">Öffnet in eigenem Fenster · Doppelklick auf Kachel = sofort starten</p>
+            </div>
+            <p class="preview-cover-hint" id="preview-cover-hint">Vorschau nicht verfügbar</p>
+          </div>
+          <div class="preview-loading hidden" id="preview-loading">
+            <span class="preview-spinner"></span>
+            <span>Vorschau lädt …</span>
+          </div>
+          <iframe class="preview-frame hidden" id="preview-frame" title="Spielvorschau" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"></iframe>
+          <div class="preview-reader hidden" id="preview-reader">
+            <header class="preview-reader-head">
+              <div>
+                <p class="reader-kicker" id="reader-kicker"></p>
+                <h2 class="reader-title" id="reader-title"></h2>
+                <p class="reader-author" id="reader-author"></p>
+              </div>
+            </header>
+            <div class="preview-reader-body" id="reader-body"></div>
+          </div>
+        </div>
+        <div class="preview-stage-glow" aria-hidden="true"></div>
+      </section>
+
+      <aside class="detail-panel" id="detail-panel" aria-live="polite">
+        <div class="detail-empty" id="detail-empty">
+          <p class="detail-empty-icon">◈</p>
+          <p>Details erscheinen hier</p>
+        </div>
+        <div class="detail-content hidden" id="detail-content">
+          <div class="detail-meta">
+            <span class="badge" id="detail-status"></span>
+            <span class="badge badge-muted" id="detail-genre"></span>
+            <span class="badge badge-category hidden" id="detail-category"></span>
+          </div>
+          <h1 class="detail-title">
+            <span id="detail-title"></span>
+            <span class="detail-subtitle" id="detail-subtitle"></span>
+          </h1>
+
+          <div class="detail-actions">
+            <button type="button" class="btn btn-primary" id="btn-play">
+              <span class="btn-icon" id="btn-play-icon">▶</span>
+              <span id="btn-play-label">Spielen</span>
+            </button>
+            <button type="button" class="btn btn-secondary hidden" id="btn-tip">
+              <span class="btn-icon">☕</span>
+              <span>Trinkgeld</span>
+            </button>
+            <button type="button" class="btn btn-ghost" id="btn-website" hidden>Studio-Seite</button>
+            <button type="button" class="btn btn-ghost" id="btn-itch" hidden>itch.io</button>
+          </div>
+
+          <p class="detail-desc" id="detail-desc"></p>
+          <p class="detail-version" id="detail-version"></p>
+          <p class="detail-path-status" id="detail-path-status"></p>
+
+          <details class="tip-panel tip-panel-collapsible hidden" id="detail-tip">
+            <summary class="panel-title tip-summary">Trinkgeld-Betrag wählen</summary>
+            <p class="panel-text" id="tip-panel-text">Unterstütze NachtBlau Interactive — freiwillig und optional.</p>
+            <form class="pay-form tip-form" id="tip-form">
+              <label class="field-label" for="tip-amount">Betrag (EUR)</label>
+              <input type="number" id="tip-amount" class="field-input" min="1" step="0.01" value="2.00" inputmode="decimal">
+              <div class="amount-presets" id="tip-presets"></div>
+              <button type="submit" class="btn btn-secondary">Trinkgeld via PayPal</button>
+              <p class="panel-status" id="tip-status" role="status"></p>
+            </form>
+          </details>
+        </div>
+      </aside>
+    </main>
+
+    <footer class="footer">
+      <span id="platform-label">Web Hub</span>
+      <span class="footer-sep">·</span>
+      <a class="footer-link" href="https://nachtblau-interactive.com" target="_blank" rel="noopener">nachtblau-interactive.com</a>
+      <span class="footer-sep">·</span>
+      <span>NachtBlau Interactive © 2026</span>
+    </footer>
+  </div>
+
+  <div class="toast hidden" id="toast" role="status"></div>
+
+  <script src="site-bridge.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
