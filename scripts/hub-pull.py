@@ -27,6 +27,17 @@ def wget(url: str, dest: Path) -> None:
     )
 
 
+def wget_to_dir(url: str, dest_dir: Path) -> Path:
+    """Download URL; strip ?query from filename (ALL-INKL serves versioned JS)."""
+    from urllib.parse import urlparse
+
+    name = Path(urlparse(url).path).name
+    dest = dest_dir / name
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    subprocess.run(["wget", "-q", "-O", str(dest), url], check=True)
+    return dest
+
+
 def main() -> None:
     HUB.mkdir(parents=True, exist_ok=True)
     print(f"Spiegele Hub von {BASE} nach {HUB} …", flush=True)
