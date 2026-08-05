@@ -7,8 +7,8 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import Feed from "./pages/Feed";
 import Motion from "./pages/Motion";
-import Circles from "./pages/Circles";
-import Vault from "./pages/Vault";
+import Circles, { CircleDetail } from "./pages/Circles";
+import Vault, { CollectionDetail } from "./pages/Vault";
 import Algorithm from "./pages/Algorithm";
 import Explore from "./pages/Explore";
 import PostPage from "./pages/PostPage";
@@ -27,9 +27,9 @@ function Router() {
           <Route path="/" component={Home} />
           <Route path="/home" component={Feed} />
           <Route path="/motion" component={Motion} />
-          <Route path="/circles/:slug" component={Circles} />
+          <Route path="/circles/:slug" component={CircleDetail} />
           <Route path="/circles" component={Circles} />
-          <Route path="/vault/:id" component={Vault} />
+          <Route path="/vault/:id" component={CollectionDetail} />
           <Route path="/vault" component={Vault} />
           <Route path="/algorithm" component={Algorithm} />
           <Route path="/explore" component={Explore} />

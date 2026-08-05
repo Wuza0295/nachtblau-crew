@@ -3,14 +3,9 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import PostCard from "@/components/PostCard";
-import { useRoute } from "wouter";
+import { useParams } from "wouter";
 
 export default function Circles() {
-  const [match, params] = useRoute("/circles/:slug");
-  const slug = match ? params?.slug : undefined;
-
-  if (slug) return <CircleDetail slug={slug} />;
-
   const circles = trpc.social.circles.useQuery();
 
   return (
@@ -47,8 +42,10 @@ export default function Circles() {
   );
 }
 
-function CircleDetail({ slug }: { slug: string }) {
-  const circle = trpc.social.circle.useQuery({ slug });
+export function CircleDetail() {
+  const params = useParams<{ slug: string }>();
+  const slug = params.slug ?? "";
+  const circle = trpc.social.circle.useQuery({ slug }, { enabled: Boolean(slug) });
   const utils = trpc.useUtils();
   const join = trpc.social.joinCircle.useMutation({
     onSuccess: () => {

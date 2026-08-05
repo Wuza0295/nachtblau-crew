@@ -1,11 +1,8 @@
 import { trpc } from "@/lib/trpc";
-import { Link, useRoute } from "wouter";
+import { Link, useParams } from "wouter";
 import PostCard from "@/components/PostCard";
 
 export default function Vault() {
-  const [match, params] = useRoute("/vault/:id");
-  if (match && params?.id) return <CollectionDetail id={Number(params.id)} />;
-
   const collections = trpc.social.collections.useQuery();
 
   return (
@@ -40,8 +37,14 @@ export default function Vault() {
   );
 }
 
-function CollectionDetail({ id }: { id: number }) {
-  const collection = trpc.social.collection.useQuery({ id });
+export function CollectionDetail() {
+  const params = useParams<{ id: string }>();
+  const id = Number(params.id);
+  const collection = trpc.social.collection.useQuery(
+    { id },
+    { enabled: Number.isFinite(id) }
+  );
+
   if (collection.isLoading) return <div className="container py-8">Lade Sammlung…</div>;
   if (!collection.data) return <div className="container py-8">Nicht gefunden.</div>;
   const c = collection.data;
