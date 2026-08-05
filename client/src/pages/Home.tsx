@@ -108,13 +108,23 @@ function HeroSection() {
                   Jetzt beitreten
                 </Button>
               )}
-              <Link href="/portal">
+              <Link href="/">
                 <Button
                   size="lg"
                   className="font-bold shadow-xl transition-all duration-200 hover:scale-105 bg-gradient-to-r from-[oklch(0.65_0.22_310)] to-[oklch(0.62_0.2_25)] text-white border-0"
                 >
                   <Zap className="mr-2 h-5 w-5" />
-                  Social Portal
+                  Allxion öffnen
+                </Button>
+              </Link>
+              <Link href="/crew">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-primary/40 text-primary hover:bg-primary/10 font-semibold transition-all duration-200"
+                >
+                  <Gamepad2 className="mr-2 h-5 w-5" />
+                  NachtBlau Crew
                 </Button>
               </Link>
               <Link href="/forum">

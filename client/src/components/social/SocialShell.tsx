@@ -1,36 +1,73 @@
 import { cn } from "@/lib/utils";
+import {
+  ALLXION_ROUTES,
+  isAllxionFlussPath,
+  isAllxionHubPath,
+  isAllxionKreisePath,
+  isAllxionMomentePath,
+} from "@/lib/allxion";
+import { ALLXION } from "@/lib/site";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { getLoginUrl } from "@/const";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Link, useLocation } from "wouter";
 import {
   Compass,
+  Gift,
   Home,
   Layers,
+  LogOut,
+  MessageSquare,
+  Newspaper,
   PlusCircle,
   Radio,
   Sparkles,
+  User,
   Users,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { trpc } from "@/lib/trpc";
+import { toast } from "sonner";
 
 const NAV = [
-  { href: "/portal", label: "Hub", icon: Home, match: (p: string) => p === "/portal" },
   {
-    href: "/portal/fluss",
+    href: ALLXION_ROUTES.hub,
+    label: "Hub",
+    icon: Home,
+    match: isAllxionHubPath,
+  },
+  {
+    href: ALLXION_ROUTES.fluss,
     label: "Fluss",
     icon: Radio,
-    match: (p: string) => p.startsWith("/portal/fluss"),
+    match: isAllxionFlussPath,
   },
   {
-    href: "/portal/kreise",
+    href: ALLXION_ROUTES.kreise,
     label: "Kreise",
     icon: Users,
-    match: (p: string) => p.startsWith("/portal/kreise"),
+    match: isAllxionKreisePath,
   },
   {
-    href: "/portal/momente",
+    href: ALLXION_ROUTES.momente,
     label: "Momente",
     icon: Sparkles,
-    match: (p: string) => p.startsWith("/portal/momente"),
+    match: isAllxionMomentePath,
   },
+] as const;
+
+const CREW_LINKS = [
+  { href: ALLXION_ROUTES.crew, label: "Crew Start", icon: Compass },
+  { href: "/free-games", label: "Free Games", icon: Gift },
+  { href: "/news", label: "News", icon: Newspaper },
+  { href: "/forum", label: "Forum", icon: MessageSquare },
 ] as const;
 
 export default function SocialShell({
@@ -41,6 +78,22 @@ export default function SocialShell({
   onCompose?: () => void;
 }) {
   const [location] = useLocation();
+  const { user, isAuthenticated, logout } = useAuth();
+  const logoutMutation = trpc.auth.logout.useMutation({
+    onSuccess: () => {
+      logout();
+      window.location.href = ALLXION_ROUTES.hub;
+    },
+  });
+
+  const initials = user?.name
+    ? user.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : "?";
 
   return (
     <div
@@ -51,25 +104,25 @@ export default function SocialShell({
       }}
     >
       <header className="sticky top-0 z-40 border-b border-white/10 backdrop-blur-xl bg-background/60">
-        <div className="container flex h-14 items-center justify-between gap-4">
-          <Link href="/portal" className="flex items-center gap-2 group">
+        <div className="container flex h-14 items-center justify-between gap-2">
+          <Link href={ALLXION_ROUTES.hub} className="flex items-center gap-2 group shrink-0">
             <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-[oklch(0.72_0.2_25)] via-[oklch(0.65_0.22_310)] to-[oklch(0.55_0.18_260)] flex items-center justify-center shadow-lg shadow-primary/20 transition-transform duration-200 group-active:scale-95">
               <Layers className="h-4 w-4 text-white" />
             </div>
-            <div className="leading-tight">
+            <div className="leading-tight hidden sm:block">
               <p
                 className="text-sm font-semibold tracking-tight"
                 style={{ fontFamily: "Syne, sans-serif" }}
               >
-                Social Portal
+                {ALLXION.name}
               </p>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em]">
-                Name folgt
+              <p className="text-[10px] text-muted-foreground uppercase tracking-[0.15em]">
+                {ALLXION.tagline}
               </p>
             </div>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden lg:flex items-center gap-0.5 flex-1 justify-center">
             {NAV.map((item) => {
               const active = item.match(location);
               const Icon = item.icon;
@@ -89,15 +142,27 @@ export default function SocialShell({
                 </Link>
               );
             })}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="rounded-full gap-2">
+                  <Compass className="h-4 w-4" />
+                  NachtBlau
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center" className="border-white/10">
+                {CREW_LINKS.map(({ href, label, icon: Icon }) => (
+                  <DropdownMenuItem key={href} asChild>
+                    <Link href={href} className="flex items-center gap-2 cursor-pointer">
+                      <Icon className="h-4 w-4" />
+                      {label}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </nav>
 
-          <div className="flex items-center gap-2">
-            <Link href="/">
-              <Button variant="ghost" size="sm" className="hidden sm:flex gap-2 rounded-full">
-                <Compass className="h-4 w-4" />
-                Crew
-              </Button>
-            </Link>
+          <div className="flex items-center gap-2 shrink-0">
             {onCompose && (
               <Button
                 size="sm"
@@ -108,11 +173,71 @@ export default function SocialShell({
                 <span className="hidden sm:inline">Posten</span>
               </Button>
             )}
+            {isAuthenticated && user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="border-white/10">
+                  <DropdownMenuItem asChild>
+                    <Link href={`/profil/${user.id}`} className="flex gap-2 cursor-pointer">
+                      <User className="h-4 w-4" />
+                      Profil
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive cursor-pointer"
+                    onClick={() => logoutMutation.mutate()}
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Abmelden
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                className="rounded-full border-white/20"
+                onClick={() => {
+                  if (
+                    !import.meta.env.VITE_OAUTH_PORTAL_URL ||
+                    !import.meta.env.VITE_APP_ID
+                  ) {
+                    toast.message("Login ist in dieser Umgebung noch nicht konfiguriert.");
+                    return;
+                  }
+                  window.location.href = getLoginUrl();
+                }}
+              >
+                Anmelden
+              </Button>
+            )}
           </div>
         </div>
       </header>
 
       <div className="flex-1 container pb-24 md:pb-8">{children}</div>
+
+      <footer className="hidden md:block border-t border-white/10 mt-8">
+        <div className="container py-6 flex flex-wrap items-center justify-between gap-4 text-xs text-muted-foreground">
+          <span style={{ fontFamily: "Syne, sans-serif" }} className="font-semibold text-foreground">
+            {ALLXION.name}
+          </span>
+          <div className="flex flex-wrap gap-4">
+            {CREW_LINKS.slice(1).map(({ href, label }) => (
+              <Link key={href} href={href} className="hover:text-foreground transition-colors">
+                {label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </footer>
 
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-white/10 bg-background/80 backdrop-blur-xl">
         <div className="flex justify-around py-2">

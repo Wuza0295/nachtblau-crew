@@ -13,6 +13,7 @@ import {
   getPollResults,
   getSocialCommunities,
   getTrendingTopics,
+  getPostsByAuthor,
   joinCommunity,
   markStoryViewed,
   repostPost,
@@ -197,4 +198,11 @@ export const socialRouter = router({
   getTrending: publicProcedure.query(async () => {
     return getTrendingTopics();
   }),
+
+  getUserPosts: publicProcedure
+    .input(z.object({ userId: z.number(), limit: z.number().min(1).max(30).default(12) }))
+    .query(async ({ ctx, input }) => {
+      const posts = await getPostsByAuthor(input.userId, input.limit, ctx.user?.id);
+      return { posts };
+    }),
 });

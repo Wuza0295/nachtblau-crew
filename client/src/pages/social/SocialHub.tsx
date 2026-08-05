@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { trpc } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
+import { ALLXION } from "@/lib/site";
 import { Loader2, TrendingUp, Users, Zap } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -24,6 +25,10 @@ export default function SocialHub() {
   const [intensity, setIntensity] = useState(5);
   const [feedMode, setFeedMode] = useState<FeedMode>("discover");
   const [communitySlug, setCommunitySlug] = useState("pro-pulse");
+
+  useEffect(() => {
+    document.title = `${ALLXION.name} – Hub`;
+  }, []);
 
   useEffect(() => {
     const k = new URLSearchParams(window.location.search).get("kreis");
@@ -61,17 +66,16 @@ export default function SocialHub() {
                   variant="outline"
                   className="mb-2 border-[oklch(0.65_0.22_310/0.5)] text-[oklch(0.75_0.18_310)]"
                 >
-                  Hybrid Social · Research 2025/26
+                  {ALLXION.name}
                 </Badge>
                 <h1
                   className="text-2xl sm:text-3xl font-bold tracking-tight"
                   style={{ fontFamily: "Syne, sans-serif" }}
                 >
-                  Ein Portal. Alle Stärken.
+                  {ALLXION.tagline}
                 </h1>
                 <p className="text-sm text-muted-foreground mt-2 max-w-xl">
-                  Multi-Feed wie WeLoop & Amara, Kreise wie Reddit, Fluss wie TikTok, Momente wie
-                  Stories, Pulse wie X, Tiefe wie LinkedIn — mit transparenter Feed-Intensität.
+                  {ALLXION.description}
                 </p>
               </div>
             </div>
@@ -177,7 +181,7 @@ export default function SocialHub() {
           <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[oklch(0.18_0.08_310)] to-transparent p-4 space-y-2">
             <div className="flex items-center gap-2 text-sm font-medium">
               <Zap className="h-4 w-4" />
-              Was dieses Portal vereint
+              Was {ALLXION.name} vereint
             </div>
             <ul className="text-xs text-muted-foreground space-y-1.5 leading-relaxed">
               <li>· Dual-Feed + Kreise (Amara, Reddit, Discord)</li>

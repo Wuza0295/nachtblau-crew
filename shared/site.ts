@@ -17,6 +17,16 @@ export const SITE = {
   gamerPowerUrl: "https://www.gamerpower.com",
 } as const;
 
+/** Vorläufiges Hybrid-Social-Netzwerk (eingebettet in NachtBlau Crew) */
+export const ALLXION = {
+  name: "Allxion",
+  tagline: "Ein Portal. Alle Stärken.",
+  description:
+    "Allxion vereint Freunde-Feed, Entdecken, Kreise, Fluss, Momente und transparente Feed-Intensität in einer Plattform.",
+  hubPath: "/",
+  legacyPortalPrefix: "/portal",
+} as const;
+
 export const EXTERNAL_LINKS = [
   {
     href: SITE.webspaceUrl,

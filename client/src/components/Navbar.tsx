@@ -29,7 +29,8 @@ import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 
 const NAV_LINKS = [
-  { href: "/portal", label: "Social Portal", icon: Zap },
+  { href: "/", label: "Allxion", icon: Zap },
+  { href: "/crew", label: "Crew", icon: Gamepad2 },
   { href: "/free-games", label: "Free Games", icon: Gift },
   { href: "/news", label: "News", icon: Newspaper },
   { href: "/forum", label: "Forum", icon: MessageSquare },

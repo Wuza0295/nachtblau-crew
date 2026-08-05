@@ -321,6 +321,7 @@ const profileRouter = router({
           name: user.name,
           avatar: user.avatar,
           bio: user.bio,
+          handle: user.handle,
           role: user.role,
           createdAt: user.createdAt,
         },
@@ -334,6 +335,12 @@ const profileRouter = router({
       z.object({
         name: z.string().min(1).max(64).optional(),
         bio: z.string().max(500).optional(),
+        handle: z
+          .string()
+          .min(2)
+          .max(32)
+          .regex(/^[a-z0-9._]+$/, "Nur Kleinbuchstaben, Zahlen, Punkt, Unterstrich")
+          .optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
