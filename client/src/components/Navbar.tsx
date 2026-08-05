@@ -14,29 +14,25 @@ import { Link, useLocation } from "wouter";
 import {
   Menu,
   X,
-  Gamepad2,
-  Newspaper,
-  MessageSquare,
-  Gift,
   LogOut,
   User,
   Github,
-  Globe,
-  Info,
+  Rss,
+  Compass,
+  Circle,
+  Users,
+  Zap,
+  Sparkles,
 } from "lucide-react";
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 
 const NAV_LINKS = [
-  { href: "/free-games", label: "Free Games", icon: Gift },
-  { href: "/news", label: "News", icon: Newspaper },
-  { href: "/forum", label: "Forum", icon: MessageSquare },
-  { href: "/ueber-uns", label: "Über uns", icon: Info },
-];
-
-const EXTERNAL_NAV_LINKS = [
-  { href: SITE.webspaceUrl, label: "Webspace", icon: Globe },
-  { href: SITE.githubUrl, label: "GitHub", icon: Github },
+  { href: "/feed", label: "Feed", icon: Rss },
+  { href: "/pulse", label: "Pulse", icon: Zap },
+  { href: "/kreise", label: "Kreise", icon: Users },
+  { href: "/momente", label: "Momente", icon: Circle },
+  { href: "/entdecken", label: "Entdecken", icon: Compass },
 ];
 
 export default function Navbar() {
@@ -59,28 +55,24 @@ export default function Navbar() {
         .slice(0, 2)
     : "?";
 
+  const isActive = (href: string) =>
+    location === href || (href !== "/" && location.startsWith(href));
+
   return (
     <nav className="glass-nav sticky top-0 z-50">
       <div className="container">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-3 group">
-            <img
-              src={SITE.logoUrl}
-              alt="NachtBlau Crew Logo"
-              className="h-10 w-10 object-contain transition-transform duration-300 group-hover:scale-110"
-            />
+            <span
+              className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-cyan-400 text-xl font-bold text-white shadow-lg shadow-primary/30 transition-transform group-hover:scale-105"
+              aria-hidden
+            >
+              {SITE.codename}
+            </span>
             <div className="hidden sm:block">
-              <span
-                className="font-bold text-lg leading-none gradient-text"
-                style={{ fontFamily: "Orbitron, sans-serif" }}
-              >
-                NachtBlau
-              </span>
-              <div
-                className="text-xs text-muted-foreground leading-none mt-0.5 tracking-widest uppercase"
-                style={{ fontFamily: "Orbitron, sans-serif" }}
-              >
-                Crew
+              <span className="font-bold text-lg leading-none gradient-text">{SITE.shortName}</span>
+              <div className="text-[10px] text-muted-foreground leading-none mt-0.5 tracking-widest uppercase">
+                Social Portal
               </div>
             </div>
           </Link>
@@ -92,7 +84,7 @@ export default function Navbar() {
                   variant="ghost"
                   size="sm"
                   className={`gap-2 transition-all duration-200 ${
-                    location === href
+                    isActive(href)
                       ? "text-primary bg-primary/10"
                       : "text-muted-foreground hover:text-foreground hover:bg-white/5"
                   }`}
@@ -103,19 +95,11 @@ export default function Navbar() {
               </Link>
             ))}
             <div className="w-px h-6 bg-border mx-1" />
-            {EXTERNAL_NAV_LINKS.map(({ href, label, icon: Icon }) => (
-              <a key={href} href={href} target="_blank" rel="noopener noreferrer">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="gap-2 text-muted-foreground hover:text-primary hover:bg-white/5 transition-all duration-200"
-                  title={label}
-                >
-                  <Icon className="h-4 w-4" />
-                  {label}
-                </Button>
-              </a>
-            ))}
+            <a href={SITE.githubUrl} target="_blank" rel="noopener noreferrer">
+              <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground">
+                <Github className="h-4 w-4" />
+              </Button>
+            </a>
           </div>
 
           <div className="flex items-center gap-2">
@@ -136,7 +120,7 @@ export default function Navbar() {
                 <DropdownMenuContent align="end" className="w-48 bg-card border-border">
                   <div className="px-3 py-2">
                     <p className="text-sm font-medium text-foreground truncate">
-                      {user.name ?? "Spieler"}
+                      {user.name ?? "Nutzer"}
                     </p>
                     <p className="text-xs text-muted-foreground truncate">{user.email ?? ""}</p>
                   </div>
@@ -144,7 +128,7 @@ export default function Navbar() {
                   <DropdownMenuItem asChild>
                     <Link href={`/profil/${user.id}`} className="cursor-pointer">
                       <User className="mr-2 h-4 w-4" />
-                      Mein Profil
+                      Profil
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
@@ -160,10 +144,10 @@ export default function Navbar() {
             ) : (
               <Button
                 size="sm"
-                className="bg-primary hover:bg-primary/80 text-primary-foreground font-semibold shadow-lg shadow-primary/20 transition-all duration-200"
+                className="bg-primary hover:bg-primary/80 font-semibold shadow-lg shadow-primary/20"
                 onClick={() => (window.location.href = getLoginUrl())}
               >
-                <Gamepad2 className="mr-2 h-4 w-4" />
+                <Sparkles className="mr-2 h-4 w-4" />
                 Anmelden
               </Button>
             )}
@@ -186,25 +170,13 @@ export default function Navbar() {
                 <Button
                   variant="ghost"
                   className={`w-full justify-start gap-2 ${
-                    location === href ? "text-primary bg-primary/10" : "text-muted-foreground"
+                    isActive(href) ? "text-primary bg-primary/10" : "text-muted-foreground"
                   }`}
                 >
                   <Icon className="h-4 w-4" />
                   {label}
                 </Button>
               </Link>
-            ))}
-            {EXTERNAL_NAV_LINKS.map(({ href, label, icon: Icon }) => (
-              <a key={href} href={href} target="_blank" rel="noopener noreferrer">
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start gap-2 text-muted-foreground hover:text-primary"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  <Icon className="h-4 w-4" />
-                  {label}
-                </Button>
-              </a>
             ))}
           </div>
         )}

@@ -4,6 +4,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { socialRouter } from "./socialRouter";
 import {
   createPost,
   createThread,
@@ -356,6 +357,7 @@ export const appRouter = router({
   news: newsRouter,
   forum: forumRouter,
   profile: profileRouter,
+  social: socialRouter,
 });
 
 export type AppRouter = typeof appRouter;

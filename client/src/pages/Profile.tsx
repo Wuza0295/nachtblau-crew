@@ -21,7 +21,10 @@ import {
   X,
   ChevronRight,
   Shield,
+  UserPlus,
+  UserMinus,
 } from "lucide-react";
+import { PostCard } from "@/components/social/PostCard";
 
 export default function Profile() {
   const { id } = useParams<{ id: string }>();
@@ -37,6 +40,20 @@ export default function Profile() {
     { userId },
     { enabled: !!userId }
   );
+
+  const { data: followStats } = trpc.social.getFollowStats.useQuery(
+    { userId },
+    { enabled: !!userId }
+  );
+
+  const { data: userPosts } = trpc.social.getUserPosts.useQuery(
+    { userId },
+    { enabled: !!userId }
+  );
+
+  const followMutation = trpc.social.toggleFollow.useMutation({
+    onSuccess: () => utils.social.getFollowStats.invalidate({ userId }),
+  });
 
   const updateProfile = trpc.profile.updateProfile.useMutation({
     onSuccess: () => {
@@ -154,7 +171,7 @@ export default function Profile() {
                         className="text-xl font-bold text-foreground"
                         style={{ fontFamily: "Orbitron, sans-serif" }}
                       >
-                        {user.name ?? "Unbekannter Spieler"}
+                        {user.name ?? "Unbekannter Nutzer"}
                       </h1>
                       {user.role === "admin" && (
                         <Badge className="bg-primary/20 text-primary border-primary/30 text-xs gap-1">
@@ -191,12 +208,45 @@ export default function Profile() {
                   Bearbeiten
                 </Button>
               )}
+              {!isOwn && currentUser && (
+                <Button
+                  size="sm"
+                  variant={followStats?.viewerFollows ? "outline" : "default"}
+                  className="gap-1.5 flex-shrink-0"
+                  onClick={() => followMutation.mutate({ userId })}
+                  disabled={followMutation.isPending}
+                >
+                  {followStats?.viewerFollows ? (
+                    <>
+                      <UserMinus className="h-4 w-4" />
+                      Entfolgen
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="h-4 w-4" />
+                      Folgen
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+          <Card className="bg-card border-border">
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold">{followStats?.followers ?? 0}</div>
+              <div className="text-xs text-muted-foreground">Follower</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-card border-border">
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold">{followStats?.following ?? 0}</div>
+              <div className="text-xs text-muted-foreground">Following</div>
+            </CardContent>
+          </Card>
           <Card className="bg-card border-border">
             <CardContent className="p-4 flex items-center gap-3">
               <div className="p-2 rounded-lg bg-primary/10 text-primary">
@@ -204,7 +254,7 @@ export default function Profile() {
               </div>
               <div>
                 <div className="text-2xl font-bold text-foreground">{stats.threadCount}</div>
-                <div className="text-xs text-muted-foreground">Threads erstellt</div>
+                <div className="text-xs text-muted-foreground">Forum-Threads</div>
               </div>
             </CardContent>
           </Card>
@@ -215,11 +265,20 @@ export default function Profile() {
               </div>
               <div>
                 <div className="text-2xl font-bold text-foreground">{stats.postCount}</div>
-                <div className="text-xs text-muted-foreground">Antworten geschrieben</div>
+                <div className="text-xs text-muted-foreground">Forum-Antworten</div>
               </div>
             </CardContent>
           </Card>
         </div>
+
+        {userPosts && userPosts.length > 0 && (
+          <div className="space-y-4 mb-6">
+            <h2 className="font-semibold">Beiträge</h2>
+            {userPosts.map((item) => (
+              <PostCard key={item.post.id} item={item} compact />
+            ))}
+          </div>
+        )}
 
         {/* Recent Threads */}
         {recentThreads.length > 0 && (

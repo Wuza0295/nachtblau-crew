@@ -77,3 +77,127 @@ export const forumPosts = mysqlTable("forum_posts", {
 });
 
 export type ForumPost = typeof forumPosts.$inferSelect;
+
+// ─── Social: Communities (Reddit / Discord Kreise) ───────────────────────────
+export const communities = mysqlTable("communities", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 128 }).notNull(),
+  slug: varchar("slug", { length: 128 }).notNull().unique(),
+  description: text("description"),
+  iconEmoji: varchar("iconEmoji", { length: 16 }).default("🌐"),
+  coverGradient: varchar("coverGradient", { length: 128 }).default("from-violet-600 to-cyan-500"),
+  memberCount: int("memberCount").default(0),
+  creatorId: int("creatorId").references(() => users.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Community = typeof communities.$inferSelect;
+
+export const communityMembers = mysqlTable("community_members", {
+  id: int("id").autoincrement().primaryKey(),
+  communityId: int("communityId")
+    .notNull()
+    .references(() => communities.id),
+  userId: int("userId")
+    .notNull()
+    .references(() => users.id),
+  role: mysqlEnum("role", ["member", "moderator", "admin"]).default("member").notNull(),
+  joinedAt: timestamp("joinedAt").defaultNow().notNull(),
+});
+
+// ─── Social: Follow graph (Instagram / X) ────────────────────────────────────
+export const userFollows = mysqlTable("user_follows", {
+  id: int("id").autoincrement().primaryKey(),
+  followerId: int("followerId")
+    .notNull()
+    .references(() => users.id),
+  followingId: int("followingId")
+    .notNull()
+    .references(() => users.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+// ─── Social: Feed posts (X + Instagram + LinkedIn) ───────────────────────────
+export const socialPosts = mysqlTable("social_posts", {
+  id: int("id").autoincrement().primaryKey(),
+  authorId: int("authorId")
+    .notNull()
+    .references(() => users.id),
+  communityId: int("communityId").references(() => communities.id),
+  content: text("content").notNull(),
+  mediaUrl: text("mediaUrl"),
+  mediaType: mysqlEnum("mediaType", ["none", "image", "video"]).default("none").notNull(),
+  postKind: mysqlEnum("postKind", ["feed", "pulse", "moment"]).default("feed").notNull(),
+  repostOfId: int("repostOfId"),
+  quoteText: text("quoteText"),
+  upvoteCount: int("upvoteCount").default(0),
+  reactionCount: int("reactionCount").default(0),
+  commentCount: int("commentCount").default(0),
+  saveCount: int("saveCount").default(0),
+  shareCount: int("shareCount").default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type SocialPost = typeof socialPosts.$inferSelect;
+
+export const postVotes = mysqlTable("post_votes", {
+  id: int("id").autoincrement().primaryKey(),
+  postId: int("postId")
+    .notNull()
+    .references(() => socialPosts.id),
+  userId: int("userId")
+    .notNull()
+    .references(() => users.id),
+  value: int("value").notNull(), // 1 or -1
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const postReactions = mysqlTable("post_reactions", {
+  id: int("id").autoincrement().primaryKey(),
+  postId: int("postId")
+    .notNull()
+    .references(() => socialPosts.id),
+  userId: int("userId")
+    .notNull()
+    .references(() => users.id),
+  emoji: varchar("emoji", { length: 16 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const postComments = mysqlTable("post_comments", {
+  id: int("id").autoincrement().primaryKey(),
+  postId: int("postId")
+    .notNull()
+    .references(() => socialPosts.id),
+  authorId: int("authorId")
+    .notNull()
+    .references(() => users.id),
+  content: text("content").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const postSaves = mysqlTable("post_saves", {
+  id: int("id").autoincrement().primaryKey(),
+  postId: int("postId")
+    .notNull()
+    .references(() => socialPosts.id),
+  userId: int("userId")
+    .notNull()
+    .references(() => users.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+// ─── Social: Stories (Instagram / Snapchat, 24h) ─────────────────────────────
+export const stories = mysqlTable("stories", {
+  id: int("id").autoincrement().primaryKey(),
+  authorId: int("authorId")
+    .notNull()
+    .references(() => users.id),
+  mediaUrl: text("mediaUrl"),
+  caption: varchar("caption", { length: 280 }),
+  backgroundStyle: varchar("backgroundStyle", { length: 64 }),
+  expiresAt: timestamp("expiresAt").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Story = typeof stories.$inferSelect;

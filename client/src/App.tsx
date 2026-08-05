@@ -5,6 +5,12 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
+import Feed from "./pages/Feed";
+import Pulse from "./pages/Pulse";
+import Kreise from "./pages/Kreise";
+import KreisDetail from "./pages/KreisDetail";
+import Entdecken from "./pages/Entdecken";
+import Momente from "./pages/Momente";
 import FreeGames from "./pages/FreeGames";
 import News from "./pages/News";
 import Forum from "./pages/Forum";
@@ -24,6 +30,12 @@ function Router() {
       <main className="flex-1">
         <Switch>
           <Route path="/" component={Home} />
+          <Route path="/feed" component={Feed} />
+          <Route path="/pulse" component={Pulse} />
+          <Route path="/kreise" component={Kreise} />
+          <Route path="/kreise/:slug" component={KreisDetail} />
+          <Route path="/entdecken" component={Entdecken} />
+          <Route path="/momente" component={Momente} />
           <Route path="/free-games" component={FreeGames} />
           <Route path="/news" component={News} />
           <Route path="/forum" component={Forum} />
