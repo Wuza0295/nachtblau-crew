@@ -19,6 +19,20 @@ import {
   incrementThreadView,
   updateUserProfile,
 } from "./db";
+import {
+  createThoughtPost,
+  getCommunityBySlug,
+  getPortalMeta,
+  getPostById,
+  listCommunities,
+  listDmThreads,
+  listPosts,
+  listStories,
+  markStorySeen,
+  toggleReaction,
+  toggleSave,
+  votePoll,
+} from "./socialPortalStore";
 
 // ─── Free Games via GamerPower API ───────────────────────────────────────────
 const gamesRouter = router({
@@ -341,6 +355,126 @@ const profileRouter = router({
     }),
 });
 
+// ─── Hybrid Social Portal ─────────────────────────────────────────────────────
+const socialPortalRouter = router({
+  meta: publicProcedure.query(() => getPortalMeta()),
+
+  communities: publicProcedure.query(() => listCommunities()),
+
+  communityBySlug: publicProcedure
+    .input(z.object({ slug: z.string() }))
+    .query(({ input }) => {
+      const c = getCommunityBySlug(input.slug);
+      if (!c) throw new TRPCError({ code: "NOT_FOUND" });
+      return c;
+    }),
+
+  feed: publicProcedure
+    .input(
+      z.object({
+        layer: z.enum(["all", "social", "professional", "creative"]).default("all"),
+        communityId: z.string().optional(),
+        sort: z.enum(["trending", "new", "boosted"]).default("trending"),
+        view: z.enum(["pulse", "canvas", "signal", "circles"]).optional(),
+      })
+    )
+    .query(({ input }) => {
+      const format =
+        input.view === "pulse"
+          ? ("clip" as const)
+          : input.view === "canvas"
+            ? undefined
+            : input.view === "signal"
+              ? undefined
+              : undefined;
+      return listPosts({
+        layer: input.layer,
+        communityId: input.communityId,
+        sort: input.sort,
+        format,
+      });
+    }),
+
+  post: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(({ input }) => {
+      const post = getPostById(input.id);
+      if (!post) throw new TRPCError({ code: "NOT_FOUND" });
+      return post;
+    }),
+
+  stories: publicProcedure.query(() => listStories()),
+
+  markStorySeen: protectedProcedure
+    .input(z.object({ storyId: z.string() }))
+    .mutation(({ ctx, input }) => {
+      markStorySeen(input.storyId, `user:${ctx.user.id}`);
+      return { success: true };
+    }),
+
+  react: protectedProcedure
+    .input(
+      z.object({
+        postId: z.string(),
+        kind: z.enum([
+          "resonate",
+          "insight",
+          "support",
+          "celebrate",
+          "curious",
+          "boost",
+        ]),
+      })
+    )
+    .mutation(({ ctx, input }) => {
+      try {
+        return toggleReaction(input.postId, input.kind, `user:${ctx.user.id}`);
+      } catch {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+    }),
+
+  votePoll: protectedProcedure
+    .input(z.object({ postId: z.string(), optionId: z.string() }))
+    .mutation(({ ctx, input }) => {
+      try {
+        return votePoll(input.postId, input.optionId, `user:${ctx.user.id}`);
+      } catch (e) {
+        if (e instanceof Error && e.message === "NO_POLL") {
+          throw new TRPCError({ code: "BAD_REQUEST" });
+        }
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+    }),
+
+  toggleSave: protectedProcedure
+    .input(z.object({ postId: z.string() }))
+    .mutation(({ ctx, input }) => {
+      try {
+        return toggleSave(input.postId, `user:${ctx.user.id}`);
+      } catch {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+    }),
+
+  createThought: protectedProcedure
+    .input(
+      z.object({
+        body: z.string().min(1).max(500),
+        layer: z.enum(["social", "professional", "creative"]),
+        communityId: z.string().optional(),
+      })
+    )
+    .mutation(({ ctx, input }) => {
+      return createThoughtPost({
+        ...input,
+        authorKey: `user:${ctx.user.id}`,
+      });
+    }),
+
+  dmThreads: protectedProcedure.query(() => listDmThreads()),
+});
+
 // ─── App Router ───────────────────────────────────────────────────────────────
 export const appRouter = router({
   system: systemRouter,
@@ -356,6 +490,7 @@ export const appRouter = router({
   news: newsRouter,
   forum: forumRouter,
   profile: profileRouter,
+  socialPortal: socialPortalRouter,
 });
 
 export type AppRouter = typeof appRouter;

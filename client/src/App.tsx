@@ -14,31 +14,37 @@ import NewThread from "./pages/NewThread";
 import Profile from "./pages/Profile";
 import ProfileRedirect from "./pages/ProfileRedirect";
 import About from "./pages/About";
+import PortalHome from "./pages/portal/PortalHome";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
 function Router() {
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Navbar />
-      <main className="flex-1">
-        <Switch>
-          <Route path="/" component={Home} />
-          <Route path="/free-games" component={FreeGames} />
-          <Route path="/news" component={News} />
-          <Route path="/forum" component={Forum} />
-          <Route path="/forum/kategorie/:slug" component={ForumCategory} />
-          <Route path="/forum/thread/:id" component={ForumThread} />
-          <Route path="/forum/neu" component={NewThread} />
-          <Route path="/profil" component={ProfileRedirect} />
-          <Route path="/profil/:id" component={Profile} />
-          <Route path="/ueber-uns" component={About} />
-          <Route path="/404" component={NotFound} />
-          <Route component={NotFound} />
-        </Switch>
-      </main>
-      <Footer />
-    </div>
+    <Switch>
+      <Route path="/portal" component={PortalHome} />
+      <Route>
+        <div className="min-h-screen flex flex-col bg-background">
+          <Navbar />
+          <main className="flex-1">
+            <Switch>
+              <Route path="/" component={Home} />
+              <Route path="/free-games" component={FreeGames} />
+              <Route path="/news" component={News} />
+              <Route path="/forum" component={Forum} />
+              <Route path="/forum/kategorie/:slug" component={ForumCategory} />
+              <Route path="/forum/thread/:id" component={ForumThread} />
+              <Route path="/forum/neu" component={NewThread} />
+              <Route path="/profil" component={ProfileRedirect} />
+              <Route path="/profil/:id" component={Profile} />
+              <Route path="/ueber-uns" component={About} />
+              <Route path="/404" component={NotFound} />
+              <Route component={NotFound} />
+            </Switch>
+          </main>
+          <Footer />
+        </div>
+      </Route>
+    </Switch>
   );
 }
 

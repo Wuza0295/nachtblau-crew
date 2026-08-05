@@ -23,11 +23,13 @@ import {
   Github,
   Globe,
   Info,
+  Sparkles,
 } from "lucide-react";
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 
 const NAV_LINKS = [
+  { href: "/portal", label: "Social Portal", icon: Sparkles },
   { href: "/free-games", label: "Free Games", icon: Gift },
   { href: "/news", label: "News", icon: Newspaper },
   { href: "/forum", label: "Forum", icon: MessageSquare },

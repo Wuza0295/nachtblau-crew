@@ -19,6 +19,7 @@ import {
   Github,
   Globe,
   ExternalLink,
+  Sparkles,
 } from "lucide-react";
 import { SITE } from "@/lib/site";
 
@@ -108,6 +109,16 @@ function HeroSection() {
                   Jetzt beitreten
                 </Button>
               )}
+              <Link href="/portal">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-violet-400/50 text-violet-200 hover:bg-violet-500/10 font-semibold transition-all duration-200"
+                >
+                  <Sparkles className="mr-2 h-5 w-5" />
+                  Social Portal
+                </Button>
+              </Link>
               <Link href="/forum">
                 <Button
                   size="lg"
@@ -378,6 +389,11 @@ function FeatureBanner() {
       <div className="container">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
           {[
+            {
+              icon: Sparkles,
+              title: "Social Portal",
+              desc: "Pulse, Canvas, Signal & Circles — ein hybrides Netzwerk",
+            },
             {
               icon: Zap,
               title: "Live Updates",
