@@ -25,6 +25,9 @@ export const ALLXION = {
     "Allxion vereint Freunde-Feed, Entdecken, Kreise, Fluss, Momente und transparente Feed-Intensität in einer Plattform.",
   hubPath: "/",
   legacyPortalPrefix: "/portal",
+  /** Pfad auf nacht-blau.de (ALL-INKL Webspace) */
+  webspacePath: "/allxion/",
+  publicUrl: "https://nacht-blau.de/allxion/",
   /** Anker auf nacht-blau.de (GbR-Webspace) */
   webspaceProjectsUrl: "https://nacht-blau.de/#projekte",
 } as const;

@@ -1,6 +1,6 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
-import { SITE } from "@/lib/site";
+import { SITE, ALLXION } from "@/lib/site";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -29,7 +29,6 @@ import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 
 const NAV_LINKS = [
-  { href: "/", label: "Allxion", icon: Zap },
   { href: "/crew", label: "Crew", icon: Gamepad2 },
   { href: "/free-games", label: "Free Games", icon: Gift },
   { href: "/news", label: "News", icon: Newspaper },
@@ -38,6 +37,7 @@ const NAV_LINKS = [
 ];
 
 const EXTERNAL_NAV_LINKS = [
+  { href: ALLXION.publicUrl, label: "Allxion", icon: Zap },
   { href: SITE.webspaceUrl, label: "Webspace", icon: Globe },
   { href: SITE.githubUrl, label: "GitHub", icon: Github },
 ];

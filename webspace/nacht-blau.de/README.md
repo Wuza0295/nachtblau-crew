@@ -1,32 +1,28 @@
 # NachtBlau GbR (nacht-blau.de)
 
-Eigenständige GbR-Webseite auf ALL-INKL — getrennt von **NachtBlau Crew** und **Allxion**.
+Eigenständige GbR-Webseite auf ALL-INKL — **Allxion** liegt als Unterseite unter **`/allxion/`**.
 
-## Inhalt
+## URLs
 
-- Unternehmensprofil (GbR)
-- **§3 Digitale Projekte** — Link zu **Allxion** (Social-Hub)
-- Impressum & Datenschutz
-
-## Lokal
-
-```bash
-cd webspace/nacht-blau.de
-python3 server.py
-```
-
-→ http://localhost:8080
+- GbR: https://nacht-blau.de/
+- **Allxion:** https://nacht-blau.de/allxion/
+- Projekte-Anker: https://nacht-blau.de/#projekte
 
 ## Sync mit ALL-INKL
 
-1. `.env.webspace.example` → `.env.webspace` kopieren, FTP-Daten eintragen
-2. **`WEBSPACE_ALLXION_URL`** = öffentliche URL eurer deployten App (Manus Space o.ä.)
+1. `.env.webspace.example` → `.env.webspace` (FTP-Zugang)
+2. Allxion-Frontend bauen und ins Webspace-Verzeichnis legen:
+
+```bash
+pnpm webspace:build-allxion
+```
+
 3. Upload:
 
 ```bash
 pnpm webspace:sync:nacht-blau
 ```
 
-Prüfen: https://nacht-blau.de/ → Navigation **Projekte** / Footer **Allxion**
+Optional: `VITE_API_ORIGIN` beim Build setzen, wenn das Backend auf Manus o.ä. läuft (Login, Feed-Daten).
 
-Die App verlinkt zurück auf https://nacht-blau.de/#projekte (`ALLXION.webspaceProjectsUrl`).
+Details: `allxion/README.md`

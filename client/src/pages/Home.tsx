@@ -20,7 +20,7 @@ import {
   Globe,
   ExternalLink,
 } from "lucide-react";
-import { SITE } from "@/lib/site";
+import { SITE, ALLXION } from "@/lib/site";
 
 function StarField() {
   return (
@@ -108,7 +108,7 @@ function HeroSection() {
                   Jetzt beitreten
                 </Button>
               )}
-              <Link href="/">
+              <a href={ALLXION.publicUrl}>
                 <Button
                   size="lg"
                   className="font-bold shadow-xl transition-all duration-200 hover:scale-105 bg-gradient-to-r from-[oklch(0.65_0.22_310)] to-[oklch(0.62_0.2_25)] text-white border-0"
@@ -116,7 +116,7 @@ function HeroSection() {
                   <Zap className="mr-2 h-5 w-5" />
                   Allxion öffnen
                 </Button>
-              </Link>
+              </a>
               <Link href="/crew">
                 <Button
                   size="lg"
