@@ -110,6 +110,20 @@ temp/
 # Webdev artifacts (checkpoint zips, migrations, etc.)
 .webdev/
 
-# Manus version file (auto-generated, not part of source)
-client/public/__manus__/version.json
+# Webspace: gebaute Allxion-Assets nicht committen (CI baut vor Upload)
+webspace/nacht-blau.de/allxion/assets/
+webspace/nacht-blau.de/allxion/index.html
+webspace/nacht-blau.de/allxion/index.htm
+webspace/nacht-blau.de/allxion/__manus__/
+webspace/nacht-blau.de/allxion/manifest.json
+webspace/nacht-blau.de/allxion/robots.txt
+!webspace/nacht-blau.de/allxion/.htaccess
+!webspace/nacht-blau.de/allxion/README.md
+!webspace/nacht-blau.de/allxion/.gitkeep
+!webspace/nacht-blau.de/allxion/index.stub.html
+
+# Python
+**/__pycache__/
+*.py[cod]
+
 .project-config.json
