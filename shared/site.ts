@@ -17,6 +17,21 @@ export const SITE = {
   gamerPowerUrl: "https://www.gamerpower.com",
 } as const;
 
+/** Vorläufiges Hybrid-Social-Netzwerk (eingebettet in NachtBlau Crew) */
+export const ALLXION = {
+  name: "Allxion",
+  tagline: "Ein Portal. Alle Stärken.",
+  description:
+    "Allxion vereint Freunde-Feed, Entdecken, Kreise, Fluss, Momente und transparente Feed-Intensität in einer Plattform.",
+  hubPath: "/",
+  legacyPortalPrefix: "/portal",
+  /** Pfad auf nacht-blau.de (ALL-INKL Webspace) */
+  webspacePath: "/allxion/",
+  publicUrl: "https://nacht-blau.de/allxion/",
+  /** Anker auf nacht-blau.de (GbR-Webspace) */
+  webspaceProjectsUrl: "https://nacht-blau.de/#projekte",
+} as const;
+
 export const EXTERNAL_LINKS = [
   {
     href: SITE.webspaceUrl,

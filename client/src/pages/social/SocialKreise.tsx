@@ -48,7 +48,7 @@ export default function SocialKreise() {
                     {c.memberCount?.toLocaleString("de-DE")} Mitglieder
                   </span>
                   <div className="flex gap-2">
-                    <Link href={`/portal?kreis=${c.slug}`}>
+                    <Link href={`/?kreis=${c.slug}`}>
                       <Button size="sm" variant="outline" className="rounded-full">
                         Feed
                       </Button>

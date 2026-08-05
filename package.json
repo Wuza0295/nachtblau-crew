@@ -11,7 +11,15 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "db:push": "drizzle-kit generate && drizzle-kit migrate",
-    "db:seed": "tsx server/seed.ts"
+    "db:seed": "tsx server/seed.ts",
+    "build:allxion": "VITE_APP_BASE=/allxion/ pnpm build",
+    "webspace:stage-allxion": "python3 scripts/stage-allxion-webspace.py",
+    "webspace:build-allxion": "pnpm build:allxion && pnpm webspace:stage-allxion",
+    "webspace:pull": "python3 scripts/pull-webspace.py",
+    "webspace:sync": "python3 scripts/sync-webspace.py",
+    "webspace:sync:one": "python3 scripts/sync-one-webspace.py",
+    "webspace:sync:nacht-blau": "python3 scripts/sync-one-webspace.py nacht-blau.de",
+    "deploy:webspace": "python3 scripts/deploy-webspace.py"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.693.0",

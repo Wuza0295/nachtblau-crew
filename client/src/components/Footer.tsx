@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { EXTERNAL_LINKS, SITE } from "@/lib/site";
+import { EXTERNAL_LINKS, SITE, ALLXION } from "@/lib/site";
 import { Github, Globe, Mail, ExternalLink } from "lucide-react";
 
 const LINK_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -35,18 +35,31 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2">
               {[
-                { href: "/free-games", label: "Free Games" },
-                { href: "/news", label: "Gaming News" },
-                { href: "/forum", label: "Community Forum" },
-                { href: "/ueber-uns", label: "Über uns" },
-              ].map(({ href, label }) => (
+                { href: ALLXION.publicUrl, label: "Allxion", external: true },
+                { href: "/crew", label: "NachtBlau Crew", external: false },
+                { href: "/free-games", label: "Free Games", external: false },
+                { href: "/news", label: "Gaming News", external: false },
+                { href: "/forum", label: "Community Forum", external: false },
+                { href: "/ueber-uns", label: "Über uns", external: false },
+              ].map(({ href, label, external }) => (
                 <li key={href}>
-                  <Link
-                    href={href}
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200"
-                  >
-                    {label}
-                  </Link>
+                  {external ? (
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200"
+                    >
+                      {label}
+                    </a>
+                  ) : (
+                    <Link
+                      href={href}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200"
+                    >
+                      {label}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>

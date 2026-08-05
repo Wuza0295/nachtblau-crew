@@ -79,7 +79,7 @@ export async function getUserById(id: number) {
 
 export async function updateUserProfile(
   id: number,
-  data: { name?: string; bio?: string; avatar?: string }
+  data: { name?: string; bio?: string; avatar?: string; handle?: string }
 ) {
   const db = await getDb();
   if (!db) return;

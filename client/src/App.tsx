@@ -1,9 +1,10 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
+import { Route, Router, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { getAppBasePath } from "@/lib/basePath";
 import Home from "./pages/Home";
 import FreeGames from "./pages/FreeGames";
 import News from "./pages/News";
@@ -21,40 +22,93 @@ import SocialMomente from "./pages/social/SocialMomente";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
-function Router() {
+function CrewLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen flex flex-col bg-background">
+      <Navbar />
+      <main className="flex-1">{children}</main>
+      <Footer />
+    </div>
+  );
+}
+
+function AppRoutes() {
   return (
     <Switch>
+      <Route path="/" component={SocialHub} />
+      <Route path="/fluss" component={SocialFluss} />
+      <Route path="/kreise" component={SocialKreise} />
+      <Route path="/momente" component={SocialMomente} />
       <Route path="/portal/fluss" component={SocialFluss} />
       <Route path="/portal/kreise" component={SocialKreise} />
       <Route path="/portal/momente" component={SocialMomente} />
       <Route path="/portal" component={SocialHub} />
+      <Route path="/crew">
+        <CrewLayout>
+          <Home />
+        </CrewLayout>
+      </Route>
+      <Route path="/free-games">
+        <CrewLayout>
+          <FreeGames />
+        </CrewLayout>
+      </Route>
+      <Route path="/news">
+        <CrewLayout>
+          <News />
+        </CrewLayout>
+      </Route>
+      <Route path="/forum">
+        <CrewLayout>
+          <Forum />
+        </CrewLayout>
+      </Route>
+      <Route path="/forum/kategorie/:slug">
+        <CrewLayout>
+          <ForumCategory />
+        </CrewLayout>
+      </Route>
+      <Route path="/forum/thread/:id">
+        <CrewLayout>
+          <ForumThread />
+        </CrewLayout>
+      </Route>
+      <Route path="/forum/neu">
+        <CrewLayout>
+          <NewThread />
+        </CrewLayout>
+      </Route>
+      <Route path="/profil">
+        <CrewLayout>
+          <ProfileRedirect />
+        </CrewLayout>
+      </Route>
+      <Route path="/profil/:id">
+        <CrewLayout>
+          <Profile />
+        </CrewLayout>
+      </Route>
+      <Route path="/ueber-uns">
+        <CrewLayout>
+          <About />
+        </CrewLayout>
+      </Route>
+      <Route path="/404">
+        <CrewLayout>
+          <NotFound />
+        </CrewLayout>
+      </Route>
       <Route>
-        <div className="min-h-screen flex flex-col bg-background">
-          <Navbar />
-          <main className="flex-1">
-            <Switch>
-              <Route path="/" component={Home} />
-              <Route path="/free-games" component={FreeGames} />
-              <Route path="/news" component={News} />
-              <Route path="/forum" component={Forum} />
-              <Route path="/forum/kategorie/:slug" component={ForumCategory} />
-              <Route path="/forum/thread/:id" component={ForumThread} />
-              <Route path="/forum/neu" component={NewThread} />
-              <Route path="/profil" component={ProfileRedirect} />
-              <Route path="/profil/:id" component={Profile} />
-              <Route path="/ueber-uns" component={About} />
-              <Route path="/404" component={NotFound} />
-              <Route component={NotFound} />
-            </Switch>
-          </main>
-          <Footer />
-        </div>
+        <CrewLayout>
+          <NotFound />
+        </CrewLayout>
       </Route>
     </Switch>
   );
 }
 
 function App() {
+  const base = getAppBasePath();
   return (
     <ErrorBoundary>
       <ThemeProvider defaultTheme="dark">
@@ -69,7 +123,9 @@ function App() {
               },
             }}
           />
-          <Router />
+          <Router base={base}>
+            <AppRoutes />
+          </Router>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
