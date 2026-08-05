@@ -1,17 +1,10 @@
 {
-  "name": "NachtBlau Crew",
-  "short_name": "NachtBlau",
-  "description": "Gaming Community für PC, Konsolen, Steam und mehr.",
+  "name": "NAH",
+  "short_name": "NAH",
+  "description": "Näher dran. Weniger Lärm. Sozial nach Distanz statt Algorithmus.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0e1a",
-  "theme_color": "#0a0e1a",
-  "lang": "de",
-  "icons": [
-    {
-      "src": "https://d2xsxph8kpxj0f.cloudfront.net/310519663739653758/PbtcqHtcftAKnwDnhmoduf/nachtblau-logo-Li7umgFb8XhrYaRtYVFm4Z.webp",
-      "sizes": "512x512",
-      "type": "image/webp"
-    }
-  ]
+  "background_color": "#f4f9f8",
+  "theme_color": "#3d6b6b",
+  "lang": "de"
 }

@@ -5,15 +5,15 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
-import FreeGames from "./pages/FreeGames";
-import News from "./pages/News";
-import Forum from "./pages/Forum";
-import ForumCategory from "./pages/ForumCategory";
-import ForumThread from "./pages/ForumThread";
-import NewThread from "./pages/NewThread";
+import Feed from "./pages/Feed";
+import Compose from "./pages/Compose";
+import PostDetail from "./pages/PostDetail";
+import Circles from "./pages/Circles";
+import Spaces from "./pages/Spaces";
+import SpaceDetail from "./pages/SpaceDetail";
 import Profile from "./pages/Profile";
 import ProfileRedirect from "./pages/ProfileRedirect";
-import About from "./pages/About";
+import Concept from "./pages/Concept";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
@@ -24,15 +24,15 @@ function Router() {
       <main className="flex-1">
         <Switch>
           <Route path="/" component={Home} />
-          <Route path="/free-games" component={FreeGames} />
-          <Route path="/news" component={News} />
-          <Route path="/forum" component={Forum} />
-          <Route path="/forum/kategorie/:slug" component={ForumCategory} />
-          <Route path="/forum/thread/:id" component={ForumThread} />
-          <Route path="/forum/neu" component={NewThread} />
+          <Route path="/feed" component={Feed} />
+          <Route path="/schreiben" component={Compose} />
+          <Route path="/beitrag/:id" component={PostDetail} />
+          <Route path="/kreis" component={Circles} />
+          <Route path="/raeume/:slug" component={SpaceDetail} />
+          <Route path="/raeume" component={Spaces} />
+          <Route path="/konzept" component={Concept} />
           <Route path="/profil" component={ProfileRedirect} />
           <Route path="/profil/:id" component={Profile} />
-          <Route path="/ueber-uns" component={About} />
           <Route path="/404" component={NotFound} />
           <Route component={NotFound} />
         </Switch>
@@ -45,15 +45,15 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider defaultTheme="dark">
+      <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster
-            theme="dark"
+            theme="light"
             toastOptions={{
               style: {
-                background: "oklch(0.12 0.03 250)",
-                border: "1px solid oklch(0.22 0.04 250)",
-                color: "oklch(0.93 0.015 220)",
+                background: "oklch(0.99 0.008 195)",
+                border: "1px solid oklch(0.88 0.02 195)",
+                color: "oklch(0.22 0.03 210)",
               },
             }}
           />
