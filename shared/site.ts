@@ -8,7 +8,7 @@ export const SITE = {
   logoUrl:
     "https://d2xsxph8kpxj0f.cloudfront.net/310519663739653758/PbtcqHtcftAKnwDnhmoduf/nachtblau-logo-Li7umgFb8XhrYaRtYVFm4Z.webp",
   heroBgUrl:
-    "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1920&h=1080&fit=crop",
+    "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&h=1080&fit=crop",
   webspaceUrl: "https://nacht-blau.de",
   webspaceLabel: "NachtBlau Webspace",
   githubUrl: "https://github.com/Wuza0295/nachtblau-crew",
