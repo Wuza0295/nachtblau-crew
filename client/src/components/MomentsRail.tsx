@@ -70,16 +70,18 @@ export function MomentsRail() {
 
       {activeMoment && (
         <div
-          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 animate-fade-scale"
-          onClick={() => setActive(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-scale"
           role="dialog"
           aria-modal="true"
           aria-label="Echtzeit-Moment"
         >
-          <div
-            className="relative w-full max-w-sm aspect-[9/16] rounded-3xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/90 cursor-default"
+            aria-label="Moment schließen"
+            onClick={() => setActive(null)}
+          />
+          <div className="relative z-10 w-full max-w-sm aspect-[9/16] rounded-3xl overflow-hidden shadow-2xl">
             <div
               className="absolute inset-0"
               style={{ background: activeMoment.imageGradient }}
