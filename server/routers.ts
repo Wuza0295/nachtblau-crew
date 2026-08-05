@@ -19,6 +19,8 @@ import {
   incrementThreadView,
   updateUserProfile,
 } from "./db";
+import { socialStore } from "./socialStore";
+import { FEED_MODES } from "@shared/social";
 
 // ─── Free Games via GamerPower API ───────────────────────────────────────────
 const gamesRouter = router({
@@ -341,6 +343,142 @@ const profileRouter = router({
     }),
 });
 
+// ─── FLUX Social Portal ───────────────────────────────────────────────────────
+const socialRouter = router({
+  manifesto: publicProcedure.query(() => socialStore.getManifesto()),
+
+  modes: publicProcedure.query(() => FEED_MODES),
+
+  getMode: publicProcedure.query(() => socialStore.getMode()),
+
+  setMode: publicProcedure
+    .input(z.object({ mode: z.enum(["chronik", "nah", "entdecken", "fokus"]) }))
+    .mutation(({ input }) => socialStore.setMode(input.mode)),
+
+  feed: publicProcedure
+    .input(
+      z.object({
+        mode: z.enum(["chronik", "nah", "entdecken", "fokus"]).default("chronik"),
+      })
+    )
+    .query(({ input }) => socialStore.getFeed(input.mode)),
+
+  getPost: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(({ input }) => {
+      const post = socialStore.getPost(input.id);
+      if (!post) throw new TRPCError({ code: "NOT_FOUND" });
+      return post;
+    }),
+
+  createPost: publicProcedure
+    .input(
+      z.object({
+        kind: z.enum(["signal", "visual", "essay", "pulse", "moment"]),
+        body: z.string().min(1).max(8000),
+        title: z.string().max(200).optional(),
+        topics: z.array(z.string()).max(8).optional(),
+        circleId: z.string().optional(),
+      })
+    )
+    .mutation(({ ctx, input }) => {
+      const authorId = ctx.user?.id && ctx.user.id > 0 ? ctx.user.id : 4;
+      // Demo authors are 1–6; map real users into maker persona when outside range
+      const safeAuthor = authorId <= 6 ? authorId : 4;
+      return socialStore.createPost({
+        authorId: safeAuthor,
+        kind: input.kind,
+        body: input.body,
+        title: input.title,
+        topics: input.topics,
+        circleId: input.circleId,
+      });
+    }),
+
+  resonate: publicProcedure
+    .input(z.object({ postId: z.string() }))
+    .mutation(({ input }) => {
+      const result = socialStore.resonate(input.postId);
+      if (!result) throw new TRPCError({ code: "NOT_FOUND" });
+      return result;
+    }),
+
+  moments: publicProcedure.query(() => socialStore.getMoments()),
+
+  momentResonance: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(({ input }) => {
+      const result = socialStore.addMomentResonance(input.id);
+      if (!result) throw new TRPCError({ code: "NOT_FOUND" });
+      return result;
+    }),
+
+  circles: publicProcedure.query(() => socialStore.getCircles()),
+
+  circle: publicProcedure
+    .input(z.object({ slug: z.string() }))
+    .query(({ input }) => {
+      const result = socialStore.getCircle(input.slug);
+      if (!result) throw new TRPCError({ code: "NOT_FOUND" });
+      return result;
+    }),
+
+  toggleJoinCircle: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(({ input }) => {
+      const result = socialStore.toggleJoinCircle(input.id);
+      if (!result) throw new TRPCError({ code: "NOT_FOUND" });
+      return result;
+    }),
+
+  upvoteThread: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(({ input }) => {
+      const result = socialStore.upvoteThread(input.id);
+      if (!result) throw new TRPCError({ code: "NOT_FOUND" });
+      return result;
+    }),
+
+  conversations: publicProcedure.query(() => socialStore.getConversations()),
+
+  messages: publicProcedure
+    .input(z.object({ conversationId: z.string() }))
+    .query(({ input }) => socialStore.getMessages(input.conversationId)),
+
+  sendMessage: publicProcedure
+    .input(
+      z.object({
+        conversationId: z.string(),
+        body: z.string().min(1).max(2000),
+      })
+    )
+    .mutation(({ ctx, input }) => {
+      const authorId = ctx.user?.id && ctx.user.id <= 6 ? ctx.user.id : 4;
+      return socialStore.sendMessage(input.conversationId, authorId, input.body);
+    }),
+
+  radar: publicProcedure.query(() => socialStore.getRadar()),
+
+  setRadarInterest: publicProcedure
+    .input(
+      z.object({
+        topic: z.string().min(1).max(48),
+        weight: z.number().min(-100).max(100),
+      })
+    )
+    .mutation(({ input }) => socialStore.setRadarInterest(input.topic, input.weight)),
+
+  applyRadarPrompt: publicProcedure
+    .input(z.object({ prompt: z.string().min(1).max(200) }))
+    .mutation(({ input }) => socialStore.applyRadarPrompt(input.prompt)),
+
+  pulse: publicProcedure.query(() => socialStore.getPulse()),
+
+  presence: publicProcedure.query(() => socialStore.getPresence()),
+
+  authors: publicProcedure.query(() => socialStore.getAuthors()),
+});
+
 // ─── App Router ───────────────────────────────────────────────────────────────
 export const appRouter = router({
   system: systemRouter,
@@ -356,6 +494,7 @@ export const appRouter = router({
   news: newsRouter,
   forum: forumRouter,
   profile: profileRouter,
+  social: socialRouter,
 });
 
 export type AppRouter = typeof appRouter;

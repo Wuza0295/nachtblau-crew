@@ -1,13 +1,14 @@
 export const SITE = {
-  name: "NachtBlau Crew",
-  shortName: "NachtBlau",
-  tagline: "Deine Gaming Community für PC, Konsolen, Steam und mehr.",
+  name: "FLUX",
+  shortName: "FLUX",
+  workingTitle: true,
+  tagline: "Alles Soziale. Ein Ort.",
   description:
-    "NachtBlau Crew – Deine Gaming Community für PC, Konsolen, Steam und mehr. Aktuelle News, kostenlose Spiele und ein aktives Forum.",
+    "FLUX (Arbeitstitel) vereint das Beste aus Instagram, X, TikTok, Discord, Reddit, Bluesky, LinkedIn und BeReal — mit Modi, Radar und Circles, die du steuerst.",
   logoUrl:
     "https://d2xsxph8kpxj0f.cloudfront.net/310519663739653758/PbtcqHtcftAKnwDnhmoduf/nachtblau-logo-Li7umgFb8XhrYaRtYVFm4Z.webp",
   heroBgUrl:
-    "https://d2xsxph8kpxj0f.cloudfront.net/310519663739653758/PbtcqHtcftAKnwDnhmoduf/nachtblau-hero-bg-HgRTyjrF5BBTepdctiJ8Mj.webp",
+    "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1920&h=1080&fit=crop",
   webspaceUrl: "https://nacht-blau.de",
   webspaceLabel: "NachtBlau Webspace",
   githubUrl: "https://github.com/Wuza0295/nachtblau-crew",
@@ -21,19 +22,19 @@ export const EXTERNAL_LINKS = [
   {
     href: SITE.webspaceUrl,
     label: SITE.webspaceLabel,
-    description: "Offizielle Website der NachtBlau GbR mit Infos zum Projekt und Team.",
+    description: "Projekt-Hintergrund und Team.",
     external: true,
   },
   {
     href: SITE.githubUrl,
     label: SITE.githubLabel,
-    description: "Quellcode, Issues und Beiträge zur NachtBlau Crew App auf GitHub.",
+    description: "Quellcode und Issues.",
     external: true,
   },
   {
     href: `mailto:${SITE.contactEmail}`,
     label: "Kontakt",
-    description: "Schreib uns eine E-Mail an info@nacht-blau.de.",
+    description: "Schreib uns eine E-Mail.",
     external: true,
   },
 ] as const;

@@ -5,6 +5,13 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
+import Feed from "./pages/Feed";
+import Pulse from "./pages/Pulse";
+import Circles from "./pages/Circles";
+import CircleDetail from "./pages/CircleDetail";
+import Messages from "./pages/Messages";
+import Radar from "./pages/Radar";
+import Compose from "./pages/Compose";
 import FreeGames from "./pages/FreeGames";
 import News from "./pages/News";
 import Forum from "./pages/Forum";
@@ -19,11 +26,18 @@ import Footer from "./components/Footer";
 
 function Router() {
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-transparent">
       <Navbar />
       <main className="flex-1">
         <Switch>
           <Route path="/" component={Home} />
+          <Route path="/feed" component={Feed} />
+          <Route path="/pulse" component={Pulse} />
+          <Route path="/circles" component={Circles} />
+          <Route path="/circles/:slug" component={CircleDetail} />
+          <Route path="/messages" component={Messages} />
+          <Route path="/radar" component={Radar} />
+          <Route path="/compose" component={Compose} />
           <Route path="/free-games" component={FreeGames} />
           <Route path="/news" component={News} />
           <Route path="/forum" component={Forum} />
@@ -51,9 +65,9 @@ function App() {
             theme="dark"
             toastOptions={{
               style: {
-                background: "oklch(0.12 0.03 250)",
-                border: "1px solid oklch(0.22 0.04 250)",
-                color: "oklch(0.93 0.015 220)",
+                background: "oklch(0.18 0.03 195)",
+                border: "1px solid oklch(0.28 0.04 195)",
+                color: "oklch(0.96 0.012 95)",
               },
             }}
           />

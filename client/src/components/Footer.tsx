@@ -10,40 +10,34 @@ const LINK_ICONS: Record<string, React.ComponentType<{ className?: string }>> = 
 
 export default function Footer() {
   return (
-    <footer className="border-t border-border bg-card/50 mt-16">
+    <footer className="border-t border-border/50 mt-16 bg-background/40">
       <div className="container py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="space-y-3 md:col-span-1">
-            <div className="flex items-center gap-3">
-              <img src={SITE.logoUrl} alt={SITE.name} className="h-10 w-10 object-contain" />
-              <span
-                className="font-bold text-lg gradient-text"
-                style={{ fontFamily: "Orbitron, sans-serif" }}
-              >
-                {SITE.name}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="font-display font-bold text-xl flux-gradient-text">{SITE.name}</span>
+              <span className="text-[10px] uppercase tracking-widest text-muted-foreground border border-border/60 rounded px-1.5 py-0.5">
+                Arbeitstitel
               </span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">{SITE.tagline}</p>
+            <p className="text-xs text-muted-foreground/80">{SITE.description}</p>
           </div>
 
           <div className="space-y-3">
-            <h4
-              className="text-sm font-semibold text-foreground uppercase tracking-widest"
-              style={{ fontFamily: "Orbitron, sans-serif" }}
-            >
-              Navigation
-            </h4>
+            <h4 className="text-sm font-display font-semibold uppercase tracking-widest">Portal</h4>
             <ul className="space-y-2">
               {[
-                { href: "/free-games", label: "Free Games" },
-                { href: "/news", label: "Gaming News" },
-                { href: "/forum", label: "Community Forum" },
-                { href: "/ueber-uns", label: "Über uns" },
+                { href: "/feed", label: "Feed" },
+                { href: "/pulse", label: "Pulse" },
+                { href: "/circles", label: "Circles" },
+                { href: "/radar", label: "Radar" },
+                { href: "/messages", label: "Messages" },
               ].map(({ href, label }) => (
                 <li key={href}>
                   <Link
                     href={href}
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200"
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
                   >
                     {label}
                   </Link>
@@ -53,12 +47,7 @@ export default function Footer() {
           </div>
 
           <div className="space-y-3">
-            <h4
-              className="text-sm font-semibold text-foreground uppercase tracking-widest"
-              style={{ fontFamily: "Orbitron, sans-serif" }}
-            >
-              NachtBlau Netzwerk
-            </h4>
+            <h4 className="text-sm font-display font-semibold uppercase tracking-widest">Links</h4>
             <ul className="space-y-2">
               {EXTERNAL_LINKS.map((link) => {
                 const Icon = LINK_ICONS[link.href] ?? ExternalLink;
@@ -68,7 +57,7 @@ export default function Footer() {
                       href={link.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200 inline-flex items-center gap-2"
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-2"
                     >
                       <Icon className="h-3.5 w-3.5" />
                       {link.label}
@@ -78,81 +67,15 @@ export default function Footer() {
               })}
             </ul>
           </div>
-
-          <div className="space-y-3">
-            <h4
-              className="text-sm font-semibold text-foreground uppercase tracking-widest"
-              style={{ fontFamily: "Orbitron, sans-serif" }}
-            >
-              Datenquellen
-            </h4>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Free Games bereitgestellt von{" "}
-              <a
-                href={SITE.gamerPowerUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:underline"
-              >
-                GamerPower.com
-              </a>
-              . Quellcode auf{" "}
-              <a
-                href={SITE.githubUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:underline"
-              >
-                GitHub
-              </a>
-              .
-            </p>
-            <div className="flex gap-3 pt-1">
-              {EXTERNAL_LINKS.map((link) => {
-                const Icon = LINK_ICONS[link.href] ?? ExternalLink;
-                return (
-                  <a
-                    key={link.href}
-                    href={link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 rounded-lg bg-secondary hover:bg-primary/20 text-muted-foreground hover:text-primary transition-all duration-200"
-                    title={link.label}
-                    aria-label={link.label}
-                  >
-                    <Icon className="h-5 w-5" />
-                  </a>
-                );
-              })}
-            </div>
-          </div>
         </div>
 
         <div className="divider-glow mt-8 mb-6" />
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
-          <span>© {new Date().getFullYear()} {SITE.name}. Alle Rechte vorbehalten.</span>
-          <div className="flex items-center gap-3">
-            <a
-              href={SITE.webspaceUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-primary transition-colors"
-            >
-              {SITE.webspaceLabel}
-            </a>
-            <span className="text-border">·</span>
-            <a
-              href={SITE.githubUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-primary transition-colors"
-            >
-              GitHub
-            </a>
-            <span className="text-border">·</span>
-            <span className="text-primary/60">Powered by the Night 🌙</span>
-          </div>
+          <span>
+            © {new Date().getFullYear()} {SITE.name} · Name folgt
+          </span>
+          <span>Synthese aus dem Besten aller Social-Plattformen</span>
         </div>
       </div>
     </footer>
