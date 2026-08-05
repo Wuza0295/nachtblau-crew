@@ -32,6 +32,7 @@ import {
   Sparkles,
   User,
   Users,
+  Globe,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -64,10 +65,16 @@ const NAV = [
 ] as const;
 
 const CREW_LINKS = [
-  { href: ALLXION_ROUTES.crew, label: "Crew Start", icon: Compass },
-  { href: "/free-games", label: "Free Games", icon: Gift },
-  { href: "/news", label: "News", icon: Newspaper },
-  { href: "/forum", label: "Forum", icon: MessageSquare },
+  { href: ALLXION_ROUTES.crew, label: "Crew Start", icon: Compass, external: false },
+  {
+    href: ALLXION.webspaceProjectsUrl,
+    label: "nacht-blau.de",
+    icon: Globe,
+    external: true,
+  },
+  { href: "/free-games", label: "Free Games", icon: Gift, external: false },
+  { href: "/news", label: "News", icon: Newspaper, external: false },
+  { href: "/forum", label: "Forum", icon: MessageSquare, external: false },
 ] as const;
 
 export default function SocialShell({
@@ -150,14 +157,28 @@ export default function SocialShell({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="center" className="border-white/10">
-                {CREW_LINKS.map(({ href, label, icon: Icon }) => (
-                  <DropdownMenuItem key={href} asChild>
-                    <Link href={href} className="flex items-center gap-2 cursor-pointer">
-                      <Icon className="h-4 w-4" />
-                      {label}
-                    </Link>
-                  </DropdownMenuItem>
-                ))}
+                {CREW_LINKS.map(({ href, label, icon: Icon, external }) =>
+                  external ? (
+                    <DropdownMenuItem key={href} asChild>
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        <Icon className="h-4 w-4" />
+                        {label}
+                      </a>
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem key={href} asChild>
+                      <Link href={href} className="flex items-center gap-2 cursor-pointer">
+                        <Icon className="h-4 w-4" />
+                        {label}
+                      </Link>
+                    </DropdownMenuItem>
+                  )
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </nav>

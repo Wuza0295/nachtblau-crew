@@ -1,0 +1,12 @@
+{
+  "updated": "2026-08-05",
+  "links": [
+    {
+      "id": "allxion",
+      "title": "Allxion",
+      "subtitle": "Hybrid-Social-Hub · NachtBlau Crew",
+      "url": "#",
+      "note": "Live-App-URL: WEBSPACE_ALLXION_URL beim FTP-Sync setzen (siehe .env.webspace.example)."
+    }
+  ]
+}
