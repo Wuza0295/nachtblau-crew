@@ -249,19 +249,22 @@ def mirror_index_htm(ftp, local_dir: Path) -> int:
     return 1
 
 
-def patch_allxion_project_link(local_dir: Path, app_url: str) -> None:
-    """Inject live Allxion URL into data/projects.json before FTP upload."""
+def patch_allxion_project_link(local_dir: Path, app_url: str | None = None) -> None:
+    """Ensure projects.json points at the Allxion subpage on nacht-blau.de."""
     import json
 
     path = local_dir / "data" / "projects.json"
     if not path.is_file():
         return
     data = json.loads(path.read_text(encoding="utf-8"))
-    normalized = app_url.rstrip("/") + "/"
+    url = (app_url or os.environ.get("WEBSPACE_ALLXION_URL", "")).strip()
+    if not url:
+        url = "https://nacht-blau.de/allxion/"
+    normalized = url.rstrip("/") + "/"
     for link in data.get("links", []):
         if link.get("id") == "allxion":
             link["url"] = normalized
-            link["note"] = "NachtBlau Crew · Allxion (Social-Hub)"
+            link["note"] = "Unterseite auf nacht-blau.de"
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
@@ -272,7 +275,7 @@ def prepare_upload_dir(local: Path):
 
     app_url = os.environ.get("WEBSPACE_ALLXION_URL", "").strip()
     if not app_url:
-        return local, None
+        app_url = "https://nacht-blau.de/allxion/"
 
     tmp = tempfile.TemporaryDirectory()
     dest = Path(tmp.name) / "site"

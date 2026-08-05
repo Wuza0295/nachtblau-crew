@@ -5,8 +5,8 @@
       "id": "allxion",
       "title": "Allxion",
       "subtitle": "Hybrid-Social-Hub · NachtBlau Crew",
-      "url": "#",
-      "note": "Live-App-URL: WEBSPACE_ALLXION_URL beim FTP-Sync setzen (siehe .env.webspace.example)."
+      "url": "/allxion/",
+      "note": "Unterseite auf nacht-blau.de — Frontend via pnpm webspace:build-allxion deployen."
     }
   ]
 }

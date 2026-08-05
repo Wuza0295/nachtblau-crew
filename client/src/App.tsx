@@ -1,9 +1,10 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
+import { Route, Router, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { getAppBasePath } from "@/lib/basePath";
 import Home from "./pages/Home";
 import FreeGames from "./pages/FreeGames";
 import News from "./pages/News";
@@ -31,7 +32,7 @@ function CrewLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Router() {
+function AppRoutes() {
   return (
     <Switch>
       <Route path="/" component={SocialHub} />
@@ -107,6 +108,7 @@ function Router() {
 }
 
 function App() {
+  const base = getAppBasePath();
   return (
     <ErrorBoundary>
       <ThemeProvider defaultTheme="dark">
@@ -121,7 +123,9 @@ function App() {
               },
             }}
           />
-          <Router />
+          <Router base={base}>
+            <AppRoutes />
+          </Router>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
