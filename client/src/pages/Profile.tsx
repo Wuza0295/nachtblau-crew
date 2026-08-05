@@ -1,261 +1,195 @@
 import { useState } from "react";
+import { Link, useParams } from "wouter";
 import { trpc } from "@/lib/trpc";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { PostCard } from "@/components/PostCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
-import { Link, useParams } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { getLoginUrl } from "@/const";
 import { toast } from "sonner";
-import {
-  User,
-  MessageSquare,
-  MessageCircle,
-  Calendar,
-  Edit3,
-  Save,
-  X,
-  ChevronRight,
-  Shield,
-} from "lucide-react";
+import { format } from "date-fns";
+import { de } from "date-fns/locale";
 
 export default function Profile() {
-  const { id } = useParams<{ id: string }>();
-  const userId = parseInt(id ?? "0");
-  const { user: currentUser } = useAuth();
+  const params = useParams<{ id: string }>();
+  const userId = Number(params.id);
+  const { user: me, isAuthenticated } = useAuth();
   const utils = trpc.useUtils();
+  const isOwn = me?.id === userId;
 
-  const [editing, setEditing] = useState(false);
-  const [editName, setEditName] = useState("");
-  const [editBio, setEditBio] = useState("");
-
-  const { data, isLoading } = trpc.profile.getProfile.useQuery(
+  const { data, isLoading } = trpc.profile.get.useQuery(
     { userId },
-    { enabled: !!userId }
+    { enabled: Number.isFinite(userId) }
   );
 
-  const updateProfile = trpc.profile.updateProfile.useMutation({
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState("");
+  const [handle, setHandle] = useState("");
+  const [bio, setBio] = useState("");
+  const [mood, setMood] = useState("");
+
+  const update = trpc.profile.update.useMutation({
     onSuccess: () => {
-      toast.success("Profil aktualisiert!");
+      utils.profile.get.invalidate({ userId });
       setEditing(false);
-      utils.profile.getProfile.invalidate({ userId });
-    },
-    onError: (err) => {
-      toast.error(err.message ?? "Fehler beim Speichern");
+      toast.success("Profil aktualisiert");
     },
   });
-
-  const isOwn = currentUser?.id === userId;
+  const follow = trpc.profile.follow.useMutation({
+    onSuccess: () => utils.profile.get.invalidate({ userId }),
+  });
+  const unfollow = trpc.profile.unfollow.useMutation({
+    onSuccess: () => utils.profile.get.invalidate({ userId }),
+  });
 
   if (isLoading) {
     return (
-      <div className="py-12 container max-w-3xl space-y-4">
-        <div className="h-32 bg-card rounded-xl animate-pulse" />
-        <div className="h-48 bg-card rounded-xl animate-pulse" />
+      <div className="container py-8 max-w-2xl">
+        <Skeleton className="h-48 rounded-2xl" />
       </div>
     );
   }
 
   if (!data) {
-    return (
-      <div className="py-12 container text-center text-muted-foreground">
-        <User className="h-12 w-12 mx-auto mb-4 opacity-30" />
-        <p>Nutzer nicht gefunden.</p>
-      </div>
-    );
+    return <div className="container py-16 text-center">Profil nicht gefunden.</div>;
   }
 
-  const { user, stats, recentThreads } = data;
-  const initials = user.name
-    ? user.name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2)
-    : "?";
-
-  const handleEditStart = () => {
-    setEditName(user.name ?? "");
-    setEditBio(user.bio ?? "");
-    setEditing(true);
-  };
-
-  const handleSave = () => {
-    updateProfile.mutate({ name: editName, bio: editBio });
-  };
+  const initials = (data.user.name ?? "?")
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   return (
-    <div className="py-12">
-      <div className="container max-w-3xl">
-        {/* Profile Card */}
-        <Card className="card-glow bg-card border-border mb-6">
-          <CardContent className="p-6">
-            <div className="flex items-start gap-5">
-              {/* Avatar */}
-              <Avatar className="h-20 w-20 ring-4 ring-primary/20 flex-shrink-0">
-                <AvatarFallback className="bg-primary/15 text-primary text-2xl font-bold">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                {editing ? (
-                  <div className="space-y-3">
-                    <div>
-                      <Label className="text-xs text-muted-foreground">Name</Label>
-                      <Input
-                        value={editName}
-                        onChange={(e) => setEditName(e.target.value)}
-                        className="bg-input border-border focus:border-primary/50 mt-1"
-                        maxLength={64}
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-xs text-muted-foreground">Bio</Label>
-                      <Textarea
-                        value={editBio}
-                        onChange={(e) => setEditBio(e.target.value)}
-                        className="bg-input border-border focus:border-primary/50 mt-1 min-h-20 resize-none"
-                        maxLength={500}
-                        placeholder="Erzähl etwas über dich..."
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        onClick={handleSave}
-                        disabled={updateProfile.isPending}
-                        className="bg-primary hover:bg-primary/80 text-primary-foreground gap-1.5"
-                      >
-                        <Save className="h-3.5 w-3.5" />
-                        Speichern
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setEditing(false)}
-                        className="text-muted-foreground gap-1.5"
-                      >
-                        <X className="h-3.5 w-3.5" />
-                        Abbrechen
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="flex items-center gap-2 mb-1">
-                      <h1
-                        className="text-xl font-bold text-foreground"
-                        style={{ fontFamily: "Orbitron, sans-serif" }}
-                      >
-                        {user.name ?? "Unbekannter Spieler"}
-                      </h1>
-                      {user.role === "admin" && (
-                        <Badge className="bg-primary/20 text-primary border-primary/30 text-xs gap-1">
-                          <Shield className="h-3 w-3" />
-                          Admin
-                        </Badge>
-                      )}
-                    </div>
-
-                    {user.bio ? (
-                      <p className="text-sm text-muted-foreground mb-3">{user.bio}</p>
-                    ) : (
-                      <p className="text-sm text-muted-foreground/50 italic mb-3">
-                        Keine Bio vorhanden
-                      </p>
-                    )}
-
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Calendar className="h-3 w-3" />
-                      Mitglied seit {new Date(user.createdAt).toLocaleDateString("de-DE")}
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {isOwn && !editing && (
+    <div className="container py-8 max-w-2xl space-y-8">
+      <div className="atmosphere-panel rounded-2xl p-6 sm:p-8 space-y-5">
+        <div className="flex flex-wrap items-start gap-5">
+          <Avatar className="h-20 w-20">
+            <AvatarFallback className="text-xl bg-primary/15 text-primary font-display font-bold">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0 space-y-2">
+            <h1 className="font-display text-2xl font-bold truncate">
+              {data.user.name ?? "Nutzer"}
+            </h1>
+            {data.user.handle && (
+              <p className="text-muted-foreground">@{data.user.handle}</p>
+            )}
+            {data.user.mood && (
+              <p className="text-sm text-accent font-medium">{data.user.mood}</p>
+            )}
+            {data.user.bio && (
+              <p className="text-sm leading-relaxed">{data.user.bio}</p>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Dabei seit{" "}
+              {format(new Date(data.user.createdAt), "MMMM yyyy", { locale: de })}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            {isOwn ? (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setName(data.user.name ?? "");
+                  setHandle(data.user.handle ?? "");
+                  setBio(data.user.bio ?? "");
+                  setMood(data.user.mood ?? "");
+                  setEditing((e) => !e);
+                }}
+              >
+                {editing ? "Abbrechen" : "Bearbeiten"}
+              </Button>
+            ) : isAuthenticated ? (
+              data.isFollowing ? (
                 <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleEditStart}
-                  className="text-muted-foreground hover:text-foreground gap-1.5 flex-shrink-0"
+                  variant="outline"
+                  onClick={() => unfollow.mutate({ userId })}
+                  disabled={unfollow.isPending}
                 >
-                  <Edit3 className="h-4 w-4" />
-                  Bearbeiten
+                  Entfolgen
                 </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <Card className="bg-card border-border">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                <MessageSquare className="h-5 w-5" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-foreground">{stats.threadCount}</div>
-                <div className="text-xs text-muted-foreground">Threads erstellt</div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-card border-border">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                <MessageCircle className="h-5 w-5" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-foreground">{stats.postCount}</div>
-                <div className="text-xs text-muted-foreground">Antworten geschrieben</div>
-              </div>
-            </CardContent>
-          </Card>
+              ) : (
+                <Button
+                  onClick={() => follow.mutate({ userId })}
+                  disabled={follow.isPending}
+                >
+                  Folgen
+                </Button>
+              )
+            ) : (
+              <Button asChild>
+                <a href={getLoginUrl()}>Anmelden</a>
+              </Button>
+            )}
+          </div>
         </div>
 
-        {/* Recent Threads */}
-        {recentThreads.length > 0 && (
-          <Card className="bg-card border-border">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
-                <MessageSquare className="h-4 w-4 text-primary" />
-                Letzte Threads
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="space-y-2">
-                {recentThreads.map(({ thread, category }) => (
-                  <div key={thread.id}>
-                    <Link href={`/forum/thread/${thread.id}`}>
-                      <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-primary/5 transition-colors cursor-pointer group">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors line-clamp-1">
-                            {thread.title}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            in {category.name} ·{" "}
-                            {new Date(thread.createdAt).toLocaleDateString("de-DE")}
-                          </p>
-                        </div>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
-                      </div>
-                    </Link>
-                    <Separator className="bg-border/50 last:hidden" />
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+        <div className="flex gap-6 text-sm border-t border-border/50 pt-4">
+          <div>
+            <span className="font-semibold tabular-nums">{data.stats.postCount}</span>{" "}
+            <span className="text-muted-foreground">Posts</span>
+          </div>
+          <div>
+            <span className="font-semibold tabular-nums">{data.stats.followers}</span>{" "}
+            <span className="text-muted-foreground">Follower</span>
+          </div>
+          <div>
+            <span className="font-semibold tabular-nums">{data.stats.following}</span>{" "}
+            <span className="text-muted-foreground">Following</span>
+          </div>
+        </div>
+
+        {editing && (
+          <form
+            className="space-y-3 border-t border-border/50 pt-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              update.mutate({
+                name: name || undefined,
+                handle: handle || undefined,
+                bio,
+                mood,
+              });
+            }}
+          >
+            <Input placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
+            <Input
+              placeholder="Handle"
+              value={handle}
+              onChange={(e) => setHandle(e.target.value.toLowerCase())}
+            />
+            <Input placeholder="Mood" value={mood} onChange={(e) => setMood(e.target.value)} />
+            <Textarea placeholder="Bio" value={bio} onChange={(e) => setBio(e.target.value)} rows={3} />
+            <Button type="submit" disabled={update.isPending}>
+              Speichern
+            </Button>
+          </form>
         )}
       </div>
+
+      <div className="space-y-5">
+        <h2 className="font-display font-semibold text-lg">Streams</h2>
+        {data.recent.map((item) => (
+          <PostCard key={item.post.id} item={item} compact />
+        ))}
+        {data.recent.length === 0 && (
+          <p className="text-muted-foreground text-center py-6">Noch keine Posts.</p>
+        )}
+      </div>
+
+      {isOwn && (
+        <p className="text-center text-sm">
+          <Link href="/pulse" className="text-primary hover:underline">
+            Pulse-Dials einstellen
+          </Link>
+        </p>
+      )}
     </div>
   );
 }

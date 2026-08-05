@@ -1,502 +1,187 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { trpc } from "@/lib/trpc";
+import { SITE, PULSE_TOPICS } from "@/lib/site";
 import { Link } from "wouter";
-import {
-  Gift,
-  Newspaper,
-  MessageSquare,
-  ChevronRight,
-  Gamepad2,
-  Monitor,
-  Flame,
-  Star,
-  Users,
-  Zap,
-  Github,
-  Globe,
-  ExternalLink,
-} from "lucide-react";
-import { SITE } from "@/lib/site";
+import { BrandMark } from "@/components/BrandMark";
+import { ArrowRight, SlidersHorizontal, Orbit, Waves, Clock, LayoutGrid } from "lucide-react";
+import { useEffect, useState } from "react";
 
-function StarField() {
+const PILLARS = [
+  {
+    icon: SlidersHorizontal,
+    title: "Pulse-Dials",
+    from: "Bluesky · Threads · TikTok Topics",
+    text: "Du stellst Interessen als Regler — der Feed folgt sofort. Kein Black-Box-Algorithmus.",
+  },
+  {
+    icon: Orbit,
+    title: "Circles",
+    from: "Reddit × Discord",
+    text: "Themenräume mit Zugehörigkeit: tiefe Diskussionen und echte Community — ohne Firehose.",
+  },
+  {
+    icon: Waves,
+    title: "Resonance",
+    from: "Upvotes · neu gedacht",
+    text: "Leise, Klar oder Tief — jede Resonanz trainiert nur dein Modell, nicht ein Werbenetzwerk.",
+  },
+  {
+    icon: Clock,
+    title: "Signals",
+    from: "Stories · Snap",
+    text: "24-Stunden-Momente. Was bleibt, legst du bewusst auf ein Board.",
+  },
+  {
+    icon: LayoutGrid,
+    title: "Boards & Essays",
+    from: "Pinterest · LinkedIn",
+    text: "Sammlungen für später. Essays für Gedanken, die mehr als 280 Zeichen brauchen.",
+  },
+];
+
+function DialPreview() {
+  const [weights, setWeights] = useState(() =>
+    PULSE_TOPICS.slice(0, 6).map((_, i) => 30 + ((i * 17) % 50))
+  );
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setWeights((prev) => prev.map((w, i) => {
+        const next = w + Math.sin(Date.now() / 800 + i) * 2;
+        return Math.min(95, Math.max(15, next));
+      }));
+    }, 80);
+    return () => clearInterval(id);
+  }, []);
+
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {Array.from({ length: 60 }).map((_, i) => (
-        <div
-          key={i}
-          className="absolute rounded-full bg-white"
-          style={{
-            width: Math.random() * 2 + 1 + "px",
-            height: Math.random() * 2 + 1 + "px",
-            left: Math.random() * 100 + "%",
-            top: Math.random() * 100 + "%",
-            opacity: Math.random() * 0.7 + 0.1,
-            animation: `twinkle ${Math.random() * 3 + 2}s ease-in-out infinite`,
-            animationDelay: Math.random() * 3 + "s",
-          }}
-        />
+    <div className="atmosphere-panel rounded-3xl p-6 sm:p-8 space-y-5 float-soft">
+      <div className="flex items-center justify-between">
+        <p className="font-display font-semibold text-lg">Dein Pulse</p>
+        <span className="text-xs uppercase tracking-widest text-muted-foreground">Live-Vorschau</span>
+      </div>
+      {PULSE_TOPICS.slice(0, 6).map((t, i) => (
+        <div key={t.id} className="space-y-1.5">
+          <div className="flex justify-between text-sm">
+            <span className="font-medium">{t.label}</span>
+            <span className="tabular-nums text-muted-foreground">{Math.round(weights[i])}%</span>
+          </div>
+          <div className="dial-track overflow-hidden">
+            <div
+              className="h-full rounded-full transition-[width] duration-150"
+              style={{
+                width: `${weights[i]}%`,
+                background: `linear-gradient(90deg, oklch(0.45 0.1 195), oklch(0.6 0.12 ${t.hue}))`,
+              }}
+            />
+          </div>
+        </div>
       ))}
     </div>
   );
 }
 
-function HeroSection() {
+export default function Home() {
   const { isAuthenticated } = useAuth();
 
   return (
-    <section
-      className="relative min-h-[85vh] flex items-center overflow-hidden"
-      style={{
-        background:
-          "radial-gradient(ellipse at 70% 50%, oklch(0.18 0.06 252 / 0.4) 0%, transparent 60%), radial-gradient(ellipse at 20% 80%, oklch(0.14 0.05 260 / 0.3) 0%, transparent 50%), oklch(0.09 0.025 250)",
-      }}
-    >
-      {/* Hero background image */}
-      <div
-        className="absolute inset-0 bg-cover bg-center opacity-20"
-        style={{
-          backgroundImage: `url(${SITE.heroBgUrl})`,
-        }}
-      />
-      <StarField />
+    <div>
+      {/* Hero — one composition: brand, headline, sentence, CTA, dominant visual */}
+      <section className="relative min-h-[88vh] flex items-center overflow-hidden">
+        <div
+          className="absolute inset-0 -z-10"
+          style={{
+            background:
+              "radial-gradient(ellipse 70% 60% at 75% 40%, oklch(0.85 0.07 185 / 0.55), transparent 60%), radial-gradient(ellipse 50% 40% at 15% 70%, oklch(0.88 0.08 40 / 0.35), transparent 55%), linear-gradient(180deg, oklch(0.96 0.02 200), oklch(0.94 0.025 195))",
+          }}
+        />
+        <div className="absolute right-[-10%] top-[10%] w-[55vw] h-[55vw] max-w-[640px] max-h-[640px] rounded-full signal-ring opacity-20 blur-3xl pointer-events-none" />
 
-      {/* Glow orb */}
-      <div
-        className="absolute right-1/4 top-1/3 w-96 h-96 rounded-full opacity-10 blur-3xl pointer-events-none"
-        style={{ background: "oklch(0.62 0.22 245)" }}
-      />
-
-      <div className="container relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Text */}
-          <div className="space-y-6">
-            <Badge
-              variant="outline"
-              className="border-primary/40 text-primary bg-primary/10 text-xs tracking-widest uppercase"
-              style={{ fontFamily: "Orbitron, sans-serif" }}
-            >
-              <Star className="h-3 w-3 mr-1 fill-primary" />
-              Gaming Community
-            </Badge>
-
-            <h1
-              className="text-5xl md:text-6xl lg:text-7xl font-black leading-none"
-              style={{ fontFamily: "Orbitron, sans-serif" }}
-            >
-              <span className="gradient-text text-glow">NachtBlau</span>
-              <br />
-              <span className="text-foreground">Crew</span>
+        <div className="container grid lg:grid-cols-[1.1fr_0.9fr] gap-12 lg:gap-16 items-center py-16">
+          <div className="space-y-8 reveal-up">
+            <div className="flex items-center gap-3">
+              <BrandMark className="h-14 w-14" />
+              <span className="font-display font-extrabold text-4xl sm:text-5xl tracking-tight text-gradient">
+                {SITE.name}
+              </span>
+            </div>
+            <h1 className="font-display font-bold text-3xl sm:text-4xl lg:text-[2.75rem] leading-[1.15] text-foreground max-w-xl">
+              {SITE.tagline}
             </h1>
-
-            <p className="text-lg text-muted-foreground leading-relaxed max-w-lg">
-              Deine Gaming Community für PC, Konsolen und Steam. Entdecke kostenlose Spiele,
-              aktuelle News und tausche dich im Forum aus.
+            <p className="text-lg text-muted-foreground max-w-md leading-relaxed">
+              Das Social Portal, das die Stärken aller Netze mischt — und dir den Algorithmus in die Hand gibt.
             </p>
-
             <div className="flex flex-wrap gap-3">
-              {!isAuthenticated && (
-                <Button
-                  size="lg"
-                  className="bg-primary hover:bg-primary/80 text-primary-foreground font-bold shadow-xl shadow-primary/25 transition-all duration-200 hover:shadow-primary/40 hover:scale-105"
-                  onClick={() => (window.location.href = getLoginUrl())}
-                >
-                  <Gamepad2 className="mr-2 h-5 w-5" />
-                  Jetzt beitreten
+              {isAuthenticated ? (
+                <Button asChild size="lg" className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90">
+                  <Link href="/feed">
+                    Zum Pulse <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              ) : (
+                <Button asChild size="lg" className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90">
+                  <a href={getLoginUrl()}>
+                    Starten <ArrowRight className="h-4 w-4" />
+                  </a>
                 </Button>
               )}
-              <Link href="/forum">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-primary/40 text-primary hover:bg-primary/10 font-semibold transition-all duration-200"
-                >
-                  <MessageSquare className="mr-2 h-5 w-5" />
-                  Zum Forum
-                </Button>
-              </Link>
-            </div>
-
-            {/* Stats */}
-            <div className="flex gap-6 pt-2">
-              {[
-                { icon: Users, label: "Community", value: "Aktiv" },
-                { icon: Gift, label: "Free Games", value: "Täglich" },
-                { icon: Newspaper, label: "News", value: "24/7" },
-              ].map(({ icon: Icon, label, value }) => (
-                <div key={label} className="flex items-center gap-2">
-                  <Icon className="h-4 w-4 text-primary" />
-                  <div>
-                    <div className="text-sm font-semibold text-foreground">{value}</div>
-                    <div className="text-xs text-muted-foreground">{label}</div>
-                  </div>
-                </div>
-              ))}
+              <Button asChild size="lg" variant="outline">
+                <Link href="/explore">Entdecken</Link>
+              </Button>
             </div>
           </div>
 
-          {/* Logo */}
-          <div className="flex justify-center lg:justify-end">
-            <div className="relative">
-              <div
-                className="absolute inset-0 rounded-full blur-3xl opacity-30"
-                style={{ background: "oklch(0.62 0.22 245)" }}
-              />
-              <img
-                src={SITE.logoUrl}
-                alt="NachtBlau Crew"
-                className="relative w-72 h-72 md:w-96 md:h-96 object-contain animate-float drop-shadow-2xl"
-              />
-            </div>
+          <div className="reveal-fade" style={{ animationDelay: "0.15s" }}>
+            <DialPreview />
           </div>
         </div>
-      </div>
-    </section>
-  );
-}
+      </section>
 
-function FreeGamesPreview() {
-  const { data, isLoading, error } = trpc.games.getFreeGames.useQuery({ type: "game" });
-  const games = data?.games?.slice(0, 3) ?? [];
-  const hasError = error || data?.error;
-
-  return (
-    <section className="py-16">
-      <div className="container">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2
-              className="text-2xl font-bold text-foreground"
-              style={{ fontFamily: "Orbitron, sans-serif" }}
-            >
-              <Gift className="inline h-6 w-6 text-primary mr-2" />
-              Kostenlose Spiele
-            </h2>
-            <p className="text-muted-foreground mt-1">Aktuell gratis erhältliche Spiele</p>
-          </div>
-          <Link href="/free-games">
-            <Button variant="ghost" className="text-primary hover:text-primary/80 gap-1">
-              Alle anzeigen <ChevronRight className="h-4 w-4" />
-            </Button>
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {hasError && !isLoading ? (
-            <div className="col-span-full p-4 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive">
-              <p className="text-sm">Kostenlose Spiele konnten nicht geladen werden. Bitte versuchen Sie es später erneut.</p>
-            </div>
-          ) : games.length === 0 && !isLoading
-            ? Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-48 rounded-xl bg-card animate-pulse" />
-              ))
-            : isLoading
-            ? Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-48 rounded-xl bg-card animate-pulse" />
-              ))
-            : games.map((game) => (
-                <a
-                  key={game.id}
-                  href={game.openGiveawayUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group block"
-                >
-                  <Card className="card-glow bg-card border-border overflow-hidden transition-all duration-300 hover:-translate-y-1">
-                    <div className="relative h-36 overflow-hidden">
-                      <img
-                        src={game.image}
-                        alt={game.title}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
-                      <Badge className="absolute top-2 right-2 bg-primary/90 text-primary-foreground text-xs">
-                        {game.worth !== "N/A" ? game.worth : "Kostenlos"}
-                      </Badge>
-                    </div>
-                    <CardContent className="p-3">
-                      <p className="font-semibold text-sm text-foreground line-clamp-1 group-hover:text-primary transition-colors">
-                        {game.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">{game.platforms}</p>
-                    </CardContent>
-                  </Card>
-                </a>
-              ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function NewsPreview() {
-  const { data, isLoading, error } = trpc.news.getNews.useQuery({ category: "all", limit: 3 });
-  const articles = data?.articles ?? [];
-  const hasError = error || data?.error;
-
-  return (
-    <section className="py-16 bg-card/30">
-      <div className="container">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2
-              className="text-2xl font-bold text-foreground"
-              style={{ fontFamily: "Orbitron, sans-serif" }}
-            >
-              <Newspaper className="inline h-6 w-6 text-primary mr-2" />
-              Gaming News
-            </h2>
-            <p className="text-muted-foreground mt-1">Aktuelle Nachrichten aus der Gaming-Welt</p>
-          </div>
-          <Link href="/news">
-            <Button variant="ghost" className="text-primary hover:text-primary/80 gap-1">
-              Alle News <ChevronRight className="h-4 w-4" />
-            </Button>
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {hasError && !isLoading ? (
-            <div className="col-span-full p-4 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive">
-              <p className="text-sm">Gaming News konnten nicht geladen werden. Bitte versuchen Sie es später erneut.</p>
-            </div>
-          ) : articles.length === 0 && !isLoading
-            ? Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-48 rounded-xl bg-card animate-pulse" />
-              ))
-            : isLoading
-            ? Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-48 rounded-xl bg-card animate-pulse" />
-              ))
-            : articles.map((article) => (
-                <a
-                  key={article.id}
-                  href={article.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group block"
-                >
-                  <Card className="card-glow bg-card border-border overflow-hidden transition-all duration-300 hover:-translate-y-1 h-full">
-                    {article.image && (
-                      <div className="relative h-36 overflow-hidden">
-                        <img
-                          src={article.image}
-                          alt={article.title}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = "none";
-                          }}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
-                      </div>
-                    )}
-                    <CardContent className="p-3 space-y-1">
-                      <Badge variant="outline" className="text-xs border-primary/30 text-primary">
-                        {article.source}
-                      </Badge>
-                      <p className="font-semibold text-sm text-foreground line-clamp-2 group-hover:text-primary transition-colors">
-                        {article.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {article.pubDate
-                          ? new Date(article.pubDate).toLocaleDateString("de-DE")
-                          : ""}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </a>
-              ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function ForumPreview() {
-  const { data: categories } = trpc.forum.getCategories.useQuery();
-
-  const ICONS: Record<string, React.ReactNode> = {
-    MessageSquare: <MessageSquare className="h-5 w-5" />,
-    Monitor: <Monitor className="h-5 w-5" />,
-    Gamepad2: <Gamepad2 className="h-5 w-5" />,
-    Flame: <Flame className="h-5 w-5" />,
-    Gift: <Gift className="h-5 w-5" />,
-    Users: <Users className="h-5 w-5" />,
-  };
-
-  return (
-    <section className="py-16">
-      <div className="container">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2
-              className="text-2xl font-bold text-foreground"
-              style={{ fontFamily: "Orbitron, sans-serif" }}
-            >
-              <MessageSquare className="inline h-6 w-6 text-primary mr-2" />
-              Community Forum
-            </h2>
-            <p className="text-muted-foreground mt-1">Diskutiere mit der Community</p>
-          </div>
-          <Link href="/forum">
-            <Button variant="ghost" className="text-primary hover:text-primary/80 gap-1">
-              Zum Forum <ChevronRight className="h-4 w-4" />
-            </Button>
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {(categories ?? []).map((cat) => (
-            <Link key={cat.id} href={`/forum/kategorie/${cat.slug}`}>
-              <Card className="card-glow bg-card border-border cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:border-primary/40">
-                <CardContent className="p-4 flex items-start gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10 text-primary flex-shrink-0">
-                    {ICONS[cat.icon ?? "MessageSquare"] ?? <MessageSquare className="h-5 w-5" />}
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground">{cat.name}</h3>
-                    <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">
-                      {cat.description}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function FeatureBanner() {
-  return (
-    <section className="py-12 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border-y border-primary/10">
-      <div className="container">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-          {[
-            {
-              icon: Zap,
-              title: "Live Updates",
-              desc: "Kostenlose Spiele und Angebote in Echtzeit",
-            },
-            {
-              icon: Newspaper,
-              title: "Gaming News",
-              desc: "PC, Konsolen, Steam/Valve – alles an einem Ort",
-            },
-            {
-              icon: Users,
-              title: "Community",
-              desc: "Tausche dich mit Gleichgesinnten aus",
-            },
-          ].map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="flex flex-col items-center gap-3">
-              <div className="p-3 rounded-full bg-primary/15 text-primary">
-                <Icon className="h-6 w-6" />
-              </div>
-              <h3
-                className="font-bold text-foreground"
-                style={{ fontFamily: "Orbitron, sans-serif" }}
-              >
-                {title}
-              </h3>
-              <p className="text-sm text-muted-foreground">{desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function NetworkLinksSection() {
-  return (
-    <section className="py-16 bg-card/30 border-t border-border">
-      <div className="container">
-        <div className="text-center mb-8">
-          <h2
-            className="text-2xl font-bold text-foreground"
-            style={{ fontFamily: "Orbitron, sans-serif" }}
-          >
-            NachtBlau Netzwerk
-          </h2>
-          <p className="text-muted-foreground mt-1">
-            Verknüpft mit unserem Webspace und dem GitHub-Repository
+      {/* One job: explain the hybrid */}
+      <section className="container py-20 space-y-10">
+        <div className="max-w-2xl space-y-3 reveal-up">
+          <h2 className="font-display text-3xl font-bold">Das Beste — neu zusammengesetzt</h2>
+          <p className="text-muted-foreground text-lg">
+            Nicht noch ein Feed. Eine Schicht aus Kontrolle, Community und Formaten, die woanders getrennt leben.
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
-          <a
-            href={SITE.webspaceUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group block"
-          >
-            <Card className="card-glow bg-card border-border transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 h-full">
-              <CardContent className="p-5 flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
-                  <Globe className="h-6 w-6" />
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {PILLARS.map((p, i) => {
+            const Icon = p.icon;
+            return (
+              <div
+                key={p.title}
+                className="atmosphere-panel rounded-2xl p-6 space-y-3 reveal-up"
+                style={{ animationDelay: `${i * 0.08}s` }}
+              >
+                <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                  <Icon className="h-5 w-5" />
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                    {SITE.webspaceLabel}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mt-0.5">
-                    Offizielle NachtBlau GbR Website
-                  </p>
-                </div>
-                <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-              </CardContent>
-            </Card>
-          </a>
-          <a
-            href={SITE.githubUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group block"
-          >
-            <Card className="card-glow bg-card border-border transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 h-full">
-              <CardContent className="p-5 flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
-                  <Github className="h-6 w-6" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                    {SITE.githubLabel}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mt-0.5">
-                    Quellcode, Issues und Beiträge
-                  </p>
-                </div>
-                <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-              </CardContent>
-            </Card>
-          </a>
+                <h3 className="font-display font-semibold text-lg">{p.title}</h3>
+                <p className="text-[11px] uppercase tracking-wider text-accent font-medium">{p.from}</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">{p.text}</p>
+              </div>
+            );
+          })}
         </div>
-        <div className="text-center mt-6">
-          <Link href="/ueber-uns">
-            <Button variant="ghost" className="text-primary hover:text-primary/80 gap-1">
-              Mehr erfahren <ChevronRight className="h-4 w-4" />
-            </Button>
-          </Link>
-        </div>
-      </div>
-    </section>
-  );
-}
+      </section>
 
-export default function Home() {
-  return (
-    <div>
-      <HeroSection />
-      <FeatureBanner />
-      <FreeGamesPreview />
-      <NewsPreview />
-      <ForumPreview />
-      <NetworkLinksSection />
+      <section className="container pb-24">
+        <div className="atmosphere-panel rounded-3xl p-8 sm:p-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+          <div className="space-y-2 max-w-lg">
+            <h2 className="font-display text-2xl font-bold">Name folgt. Gefühl schon da.</h2>
+            <p className="text-muted-foreground">
+              Arbeitstitel {SITE.name}. Melde dich an, justiere deine Dials und spüre den Unterschied.
+            </p>
+          </div>
+          <Button asChild size="lg" className="shrink-0 gap-2">
+            <Link href="/feed">
+              Pulse öffnen <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+      </section>
     </div>
   );
 }

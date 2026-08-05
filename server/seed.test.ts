@@ -1,50 +1,50 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import {
-  DEFAULT_FORUM_CATEGORIES,
-  WELCOME_THREAD,
-  ensureForumCategories,
-  ensureWelcomeThread,
-} from "./seed";
+import { DEFAULT_CIRCLES, ensureCircles, runAppSeeds } from "./seed";
+import { PULSE_TOPICS } from "../shared/site";
 
-const mockSelect = vi.fn();
-const mockFrom = vi.fn();
 const mockInsert = vi.fn();
 const mockValues = vi.fn();
 
 vi.mock("./db", () => ({
   getDb: vi.fn(),
+  getUserByOpenId: vi.fn(),
 }));
 
 import { getDb } from "./db";
 
-describe("ensureForumCategories", () => {
+describe("AETHER seed & concept", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockValues.mockResolvedValue(undefined);
     mockInsert.mockReturnValue({ values: mockValues });
-    mockFrom.mockReturnValue({ select: mockSelect });
-    mockSelect.mockReturnValue({ from: mockFrom });
   });
 
-  it("exports six default forum categories", () => {
-    expect(DEFAULT_FORUM_CATEGORIES).toHaveLength(6);
-    expect(DEFAULT_FORUM_CATEGORIES[0].slug).toBe("allgemein");
-    expect(DEFAULT_FORUM_CATEGORIES[5].slug).toBe("community");
+  it("exports featured circles mixing social paradigms", () => {
+    expect(DEFAULT_CIRCLES.length).toBeGreaterThanOrEqual(6);
+    expect(DEFAULT_CIRCLES.some((c) => c.slug === "tech-pulse")).toBe(true);
+    expect(DEFAULT_CIRCLES.some((c) => c.slug === "design-lab")).toBe(true);
+    expect(DEFAULT_CIRCLES.every((c) => c.topic && c.coverGradient)).toBe(true);
   });
 
-  it("skips seeding when categories already exist", async () => {
+  it("defines 12 pulse topics for user-controlled algorithm", () => {
+    expect(PULSE_TOPICS).toHaveLength(12);
+    expect(PULSE_TOPICS.map((t) => t.id)).toContain("technologie");
+    expect(PULSE_TOPICS.map((t) => t.id)).toContain("nature");
+  });
+
+  it("skips circle seed when data exists", async () => {
     vi.mocked(getDb).mockResolvedValue({
       select: vi.fn().mockReturnValue({
-        from: vi.fn().mockResolvedValue([{ count: 2 }]),
+        from: vi.fn().mockResolvedValue([{ count: 3 }]),
       }),
       insert: mockInsert,
     } as never);
 
-    await ensureForumCategories();
+    await ensureCircles();
     expect(mockInsert).not.toHaveBeenCalled();
   });
 
-  it("seeds categories when table is empty", async () => {
+  it("seeds circles when empty", async () => {
     vi.mocked(getDb).mockResolvedValue({
       select: vi.fn().mockReturnValue({
         from: vi.fn().mockResolvedValue([{ count: 0 }]),
@@ -52,31 +52,13 @@ describe("ensureForumCategories", () => {
       insert: mockInsert,
     } as never);
 
-    await ensureForumCategories();
-    expect(mockInsert).toHaveBeenCalledWith(expect.anything());
-    expect(mockValues).toHaveBeenCalledWith([...DEFAULT_FORUM_CATEGORIES]);
+    await ensureCircles();
+    expect(mockInsert).toHaveBeenCalled();
+    expect(mockValues).toHaveBeenCalledWith([...DEFAULT_CIRCLES]);
   });
 
-  it("exports welcome thread content with external links", () => {
-    expect(WELCOME_THREAD.title).toContain("Willkommen");
-    expect(WELCOME_THREAD.content).toContain("nacht-blau.de");
-    expect(WELCOME_THREAD.content).toContain("github.com");
-  });
-
-  it("no-ops when database is unavailable", async () => {
+  it("runAppSeeds no-ops without database", async () => {
     vi.mocked(getDb).mockResolvedValue(null);
-    await expect(ensureForumCategories()).resolves.toBeUndefined();
-    expect(mockInsert).not.toHaveBeenCalled();
-  });
-});
-
-describe("ensureWelcomeThread", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it("no-ops when database is unavailable", async () => {
-    vi.mocked(getDb).mockResolvedValue(null);
-    await expect(ensureWelcomeThread()).resolves.toBeUndefined();
+    await expect(runAppSeeds()).resolves.toBeUndefined();
   });
 });

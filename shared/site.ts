@@ -1,39 +1,51 @@
+/** Temporary working title — final brand name TBD */
 export const SITE = {
-  name: "NachtBlau Crew",
-  shortName: "NachtBlau",
-  tagline: "Deine Gaming Community für PC, Konsolen, Steam und mehr.",
+  name: "AETHER",
+  shortName: "AETHER",
+  tagline: "Dein Feed. Deine Regeln.",
   description:
-    "NachtBlau Crew – Deine Gaming Community für PC, Konsolen, Steam und mehr. Aktuelle News, kostenlose Spiele und ein aktives Forum.",
-  logoUrl:
-    "https://d2xsxph8kpxj0f.cloudfront.net/310519663739653758/PbtcqHtcftAKnwDnhmoduf/nachtblau-logo-Li7umgFb8XhrYaRtYVFm4Z.webp",
-  heroBgUrl:
-    "https://d2xsxph8kpxj0f.cloudfront.net/310519663739653758/PbtcqHtcftAKnwDnhmoduf/nachtblau-hero-bg-HgRTyjrF5BBTepdctiJ8Mj.webp",
-  webspaceUrl: "https://nacht-blau.de",
-  webspaceLabel: "NachtBlau Webspace",
+    "AETHER verbindet das Beste aus allen sozialen Netzwerken: nutzergesteuerte Feeds, Circles, Signals, Boards und Resonanz — ohne Black-Box-Algorithmus.",
+  /** CSS wordmark; replace when final brand/logo is ready */
+  logoUrl: "",
+  heroBgUrl: "",
+  webspaceUrl: "",
+  webspaceLabel: "",
   githubUrl: "https://github.com/Wuza0295/nachtblau-crew",
   githubOrgUrl: "https://github.com/Wuza0295",
-  githubLabel: "GitHub Repository",
-  contactEmail: "info@nacht-blau.de",
-  gamerPowerUrl: "https://www.gamerpower.com",
+  githubLabel: "GitHub",
+  contactEmail: "",
+  gamerPowerUrl: "",
 } as const;
 
 export const EXTERNAL_LINKS = [
   {
-    href: SITE.webspaceUrl,
-    label: SITE.webspaceLabel,
-    description: "Offizielle Website der NachtBlau GbR mit Infos zum Projekt und Team.",
-    external: true,
-  },
-  {
     href: SITE.githubUrl,
     label: SITE.githubLabel,
-    description: "Quellcode, Issues und Beiträge zur NachtBlau Crew App auf GitHub.",
-    external: true,
-  },
-  {
-    href: `mailto:${SITE.contactEmail}`,
-    label: "Kontakt",
-    description: "Schreib uns eine E-Mail an info@nacht-blau.de.",
+    description: "Quellcode und Beiträge.",
     external: true,
   },
 ] as const;
+
+/** Interest topics for Pulse Dials — the user-controlled algorithm */
+export const PULSE_TOPICS = [
+  { id: "technologie", label: "Technologie", hue: 195 },
+  { id: "kultur", label: "Kultur", hue: 320 },
+  { id: "design", label: "Design", hue: 25 },
+  { id: "wissenschaft", label: "Wissenschaft", hue: 160 },
+  { id: "musik", label: "Musik", hue: 280 },
+  { id: "sport", label: "Sport", hue: 140 },
+  { id: "reisen", label: "Reisen", hue: 40 },
+  { id: "food", label: "Food", hue: 55 },
+  { id: "gaming", label: "Gaming", hue: 250 },
+  { id: "business", label: "Business", hue: 210 },
+  { id: "kunst", label: "Kunst", hue: 350 },
+  { id: "nature", label: "Nature", hue: 130 },
+] as const;
+
+export type PulseTopicId = (typeof PULSE_TOPICS)[number]["id"];
+
+export const RESONANCE_LABELS = {
+  1: "Leise",
+  2: "Klar",
+  3: "Tief",
+} as const;

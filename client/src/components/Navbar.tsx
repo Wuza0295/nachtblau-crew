@@ -14,29 +14,24 @@ import { Link, useLocation } from "wouter";
 import {
   Menu,
   X,
-  Gamepad2,
-  Newspaper,
-  MessageSquare,
-  Gift,
+  Radio,
+  Compass,
+  Orbit,
+  LayoutGrid,
+  PenLine,
   LogOut,
   User,
-  Github,
-  Globe,
-  Info,
+  SlidersHorizontal,
 } from "lucide-react";
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
+import { BrandMark } from "./BrandMark";
 
 const NAV_LINKS = [
-  { href: "/free-games", label: "Free Games", icon: Gift },
-  { href: "/news", label: "News", icon: Newspaper },
-  { href: "/forum", label: "Forum", icon: MessageSquare },
-  { href: "/ueber-uns", label: "Über uns", icon: Info },
-];
-
-const EXTERNAL_NAV_LINKS = [
-  { href: SITE.webspaceUrl, label: "Webspace", icon: Globe },
-  { href: SITE.githubUrl, label: "GitHub", icon: Github },
+  { href: "/feed", label: "Pulse", icon: Radio },
+  { href: "/explore", label: "Explore", icon: Compass },
+  { href: "/circles", label: "Circles", icon: Orbit },
+  { href: "/boards", label: "Boards", icon: LayoutGrid },
 ];
 
 export default function Navbar() {
@@ -63,115 +58,82 @@ export default function Navbar() {
     <nav className="glass-nav sticky top-0 z-50">
       <div className="container">
         <div className="flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center gap-3 group">
-            <img
-              src={SITE.logoUrl}
-              alt="NachtBlau Crew Logo"
-              className="h-10 w-10 object-contain transition-transform duration-300 group-hover:scale-110"
-            />
-            <div className="hidden sm:block">
-              <span
-                className="font-bold text-lg leading-none gradient-text"
-                style={{ fontFamily: "Orbitron, sans-serif" }}
-              >
-                NachtBlau
-              </span>
-              <div
-                className="text-xs text-muted-foreground leading-none mt-0.5 tracking-widest uppercase"
-                style={{ fontFamily: "Orbitron, sans-serif" }}
-              >
-                Crew
-              </div>
-            </div>
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <BrandMark className="h-9 w-9 transition-transform duration-300 group-hover:scale-105" />
+            <span className="font-display font-bold text-xl tracking-tight text-gradient">
+              {SITE.name}
+            </span>
           </Link>
 
-          <div className="hidden lg:flex items-center gap-1">
-            {NAV_LINKS.map(({ href, label, icon: Icon }) => (
-              <Link key={href} href={href}>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={`gap-2 transition-all duration-200 ${
-                    location === href
-                      ? "text-primary bg-primary/10"
-                      : "text-muted-foreground hover:text-foreground hover:bg-white/5"
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  {label}
-                </Button>
-              </Link>
-            ))}
-            <div className="w-px h-6 bg-border mx-1" />
-            {EXTERNAL_NAV_LINKS.map(({ href, label, icon: Icon }) => (
-              <a key={href} href={href} target="_blank" rel="noopener noreferrer">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="gap-2 text-muted-foreground hover:text-primary hover:bg-white/5 transition-all duration-200"
-                  title={label}
-                >
-                  <Icon className="h-4 w-4" />
-                  {label}
-                </Button>
-              </a>
-            ))}
+          <div className="hidden md:flex items-center gap-1">
+            {NAV_LINKS.map((link) => {
+              const active = location === link.href || location.startsWith(link.href + "/");
+              const Icon = link.icon;
+              return (
+                <Link key={link.href} href={link.href}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`gap-1.5 ${active ? "bg-secondary text-primary" : "text-muted-foreground"}`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {link.label}
+                  </Button>
+                </Link>
+              );
+            })}
           </div>
 
           <div className="flex items-center gap-2">
-            {isAuthenticated && user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="relative h-9 w-9 rounded-full p-0 ring-2 ring-primary/30 hover:ring-primary/60 transition-all"
-                  >
-                    <Avatar className="h-9 w-9">
-                      <AvatarFallback className="bg-primary/20 text-primary text-sm font-semibold">
-                        {initials}
-                      </AvatarFallback>
-                    </Avatar>
+            {isAuthenticated ? (
+              <>
+                <Link href="/compose" className="hidden sm:block">
+                  <Button size="sm" className="gap-1.5 bg-accent text-accent-foreground hover:bg-accent/90">
+                    <PenLine className="h-4 w-4" />
+                    Posten
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48 bg-card border-border">
-                  <div className="px-3 py-2">
-                    <p className="text-sm font-medium text-foreground truncate">
-                      {user.name ?? "Spieler"}
-                    </p>
-                    <p className="text-xs text-muted-foreground truncate">{user.email ?? ""}</p>
-                  </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href={`/profil/${user.id}`} className="cursor-pointer">
-                      <User className="mr-2 h-4 w-4" />
-                      Mein Profil
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => logoutMutation.mutate()}
-                    className="text-destructive focus:text-destructive cursor-pointer"
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Abmelden
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                </Link>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="rounded-full">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-primary/15 text-primary text-xs font-semibold">
+                          {initials}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem asChild>
+                      <Link href={`/profil/${user?.id}`} className="flex items-center gap-2 cursor-pointer">
+                        <User className="h-4 w-4" /> Profil
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/pulse" className="flex items-center gap-2 cursor-pointer">
+                        <SlidersHorizontal className="h-4 w-4" /> Pulse-Dials
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => logoutMutation.mutate()}
+                      className="text-destructive gap-2"
+                    >
+                      <LogOut className="h-4 w-4" /> Abmelden
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
             ) : (
-              <Button
-                size="sm"
-                className="bg-primary hover:bg-primary/80 text-primary-foreground font-semibold shadow-lg shadow-primary/20 transition-all duration-200"
-                onClick={() => (window.location.href = getLoginUrl())}
-              >
-                <Gamepad2 className="mr-2 h-4 w-4" />
-                Anmelden
+              <Button asChild size="sm" className="bg-primary hover:bg-primary/90">
+                <a href={getLoginUrl()}>Anmelden</a>
               </Button>
             )}
 
             <Button
               variant="ghost"
-              size="sm"
-              className="lg:hidden"
+              size="icon"
+              className="md:hidden"
               onClick={() => setMenuOpen(!menuOpen)}
             >
               {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -180,32 +142,25 @@ export default function Navbar() {
         </div>
 
         {menuOpen && (
-          <div className="lg:hidden border-t border-border py-3 space-y-1">
-            {NAV_LINKS.map(({ href, label, icon: Icon }) => (
-              <Link key={href} href={href} onClick={() => setMenuOpen(false)}>
-                <Button
-                  variant="ghost"
-                  className={`w-full justify-start gap-2 ${
-                    location === href ? "text-primary bg-primary/10" : "text-muted-foreground"
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  {label}
+          <div className="md:hidden pb-4 flex flex-col gap-1">
+            {NAV_LINKS.map((link) => {
+              const Icon = link.icon;
+              return (
+                <Link key={link.href} href={link.href} onClick={() => setMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start gap-2">
+                    <Icon className="h-4 w-4" />
+                    {link.label}
+                  </Button>
+                </Link>
+              );
+            })}
+            {isAuthenticated && (
+              <Link href="/compose" onClick={() => setMenuOpen(false)}>
+                <Button variant="ghost" className="w-full justify-start gap-2">
+                  <PenLine className="h-4 w-4" /> Posten
                 </Button>
               </Link>
-            ))}
-            {EXTERNAL_NAV_LINKS.map(({ href, label, icon: Icon }) => (
-              <a key={href} href={href} target="_blank" rel="noopener noreferrer">
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start gap-2 text-muted-foreground hover:text-primary"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  <Icon className="h-4 w-4" />
-                  {label}
-                </Button>
-              </a>
-            ))}
+            )}
           </div>
         )}
       </div>
