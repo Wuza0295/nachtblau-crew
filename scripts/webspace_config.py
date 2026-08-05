@@ -194,7 +194,16 @@ def upload_tree(ftp, local: Path, remote_prefix: str = "") -> int:
 MAX_PULL_BYTES = int(os.environ.get("FTP_MAX_PULL_BYTES", str(8 * 1024 * 1024)))
 
 
+def _ensure_binary(ftp) -> None:
+    """SIZE/RETR need image mode; some servers stay in ASCII after LIST."""
+    try:
+        ftp.voidcmd("TYPE I")
+    except Exception:
+        pass
+
+
 def _remote_size(ftp, name: str) -> int | None:
+    _ensure_binary(ftp)
     try:
         return ftp.size(name)
     except Exception:
@@ -221,15 +230,26 @@ def download_tree(ftp, local: Path, remote_prefix: str = "") -> int:
         if size is not None and size > MAX_PULL_BYTES:
             print(f"  · skip large {remote_name} ({size} bytes)")
             continue
-        if target.is_file() and size is not None and target.stat().st_size == size:
+        if (
+            target.is_file()
+            and target.stat().st_size > 0
+            and size is not None
+            and target.stat().st_size == size
+        ):
             print(f"  = keep {remote_name}")
             count += 1
             continue
+        # Re-fetch empty/corrupt locals
+        if target.is_file() and target.stat().st_size == 0:
+            target.unlink(missing_ok=True)
 
         print(f"  ↓ {remote_name}", flush=True)
         try:
+            _ensure_binary(ftp)
             with target.open("wb") as fh:
                 ftp.retrbinary(f"RETR {name}", fh.write, blocksize=64 * 1024)
+            if target.stat().st_size == 0 and (size is None or size > 0):
+                raise IOError("0-byte download")
             count += 1
         except Exception as exc:
             print(f"  ! fail {remote_name}: {exc}", flush=True)
