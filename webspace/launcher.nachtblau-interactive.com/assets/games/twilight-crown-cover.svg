@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" fill="none">
+  <defs>
+    <linearGradient id="sky" x1="800" y1="0" x2="800" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1a2848"/>
+      <stop offset="0.5" stop-color="#3868a8"/>
+      <stop offset="1" stop-color="#284868"/>
+    </linearGradient>
+    <linearGradient id="grass" x1="800" y1="500" x2="800" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5ab058"/>
+      <stop offset="1" stop-color="#387838"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(800 420) rotate(90) scale(180)">
+      <stop stop-color="#88e8ff" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#88e8ff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sky)"/>
+  <circle cx="800" cy="420" r="120" fill="url(#glow)"/>
+  <path d="M0 520 Q400 480 800 510 T1600 520 L1600 900 L0 900Z" fill="url(#grass)"/>
+  <g opacity="0.7">
+    <rect x="200" y="440" width="60" height="80" fill="#285828"/>
+    <rect x="210" y="420" width="40" height="30" fill="#387838"/>
+    <rect x="1300" y="450" width="50" height="70" fill="#285828"/>
+    <rect x="1310" y="430" width="30" height="30" fill="#387838"/>
+  </g>
+  <!-- Hero -->
+  <rect x="780" y="560" width="24" height="28" fill="#3868c8"/>
+  <rect x="784" y="548" width="16" height="14" fill="#e8b878"/>
+  <rect x="782" y="542" width="20" height="8" fill="#a85828"/>
+  <!-- Aether crystal -->
+  <path d="M800 320 L830 380 L770 380 Z" fill="#88e8ff" opacity="0.9"/>
+  <path d="M800 340 L815 375 L785 375 Z" fill="#c8f8ff"/>
+  <path d="M785 380 L830 380 L807 410 Z" fill="#68c8e8" opacity="0.85"/>
+  <!-- Ruins -->
+  <rect x="1100" y="480" width="120" height="8" fill="#584838"/>
+  <rect x="1120" y="420" width="8" height="60" fill="#584838"/>
+  <rect x="1190" y="420" width="8" height="60" fill="#584838"/>
+</svg>

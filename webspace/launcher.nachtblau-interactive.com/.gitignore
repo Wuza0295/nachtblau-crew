@@ -1,0 +1,16 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*.log
+
+# Secrets
+.env
+.env.*
+!.env.example
+credentials*
+*.pem
+
+# Local dev artifacts
+.local-dev/
+config/games.local.json

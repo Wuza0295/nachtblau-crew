@@ -1,0 +1,100 @@
+:root {
+  --bg-deep: #0a0618;
+  --bg-mid: #1a0f3a;
+  --accent: #7ec8ff;
+  --accent-warm: #ffb347;
+  --violet: #a78bfa;
+  --pixel: 'Courier New', Courier, monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 20%, #2a1858 0%, transparent 55%),
+    linear-gradient(180deg, var(--bg-mid) 0%, var(--bg-deep) 100%);
+  color: #e8e0ff;
+  font-family: var(--pixel);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+  user-select: none;
+}
+
+#game-wrapper {
+  position: relative;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  box-shadow:
+    0 0 0 3px #3d2a6e,
+    0 0 0 6px #12082a,
+    0 20px 60px rgba(0, 0, 0, 0.55);
+}
+
+#game {
+  display: block;
+  width: min(96vw, 960px);
+  height: auto;
+  background: #000;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+#touch-controls {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 4%;
+}
+
+#touch-controls.hidden {
+  display: none;
+}
+
+#touch-controls button {
+  pointer-events: auto;
+  width: 52px;
+  height: 52px;
+  border: 2px solid rgba(126, 200, 255, 0.45);
+  border-radius: 50%;
+  background: rgba(20, 12, 48, 0.65);
+  color: var(--accent);
+  font-size: 18px;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#touch-controls .touch-left,
+#touch-controls .touch-right {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+#touch-controls .accel-btn {
+  width: 64px;
+  height: 64px;
+  border-color: rgba(255, 179, 71, 0.55);
+  color: var(--accent-warm);
+}
+
+#touch-controls .drift-btn {
+  border-color: rgba(167, 139, 250, 0.55);
+  color: var(--violet);
+}
+
+@media (pointer: coarse) {
+  #touch-controls.hidden {
+    display: flex;
+  }
+}

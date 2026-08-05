@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Twilight Crown — Krone der Dämmerung</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="game-wrapper">
+    <canvas id="game" width="256" height="224"></canvas>
+    <div id="touch-controls">
+      <div class="dpad">
+        <button type="button" class="dpad-btn dpad-up" data-dir="up" aria-label="Oben">▲</button>
+        <button type="button" class="dpad-btn dpad-left" data-dir="left" aria-label="Links">◀</button>
+        <button type="button" class="dpad-btn dpad-center" aria-hidden="true"></button>
+        <button type="button" class="dpad-btn dpad-right" data-dir="right" aria-label="Rechts">▶</button>
+        <button type="button" class="dpad-btn dpad-down" data-dir="down" aria-label="Unten">▼</button>
+      </div>
+      <div class="action-pad">
+        <button type="button" class="action-btn action-attack" data-action="attack" aria-label="Schwert">⚔</button>
+        <button type="button" class="action-btn action-item" data-action="item" aria-label="Item">◆</button>
+        <button type="button" class="action-btn action-interact" data-action="interact" aria-label="Interagieren">A</button>
+      </div>
+    </div>
+    <div id="overlay">
+      <div id="title-screen">
+        <h1>TWILIGHT CROWN</h1>
+        <p class="subtitle">Rette die Krone der Dämmerung</p>
+        <p class="blink">Drücke ENTER zum Starten</p>
+        <div class="controls">
+          <span>↑↓←→ / D-Pad · Gamepad · Touch</span>
+          <span>Leertaste / A — Schwert · Topf</span>
+          <span>Z / B — Item · Schlüssel · Bombe</span>
+          <span>E / X — Truhe · NPC · Schild</span>
+        </div>
+      </div>
+      <div id="game-over" class="hidden">
+        <h2>GAME OVER</h2>
+        <p class="blink">Drücke ENTER</p>
+      </div>
+      <div id="victory" class="hidden">
+        <h2>Sieg!</h2>
+        <p>Die Krone der Dämmerung leuchtet wieder!</p>
+        <p class="blink">Drücke ENTER</p>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

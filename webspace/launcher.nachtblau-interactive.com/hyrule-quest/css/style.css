@@ -1,0 +1,96 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #0a0a12;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Courier New", monospace;
+  overflow: hidden;
+}
+
+#game-wrapper {
+  position: relative;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+#game {
+  display: block;
+  width: min(90vw, 768px);
+  height: auto;
+  aspect-ratio: 256 / 224;
+  border: 4px solid #3a2a1a;
+  box-shadow:
+    0 0 0 2px #1a1008,
+    0 0 40px rgba(0, 0, 0, 0.8),
+    inset 0 0 80px rgba(0, 0, 0, 0.3);
+  background: #000;
+}
+
+#overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#overlay > div {
+  text-align: center;
+  color: #f8f0d0;
+  text-shadow: 2px 2px 0 #1a0800;
+}
+
+#title-screen h1 {
+  font-size: clamp(1.2rem, 4vw, 2rem);
+  letter-spacing: 0.15em;
+  color: #ffd700;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  font-size: clamp(0.6rem, 2vw, 0.85rem);
+  color: #a0c878;
+  margin-bottom: 2rem;
+}
+
+.blink {
+  animation: blink 1s step-start infinite;
+  font-size: clamp(0.7rem, 2.5vw, 1rem);
+  color: #fff;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+.controls {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: clamp(0.55rem, 1.8vw, 0.75rem);
+  color: #888;
+}
+
+#game-over h2,
+#victory h2 {
+  font-size: clamp(1.5rem, 5vw, 2.5rem);
+  color: #e04040;
+  margin-bottom: 1rem;
+}
+
+#victory h2 {
+  color: #ffd700;
+}
+
+.hidden {
+  display: none !important;
+}

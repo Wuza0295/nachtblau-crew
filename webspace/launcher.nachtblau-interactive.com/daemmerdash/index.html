@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Dämmerdash — NachtBlau</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="game-wrapper">
+    <canvas id="game" width="320" height="240" tabindex="0" aria-label="Dämmerdash"></canvas>
+    <div id="touch-controls" class="hidden">
+      <div class="touch-left">
+        <button type="button" data-key="ArrowLeft" aria-label="Links">◀</button>
+        <button type="button" data-key="ArrowRight" aria-label="Rechts">▶</button>
+      </div>
+      <div class="touch-right">
+        <button type="button" data-key="KeyZ" class="item-btn" aria-label="Item 1">①</button>
+        <button type="button" data-key="KeyX" class="item-btn" aria-label="Item 2">②</button>
+        <button type="button" data-key="ShiftLeft" class="drift-btn" aria-label="Drift">D</button>
+        <button type="button" data-key="ArrowUp" class="accel-btn" aria-label="Gas">▲</button>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="js/main.js?v=5"></script>
+</body>
+</html>

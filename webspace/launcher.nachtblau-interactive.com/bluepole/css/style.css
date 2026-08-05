@@ -1,0 +1,104 @@
+:root {
+  --nb-deep: #040a14;
+  --nb-mid: #0c1e38;
+  --nb-blue: #1a3a6a;
+  --nb-accent: #a8e6ff;
+  --nb-cyan: #5eeaff;
+  --nb-glow: #3a8fd4;
+  --font-display: 'Orbitron', system-ui, sans-serif;
+  --font-ui: 'Exo 2', system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  background:
+    radial-gradient(ellipse 70% 50% at 70% 15%, rgba(94, 234, 255, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 20% 80%, rgba(58, 143, 212, 0.15) 0%, transparent 55%),
+    linear-gradient(165deg, var(--nb-mid) 0%, var(--nb-deep) 55%, #02060c 100%);
+  color: var(--nb-accent);
+  font-family: var(--font-ui);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+  user-select: none;
+}
+
+#game-wrapper {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(168, 230, 255, 0.25),
+    0 0 40px rgba(94, 234, 255, 0.12),
+    0 24px 80px rgba(0, 0, 0, 0.65);
+}
+
+#game {
+  display: block;
+  width: min(96vw, 1120px);
+  height: auto;
+  background: #02060c;
+  /* modern: smooth upscale */
+  image-rendering: auto;
+}
+
+#touch-controls {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 4%;
+}
+
+#touch-controls.hidden {
+  display: none;
+}
+
+#touch-controls button {
+  pointer-events: auto;
+  width: 56px;
+  height: 56px;
+  border: 1px solid rgba(168, 230, 255, 0.4);
+  border-radius: 50%;
+  background: rgba(12, 30, 56, 0.75);
+  backdrop-filter: blur(8px);
+  color: var(--nb-accent);
+  font-size: 18px;
+  font-family: var(--font-display);
+  -webkit-tap-highlight-color: transparent;
+}
+
+#touch-controls .touch-left,
+#touch-controls .touch-right {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+#touch-controls .accel-btn {
+  width: 68px;
+  height: 68px;
+  border-color: rgba(255, 224, 102, 0.5);
+  color: #ffe066;
+}
+
+#touch-controls .drift-btn {
+  border-color: rgba(94, 234, 255, 0.55);
+  color: var(--nb-cyan);
+}
+
+@media (pointer: coarse) {
+  #touch-controls.hidden {
+    display: flex;
+  }
+}

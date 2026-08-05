@@ -1,0 +1,14 @@
+{
+  "paypalEmail": "hello@nachtblau-interactive.com",
+  "currency": "EUR",
+  "symbiose": {
+    "productId": "symbiose-band1",
+    "minAmount": 2,
+    "paypalItem": "Symbiose: Der grüne Abgrund Band 1"
+  },
+  "tips": {
+    "enabled": true,
+    "presets": [2, 5, 10],
+    "label": "Trinkgeld (optional)"
+  }
+}

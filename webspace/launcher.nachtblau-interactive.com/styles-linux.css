@@ -1,0 +1,471 @@
+/* Linux Desktop-Hub Zusatzstyles — paritätisch zu Web */
+.platform-linux {
+  height: 100%;
+}
+
+.platform-linux .app {
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+.platform-linux .header {
+  padding: 10px 20px;
+  flex-shrink: 0;
+}
+
+.platform-linux .header-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.platform-linux .header-link {
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 6px 12px;
+  border: 1px solid var(--surface-border);
+  border-radius: 999px;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.platform-linux .header-link:hover {
+  color: var(--text);
+  border-color: var(--game-accent);
+}
+
+.platform-linux .header-tagline {
+  font-size: 0.78rem;
+}
+
+.platform-linux .brand-sub {
+  letter-spacing: 0.28em;
+}
+
+.platform-linux .footer {
+  padding: 6px 20px;
+  flex-shrink: 0;
+}
+
+.platform-linux .footer-link {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.platform-linux .footer-link:hover {
+  color: var(--game-accent);
+}
+
+/* ── Kategorien & Bibliothek ── */
+.platform-linux .game-rail {
+  padding: 8px 16px 10px;
+  min-height: 0;
+  flex-shrink: 0;
+  background: linear-gradient(180deg, rgba(6, 10, 22, 0.92), rgba(6, 10, 22, 0.75));
+  border-bottom: 1px solid color-mix(in srgb, var(--game-accent) 25%, var(--surface-border));
+}
+
+.platform-linux .library-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.platform-linux .category-tabs,
+.platform-linux .category-subtabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.platform-linux .category-tab,
+.platform-linux .category-subtab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--surface-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.platform-linux .category-subtab {
+  font-size: 0.62rem;
+  padding: 5px 10px;
+  letter-spacing: 0.06em;
+}
+
+.platform-linux .category-tab:hover,
+.platform-linux .category-subtab:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--game-accent) 40%, var(--surface-border));
+}
+
+.platform-linux .category-tab.selected,
+.platform-linux .category-subtab.selected {
+  color: var(--game-accent-2);
+  border-color: color-mix(in srgb, var(--game-accent) 55%, transparent);
+  background: color-mix(in srgb, var(--game-accent) 14%, rgba(255, 255, 255, 0.04));
+  box-shadow: 0 0 16px color-mix(in srgb, var(--game-accent) 18%, transparent);
+}
+
+.platform-linux .category-tab-icon {
+  font-size: 0.85em;
+  line-height: 1;
+}
+
+.platform-linux .category-tab-count {
+  min-width: 1.1rem;
+  padding: 1px 5px;
+  border-radius: 999px;
+  font-size: 0.58rem;
+  letter-spacing: 0;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--text-muted);
+}
+
+.platform-linux .category-tab.selected .category-tab-count,
+.platform-linux .category-subtab.selected .category-tab-count {
+  color: var(--game-accent);
+}
+
+.platform-linux .category-subtabs {
+  padding-left: 2px;
+}
+
+.platform-linux .game-rail-list {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 0 4px;
+  margin: 0;
+  list-style: none;
+  min-height: 0;
+  scrollbar-width: thin;
+}
+
+.platform-linux .game-tile-cat {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: var(--font-display);
+  font-size: 0.52rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  z-index: 2;
+}
+
+.platform-linux .badge-category {
+  background: color-mix(in srgb, var(--game-accent) 12%, transparent);
+  color: var(--game-accent-2);
+  border-color: color-mix(in srgb, var(--game-accent) 28%, transparent);
+}
+
+.platform-linux .gallery-teaser-note {
+  margin-top: 8px;
+  font-size: 0.78rem;
+}
+
+.platform-linux .preview-reader-body {
+  padding: 14px 16px 16px;
+  max-height: 100%;
+}
+
+.platform-linux .game-tile {
+  width: 118px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.32);
+}
+
+.platform-linux .game-tile-featured {
+  width: 128px;
+}
+
+.platform-linux .game-tile-cover {
+  aspect-ratio: 16 / 10;
+}
+
+.platform-linux .game-tile-info {
+  padding: 6px 8px 8px;
+}
+
+.platform-linux .game-tile-sub {
+  font-size: 0.68rem;
+}
+
+.platform-linux .game-tile-play {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+
+.platform-linux .game-tile:hover .game-tile-play,
+.platform-linux .game-tile.selected .game-tile-play {
+  opacity: 1;
+}
+
+/* ── Hauptbereich ohne Seiten-Scroll ── */
+.platform-linux .main {
+  min-height: 0;
+  grid-template-columns: 1fr min(320px, 30vw);
+}
+
+.platform-linux .preview-stage {
+  padding: 10px 10px 10px 14px;
+  min-height: 0;
+}
+
+.platform-linux .preview-frame {
+  display: none !important;
+}
+
+.platform-linux .preview-empty p:last-child {
+  font-size: 0.9rem;
+}
+
+.platform-linux .preview-cover-cta {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  text-align: center;
+}
+
+.platform-linux .btn-preview-play {
+  padding: 16px 32px;
+  font-size: 0.92rem;
+  letter-spacing: 0.14em;
+}
+
+.platform-linux .preview-cover-cta-hint {
+  max-width: 28rem;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+  letter-spacing: 0.03em;
+}
+
+.platform-linux .preview-cover-hint.hidden {
+  display: none;
+}
+
+.platform-linux .reader-prose.reader-preview {
+  font-size: 0.84rem;
+  line-height: 1.55;
+  margin-bottom: 10px;
+}
+
+/* ── Kacheln ── */
+
+/* ── Detail-Sidebar kompakt ── */
+.platform-linux .detail-panel {
+  padding: 14px 16px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.platform-linux .detail-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+}
+
+.platform-linux .detail-title {
+  font-size: clamp(1.1rem, 1.8vw, 1.45rem);
+  margin-bottom: 4px;
+}
+
+.platform-linux .detail-desc {
+  margin: 10px 0;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.platform-linux .detail-actions {
+  margin-top: 10px;
+  margin-bottom: 4px;
+}
+
+.platform-linux .detail-actions .btn-primary {
+  flex: 1 1 auto;
+  justify-content: center;
+  padding: 14px 20px;
+}
+
+.platform-linux .detail-actions .btn-tip,
+.platform-linux .detail-actions #btn-tip {
+  flex: 0 0 auto;
+}
+
+.platform-linux .detail-version,
+.platform-linux .detail-path-status {
+  font-size: 0.72rem;
+  margin-bottom: 2px;
+}
+
+.platform-linux .paywall-panel,
+.platform-linux .tip-panel {
+  margin: 10px 0;
+  padding: 12px;
+}
+
+.platform-linux .tip-panel-collapsible {
+  border-radius: var(--radius);
+  border: 1px solid var(--surface-border);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.platform-linux .tip-summary {
+  cursor: pointer;
+  list-style: none;
+  margin-bottom: 0;
+}
+
+.platform-linux .tip-summary::-webkit-details-marker {
+  display: none;
+}
+
+.platform-linux .tip-panel-collapsible[open] .tip-summary {
+  margin-bottom: 10px;
+}
+
+.platform-linux .tip-panel-collapsible:not([open]) .panel-text,
+.platform-linux .tip-panel-collapsible:not([open]) .tip-form {
+  display: none;
+}
+
+.platform-linux .gallery-grid {
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+@media (max-width: 960px) {
+  .platform-linux .header-nav {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+
+  .platform-linux .header-tagline {
+    display: none;
+  }
+
+  .platform-linux .main {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) minmax(0, 38vh);
+  }
+
+  .platform-linux .detail-panel {
+    max-height: none;
+  }
+
+  .platform-linux .game-tile {
+    width: 108px;
+  }
+
+  .platform-linux .game-tile-featured {
+    width: 118px;
+  }
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.gallery-tile {
+  margin: 0;
+}
+
+.gallery-tile-frame {
+  position: relative;
+  aspect-ratio: 3 / 2;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--surface-border);
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.gallery-tile-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gallery-tile.is-locked .gallery-tile-frame img {
+  filter: blur(8px) brightness(0.5);
+}
+
+.gallery-lock {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.gallery-tile figcaption {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+/* Linux desktop window chrome */
+.platform-linux .header {
+  -webkit-app-region: drag;
+}
+.platform-linux .header-link,
+.platform-linux .btn,
+.platform-linux .category-tab,
+.platform-linux .category-subtab,
+.platform-linux .game-tile {
+  -webkit-app-region: no-drag;
+}

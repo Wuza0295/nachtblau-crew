@@ -1,0 +1,423 @@
+{
+  "studio": {
+    "name": "NachtBlau Interactive",
+    "tagline": "Spiele spielen · Bücher lesen · entdecken"
+  },
+  "site": {
+    "subdomain": "launcher.nachtblau-interactive.com",
+    "mainSite": "https://nachtblau-interactive.com",
+    "title": "NachtBlau Hub — Spiele & Symbiose",
+    "description": "Twilight Crown, Bluepole, Lumina, NightScope, PROJECT: Black Horizon und Symbiose — alles an einem Ort."
+  },
+  "categories": [
+    {
+      "id": "all",
+      "label": "Alle",
+      "icon": "◈"
+    },
+    {
+      "id": "games",
+      "label": "Spiele",
+      "icon": "▶",
+      "match": {
+        "type": "game"
+      }
+    },
+    {
+      "id": "symbiose",
+      "label": "Symbiose",
+      "icon": "📖",
+      "match": {
+        "type": [
+          "book",
+          "gallery"
+        ]
+      },
+      "subcategories": [
+        {
+          "id": "all",
+          "label": "Alle"
+        },
+        {
+          "id": "book",
+          "label": "Bücher",
+          "match": {
+            "type": "book"
+          }
+        },
+        {
+          "id": "gallery",
+          "label": "Galerie",
+          "match": {
+            "type": "gallery"
+          }
+        }
+      ]
+    }
+  ],
+  "games": [
+    {
+      "id": "twilight-crown",
+      "type": "game",
+      "featured": true,
+      "title": "Twilight",
+      "subtitle": "Crown",
+      "version": "1.2.0",
+      "description": "Rette die Krone der Dämmerung! 3 Dungeons, Karte & Kompass, Bosse, Gamepad & Touch — SNES-Zelda-Stil.",
+      "genre": "Action-Adventure · Retro",
+      "status": "Neu",
+      "background": "twilight-crown",
+      "cover": "assets/games/twilight-crown-cover.svg",
+      "accent": "#3868c8",
+      "accentSecondary": "#88e8ff",
+      "tip": {
+        "paypalItem": "Trinkgeld — Twilight Crown"
+      },
+      "web": {
+        "playUrl": "twilight-crown/",
+        "label": "Im Browser spielen",
+        "note": "Volle Version — identisch auf Web, Linux & Android."
+      },
+      "linux": {
+        "playUrl": "twilight-crown/",
+        "label": "Auf Linux spielen",
+        "note": "Gleiche Version wie Web & Android — aus dem Hub starten."
+      },
+      "android": {
+        "playUrl": "twilight-crown/",
+        "label": "Auf Android spielen",
+        "note": "Gleiche Version wie Web & Linux — Touch-optimiert im Hub."
+      }
+    },
+    {
+      "id": "bluepole",
+      "type": "game",
+      "featured": true,
+      "title": "Bluepole",
+      "subtitle": "Grand Prix",
+      "version": "0.1.0",
+      "description": "Modernes NachtBlau-Racing: Mode-7-Perspektive, Neon-Circuit, Double-Dash mit zwei Fahrern, Drift & Mini-Turbo.",
+      "genre": "Kart-Rennen · Retro",
+      "status": "Neu",
+      "background": "bluepole",
+      "cover": "assets/games/bluepole-cover.svg",
+      "accent": "#7ec8ff",
+      "accentSecondary": "#a8e6ff",
+      "tip": {
+        "paypalItem": "Trinkgeld — Bluepole"
+      },
+      "web": {
+        "playUrl": "bluepole/",
+        "label": "Im Browser spielen",
+        "note": "Volle Version — identisch auf Web, Linux & Android."
+      },
+      "linux": {
+        "playUrl": "bluepole/",
+        "label": "Auf Linux spielen",
+        "note": "Gleiche Version wie Web & Android — aus dem Hub starten."
+      },
+      "android": {
+        "playUrl": "bluepole/",
+        "label": "Auf Android spielen",
+        "note": "Gleiche Version wie Web & Linux — Touch-optimiert im Hub."
+      }
+    },
+    {
+      "id": "daemmerdash",
+      "type": "game",
+      "title": "Dämmerdash",
+      "subtitle": "Grand Prix",
+      "version": "0.1.0",
+      "description": "SNES-Mode-7-Kart-Rennen mit Double-Dash: zwei Charaktere, zwei Item-Slots, Drift & Mini-Turbo unter Mondlicht.",
+      "genre": "Kart-Rennen · Retro",
+      "status": "Neu",
+      "background": "bluepole",
+      "cover": "assets/games/daemmerdash-cover.svg",
+      "accent": "#9b7cff",
+      "accentSecondary": "#d4c2ff",
+      "tip": {
+        "paypalItem": "Trinkgeld — Dämmerdash"
+      },
+      "web": {
+        "playUrl": "daemmerdash/",
+        "label": "Im Browser spielen",
+        "note": "Volle Version im Browser — identisch auf Linux & Android."
+      },
+      "linux": {
+        "playUrl": "daemmerdash/",
+        "label": "Auf Linux spielen",
+        "note": "Gleiche Version wie Web & Android — aus dem Hub starten."
+      },
+      "android": {
+        "playUrl": "daemmerdash/",
+        "label": "Auf Android spielen",
+        "note": "Gleiche Version wie Web & Linux — Touch-optimiert im Hub."
+      }
+    },
+    {
+      "id": "eldara-quest",
+      "type": "game",
+      "title": "Eldara",
+      "subtitle": "Quest",
+      "version": "0.1.0",
+      "description": "Top-Down-Action-Adventure im SNES-Zelda-Stil — Dungeons, Bosse und Touch-/Gamepad-Steuerung.",
+      "genre": "Action-Adventure · Retro",
+      "status": "Alpha",
+      "background": "twilight-crown",
+      "cover": "assets/games/eldara-quest-cover.svg",
+      "accent": "#6ec8ff",
+      "accentSecondary": "#b8e8ff",
+      "tip": {
+        "paypalItem": "Trinkgeld — Eldara Quest"
+      },
+      "web": {
+        "playUrl": "eldara-quest/",
+        "label": "Im Browser spielen",
+        "note": "Volle Version im Browser — identisch auf Linux & Android."
+      },
+      "linux": {
+        "playUrl": "eldara-quest/",
+        "label": "Auf Linux spielen",
+        "note": "Gleiche Version wie Web & Android — aus dem Hub starten."
+      },
+      "android": {
+        "playUrl": "eldara-quest/",
+        "label": "Auf Android spielen",
+        "note": "Gleiche Version wie Web & Linux — Touch-optimiert im Hub."
+      }
+    },
+    {
+      "id": "frost-krone",
+      "type": "game",
+      "title": "Frost",
+      "subtitle": "Krone",
+      "version": "0.1.0",
+      "description": "Eisiges Action-Adventure: erkunde Frostheim, finde die Eisklinge und besiege den Frost-Titan.",
+      "genre": "Action-Adventure · Retro",
+      "status": "Alpha",
+      "background": "default",
+      "cover": "assets/games/frost-krone-cover.svg",
+      "accent": "#7ec8ff",
+      "accentSecondary": "#e8f4ff",
+      "tip": {
+        "paypalItem": "Trinkgeld — Frost-Krone"
+      },
+      "web": {
+        "playUrl": "frost-krone/",
+        "label": "Im Browser spielen",
+        "note": "Volle Version im Browser — identisch auf Linux & Android."
+      },
+      "linux": {
+        "playUrl": "frost-krone/",
+        "label": "Auf Linux spielen",
+        "note": "Gleiche Version wie Web & Android — aus dem Hub starten."
+      },
+      "android": {
+        "playUrl": "frost-krone/",
+        "label": "Auf Android spielen",
+        "note": "Gleiche Version wie Web & Linux — Touch-optimiert im Hub."
+      }
+    },
+    {
+      "id": "hyrule-quest",
+      "type": "game",
+      "title": "Hyrule",
+      "subtitle": "Quest",
+      "version": "0.1.0",
+      "description": "Klassisches Top-Down-Abenteuer mit der Hyrule-Quest-Engine — Overworld, Dungeons und Bosskämpfe.",
+      "genre": "Action-Adventure · Retro",
+      "status": "Alpha",
+      "background": "twilight-crown",
+      "cover": "assets/games/hyrule-quest-cover.svg",
+      "accent": "#3ecf6a",
+      "accentSecondary": "#a8f0c0",
+      "tip": {
+        "paypalItem": "Trinkgeld — Hyrule Quest"
+      },
+      "web": {
+        "playUrl": "hyrule-quest/",
+        "label": "Im Browser spielen",
+        "note": "Volle Version im Browser — identisch auf Linux & Android."
+      },
+      "linux": {
+        "playUrl": "hyrule-quest/",
+        "label": "Auf Linux spielen",
+        "note": "Gleiche Version wie Web & Android — aus dem Hub starten."
+      },
+      "android": {
+        "playUrl": "hyrule-quest/",
+        "label": "Auf Android spielen",
+        "note": "Gleiche Version wie Web & Linux — Touch-optimiert im Hub."
+      }
+    },
+    {
+      "id": "black-horizon",
+      "type": "game",
+      "featured": true,
+      "title": "PROJECT:",
+      "subtitle": "Black Horizon",
+      "version": "0.0.1",
+      "description": "Taktischer Browser-FPS im Jahr 2038. Kampagne, Multiplayer-Schlachten und Zombie-Modus — Early Access Saison 1: Aschefront.",
+      "genre": "FPS · Kampagne · Multiplayer",
+      "status": "Early Access",
+      "background": "black-horizon",
+      "cover": "assets/games/black-horizon-cover.png",
+      "accent": "#e85d2a",
+      "accentSecondary": "#3ecfb2",
+      "itchUrl": "https://itch.io",
+      "tip": {
+        "paypalItem": "Trinkgeld — PROJECT: Black Horizon"
+      },
+      "web": {
+        "playUrl": "blackhorizon/",
+        "label": "Im Browser spielen",
+        "note": "Volle Version — identisch auf Web, Linux & Android."
+      },
+      "linux": {
+        "playUrl": "blackhorizon/",
+        "label": "Auf Linux spielen",
+        "note": "Gleiche Version wie Web & Android — aus dem Hub starten."
+      },
+      "android": {
+        "playUrl": "blackhorizon/",
+        "label": "Auf Android spielen",
+        "note": "Gleiche Version wie Web & Linux — Touch-optimiert im Hub."
+      }
+    },
+    {
+      "id": "nightscope",
+      "type": "game",
+      "title": "NightScope:",
+      "subtitle": "Aim in the Dark",
+      "version": "1.0.0-alpha",
+      "description": "HD 3D-Shooter in der Nacht — 5 Missionen, Waffen-Shop, lokaler Split-Screen-Koop und steigender Schwierigkeitsgrad.",
+      "genre": "3D Shooter",
+      "status": "Alpha",
+      "background": "nightscope",
+      "cover": "assets/games/nightscope-cover.webp",
+      "accent": "#4a9eff",
+      "accentSecondary": "#7ec8ff",
+      "tip": {
+        "paypalItem": "Trinkgeld — NightScope: Aim in the Dark"
+      },
+      "web": {
+        "playUrl": "https://nachtblau-interactive.com/nightscope/",
+        "label": "Alpha spielen",
+        "note": "Volle Version — identisch auf Web, Linux & Android."
+      },
+      "linux": {
+        "playUrl": "https://nachtblau-interactive.com/nightscope/",
+        "label": "Auf Linux spielen",
+        "note": "Gleiche Version wie Web & Android — aus dem Hub starten."
+      },
+      "android": {
+        "playUrl": "https://nachtblau-interactive.com/nightscope/",
+        "label": "Auf Android spielen",
+        "note": "Gleiche Version wie Web & Linux — Touch-optimiert im Hub."
+      }
+    },
+    {
+      "id": "iron-front",
+      "type": "game",
+      "title": "IRON FRONT",
+      "subtitle": "Panzer-Schlacht",
+      "version": "Alpha",
+      "description": "Browserbasiertes Panzer-Spiel im World-of-Tanks-Stil — Hangar, Tech-Tree, Nationen, Gefechte und Battle Pass.",
+      "genre": "Panzer-Simulation",
+      "status": "Alpha",
+      "background": "iron-front",
+      "cover": "assets/games/iron-front-cover.svg",
+      "accent": "#c9a227",
+      "accentSecondary": "#f0d060",
+      "tip": {
+        "paypalItem": "Trinkgeld — IRON FRONT"
+      },
+      "web": {
+        "playUrl": "https://iron-front.nachtblau-interactive.com/",
+        "label": "Alpha spielen",
+        "note": "Volle Version — identisch auf Web, Linux & Android."
+      },
+      "linux": {
+        "playUrl": "https://iron-front.nachtblau-interactive.com/",
+        "label": "Auf Linux spielen",
+        "note": "Gleiche Version wie Web & Android — aus dem Hub starten."
+      },
+      "android": {
+        "playUrl": "https://iron-front.nachtblau-interactive.com/",
+        "label": "Auf Android spielen",
+        "note": "Gleiche Version wie Web & Linux — Touch-optimiert im Hub."
+      }
+    },
+    {
+      "id": "lumina-infinite-frontier",
+      "type": "game",
+      "title": "Lumina:",
+      "subtitle": "Infinite Frontier",
+      "version": "0.5.0-alpha",
+      "description": "Sci-Fi Voxel-Sandbox im Weltraum. Erkunde 5 Planeten, baue Basen aus Panzerglas, zähme Kreaturen und erweitere die Frontier.",
+      "genre": "Sci-Fi Voxel Sandbox",
+      "status": "Alpha",
+      "background": "lumina",
+      "cover": "assets/games/lumina-cover.svg",
+      "accent": "#00ffaa",
+      "accentSecondary": "#5eeaff",
+      "itchUrl": "https://lumina-frontier.itch.io",
+      "tip": {
+        "paypalItem": "Trinkgeld — Lumina: Infinite Frontier"
+      },
+      "web": {
+        "playUrl": "https://nachtblau-interactive.com/lumina/",
+        "label": "Alpha spielen",
+        "note": "Volle Version — identisch auf Web, Linux & Android."
+      },
+      "linux": {
+        "playUrl": "https://nachtblau-interactive.com/lumina/",
+        "label": "Auf Linux spielen",
+        "note": "Gleiche Version wie Web & Android — aus dem Hub starten."
+      },
+      "android": {
+        "playUrl": "https://nachtblau-interactive.com/lumina/",
+        "label": "Auf Android spielen",
+        "note": "Gleiche Version wie Web & Linux — Touch-optimiert im Hub."
+      }
+    },
+    {
+      "id": "symbiose-band1",
+      "type": "book",
+      "title": "Symbiose:",
+      "subtitle": "Der grüne Abgrund",
+      "version": "Band 1",
+      "description": "Sci-Fi-Roman von Aris V. Thorne. Die Generationenarks Aura kehrt zur Erde zurück — und findet Veridia, einen smaragdgrünen Planeten aus lebendiger Symbiose.",
+      "genre": "Sci-Fi Roman · Band 1",
+      "status": "Buch",
+      "author": "Aris V. Thorne",
+      "background": "symbiose",
+      "cover": "assets/games/symbiose-cover.jpg",
+      "accent": "#4ade80",
+      "accentSecondary": "#86efac",
+      "tip": {
+        "paypalItem": "Trinkgeld — Symbiose: Der grüne Abgrund Band 1"
+      },
+      "websiteUrl": "https://nachtblau-interactive.com/#symbiose"
+    },
+    {
+      "id": "symbiose-illustrations",
+      "type": "gallery",
+      "title": "Symbiose:",
+      "subtitle": "Illustrationen Band 1",
+      "version": "Galerie",
+      "description": "Poster, Manga-Panels und Charakter-Referenzen aus Veridia — offizielle Begleit-Galerie zu Band 1.",
+      "genre": "Illustrationen · Band 1",
+      "status": "Galerie",
+      "author": "NachtBlau Publishing",
+      "background": "symbiose",
+      "cover": "assets/games/symbiose-cover.jpg",
+      "accent": "#4ade80",
+      "accentSecondary": "#86efac",
+      "tip": {
+        "paypalItem": "Trinkgeld — Symbiose Band 1 Illustrationen"
+      },
+      "websiteUrl": "https://nachtblau-interactive.com/#symbiose"
+    }
+  ]
+}

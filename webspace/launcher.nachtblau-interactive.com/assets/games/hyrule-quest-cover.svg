@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" fill="none">
+  <defs>
+    <linearGradient id="sky" x1="800" y1="0" x2="800" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2868c8"/>
+      <stop offset="0.55" stop-color="#5090e8"/>
+      <stop offset="1" stop-color="#68a8f0"/>
+    </linearGradient>
+    <linearGradient id="grass" x1="800" y1="520" x2="800" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#48b848"/>
+      <stop offset="1" stop-color="#288828"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sky)"/>
+  <ellipse cx="280" cy="180" rx="90" ry="70" fill="#fff" opacity="0.85"/>
+  <ellipse cx="320" cy="170" rx="70" ry="55" fill="#fff" opacity="0.5"/>
+  <path d="M0 520 Q400 480 800 510 T1600 520 L1600 900 L0 900Z" fill="url(#grass)"/>
+  <g opacity="0.85">
+    <rect x="0" y="520" width="80" height="80" fill="#38a838"/>
+    <rect x="80" y="520" width="80" height="80" fill="#48b848"/>
+    <rect x="160" y="520" width="80" height="80" fill="#38a838"/>
+    <rect x="240" y="520" width="80" height="80" fill="#48b848"/>
+    <rect x="320" y="520" width="80" height="80" fill="#38a838"/>
+    <rect x="400" y="520" width="80" height="80" fill="#48b848"/>
+    <rect x="480" y="520" width="80" height="80" fill="#38a838"/>
+    <rect x="560" y="520" width="80" height="80" fill="#48b848"/>
+    <rect x="640" y="520" width="80" height="80" fill="#38a838"/>
+    <rect x="720" y="520" width="80" height="80" fill="#48b848"/>
+    <rect x="800" y="520" width="80" height="80" fill="#38a838"/>
+    <rect x="880" y="520" width="80" height="80" fill="#48b848"/>
+    <rect x="960" y="520" width="80" height="80" fill="#38a838"/>
+    <rect x="1040" y="520" width="80" height="80" fill="#48b848"/>
+    <rect x="1120" y="520" width="80" height="80" fill="#38a838"/>
+    <rect x="1200" y="520" width="80" height="80" fill="#48b848"/>
+    <rect x="1280" y="520" width="80" height="80" fill="#38a838"/>
+    <rect x="1360" y="520" width="80" height="80" fill="#48b848"/>
+    <rect x="1440" y="520" width="80" height="80" fill="#38a838"/>
+    <rect x="1520" y="520" width="80" height="80" fill="#48b848"/>
+  </g>
+  <rect x="620" y="380" width="80" height="60" fill="#684830"/>
+  <rect x="640" y="360" width="40" height="24" fill="#906030"/>
+  <rect x="900" y="400" width="60" height="80" fill="#186818"/>
+  <rect x="910" y="370" width="40" height="40" fill="#208020"/>
+  <rect x="1100" y="410" width="50" height="70" fill="#186818"/>
+  <rect x="1110" y="385" width="30" height="35" fill="#208020"/>
+  <!-- Link-like hero -->
+  <rect x="760" y="560" width="24" height="28" fill="#38a838"/>
+  <rect x="764" y="548" width="16" height="14" fill="#f8c878"/>
+  <rect x="762" y="542" width="20" height="8" fill="#f8d848"/>
+  <rect x="766" y="586" width="6" height="10" fill="#604020"/>
+  <rect x="774" y="586" width="6" height="10" fill="#604020"/>
+  <!-- Triforce -->
+  <path d="M1280 620 L1320 690 L1240 690 Z" fill="#ffd700" opacity="0.9"/>
+  <path d="M1280 650 L1300 685 L1260 685 Z" fill="#e8c000"/>
+  <path d="M1260 690 L1320 690 L1290 730 Z" fill="#ffd700" opacity="0.85"/>
+  <path d="M1275 690 L1305 690 L1290 715 Z" fill="#e8c000"/>
+  <!-- Hearts HUD hint -->
+  <g transform="translate(120,80)">
+    <rect x="0" y="0" width="14" height="12" fill="#e04040"/>
+    <rect x="-4" y="4" width="22" height="12" fill="#e04040"/>
+    <rect x="24" y="0" width="14" height="12" fill="#e04040"/>
+    <rect x="20" y="4" width="22" height="12" fill="#e04040"/>
+    <rect x="48" y="0" width="14" height="12" fill="#e04040"/>
+    <rect x="44" y="4" width="22" height="12" fill="#e04040"/>
+  </g>
+</svg>

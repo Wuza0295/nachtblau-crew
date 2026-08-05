@@ -1,0 +1,1552 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PROJECT: BLACK HORIZON</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/clan-ext.css">
+</head>
+<body>
+
+<div id="boot-splash" class="boot-splash" aria-live="polite" aria-busy="true">
+  <div class="boot-bg" aria-hidden="true">
+    <img class="boot-hero-img" src="assets/img/boot-hero.png" alt="" width="1920" height="1080" decoding="async" fetchpriority="high">
+    <div class="boot-bg-vignette"></div>
+    <div class="boot-bg-tint"></div>
+    <div class="boot-bg-scan"></div>
+    <div class="boot-bg-grid"></div>
+  </div>
+  <div class="boot-corner boot-corner-tl" aria-hidden="true"></div>
+  <div class="boot-corner boot-corner-tr" aria-hidden="true"></div>
+  <div class="boot-corner boot-corner-bl" aria-hidden="true"></div>
+  <div class="boot-corner boot-corner-br" aria-hidden="true"></div>
+  <div class="boot-layout">
+    <header class="boot-header">
+      <span class="boot-header-code">SYS//BOOT · NACHTBLAU</span>
+      <span class="boot-header-tag">TACTICAL OPS</span>
+    </header>
+    <main class="boot-main">
+      <div class="boot-logo-wrap">
+        <div class="boot-logo-pre">PROJECT:</div>
+        <div class="boot-logo">BLACK<span>HORIZON</span></div>
+        <div class="boot-logo-tag">Frontkrieg · Operatoren · Live Ops</div>
+      </div>
+    </main>
+    <footer class="boot-footer">
+      <div class="boot-load-row">
+        <span class="boot-status" id="boot-status">System wird initialisiert…</span>
+        <span class="boot-pct" id="boot-pct">0%</span>
+      </div>
+      <div class="boot-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="boot-bar">
+        <div class="boot-bar-track">
+          <div class="boot-bar-glow"></div>
+          <div class="boot-bar-fill" id="boot-bar-fill"></div>
+        </div>
+      </div>
+      <div class="boot-meta">
+        <span class="boot-version">Update 0.0.1</span>
+        <span class="boot-studio">NACHTBLAU Interaktive</span>
+      </div>
+    </footer>
+  </div>
+</div>
+<div id="ui-toast-stack" class="ui-toast-stack" aria-live="polite"></div>
+
+<canvas id="game-canvas"></canvas>
+
+<!-- ======================= HUD ======================= -->
+<div id="hud" class="hidden">
+  <div id="vignette"></div>
+  <div id="crosshair" class="ch-style-classic">
+    <span class="ch-line ch-t"></span><span class="ch-line ch-b"></span>
+    <span class="ch-line ch-l"></span><span class="ch-line ch-r"></span>
+    <span class="ch-circle"></span>
+    <span class="ch-dot"></span>
+  </div>
+  <div id="hitmarker">
+    <span></span><span></span><span></span><span></span>
+  </div>
+  <div id="scope-overlay" class="hidden">
+    <div class="scope-circle"></div>
+    <div class="scope-line scope-h"></div>
+    <div class="scope-line scope-v"></div>
+  </div>
+
+  <div id="mode-info"></div>
+  <div id="killstreak-hud"></div>
+  <div id="killfeed"></div>
+
+  <div id="minimap" class="hidden">
+    <div class="minimap-label" data-i18n="minimap">KARTE</div>
+    <canvas id="minimap-canvas" width="160" height="160"></canvas>
+    <div class="minimap-north">N</div>
+  </div>
+
+  <div id="scoreboard" class="hidden">
+    <h2 id="sb-title" data-i18n="sb_title">PUNKTETAFEL</h2>
+    <div id="sb-body"></div>
+    <div class="sb-hint" data-i18n="sb_hint">[TAB] gedrückt halten</div>
+  </div>
+
+  <div id="message-center">
+    <div id="message-big"></div>
+    <div id="message-sub"></div>
+  </div>
+
+  <div id="objective-bar" class="hidden">
+    <span id="objective-text"></span>
+  </div>
+
+  <div id="interact-prompt" class="hidden"></div>
+
+  <div id="operator-bark" class="operator-bark hidden">
+    <span class="ob-name"></span>
+    <span class="ob-line"></span>
+  </div>
+
+  <div id="hud-bottom-left">
+    <div id="health-wrap">
+      <div id="health-bar"><div id="health-fill"></div></div>
+      <span id="health-text">100</span>
+    </div>
+  </div>
+
+  <div id="hud-bottom-right">
+    <div id="points-display" class="hidden">⛁ <span id="points-value">0</span></div>
+    <div id="weapon-name"></div>
+    <div id="ammo-display"><span id="ammo-mag">30</span><span class="ammo-sep">/</span><span id="ammo-reserve">120</span></div>
+    <div id="equipment-hud" class="equipment-hud hidden"></div>
+    <div id="reload-hint"></div>
+  </div>
+</div>
+
+<!-- ======================= PAUSE ======================= -->
+<div id="screen-pause" class="screen overlay hidden">
+  <div class="panel">
+    <h2 data-i18n="pause_title">PAUSE</h2>
+    <button class="btn btn-primary" id="btn-resume" data-i18n="pause_resume">WEITERSPIELEN</button>
+    <button class="btn" id="btn-quit" data-i18n="pause_quit">AUFGEBEN &amp; ZUM MENÜ</button>
+  </div>
+</div>
+
+<!-- ======================= ENDE ======================= -->
+<div id="screen-end" class="screen overlay hidden">
+  <div class="panel panel-wide end-panel">
+    <h2 id="end-title" data-i18n="end_title">MISSION BEENDET</h2>
+    <div class="end-body">
+      <div id="end-stats" class="stat-grid end-stat-grid"></div>
+      <div id="end-clan" class="end-clan hidden"></div>
+      <div id="end-aar" class="end-aar"></div>
+      <div class="end-extras">
+        <div id="end-finisher" class="end-finisher-wrap hidden"></div>
+        <div id="end-calling-card" class="calling-card-display"></div>
+      </div>
+      <div id="end-xp" class="end-xp-block"></div>
+      <div id="end-crate" class="end-crate hidden"></div>
+    </div>
+    <div class="end-actions">
+      <button type="button" class="btn btn-crate-open hidden" id="btn-end-crate-open" data-i18n="end_crate">📦 KISTE ÖFFNEN</button>
+      <button class="btn btn-primary btn-end" id="btn-end-continue" data-i18n="end_continue">WEITER</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======================= TUTORIAL ======================= -->
+<div id="tutorial-overlay" class="tutorial-overlay hidden"></div>
+
+<!-- ======================= HAUPTMENÜ ======================= -->
+<div id="menu-root">
+  <div class="menu-bg"></div>
+  <div class="menu-vignette"></div>
+
+  <!-- TOP-NAVIGATION (Shooter-Stil) -->
+  <div id="menu-topbar">
+    <div class="tb-logo">BLACK<span>HORIZON</span><span class="tb-version" id="tb-version">v0.0.1</span></div>
+    <nav class="tb-tabs">
+      <button class="tb-tab" data-screen="home" data-i18n="nav_home">START</button>
+      <button class="tb-tab" data-screen="devblog" data-i18n="nav_devblog">DEVBLOG</button>
+      <button class="tb-tab" data-screen="operation" data-i18n="nav_operation">OPERATION</button>
+      <button class="tb-tab" data-screen="modes" data-i18n="nav_modes">SPIELEN</button>
+      <button class="tb-tab" data-screen="operator" data-i18n="nav_operator">OPERATOR</button>
+      <button class="tb-tab" data-screen="loadout" data-i18n="nav_loadout">LOADOUT</button>
+      <button class="tb-tab" data-screen="shop" data-i18n="nav_shop">SHOP</button>
+      <button class="tb-tab" data-screen="battlepass" data-i18n="nav_battlepass">BATTLE PASS</button>
+      <button class="tb-tab" data-screen="eventpass" data-i18n="nav_eventpass">EVENT PASS</button>
+      <button class="tb-tab" data-screen="ranks" data-i18n="nav_ranks">RÄNGE</button>
+      <button class="tb-tab" data-screen="profile" data-i18n="nav_profile">PROFIL</button>
+      <button class="tb-tab" data-screen="social" data-i18n="nav_social">SOCIAL</button>
+      <button class="tb-tab" data-screen="clan" data-i18n="nav_clan">CLAN</button>
+      <button class="tb-tab" data-screen="factionwar" data-i18n="nav_faction">FRAKTION</button>
+      <button class="tb-tab" data-screen="settings" data-i18n="nav_settings">EINSTELLUNGEN</button>
+    </nav>
+    <div class="tb-player">
+      <button type="button" class="tb-feedback" id="btn-feedback" data-i18n-title="btn_feedback_title" title="Bug / Feedback melden" data-i18n="btn_feedback">🐛 FEEDBACK</button>
+      <button type="button" class="tb-crates hidden" id="btn-crates" title="Kisten-Inventar">📦 <span id="tb-crates-count">0</span></button>
+      <span id="tb-premium" class="tb-premium hidden"></span>
+      <span id="tb-credits">⛁ 0</span>
+      <span id="tb-rank">REKRUT · LV 1</span>
+    </div>
+  </div>
+
+  <div id="early-access-bar" class="early-access-bar hidden" aria-live="polite">
+    <span class="ea-icon">⏳</span>
+    <span id="early-access-text">Early Access · Saison 1 · Saison 2 ab 1.8.2026</span>
+  </div>
+
+  <!-- HOME -->
+  <div id="screen-home" class="screen menu-screen home-layout">
+    <div class="home-grid">
+      <div class="home-left">
+        <section class="home-hero" aria-label="Command Center">
+          <div class="home-hero-bg" aria-hidden="true">
+            <div class="home-hero-grid"></div>
+            <div class="home-hero-scan"></div>
+            <div class="home-hero-glow"></div>
+            <div class="home-hero-noise"></div>
+          </div>
+          <div class="home-hero-body">
+            <div class="home-hero-top">
+              <div class="title-block left home-title-block">
+                <div class="title-pre">PROJECT:</div>
+                <h1 class="title-main home-title-glitch">BLACK HORIZON</h1>
+                <div class="season-banner" id="season-banner">EARLY ACCESS · SAISON 1 · S2 AM 1.8.2026</div>
+              </div>
+              <div class="home-hero-meta">
+                <div class="home-greeting" id="home-greeting">OPERATOR ONLINE</div>
+                <div class="home-live-clock" id="home-live-clock">--:--</div>
+                <div class="home-live-date" id="home-live-date"></div>
+              </div>
+            </div>
+            <div class="home-hero-main">
+              <button type="button" class="home-op-showcase home-op-strip home-op" data-screen="operator">
+                <div class="home-op-showcase-ring" aria-hidden="true"></div>
+                <div class="home-op-figure-wrap" id="hw-op-figure"></div>
+                <div class="home-op-strip-text">
+                  <div class="home-op-callsign" data-i18n="home_active_op">AKTIVER OPERATOR</div>
+                  <div id="hw-op-name" class="home-op-name">REKRUT-7</div>
+                  <div id="hw-op-faction" class="home-op-faction">TF NACHTFALKE</div>
+                  <div class="home-op-hint" data-i18n="home_op_switch">KLICKEN ZUM WECHSELN</div>
+                </div>
+              </button>
+              <div class="home-tactical-panel">
+                <div class="home-tactical-head">
+                  <span class="htp-label" data-i18n="home_tactical">TAKTISCHES READOUT</span>
+                  <span class="htp-pulse" aria-hidden="true"></span>
+                </div>
+                <div class="home-tactical-readout" id="home-tactical-readout"></div>
+                <div class="home-map-radar" id="home-map-radar">
+                  <div class="hmr-ring" aria-hidden="true"></div>
+                  <div class="hmr-sweep" aria-hidden="true"></div>
+                  <div class="hmr-center">
+                    <span class="hmr-emoji" id="hw-map-emoji">⚓</span>
+                    <span class="hmr-name" id="hw-map-name">Hafen Delta</span>
+                    <span class="hmr-sub" id="hw-map-text" data-i18n="home_map_active">Aktive MP-Karte</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="home-cta home-hero-cta">
+              <button type="button" class="btn-play btn-deploy" data-screen="modes">
+                <span class="deploy-ring" aria-hidden="true"></span>
+                <span class="deploy-core">
+                  <span class="deploy-label" data-i18n="home_deploy">▶ DEPLOY</span>
+                  <span class="deploy-sub" id="home-deploy-sub">Mission wählen</span>
+                </span>
+              </button>
+              <button type="button" class="btn-quickstart" id="btn-quickstart">
+                <span class="qs-label" data-i18n="home_quickstart">⚡ SCHNELLSTART</span>
+                <span class="qs-mode" id="qs-mode">TEAM DEATHMATCH</span>
+              </button>
+              <button type="button" class="home-crates-bar" id="btn-home-crates" title="Kisten-Inventar">
+                <span class="hcb-icon">📦</span>
+                <span class="hcb-title" data-i18n="home_crates">KISTEN</span>
+                <span id="home-crates-total" class="hcb-total">0</span>
+              </button>
+            </div>
+            <div class="home-horizon-line" aria-hidden="true"><span></span></div>
+          </div>
+        </section>
+
+        <div class="home-deck">
+          <div class="home-welcome-banner" id="home-welcome-banner" aria-live="polite"></div>
+          <button type="button" class="home-roadmap-warn hidden" id="btn-roadmap-warn" title="Hinweis zur Roadmap">
+            <span class="hrw-icon" aria-hidden="true">⚠</span>
+            <span class="hrw-body">
+              <span class="hrw-label" data-i18n="home_warning">ACHTUNG</span>
+              <span class="hrw-text" id="btn-roadmap-warn-text">Roadmap — Fehler werden derzeit behoben</span>
+            </span>
+          </button>
+
+          <div class="home-deck-label" data-i18n="home_deck">EINSATZ-ÜBERSICHT</div>
+          <div class="home-info-row">
+            <div class="devblog devblog-home-teaser home-intel-card" id="devblog" data-screen="devblog">
+              <div class="db-head">
+                <span class="db-title" data-i18n="screen_devblog">DEVBLOG</span>
+                <span class="db-sub" data-i18n="home_devblog_sub">News · Alle →</span>
+              </div>
+              <div id="devblog-list" class="devblog-list"></div>
+            </div>
+            <div class="season-story home-intel-card" id="season-story">
+              <div class="ss-label" data-i18n="home_warfront">⚔ KRIEGSFRONT</div>
+              <div id="ss-chapter" class="ss-chapter">Woche 1: Erste Schüsse</div>
+              <div class="xp-bar"><div id="ss-fill"></div></div>
+              <div id="ss-text" class="ss-text">Die Vanguard testet die Frontlinie.</div>
+            </div>
+          </div>
+
+          <div class="home-stats-row home-widgets home-intel-grid">
+            <div class="devblog home-widget home-intel-card hw-rank" data-screen="ranks">
+              <div class="db-head">
+                <span class="db-title" data-i18n="home_rank">RANG</span>
+                <span class="db-sub" id="home-rank-icon">🎖</span>
+              </div>
+              <div class="devblog-list">
+                <article class="db-entry">
+                  <div class="db-meta">
+                    <span class="db-tag db-tag-game" data-i18n="home_progress">FORTSCHRITT</span>
+                    <span class="db-date" id="home-level">Lv 1 / 100</span>
+                  </div>
+                  <div id="home-rank-name" class="db-entry-title">REKRUT</div>
+                  <div class="db-entry-text" id="home-rank-hint">XP bis zum nächsten Level</div>
+                  <div class="xp-bar"><div id="home-xp-fill"></div></div>
+                </article>
+              </div>
+            </div>
+            <div class="devblog home-widget home-intel-card hw-eventpass" data-screen="eventpass">
+              <div class="db-head">
+                <span class="db-title">EVENT PASS</span>
+                <span class="db-sub" id="hw-ep-free">100 % GRATIS</span>
+              </div>
+              <div class="devblog-list">
+                <article class="db-entry">
+                  <div class="db-meta">
+                    <span class="db-tag db-tag-season">COUNTDOWN</span>
+                    <span class="db-date" id="hw-ep-timer">—</span>
+                  </div>
+                  <div id="hw-ep-tier" class="db-entry-title">Stufe 0 / 50</div>
+                  <div class="db-entry-text" id="hw-ep-text">Tägliche Aufgaben · bis 1.8.2026</div>
+                  <div class="xp-bar"><div id="hw-ep-fill"></div></div>
+                </article>
+              </div>
+            </div>
+            <div class="devblog home-widget home-intel-card hw-bp" data-screen="battlepass">
+              <div class="db-head">
+                <span class="db-title">BATTLE PASS</span>
+                <span class="db-sub" id="hw-bp-season">Saison 1</span>
+              </div>
+              <div class="devblog-list">
+                <article class="db-entry">
+                  <div class="db-meta">
+                    <span class="db-tag db-tag-season" id="hw-bp-tag">S1</span>
+                    <span class="db-date" id="hw-bp-sub">0 / 100</span>
+                  </div>
+                  <div id="hw-bp-tier" class="db-entry-title">Stufe 0</div>
+                  <div class="db-entry-text" id="hw-bp-text">Saison-Fortschritt</div>
+                  <div class="xp-bar"><div id="hw-bp-fill"></div></div>
+                </article>
+              </div>
+            </div>
+            <div class="devblog home-widget home-intel-card hw-campaign" data-screen="modes">
+              <div class="db-head">
+                <span class="db-title">KAMPAGNE</span>
+                <span class="db-sub">Missionen</span>
+              </div>
+              <div class="devblog-list">
+                <article class="db-entry">
+                  <div class="db-meta">
+                    <span class="db-tag db-tag-update">STORY</span>
+                    <span class="db-date" id="hw-campaign-sub">Mission 1 / 6</span>
+                  </div>
+                  <div id="hw-campaign-title" class="db-entry-title">Schwarzer Morgen</div>
+                  <div class="db-entry-text" id="hw-campaign-text">Einzelmissionen nach Fortschritt</div>
+                  <div class="xp-bar"><div id="hw-campaign-fill"></div></div>
+                </article>
+              </div>
+            </div>
+            <div class="devblog home-widget home-intel-card hw-map hw-map-card" data-screen="modes">
+              <div class="db-head">
+                <span class="db-title">KARTEN-ROTATION</span>
+                <span class="db-sub" id="hw-map-next">Nächste: Sierra-7</span>
+              </div>
+              <div class="devblog-list">
+                <article class="db-entry">
+                  <div class="db-meta">
+                    <span class="db-tag db-tag-game">ROTATION</span>
+                    <span class="db-date" id="hw-map-rotation-label">Auto</span>
+                  </div>
+                  <div id="hw-map-card-name" class="db-entry-title">Hafen Delta</div>
+                  <div class="db-entry-text" id="hw-map-card-text">Wechselt nach jedem Match</div>
+                  <div class="xp-bar xp-bar-track"><div id="hw-map-fill"></div></div>
+                </article>
+              </div>
+            </div>
+          </div>
+
+          <div class="home-meta-row">
+            <div class="maintenance-banner hidden" id="hw-maintenance"></div>
+            <div class="ltm-banner" id="hw-ltm"></div>
+            <div class="faction-war fw-clickable home-intel-card" id="hw-faction" data-screen="factionwar" title="Fraktionskrieg öffnen"></div>
+          </div>
+          <div class="daily-login home-intel-card" id="daily-login-panel"></div>
+        </div>
+      </div>
+      <div class="home-sidebar season-preview-panel">
+        <div class="devblog season-preview" id="season-preview">
+          <div class="db-head">
+            <span class="db-title">SAISON 2</span>
+            <span class="db-sub" id="sp-season-label">Schwarzer Horizont · 1.8.2026</span>
+          </div>
+          <div class="sp-countdown hidden" id="sp-countdown" aria-live="polite">
+            <div class="sp-cd-label" id="sp-cd-label">SCHWARZER HORIZONT · START 1.8.2026</div>
+            <div class="sp-cd-units" id="sp-countdown-units">
+              <div class="sp-cd-unit"><span class="sp-cd-num" id="sp-cd-days">40</span><span class="sp-cd-cap">Tage</span></div>
+              <div class="sp-cd-sep">:</div>
+              <div class="sp-cd-unit"><span class="sp-cd-num" id="sp-cd-hours">00</span><span class="sp-cd-cap">Std</span></div>
+              <div class="sp-cd-sep">:</div>
+              <div class="sp-cd-unit"><span class="sp-cd-num" id="sp-cd-mins">00</span><span class="sp-cd-cap">Min</span></div>
+              <div class="sp-cd-sep">:</div>
+              <div class="sp-cd-unit"><span class="sp-cd-num" id="sp-cd-secs">00</span><span class="sp-cd-cap">Sek</span></div>
+            </div>
+            <div class="sp-cd-date" id="sp-countdown-date"></div>
+          </div>
+          <div class="roadmap-wrap" id="season-preview-wrap">
+            <div id="season-preview-list" class="devblog-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-note">
+      <span>2038 · Die Welt steht in Flammen. Wähle deine Front.</span>
+      <a href="../index.html" class="footer-website-link">← Website</a>
+      <span class="footer-version" id="footer-version">Update 0.0.1</span>
+      <span class="footer-studio">© NACHTBLAU Interaktive</span>
+    </div>
+  </div>
+
+  <!-- DEVBLOG -->
+  <div id="screen-devblog" class="screen menu-screen menu-compact hidden">
+    <div class="dblog-head">
+      <h2 class="screen-title">DEVBLOG</h2>
+      <div class="dblog-head-meta" id="dblog-head-meta">Patchnotes · Roadmap · Updates</div>
+    </div>
+    <div class="dblog-layout">
+      <aside class="dblog-sidebar">
+        <div class="dblog-side-label">AKTUELL</div>
+        <div id="dblog-featured" class="dblog-featured"></div>
+        <div class="dblog-side-label">SPIEL-INFO</div>
+        <div id="dblog-sidebar-info" class="dblog-sidebar-info"></div>
+      </aside>
+      <div class="dblog-main">
+        <nav class="dblog-tabs" id="dblog-tabs">
+          <button type="button" class="dblog-tab active" data-dblog-tab="news">NEUIGKEITEN</button>
+          <button type="button" class="dblog-tab" data-dblog-tab="roadmap">ROADMAP</button>
+          <button type="button" class="dblog-tab" data-dblog-tab="about">ÜBER DAS SPIEL</button>
+        </nav>
+        <div class="dblog-panels">
+          <div class="dblog-panel active" data-dblog-panel="news">
+            <div id="dblog-news-reward" class="dblog-news-reward"></div>
+            <p class="dblog-panel-hint">Alle Patchnotes und Updates – neueste Einträge zuerst.</p>
+            <div id="dblog-news-list" class="dblog-news-list"></div>
+          </div>
+          <div class="dblog-panel" data-dblog-panel="roadmap">
+            <p class="dblog-panel-hint" id="dblog-roadmap-hint">Saison 2 · Schwarzer Horizont — nur geplante Inhalte ab 1.8.2026.</p>
+            <div class="roadmap-wrap" id="dblog-roadmap-wrap">
+              <div id="dblog-roadmap" class="dblog-roadmap"></div>
+            </div>
+          </div>
+          <div class="dblog-panel" data-dblog-panel="about">
+            <p class="dblog-panel-hint">Black Horizon auf einen Blick – kostenlos im Browser.</p>
+            <div id="dblog-about" class="dblog-about"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPERATION (Live-Ops) -->
+  <div id="screen-operation" class="screen menu-screen menu-compact hidden">
+    <div class="operation-head">
+      <h2 class="screen-title" data-i18n="screen_operation">OPERATION</h2>
+      <p class="operation-sub" id="operation-sub" data-i18n="screen_operation_sub">Live-Ops · Aufträge · Events</p>
+    </div>
+    <div id="operation-list" class="operation-list"></div>
+  </div>
+
+  <div id="screen-modes" class="screen menu-screen menu-compact hidden">
+    <div class="modes-head">
+      <div class="modes-head-text">
+        <h2 class="screen-title" data-i18n="screen_modes">SPIELEN</h2>
+        <p class="modes-head-sub" data-i18n="screen_modes_sub">Modus wählen · Karte · Deploy</p>
+      </div>
+      <div class="modes-head-chips" id="modes-head-chips"></div>
+    </div>
+    <div class="modes-layout">
+      <aside class="modes-sidebar">
+        <div class="modes-side-label" data-i18n="modes_map_label">KARTEN-AUSWAHL</div>
+        <div class="map-pick-wrap modes-map-panel" id="map-pick-wrap">
+          <div class="map-pick-head">
+            <span class="map-pick-label" data-i18n="modes_map_mode">MODUS</span>
+            <div class="map-pick-toggle" id="map-pick-toggle">
+              <button type="button" class="map-pick-mode active" data-map-pick="rotation" data-i18n="modes_rotation">ROTATION</button>
+              <button type="button" class="map-pick-mode" data-map-pick="manual" data-i18n="modes_manual">MANUELL</button>
+            </div>
+          </div>
+          <p class="map-pick-summary modes-map-summary" id="map-pick-summary"></p>
+          <div class="map-pick-grid hidden" id="map-pick-grid"></div>
+          <p class="map-pick-hint" data-i18n="modes_map_hint">Gilt für Multiplayer-Modi mit Karten-Rotation.</p>
+        </div>
+        <div class="modes-deploy-panel">
+          <div class="modes-side-label" data-i18n="modes_quick_deploy">SCHNELL-DEPLOY</div>
+          <div class="modes-deploy-preview" id="modes-deploy-preview">
+            <span class="mdp-emoji" id="modes-deploy-emoji">🔫</span>
+            <div class="mdp-text">
+              <span class="mdp-label" data-i18n="modes_last_played">ZULETZT GESPIELT</span>
+              <span class="mdp-name" id="modes-deploy-name">Team Deathmatch</span>
+              <span class="mdp-map" id="modes-deploy-map">Hafen Delta</span>
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary modes-deploy-btn" id="btn-modes-deploy" data-i18n="modes_deploy">▶ DEPLOY</button>
+        </div>
+        <div class="modes-ltm-strip hidden" id="modes-ltm-strip"></div>
+      </aside>
+      <div class="modes-main">
+        <nav class="modes-tabs" id="modes-tabs">
+          <button type="button" class="modes-tab" data-modes-tab="story" data-i18n="tab_story">STORY</button>
+          <button type="button" class="modes-tab" data-modes-tab="solo" data-i18n="tab_solo">SOLO</button>
+          <button type="button" class="modes-tab active" data-modes-tab="pvp" data-i18n="tab_multi">MULTIPLAYER</button>
+          <button type="button" class="modes-tab" data-modes-tab="special" data-i18n="tab_special">SPEZIAL</button>
+          <button type="button" class="modes-tab" data-modes-tab="ranked" data-i18n="tab_ranked">RANKED</button>
+        </nav>
+        <div class="modes-panels" id="modes-panels-root">
+          <div class="modes-panel" data-modes-panel="story">
+            <p class="modes-panel-hint" data-i18n="hint_story">Story-Kampagne · Missionen einzeln oder im Durchlauf</p>
+            <div class="modes-mode-grid">
+              <div class="mode-card mode-card-featured" data-mode="campaign">
+                <div class="mode-card-top">
+                  <div class="mode-emoji">📖</div>
+                  <span class="mode-tag" id="campaign-mode-tag">SOLO · 4 MISSIONEN</span>
+                </div>
+                <h3 data-i18n="mode_campaign">KAMPAGNE</h3>
+                <p id="campaign-mode-desc">Vier Story-Missionen (Saison 1) – M5 &amp; M6 ab 1.8.2026.</p>
+              </div>
+              <div class="campaign-chapters modes-campaign-chapters">
+                <h3 class="chapters-title" data-i18n="chapters_title">KAPITEL WÄHLEN</h3>
+                <p class="chapters-hint" data-i18n="chapters_hint">Freigeschaltete Missionen einzeln spielen (nach Fortschritt).</p>
+                <div class="chapter-grid" id="chapter-grid">
+                  <button type="button" class="chapter-btn" data-campaign-chapter="0">M1</button>
+                  <button type="button" class="chapter-btn locked" data-campaign-chapter="1">M2</button>
+                  <button type="button" class="chapter-btn locked" data-campaign-chapter="2">M3</button>
+                  <button type="button" class="chapter-btn locked" data-campaign-chapter="3">M4</button>
+                  <button type="button" class="chapter-btn locked" data-campaign-chapter="4" title="Saison 2 · 1.8.2026">M5</button>
+                  <button type="button" class="chapter-btn locked" data-campaign-chapter="5" title="Saison 2 · 1.8.2026">M6</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modes-panel" data-modes-panel="solo">
+            <p class="modes-panel-hint" data-i18n="hint_solo">Einzelspieler · Präzision &amp; Training</p>
+            <div class="modes-mode-grid">
+              <div class="mode-card" data-mode="specops">
+                <div class="mode-card-top"><div class="mode-emoji">🎯</div><span class="mode-tag" data-i18n="tag_solo">SOLO</span></div>
+                <h3 data-i18n="mode_specops">SPEC-OPS</h3>
+                <p data-i18n="desc_specops">12 Ziele in 3 Minuten – präzise Solo-Mission.</p>
+              </div>
+              <div class="mode-card" data-mode="training">
+                <div class="mode-card-top"><div class="mode-emoji">🎯</div><span class="mode-tag" data-i18n="tag_training">TRAINING</span></div>
+                <h3 data-i18n="mode_training">SCHIEßSTAND</h3>
+                <p data-i18n="desc_training">Trainingsmodus mit beweglichen Zielen – Waffen testen.</p>
+              </div>
+            </div>
+          </div>
+          <div class="modes-panel active" data-modes-panel="pvp">
+            <p class="modes-panel-hint" data-i18n="hint_pvp">Team vs. Team · Bots · Karten-Rotation</p>
+            <div class="modes-mode-grid">
+              <div class="mode-card" data-mode="tdm">
+                <div class="mode-card-top"><div class="mode-emoji">🔫</div><span class="mode-tag" data-i18n="tag_mp">MULTIPLAYER (BOTS)</span></div>
+                <h3 data-i18n="mode_tdm">TEAM DEATHMATCH</h3>
+                <p data-i18n="desc_tdm">6 gegen 6 in der verlassenen Stadt. Erstes Team mit 50 Kills gewinnt.</p>
+              </div>
+              <div class="mode-card" data-mode="ffa">
+                <div class="mode-card-top"><div class="mode-emoji">🎯</div><span class="mode-tag" data-i18n="tag_mp">MULTIPLAYER (BOTS)</span></div>
+                <h3 data-i18n="mode_ffa">FREI-FÜR-ALLE</h3>
+                <p data-i18n="desc_ffa">Jeder gegen jeden. Erster Spieler mit 25 Kills gewinnt.</p>
+              </div>
+              <div class="mode-card" data-mode="dom">
+                <div class="mode-card-top"><div class="mode-emoji">🏴</div><span class="mode-tag" data-i18n="tag_mp">MULTIPLAYER (BOTS)</span></div>
+                <h3 data-i18n="mode_dom">HERRSCHAFT</h3>
+                <p data-i18n="desc_dom">Erobere und halte die Zonen A, B und C. Erstes Team mit 200 Punkten gewinnt.</p>
+              </div>
+              <div class="mode-card" data-mode="snd">
+                <div class="mode-card-top"><div class="mode-emoji">💣</div><span class="mode-tag" data-i18n="tag_mp">MULTIPLAYER (BOTS)</span></div>
+                <h3 data-i18n="mode_snd">SUCHEN &amp; ZERSTÖREN</h3>
+                <p data-i18n="desc_snd">Keine Respawns. Bombe an Spot A oder B – oder eliminiere BRAVO. Best of 5.</p>
+              </div>
+              <div class="mode-card" data-mode="killconfirmed">
+                <div class="mode-card-top"><div class="mode-emoji">🪖</div><span class="mode-tag" data-i18n="tag_mp">MULTIPLAYER (BOTS)</span></div>
+                <h3 data-i18n="mode_kc">KILL CONFIRMED</h3>
+                <p data-i18n="desc_kc">Dogtags einsammeln nach Kills – erst dann zählt der Punkt.</p>
+              </div>
+              <div class="mode-card" data-mode="hardcore">
+                <div class="mode-card-top"><div class="mode-emoji">💀</div><span class="mode-tag" data-i18n="tag_hardcore">HARDCORE</span></div>
+                <h3 data-i18n="mode_hc">HARDCORE TDM</h3>
+                <p data-i18n="desc_hc">Kein HUD, keine Regeneration, weniger HP – purer Skill.</p>
+              </div>
+              <div class="mode-card" data-mode="infected">
+                <div class="mode-card-top"><div class="mode-emoji">🧟</div><span class="mode-tag" data-i18n="tag_party">PARTY (BOTS)</span></div>
+                <h3 data-i18n="mode_infected">INFIZIERT</h3>
+                <p data-i18n="desc_infected">Ein Infizierter gegen alle – wer wird zuerst infiziert?</p>
+              </div>
+              <div class="mode-card" data-mode="frontwar">
+                <div class="mode-card-top"><div class="mode-emoji">⚔️</div><span class="mode-tag" data-i18n="tag_large">GROSSSCHLACHT (BOTS)</span></div>
+                <h3 data-i18n="mode_frontwar">FRONTKRIEG</h3>
+                <p data-i18n="desc_frontwar">Großschlacht: 14 gegen 14 in der Stadt. Erstes Team mit 150 Kills gewinnt.</p>
+              </div>
+              <div class="mode-card" data-mode="conquest">
+                <div class="mode-card-top"><div class="mode-emoji">🚩</div><span class="mode-tag" data-i18n="tag_mp">MULTIPLAYER (BOTS)</span></div>
+                <h3 data-i18n="mode_conquest">EROBERUNG</h3>
+                <p data-i18n="desc_conquest">5 Zonen, Ticket-System – bring die Tickets des Gegners auf 0.</p>
+              </div>
+              <div class="mode-card" data-mode="hardpoint">
+                <div class="mode-card-top"><div class="mode-emoji">📍</div><span class="mode-tag" data-i18n="tag_coming_soon">COMING SOON</span></div>
+                <h3 data-i18n="mode_hardpoint">HARDPOINT</h3>
+                <p data-i18n="desc_hardpoint">Halte den rotierenden Punkt — Punkte pro Sekunde im Zentrum.</p>
+              </div>
+              <div class="mode-card" data-mode="ctf">
+                <div class="mode-card-top"><div class="mode-emoji">🚩</div><span class="mode-tag" data-i18n="tag_coming_soon">COMING SOON</span></div>
+                <h3 data-i18n="mode_ctf">FLAGGENRAUB</h3>
+                <p data-i18n="desc_ctf">Stiehle die gegnerische Flagge und bring sie in deine Basis.</p>
+              </div>
+              <div class="mode-card" data-mode="escort">
+                <div class="mode-card-top"><div class="mode-emoji">🛡</div><span class="mode-tag" data-i18n="tag_coming_soon">COMING SOON</span></div>
+                <h3 data-i18n="mode_escort">ESKORTE</h3>
+                <p data-i18n="desc_escort">Beschütze die Fracht — schiebe das Payload zum Ziel.</p>
+              </div>
+            </div>
+          </div>
+          <div class="modes-panel" data-modes-panel="special">
+            <p class="modes-panel-hint" data-i18n="hint_special">Saison-Events · Wellen · Limited-Time</p>
+            <div class="modes-mode-grid">
+              <div class="mode-card" data-mode="zombies">
+                <div class="mode-card-top"><div class="mode-emoji">🧟</div><span class="mode-tag" data-i18n="tag_zombies">ZOMBIES</span></div>
+                <h3 data-i18n="mode_zombies">OPERATION: OUTBREAK</h3>
+                <p data-i18n="desc_zombies">Bunker 7. Überlebe endlose Zombiewellen. Kaufe Munition, finde die Mystery-Box.</p>
+              </div>
+              <div class="mode-card ltm" data-mode="gungame">
+                <div class="mode-card-top"><div class="mode-emoji">🔁</div><span class="mode-tag" data-i18n="tag_ltm">★ SAISON-LTM</span></div>
+                <h3 data-i18n="mode_gungame">GUN GAME</h3>
+                <p data-i18n="desc_gungame">Limited-Time: Jeder Kill = nächste Waffe. Durch alle 12 zum Sieg!</p>
+              </div>
+            </div>
+          </div>
+          <div class="modes-panel" data-modes-panel="ranked">
+            <p class="modes-panel-hint" data-i18n="hint_ranked">Competitive · LP · Liga-Rang</p>
+            <div class="modes-mode-grid modes-mode-grid-single">
+              <div class="mode-card mode-card-featured" data-mode="ranked">
+                <div class="mode-card-top"><div class="mode-emoji">🏆</div><span class="mode-tag" data-i18n="tag_ranked">RANKED (BOTS)</span></div>
+                <h3 data-i18n="mode_ranked">RANKED</h3>
+                <p data-i18n="desc_ranked">Competitive TDM – LP aufsteigen von Bronze bis Legende.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="mode-maintenance-toast" class="mode-maintenance-toast hidden"></div>
+
+  <!-- LOADOUT -->
+  <div id="screen-loadout" class="screen menu-screen menu-compact hidden">
+    <div class="loadout-head">
+      <h2 class="screen-title" data-i18n="screen_loadout">LOADOUT</h2>
+      <div id="loadout-presets" class="loadout-presets"></div>
+    </div>
+    <div class="loadout-layout">
+      <aside class="loadout-summary" id="loadout-summary">
+        <div class="lo-sum-label" data-i18n="lo_current">AKTUELLES LOADOUT</div>
+        <div id="lo-sum-primary-wrap" class="lo-sum-slot active-slot" data-lo-slot="primary">
+          <div class="lo-sum-slot-tag" data-i18n="lo_primary">PRIMÄR</div>
+          <div id="lo-sum-primary" class="lo-sum-primary">—</div>
+          <div id="lo-sum-meta" class="lo-sum-meta"></div>
+        </div>
+        <div id="lo-sum-camo" class="lo-sum-camo"></div>
+        <div id="weapon-stats" class="lo-sum-stats"></div>
+        <button type="button" class="btn btn-inspect" id="btn-weapon-inspect" data-i18n="lo_inspect">🔍 WAFFE INSPIZIEREN</button>
+        <div id="lo-sum-secondary" class="lo-sum-secondary lo-sum-slot" data-lo-slot="secondary">
+          <span class="lo-sum-sec-label" data-i18n="lo_secondary">SEKUNDÄR</span>
+          <span id="lo-sum-sec-name" class="lo-sum-sec-name">P9 SCHATTEN</span>
+          <span id="lo-sum-sec-type" class="lo-sum-sec-type">PISTOLE</span>
+        </div>
+      </aside>
+      <div class="loadout-main">
+        <nav class="loadout-tabs" id="loadout-tabs">
+          <button type="button" class="loadout-tab active" data-lo-tab="weapon" data-i18n="lo_tab_weapon">WAFFE</button>
+          <button type="button" class="loadout-tab" data-lo-tab="attachments" data-i18n="lo_tab_attach">AUFSÄTZE</button>
+          <button type="button" class="loadout-tab" data-lo-tab="camo" data-i18n="lo_tab_camo">TARNUNG</button>
+          <button type="button" class="loadout-tab" data-lo-tab="equipment" data-i18n="lo_tab_equip">AUSRÜSTUNG</button>
+          <button type="button" class="loadout-tab" data-lo-tab="charm" data-i18n="lo_tab_charm">ANHÄNGER</button>
+        </nav>
+        <div class="loadout-panels">
+          <div class="loadout-panel active" data-lo-panel="weapon">
+            <div class="loadout-slot-switch" id="loadout-slot-switch">
+              <button type="button" class="lo-slot active" data-lo-slot="primary" data-i18n="lo_primary">PRIMÄR</button>
+              <button type="button" class="lo-slot" data-lo-slot="secondary" data-i18n="lo_secondary">SEKUNDÄR</button>
+            </div>
+            <div class="loadout-filter" id="weapon-filter">
+              <button type="button" class="lo-filter active" data-wfilter="standard" data-i18n="lo_filter_std">STANDARD</button>
+              <button type="button" class="lo-filter" data-wfilter="prototypes" data-i18n="lo_filter_proto">PROTOTYPEN</button>
+            </div>
+            <div id="weapon-list" class="weapon-grid"></div>
+          </div>
+          <div class="loadout-panel" data-lo-panel="attachments">
+            <p class="loadout-panel-hint" id="loadout-att-hint" data-i18n="lo_hint_attach">Aufsätze für deine Primärwaffe</p>
+            <div id="attachment-area" class="attachment-stack"></div>
+          </div>
+          <div class="loadout-panel" data-lo-panel="camo">
+            <p class="loadout-panel-hint" data-i18n="lo_hint_camo">Tarnung für deine Primärwaffe · Gesperrte im Shop oder durch Level freischaltbar</p>
+            <div id="camo-area-unlocked" class="camo-grid"></div>
+            <div id="camo-area-locked" class="camo-grid locked-section hidden"></div>
+            <button type="button" class="lo-toggle-locked hidden" id="camo-toggle-locked" data-i18n="lo_show_locked">Gesperrte anzeigen</button>
+          </div>
+          <div class="loadout-panel" data-lo-panel="equipment">
+            <p class="loadout-panel-hint" data-i18n="lo_hint_equip">Taktische Ausrüstung · [G] im Match werfen · 1× pro Leben</p>
+            <div id="equipment-area" class="equipment-grid"></div>
+          </div>
+          <div class="loadout-panel" data-lo-panel="charm">
+            <p class="loadout-panel-hint" data-i18n="lo_hint_charm">Waffen-Anhänger · Im Shop erhältlich</p>
+            <div id="charm-area" class="charm-grid"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="inspect-overlay" class="inspect-overlay hidden">
+      <div class="inspect-panel">
+        <div id="inspect-weapon" class="inspect-weapon"></div>
+        <div id="inspect-name" class="inspect-name"></div>
+        <button type="button" class="btn" id="btn-inspect-close" data-i18n="lo_close">SCHLIESSEN</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPERATOR -->
+  <div id="screen-operator" class="screen menu-screen menu-compact hidden">
+    <div class="op-head">
+      <h2 class="screen-title" data-i18n="screen_operator">OPERATOR</h2>
+      <div class="op-head-meta">
+        <div id="op-season-tag" class="op-season-tag">SAISON 1 · ASCHEFRONT</div>
+        <div id="op-diamond-hint" class="op-diamond-hint" data-i18n="op_diamonds">💎 1 Diamant alle 10 Matches · pro Operator</div>
+      </div>
+    </div>
+    <div id="op-rarity-bar" class="op-rarity-bar"></div>
+    <div class="op-wrap">
+      <div id="op-preview" class="op-preview"></div>
+      <div id="op-grid" class="op-grid"></div>
+    </div>
+    <div id="op-skills-overlay" class="op-skills-overlay hidden" aria-hidden="true">
+      <div class="op-skills-modal" role="dialog" aria-labelledby="op-skills-modal-title">
+        <div class="op-skills-modal-head">
+          <div id="op-skills-modal-title" class="op-skills-modal-title" data-i18n="op_skills">OPERATOR-SKILLS</div>
+          <button type="button" class="op-skills-close" id="btn-op-skills-close" aria-label="Schließen">✕</button>
+        </div>
+        <div id="op-skills-modal-body" class="op-skills-modal-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SHOP -->
+  <div id="screen-shop" class="screen menu-screen menu-compact hidden">
+    <header class="shop-hero">
+      <div class="shop-hero-text">
+        <h2 class="shop-hero-title" data-i18n="screen_shop">SHOP</h2>
+        <p class="shop-hero-tag" data-i18n="screen_shop_tag">Credits durch Matches · kein Echtgeld</p>
+      </div>
+      <div class="shop-hero-chips">
+        <div class="shop-wallet-chip">
+          <span class="shop-wallet-label" data-i18n="shop_balance">Guthaben</span>
+          <span class="shop-credits">⛁ <span id="shop-credits">0</span></span>
+        </div>
+        <div id="shop-hero-premium" class="shop-premium-chip">
+          <span class="shop-premium-dot"></span>
+          <span class="shop-premium-text" data-i18n="shop_premium">Premium</span>
+        </div>
+      </div>
+    </header>
+    <div class="shop-layout">
+      <aside class="shop-sidebar">
+        <div class="shop-deals-stack">
+          <div class="shop-side-label" data-i18n="shop_daily">⚡ TAGES-DEAL</div>
+          <div id="shop-daily-deal" class="shop-daily-deal"></div>
+          <div class="shop-side-label" data-i18n="shop_weekly">📅 WOCHEN-HIGHLIGHTS</div>
+          <div id="shop-weekly-featured" class="shop-weekly-featured"></div>
+        </div>
+        <div class="shop-preview-panel">
+          <div class="shop-side-label" data-i18n="shop_preview">VORSCHAU</div>
+          <div id="shop-preview" class="shop-preview">
+            <div class="shop-preview-empty" data-i18n="shop_preview_empty">Item wählen · Klick auf Karte zum Kaufen oder Ausrüsten</div>
+          </div>
+        </div>
+      </aside>
+      <div class="shop-main">
+        <div class="shop-tabs-wrap">
+          <nav class="shop-tabs" id="shop-filters">
+            <div class="shop-tab-group">
+              <span class="shop-tab-group-label" data-i18n="shop_group_cos">Kosmetik</span>
+              <div class="shop-tab-row">
+                <button type="button" class="shop-tab active" data-filter="camos"><span class="shop-tab-icon">🎨</span><span class="shop-tab-label" data-i18n="shop_tab_skins">Skins</span></button>
+                <button type="button" class="shop-tab" data-filter="crosshairs"><span class="shop-tab-icon">✛</span><span class="shop-tab-label" data-i18n="shop_tab_crosshairs">Visier</span></button>
+                <button type="button" class="shop-tab" data-filter="sprays"><span class="shop-tab-icon">🖼</span><span class="shop-tab-label" data-i18n="shop_tab_sprays">Sprays</span></button>
+                <button type="button" class="shop-tab" data-filter="emblems"><span class="shop-tab-icon">🛡</span><span class="shop-tab-label" data-i18n="shop_tab_emblems">Embleme</span></button>
+                <button type="button" class="shop-tab" data-filter="titles"><span class="shop-tab-icon">🏷</span><span class="shop-tab-label" data-i18n="shop_tab_titles">Titel</span></button>
+                <button type="button" class="shop-tab" data-filter="charms"><span class="shop-tab-icon">🔗</span><span class="shop-tab-label" data-i18n="shop_tab_charms">Anhänger</span></button>
+                <button type="button" class="shop-tab" data-filter="cards"><span class="shop-tab-icon">🃏</span><span class="shop-tab-label" data-i18n="shop_tab_cards">Cards</span></button>
+              </div>
+            </div>
+            <div class="shop-tab-group shop-tab-group-accent">
+              <span class="shop-tab-group-label" data-i18n="shop_group_prem">Premium &amp; Pakete</span>
+              <div class="shop-tab-row">
+                <button type="button" class="shop-tab shop-tab-accent" data-filter="premium"><span class="shop-tab-icon">⭐</span><span class="shop-tab-label" data-i18n="shop_premium">Premium</span></button>
+                <button type="button" class="shop-tab shop-tab-accent" data-filter="diamonds"><span class="shop-tab-icon">💎</span><span class="shop-tab-label" data-i18n="shop_tab_diamonds">Diamanten</span></button>
+                <button type="button" class="shop-tab shop-tab-accent" data-filter="bundles"><span class="shop-tab-icon">📦</span><span class="shop-tab-label" data-i18n="shop_tab_bundles">Bundles</span></button>
+                <button type="button" class="shop-tab shop-tab-accent" data-filter="boosters"><span class="shop-tab-icon">⚡</span><span class="shop-tab-label" data-i18n="shop_tab_boosters">Booster</span></button>
+                <button type="button" class="shop-tab shop-tab-accent" data-filter="crates"><span class="shop-tab-icon">🎁</span><span class="shop-tab-label" data-i18n="shop_tab_crates">Kisten</span></button>
+              </div>
+            </div>
+          </nav>
+        </div>
+        <div class="shop-content-head">
+          <div class="shop-content-head-text">
+            <h3 class="shop-content-title" id="shop-content-title">Waffen-Skins</h3>
+            <p class="shop-content-meta" id="shop-content-meta">Tarnungen für dein Loadout</p>
+          </div>
+          <span class="shop-content-badge" id="shop-content-badge"></span>
+        </div>
+        <div class="shop-panels">
+          <div class="shop-panel active" data-shop-panel="camos">
+            <p class="shop-panel-hint">Waffen-Tarnungen für dein Loadout · Klicken zum Kaufen, erneut zum Ausrüsten</p>
+            <div id="shop-camos" class="shop-grid"></div>
+          </div>
+          <div class="shop-panel" data-shop-panel="premium">
+            <p class="shop-panel-hint" id="shop-premium-hint">Premium-Spielzeit · +15 % Match-XP · +10 % Credits · stapelbar · auch in Kisten</p>
+            <div id="shop-premium-status" class="shop-premium-status"></div>
+            <div id="shop-premium" class="shop-grid shop-premium-grid"></div>
+          </div>
+          <div class="shop-panel" data-shop-panel="diamonds">
+            <p class="shop-panel-hint">Operator-Skill-Diamanten · Festpakete oder eigene Menge (ab 500 💎) — Preis wie Shop-Pakete kombiniert</p>
+            <div id="shop-diamond-status" class="shop-diamond-status"></div>
+            <div id="shop-diamond-packs" class="shop-grid shop-diamond-grid"></div>
+            <div id="shop-diamond-custom" class="shop-diamond-custom"></div>
+          </div>
+          <div class="shop-panel" data-shop-panel="crosshairs">
+            <p class="shop-panel-hint">Fadenkreuz-Stil und Farbe · wirkt im Match und in den Einstellungen</p>
+            <div class="shop-subsection">
+              <div class="shop-sub-label" data-i18n="shop_sub_styles">STILE</div>
+              <div id="shop-crosshairs" class="shop-grid"></div>
+            </div>
+            <div class="shop-subsection">
+              <div class="shop-sub-label" data-i18n="shop_sub_colors">FARBEN</div>
+              <div id="shop-colors" class="shop-grid"></div>
+            </div>
+          </div>
+          <div class="shop-panel" data-shop-panel="sprays">
+            <p class="shop-panel-hint">Sprays für Profil & Killfeed</p>
+            <div id="shop-sprays" class="shop-grid"></div>
+          </div>
+          <div class="shop-panel" data-shop-panel="emblems">
+            <p class="shop-panel-hint">Embleme für Profil, Rangliste und Clan</p>
+            <div id="shop-emblems" class="shop-grid"></div>
+          </div>
+          <div class="shop-panel" data-shop-panel="titles">
+            <p class="shop-panel-hint">Titel unter deinem Operator-Namen</p>
+            <div id="shop-titles" class="shop-grid"></div>
+          </div>
+          <div class="shop-panel" data-shop-panel="charms">
+            <p class="shop-panel-hint">Anhänger an der Primärwaffe · auch im Loadout wählbar</p>
+            <div id="shop-charms" class="shop-grid"></div>
+          </div>
+          <div class="shop-panel" data-shop-panel="cards">
+            <p class="shop-panel-hint">Calling Cards nach dem Match</p>
+            <div id="shop-cards" class="shop-grid"></div>
+          </div>
+          <div class="shop-panel shop-panel-bundles" data-shop-panel="bundles">
+            <p class="shop-panel-hint">Pakete mit Operatoren, Skins und Bonus-Credits — ⭐ = Premium-Kisten</p>
+            <div id="shop-bundles" class="bundle-grid"></div>
+          </div>
+          <div class="shop-panel" data-shop-panel="boosters">
+            <p class="shop-panel-hint">Booster je Bereich — Level, Battle Pass &amp; Clan · je 2× für 15 Min / 30 Min / 1 Std · Aktivierung im Battle Pass</p>
+            <div id="shop-boosters" class="shop-boosters-wrap"></div>
+          </div>
+          <div class="shop-panel" data-shop-panel="crates">
+            <p class="shop-panel-hint" id="shop-crates-hint">Event-Kisten kaufen · ℹ Drop-Raten pro Kiste · Öffnen über 📦 KISTEN</p>
+            <div id="crate-event-shop" class="crate-event-shop"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BATTLE PASS -->
+  <div id="screen-battlepass" class="screen menu-screen menu-compact hidden">
+    <div class="bp2-hero" id="bp2-hero">
+      <div class="bp2-hero-left">
+        <div class="bp2-season-tag" id="bp2-season-tag">SAISON 1</div>
+        <h2 class="bp2-title" id="bp2-title">ASCHEFRONT</h2>
+        <p class="bp2-tagline" id="bp2-tagline">Battle Pass · 50 Stufen</p>
+      </div>
+      <div class="bp2-hero-mid">
+        <div class="bp2-tier-ring">
+          <span class="bp2-tier-num" id="bp2-tier-num">0</span>
+          <span class="bp2-tier-cap" data-i18n="tier_label">STUFE</span>
+        </div>
+        <div class="bp2-xp-block">
+          <div class="xp-bar big"><div id="bp2-xp-fill"></div></div>
+          <div id="bp2-xp-text" class="bp2-xp-text"></div>
+        </div>
+      </div>
+      <div class="bp2-hero-actions">
+        <button type="button" id="bp2-premium-btn" class="btn bp2-premium-btn">★ PREMIUM</button>
+        <button type="button" id="bp2-skip-btn" class="btn bp2-skip-btn">▲ +1 STUFE</button>
+        <button type="button" id="bp2-skip5-btn" class="btn bp2-skip-btn bp2-skip-multi">▲ +5 STUFEN</button>
+        <button type="button" id="bp2-claim-all" class="btn btn-primary bp2-claim-all">EINSAMMELN</button>
+        <span id="bp2-pending-badge" class="bp2-pending hidden"></span>
+      </div>
+    </div>
+    <div id="bp2-tokens" class="bp2-tokens"></div>
+    <nav class="bp2-tabs" id="bp2-tabs">
+      <button type="button" class="bp2-tab active" data-bp-tab="rewards" data-i18n="bp_tab_rewards">BELOHNUNGEN</button>
+      <button type="button" class="bp2-tab" data-bp-tab="missions" data-i18n="bp_tab_missions">AUFGABEN</button>
+    </nav>
+    <div class="bp2-panels">
+      <div class="bp2-panel active" data-bp-panel="rewards">
+        <div class="bp2-tracks-wrap">
+          <div class="bp2-track-scroll" id="bp2-track-scroll">
+            <div class="bp2-tracks-sync">
+              <div class="bp2-track-lane">
+                <div class="bp2-lane-head" data-i18n="free_track">KOSTENLOS</div>
+                <div id="bp2-track-free" class="bp2-track"></div>
+              </div>
+              <div class="bp2-track-lane premium">
+                <div class="bp2-lane-head" data-i18n="prem_track">★ PREMIUM</div>
+                <div id="bp2-track-prem" class="bp2-track bp2-track-prem"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="bp2-overflow" class="bp2-overflow hidden"></div>
+        <p class="bp2-footnote" data-i18n="bp_footnote">Stufen mit ⛁ kaufen · St. 1–50: klassischer Premium-Pass · ab St. 51: ⛁ / 💎</p>
+      </div>
+      <div class="bp2-panel" data-bp-panel="missions">
+        <section class="bp2-missions-section">
+          <div class="bp2-missions-head">
+            <h3 class="bp2-missions-title" data-i18n="bp_daily">TAGESAUFTRÄGE</h3>
+            <span id="bp2-daily-reset" class="bp2-missions-reset"></span>
+          </div>
+          <p class="bp2-missions-hint" data-i18n="bp_hint_daily">3 Aufträge pro Tag · Saison-XP &amp; Credits · Reset um Mitternacht</p>
+          <div id="bp2-missions-daily" class="bp2-missions"></div>
+        </section>
+        <section class="bp2-missions-section">
+          <div class="bp2-missions-head">
+            <h3 class="bp2-missions-title" data-i18n="bp_weekly">WOCHENAUFTRÄGE</h3>
+            <span id="bp2-weekly-reset" class="bp2-missions-reset"></span>
+          </div>
+          <p class="bp2-missions-hint" data-i18n="bp_hint_weekly">8 Aufträge · Saison-XP &amp; Credits · Reset montags</p>
+          <div id="bp2-missions-weekly" class="bp2-missions"></div>
+        </section>
+        <section class="bp2-missions-section bp2-missions-season">
+          <div class="bp2-missions-head">
+            <h3 class="bp2-missions-title" data-i18n="bp_season">SAISONAUFTRÄGE</h3>
+            <span id="bp2-season-reset" class="bp2-missions-reset"></span>
+          </div>
+          <p class="bp2-missions-hint" data-i18n="bp_hint_season">Langzeit-Ziele · Top-Belohnungen · Reset bei neuer Saison</p>
+          <div id="bp2-missions-season" class="bp2-missions"></div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- EVENT PASS (Countdown · gratis bis 1.8.2026) -->
+  <div id="screen-eventpass" class="screen menu-screen menu-compact hidden">
+    <div class="ep-hero" id="ep-hero">
+      <div class="ep-hero-left">
+        <div class="ep-season-tag" data-i18n="ep_free_tag">100 % GRATIS · COUNTDOWN</div>
+        <h2 class="ep-title" data-i18n="ep_title">HORIZONT-COUNTDOWN</h2>
+        <p class="ep-tagline" data-i18n="ep_tagline">Tägliche Aufgaben · Belohnungen bis Saison 2</p>
+      </div>
+      <div class="ep-hero-mid">
+        <div class="ep-countdown-block">
+          <span class="ep-countdown-label" data-i18n="ep_ends">ENDET AM 1.8.2026</span>
+          <span class="ep-countdown-val" id="ep-countdown-val">—</span>
+        </div>
+        <div class="ep-tier-ring">
+          <span class="ep-tier-num" id="ep-tier-num">0</span>
+          <span class="ep-tier-cap" data-i18n="tier_label">STUFE</span>
+        </div>
+        <div class="ep-xp-block">
+          <div class="xp-bar big"><div id="ep-xp-fill"></div></div>
+          <div id="ep-xp-text" class="ep-xp-text"></div>
+        </div>
+      </div>
+      <div class="ep-hero-actions">
+        <span class="ep-free-badge" data-i18n="ep_free_badge">KEIN PREMIUM · ALLES GRATIS</span>
+        <button type="button" id="ep-claim-all" class="btn btn-primary ep-claim-all" data-i18n="btn_claim">EINSAMMELN</button>
+        <span id="ep-pending-badge" class="ep-pending hidden"></span>
+      </div>
+    </div>
+    <div class="ep-day-strip">
+      <span class="ep-day-label" data-i18n="ep_today">HEUTE</span>
+      <span id="ep-day-info" class="ep-day-info">Tag 1 · Aufgaben freigeschaltet</span>
+    </div>
+    <nav class="ep-tabs" id="ep-tabs">
+      <button type="button" class="ep-tab active" data-ep-tab="missions" data-i18n="ep_tab_missions">TÄGLICHE AUFGABEN</button>
+      <button type="button" class="ep-tab" data-ep-tab="rewards" data-i18n="ep_tab_rewards">BELOHNUNGEN</button>
+    </nav>
+    <div class="ep-panels">
+      <div class="ep-panel active" data-ep-panel="missions">
+        <p class="ep-missions-hint" data-i18n="ep_missions_hint">Jeden Tag neue Aufgaben · Event-Sterne für Pass-Stufen · verpasste Tage bleiben spielbar</p>
+        <div id="ep-missions" class="ep-missions"></div>
+      </div>
+      <div class="ep-panel" data-ep-panel="rewards">
+        <div class="ep-track-wrap">
+          <div class="ep-track-scroll" id="ep-track-scroll">
+            <div class="ep-track-lane">
+              <div class="ep-lane-head" data-i18n="ep_lane_head">GRATIS-PASS · 50 STUFEN</div>
+              <div id="ep-track" class="ep-track"></div>
+            </div>
+          </div>
+        </div>
+        <p class="ep-footnote" data-i18n="ep_footnote">Jede Stufe: ⛁ · 💎 · Premium · Kisten · Kosmetik · Finale: Horizont-Wächter</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- RÄNGE -->
+  <div id="screen-ranks" class="screen menu-screen menu-compact hidden">
+    <div class="ranks-head">
+      <div class="ranks-head-text">
+        <h2 class="screen-title" data-i18n="screen_ranks">RÄNGE &amp; PRESTIGE</h2>
+        <p class="ranks-head-sub" data-i18n="screen_ranks_sub">10 Prestige-Stufen · je 100 Level · bis zu 1.100 Karriere-Level</p>
+      </div>
+      <div class="ranks-head-stats">
+        <div class="ranks-head-stat">
+          <span class="ranks-head-stat-label" data-i18n="rank_career">Karriere-Level</span>
+          <span class="ranks-head-stat-val" id="ranks-career-val">1</span>
+        </div>
+        <div class="ranks-head-badge" id="ranks-head-badge">—</div>
+      </div>
+    </div>
+    <div class="ranks-layout">
+      <aside class="ranks-sidebar">
+        <div class="ranks-hero-card" id="ranks-hero-card">
+          <div class="ranks-hero-prestige" id="ranks-hero-prestige"></div>
+          <div id="ranks-current-icon" class="ranks-current-icon">🎖</div>
+          <div id="ranks-current-name" class="ranks-current-name">REKRUT</div>
+          <div id="ranks-current-tier" class="ranks-current-tier"></div>
+          <div class="ranks-level-row">
+            <span id="ranks-current-meta" class="ranks-current-meta">Level 1 / 100</span>
+            <span id="ranks-cycle-badge" class="ranks-cycle-badge">Zyklus 1</span>
+          </div>
+          <div class="xp-bar big ranks-xp-bar"><div id="ranks-xp-fill"></div></div>
+          <div id="ranks-xp-text" class="ranks-xp-text"></div>
+          <div id="prestige-actions" class="prestige-actions"></div>
+        </div>
+        <div class="ranks-side-block">
+          <div class="ranks-side-label" data-i18n="rank_next_rewards">NÄCHSTE BELOHNUNGEN</div>
+          <div id="next-rewards" class="next-rewards"></div>
+        </div>
+      </aside>
+      <div class="ranks-main">
+        <nav class="ranks-tabs" id="ranks-tabs">
+          <button type="button" class="ranks-tab active" data-ranks-tab="prestige" data-i18n="rank_tab_prestige">PRESTIGE</button>
+          <button type="button" class="ranks-tab" data-ranks-tab="ranks" data-i18n="rank_tab_ranks">RANG-STUFEN</button>
+          <button type="button" class="ranks-tab" data-ranks-tab="info" data-i18n="rank_tab_info">INFO</button>
+          <button type="button" class="ranks-tab" data-ranks-tab="stats" data-i18n="rank_tab_stats">STATISTIKEN</button>
+          <button type="button" class="ranks-tab" data-ranks-tab="leaderboard" data-i18n="rank_tab_lb">BESTENLISTE</button>
+        </nav>
+        <div class="ranks-panels">
+          <div class="ranks-panel active" data-ranks-panel="prestige">
+            <p class="ranks-panel-hint" data-i18n="rank_hint_prestige">10 Prestige-Stufen à 100 Level · Belohnungen &amp; exklusive Tarnungen pro Stufe · Details unter INFO</p>
+            <div id="prestige-track" class="prestige-track"></div>
+          </div>
+          <div class="ranks-panel" data-ranks-panel="info">
+            <p class="ranks-panel-hint" data-i18n="rank_hint_info">Referenz: 100 Level-Belohnungen pro Prestige-Zyklus · Credits steigen mit jedem Prestige (+12 % pro ✪)</p>
+            <div id="prestige-info-select" class="prestige-info-select"></div>
+            <div id="prestige-info-head" class="prestige-info-head"></div>
+            <div id="prestige-info-grid" class="level-rewards-grid prestige-info-grid"></div>
+          </div>
+          <div class="ranks-panel" data-ranks-panel="ranks">
+            <p class="ranks-panel-hint" data-i18n="rank_hint_ranks">11 Rang-Stufen pro Zyklus (Level 1–100) · wiederholt sich in jeder Prestige-Stufe</p>
+            <div id="rank-list" class="rank-list"></div>
+          </div>
+          <div class="ranks-panel" data-ranks-panel="stats">
+            <p class="ranks-panel-hint" data-i18n="rank_hint_stats">Deine Karriere-Statistiken über alle Modi</p>
+            <div id="stats-panel" class="stat-grid"></div>
+          </div>
+          <div class="ranks-panel" data-ranks-panel="leaderboard">
+            <p class="ranks-panel-hint" data-i18n="rank_hint_lb">Lokale Bestenliste · K/D und Kills aus deinen Matches</p>
+            <div id="leaderboard-panel" class="leaderboard-panel"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- EINSTELLUNGEN -->
+  <div id="screen-settings" class="screen menu-screen menu-compact hidden">
+    <div class="settings-head">
+      <div class="settings-head-text">
+        <h2 class="screen-title" data-i18n="settings_title">EINSTELLUNGEN</h2>
+        <p class="settings-head-sub" data-i18n="settings_sub">Steuerung · Grafik · Audio · Sprache · System</p>
+      </div>
+      <p class="settings-version" id="settings-version">Update 0.0.1 · NACHTBLAU Interaktive</p>
+    </div>
+    <div class="settings-layout">
+      <nav class="settings-tabs" id="settings-tabs">
+        <button type="button" class="settings-tab active" data-settings-tab="gameplay" data-i18n="tab_gameplay">STEUERUNG</button>
+        <button type="button" class="settings-tab" data-settings-tab="graphics" data-i18n="tab_graphics">GRAFIK</button>
+        <button type="button" class="settings-tab" data-settings-tab="audio" data-i18n="tab_audio">AUDIO</button>
+        <button type="button" class="settings-tab" data-settings-tab="language" data-i18n="tab_language">SPRACHE</button>
+        <button type="button" class="settings-tab" data-settings-tab="system" data-i18n="tab_system">SYSTEM</button>
+      </nav>
+      <div class="settings-panels">
+        <div class="settings-panel active" data-settings-panel="gameplay">
+          <p class="settings-panel-hint">Maus · Sichtfeld · Fadenkreuz — wirkt sofort im nächsten Match</p>
+          <div class="settings-card">
+            <div class="set-slider-row">
+              <div class="set-slider-head"><span class="set-slider-label">Maus-Sensitivität</span><span class="set-slider-val" id="set-sens-val">1.0</span></div>
+              <input type="range" id="set-sens" min="0.3" max="2.5" step="0.1">
+            </div>
+            <div class="set-slider-row">
+              <div class="set-slider-head"><span class="set-slider-label">Sichtfeld (FOV)</span><span class="set-slider-val" id="set-fov-val">75</span></div>
+              <input type="range" id="set-fov" min="60" max="100" step="1">
+            </div>
+            <div class="set-slider-row">
+              <div class="set-slider-head"><span class="set-slider-label">Fadenkreuz-Größe</span><span class="set-slider-val" id="set-ch-val">1.0</span></div>
+              <input type="range" id="set-ch" min="0.5" max="2" step="0.1">
+            </div>
+          </div>
+        </div>
+        <div class="settings-panel" data-settings-panel="graphics">
+          <p class="settings-panel-hint">Grafik-Preset · wirkt beim nächsten Match oder sofort im laufenden Spiel</p>
+          <div id="gfx-quality-grid" class="gfx-quality-grid"></div>
+          <div id="gfx-quality-detail" class="gfx-quality-detail"></div>
+        </div>
+        <div class="settings-panel" data-settings-panel="audio">
+          <p class="settings-panel-hint">Lautstärke &amp; Operator-Sprüche</p>
+          <div class="settings-card">
+            <div class="set-slider-row">
+              <div class="set-slider-head"><span class="set-slider-label">Lautstärke</span><span class="set-slider-val" id="set-vol-val">100%</span></div>
+              <input type="range" id="set-vol" min="0" max="1" step="0.05">
+            </div>
+            <label class="set-toggle-row">
+              <span class="set-toggle-text">Operator-Sprüche (Text + Stimme)</span>
+              <input type="checkbox" id="set-voice" checked>
+            </label>
+            <p class="settings-hint">Ton muss &gt; 0 % sein. Einmal ins Menü klicken, dann Match starten.</p>
+          </div>
+        </div>
+        <div class="settings-panel" data-settings-panel="language">
+          <div class="lang-panel-disabled">
+            <div class="lang-delay-warn">
+              <span class="lang-delay-warn-icon" aria-hidden="true">⚠</span>
+              <div class="lang-delay-warn-body">
+                <strong data-i18n="lang_delayed_title">ACHTUNG</strong>
+                <p data-i18n="lang_delayed_msg">Mehrsprachigkeit wegen Datenfehlern vorübergehend deaktiviert. Die Veröffentlichung verzögert sich.</p>
+              </div>
+            </div>
+            <p class="settings-panel-hint lang-hint-muted" data-i18n="hint_language">Menü-Sprache · wird gespeichert und sofort angewendet</p>
+            <div id="lang-grid" class="lang-grid lang-grid-disabled"></div>
+          </div>
+        </div>
+        <div class="settings-panel" data-settings-panel="system">
+          <p class="settings-panel-hint">Feedback melden · Spielstand verwalten</p>
+          <div class="settings-card settings-card-system">
+            <div class="settings-block">
+              <div class="settings-block-title">FEEDBACK &amp; BUGS</div>
+              <p class="feedback-desc">Fehler, Balance-Probleme oder Ideen melden — der Report wird kopiert und lokal gespeichert.</p>
+              <button type="button" class="btn btn-primary" id="btn-open-feedback">🐛 BUG / FEEDBACK MELDEN</button>
+            </div>
+            <div class="settings-block settings-block-danger">
+              <div class="settings-block-title">SPEICHERSTAND</div>
+              <p class="save-desc">Der Fortschritt wird automatisch im Browser gespeichert. Hier kannst du den Spielstand komplett zurücksetzen.</p>
+              <button type="button" class="btn btn-danger" id="btn-save-reset">⚠ SPIELSTAND ZURÜCKSETZEN</button>
+              <p id="save-reset-msg" class="save-msg"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FRAKTIONSKRIEG -->
+  <div id="screen-factionwar" class="screen menu-screen menu-compact hidden">
+    <div class="fw-head">
+      <h2 class="screen-title">FRAKTIONSKRIEG</h2>
+      <div class="fw-head-meta" id="fw-head-meta">Woche · 0 FWP</div>
+    </div>
+    <div id="fw-pledge-gate" class="fw-pledge-gate hidden">
+      <div class="fw-gate-inner">
+        <div class="fw-gate-title">WÄHLE DEINE FRAKTION</div>
+        <p class="fw-gate-hint">Einmalige Entscheidung — erst danach siehst du Kriegsstand, Territorien und Ranglisten. Vier Fraktionen, eine Treue.</p>
+        <div id="fw-gate-preview" class="fw-gate-preview"></div>
+        <div id="fw-gate-factions" class="fw-gate-factions"></div>
+        <div id="fw-gate-detail" class="fw-gate-detail hidden"></div>
+        <button type="button" class="btn btn-primary fw-gate-confirm hidden" id="btn-fw-pledge-confirm">FRAKTION BEKENNEN</button>
+      </div>
+    </div>
+    <div class="fw-layout" id="fw-main-layout">
+      <aside class="fw-sidebar">
+        <div class="fw-side-label">DEINE FRAKTION</div>
+        <div id="fw-sidebar-identity" class="fw-sidebar-id"></div>
+        <div class="fw-side-label">WOCHEN-FORTSCHRITT</div>
+        <div id="fw-sidebar-rank" class="fw-sidebar-rank"></div>
+        <div id="fw-sidebar-bonus" class="fw-sidebar-bonus"></div>
+        <div id="fw-sidebar-claim"></div>
+      </aside>
+      <div class="fw-main">
+        <nav class="fw-tabs" id="fw-tabs">
+          <button type="button" class="fw-tab active" data-fw-tab="war">KRIEG</button>
+          <button type="button" class="fw-tab" data-fw-tab="territories">TERRITORIEN</button>
+          <button type="button" class="fw-tab" data-fw-tab="contracts">AUFTRÄGE</button>
+          <button type="button" class="fw-tab" data-fw-tab="lore">CHRONIK</button>
+        </nav>
+        <div class="fw-panels">
+          <div class="fw-panel-tab active" data-fw-panel="war">
+            <div class="fw-war-section">
+              <div class="fw-sub-label">KRIEGSLAGE · WOCHENSTAND</div>
+              <div id="fw-war-overview" class="fw-war-overview"></div>
+            </div>
+            <div class="fw-subsection">
+              <div class="fw-sub-label">GRENZEN & EROBERUNGEN</div>
+              <div id="fw-front-status" class="fw-front-status"></div>
+              <div id="fw-front-log" class="fw-front-log"></div>
+            </div>
+            <div class="fw-subsection">
+              <div class="fw-sub-label">STAND DER FRAKTIONEN</div>
+              <div id="fw-standings" class="fw-standings"></div>
+            </div>
+          </div>
+          <div class="fw-panel-tab" data-fw-panel="territories">
+            <p class="fw-panel-hint">Spiele Matches auf einer Karte, um Einfluss zu sammeln. Bei 6 Punkten wird das Territorium erobert.</p>
+            <div id="fw-territories" class="fw-territories"></div>
+          </div>
+          <div class="fw-panel-tab" data-fw-panel="contracts">
+            <p class="fw-panel-hint">Wochen-Auftrag, Meilensteine und Siegesbelohnung am Wochenwechsel.</p>
+            <div class="fw-subsection">
+              <div class="fw-sub-label">WOCHEN-AUFTRAG</div>
+              <div id="fw-contract"></div>
+            </div>
+            <div class="fw-subsection">
+              <div class="fw-sub-label">FWP-MEILENSTEINE</div>
+              <div id="fw-milestones"></div>
+            </div>
+            <div class="fw-subsection">
+              <div class="fw-sub-label">WOCHEN-SIEGESBELOHNUNG</div>
+              <div id="fw-reward-panel"></div>
+            </div>
+          </div>
+          <div class="fw-panel-tab" data-fw-panel="lore">
+            <p class="fw-panel-hint">Geschichte deiner Fraktion und Verlauf vergangener Wochen.</p>
+            <div id="fw-lore-panel"></div>
+            <div class="fw-subsection">
+              <div class="fw-sub-label">VERLAUF</div>
+              <div id="fw-history" class="fw-history"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SOCIAL -->
+  <div id="screen-social" class="screen menu-screen menu-compact hidden">
+    <div class="social-head">
+      <h2 class="screen-title">SOCIAL</h2>
+      <div class="social-head-meta" id="social-head-meta">0 Freunde</div>
+    </div>
+    <div class="social-layout">
+      <aside class="social-sidebar">
+        <div class="social-side-label">DEIN PROFIL</div>
+        <div id="social-identity" class="social-identity"></div>
+        <div class="social-side-label">FREUNDES-CODE</div>
+        <input type="text" id="social-my-friend-code" class="social-code-input" readonly>
+        <button type="button" class="btn social-copy-btn" id="btn-copy-friend-code">CODE KOPIEREN</button>
+        <p id="social-sidebar-msg" class="save-msg"></p>
+      </aside>
+      <div class="social-main">
+        <nav class="social-tabs" id="social-tabs">
+          <button type="button" class="social-tab active" data-social-tab="friends">FREUNDE</button>
+          <button type="button" class="social-tab" data-social-tab="account">KONTO</button>
+        </nav>
+        <div class="social-panels">
+          <div class="social-panel active" data-social-panel="friends">
+            <p class="social-panel-hint">Freunde per Code hinzufügen · lokal gespeichert, kein Online-Server</p>
+            <div class="social-subsection">
+              <div class="social-sub-label">FREUND HINZUFÜGEN</div>
+              <input type="text" id="social-friend-import" class="social-code-input" placeholder="BF1.…">
+              <button type="button" class="btn btn-primary social-action-btn" id="btn-add-friend">FREUND HINZUFÜGEN</button>
+              <p id="social-friend-msg" class="save-msg"></p>
+            </div>
+            <div class="social-subsection">
+              <div class="social-sub-label">FREUNDESLISTE <span id="social-friend-count" class="social-count"></span></div>
+              <div id="social-friends-list" class="social-list"></div>
+            </div>
+            <div class="social-subsection">
+              <div class="social-sub-label">AUS BESTENLISTE</div>
+              <div id="social-lb-suggest" class="social-list"></div>
+            </div>
+          </div>
+          <div class="social-panel" data-social-panel="account">
+            <p class="social-panel-hint">Rufname für Freundes-Codes, Clan und Bestenliste · leer = Operator-Name</p>
+            <div class="social-subsection">
+              <div class="social-sub-label">ANZEIGENAME</div>
+              <div class="social-name-row">
+                <input type="text" id="social-player-name" class="social-input" maxlength="20" placeholder="Anzeigename…">
+                <button type="button" class="btn btn-primary" id="btn-social-save-name">SPEICHERN</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLAN -->
+  <div id="screen-clan" class="screen menu-screen menu-compact hidden">
+    <div class="clan-head">
+      <div class="clan-head-text">
+        <h2 class="screen-title">CLAN</h2>
+        <p class="clan-head-sub" id="clan-head-meta">Kein Clan · Gründen oder beitreten</p>
+      </div>
+      <div class="clan-head-chips" id="clan-head-chips"></div>
+    </div>
+    <div class="clan-layout">
+      <aside class="clan-sidebar" id="clan-sidebar">
+        <div class="clan-side-label">CLAN-STATUS</div>
+        <div id="clan-sidebar-identity" class="clan-sidebar-id"></div>
+        <div id="clan-sidebar-bonus" class="clan-sidebar-bonus"></div>
+        <div class="clan-side-label">CLAN-CODE</div>
+        <input type="text" id="clan-sidebar-code" class="social-code-input" readonly placeholder="—">
+        <button type="button" class="btn social-copy-btn" id="btn-clan-sidebar-copy">CODE KOPIEREN</button>
+        <p id="clan-sidebar-msg" class="save-msg"></p>
+      </aside>
+      <div class="clan-main">
+        <nav class="clan-tabs hidden" id="clan-tabs">
+          <button type="button" class="clan-tab active" data-clan-tab="home">ÜBERSICHT</button>
+          <button type="button" class="clan-tab" data-clan-tab="war">KAMPF</button>
+          <button type="button" class="clan-tab" data-clan-tab="quests">AUFGABEN</button>
+          <button type="button" class="clan-tab" data-clan-tab="treasury">SCHATZ</button>
+          <button type="button" class="clan-tab" data-clan-tab="members">TEAM</button>
+          <button type="button" class="clan-tab hidden" data-clan-tab="chat" id="clan-tab-chat">CHAT</button>
+        </nav>
+        <div class="clan-panels" id="clan-panels-root">
+          <div class="clan-panel clan-panel-join active" data-clan-panel="join" id="clan-panel-join"></div>
+          <div class="clan-panel" data-clan-panel="home" id="clan-panel-home"></div>
+          <div class="clan-panel" data-clan-panel="war" id="clan-panel-war"></div>
+          <div class="clan-panel" data-clan-panel="quests" id="clan-panel-quests"></div>
+          <div class="clan-panel" data-clan-panel="treasury" id="clan-panel-treasury"></div>
+          <div class="clan-panel" data-clan-panel="members" id="clan-panel-members"></div>
+          <div class="clan-panel" data-clan-panel="chat" id="clan-panel-chat"></div>
+        </div>
+        <p id="clan-msg" class="save-msg clan-msg-bar"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROFIL -->
+  <div id="screen-profile" class="screen menu-screen menu-compact hidden">
+    <div class="profile-head">
+      <h2 class="screen-title">PROFIL</h2>
+    </div>
+    <div class="profile-layout">
+      <aside class="profile-sidebar">
+        <div class="profile-side-label">VORSCHAU</div>
+        <div id="profile-preview" class="profile-preview"></div>
+        <div class="profile-side-label">RANKED</div>
+        <div id="profile-ranked-mini" class="profile-ranked-mini"></div>
+      </aside>
+      <div class="profile-main">
+        <nav class="profile-tabs" id="profile-tabs">
+          <button type="button" class="profile-tab active" data-profile-tab="identity">AUSSEHEN</button>
+          <button type="button" class="profile-tab" data-profile-tab="challenges">CHALLENGES</button>
+          <button type="button" class="profile-tab" data-profile-tab="ranked">RANKED</button>
+          <button type="button" class="profile-tab" data-profile-tab="achievements">TROPHÄEN</button>
+        </nav>
+        <div class="profile-panels">
+          <div class="profile-panel active" data-profile-panel="identity">
+            <p class="profile-panel-hint" id="profile-identity-hint">Emblem, Titel, Spray und Calling Card · Klicken zum Ausrüsten</p>
+            <div class="profile-subsection">
+              <div class="profile-sub-label">EMBLEM</div>
+              <div id="profile-emblems" class="profile-grid"></div>
+            </div>
+            <div class="profile-subsection">
+              <div class="profile-sub-label">TITEL</div>
+              <div id="profile-titles" class="profile-grid"></div>
+            </div>
+            <div class="profile-subsection">
+              <div class="profile-sub-label">SPRAY · Profil & Killfeed</div>
+              <div id="profile-sprays" class="profile-grid"></div>
+            </div>
+            <div class="profile-subsection hidden" id="profile-finisher-section">
+              <div class="profile-sub-label">FINISHER · Nach dem Match</div>
+              <div id="profile-finisher-preview" class="finisher-profile-preview"></div>
+              <div id="profile-finishers" class="profile-grid profile-finisher-grid"></div>
+            </div>
+            <div class="profile-subsection">
+              <div class="profile-sub-label">CALLING CARD</div>
+              <div id="profile-cards" class="profile-grid"></div>
+            </div>
+          </div>
+          <div class="profile-panel" data-profile-panel="challenges">
+            <p class="profile-panel-hint">Tages- und Wochen-Challenges plus Waffen-Vertrag · Belohnungen in Credits</p>
+            <div class="profile-subsection">
+              <div class="profile-sub-label">TAGES-CHALLENGES</div>
+              <div id="profile-daily" class="ch-list"></div>
+            </div>
+            <div class="profile-subsection">
+              <div class="profile-sub-label">WOCHEN-CHALLENGES</div>
+              <div id="profile-weekly" class="ch-list"></div>
+            </div>
+            <div class="profile-subsection">
+              <div class="profile-sub-label">WAFFEN-VERTRAG</div>
+              <div id="profile-contract" class="contract-panel"></div>
+            </div>
+          </div>
+          <div class="profile-panel" data-profile-panel="ranked">
+            <p class="profile-panel-hint">Ranked-Liga, LP und Matchbilanz aus dem Ranked-Modus</p>
+            <div id="profile-ranked" class="ranked-panel"></div>
+          </div>
+          <div class="profile-panel" data-profile-panel="achievements">
+            <p class="profile-panel-hint">Erfolge über alle Spielmodi · Bonus-Credits bei Freischaltung</p>
+            <div id="profile-achievements" class="ach-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="screen-fade" class="screen-fade"></div>
+
+<div id="mission-briefing" class="mission-briefing hidden">
+  <div class="brief-panel">
+    <div id="brief-num" class="brief-num">MISSION 1</div>
+    <h2 id="brief-name" class="brief-name">Schwarzer Morgen</h2>
+    <p id="brief-objective" class="brief-objective"></p>
+    <p id="brief-lore" class="brief-lore"></p>
+  </div>
+</div>
+
+<div id="touch-controls" class="touch-controls hidden">
+  <div id="touch-joy" class="touch-joy"><div id="touch-knob" class="touch-knob"></div></div>
+  <button type="button" id="touch-fire" class="touch-fire">FEUER</button>
+</div>
+
+<div id="feedback-overlay" class="feedback-overlay hidden">
+  <div class="feedback-panel-modal">
+    <div class="feedback-head">
+      <h3 class="feedback-title">BUG / FEEDBACK MELDEN</h3>
+      <button type="button" class="feedback-close" id="btn-feedback-close" aria-label="Schließen">✕</button>
+    </div>
+    <p class="feedback-intro">Hilf uns, Black Horizon besser zu machen. Dein Report enthält automatisch Spiel-Infos — kein Account nötig.</p>
+    <label class="feedback-label">Kategorie</label>
+    <select id="feedback-category" class="feedback-select">
+      <option value="bug">🐛 Bug / Fehler</option>
+      <option value="balance">⚖ Balance / Waffen</option>
+      <option value="idea">💡 Vorschlag / Feature</option>
+      <option value="cosmetic">🎨 Kosmetik / Shop</option>
+      <option value="other">📋 Sonstiges</option>
+    </select>
+    <label class="feedback-label">Beschreibung <span class="feedback-req">*</span></label>
+    <textarea id="feedback-text" class="feedback-textarea" rows="5" placeholder="Was ist passiert? Welcher Modus, welche Karte? Wie lässt es sich reproduzieren?"></textarea>
+    <label class="feedback-label">Name / Kontakt <span class="feedback-opt">(optional)</span></label>
+    <input type="text" id="feedback-contact" class="feedback-input" placeholder="Codename oder E-Mail — falls du Rückmeldung willst" maxlength="80">
+    <label class="feedback-check"><input type="checkbox" id="feedback-include-save" checked> Speicher-Infos anhängen (Level, Modus, Version)</label>
+    <div class="feedback-actions">
+      <button type="button" class="btn btn-primary" id="btn-feedback-submit">📋 REPORT KOPIEREN &amp; SENDEN</button>
+      <button type="button" class="btn" id="btn-feedback-mail">✉ PER E-MAIL</button>
+    </div>
+    <p id="feedback-msg" class="feedback-msg"></p>
+    <p class="feedback-foot">Reports werden lokal gespeichert. Per E-Mail öffnet dein Mail-Programm mit vorausgefülltem Text.</p>
+  </div>
+</div>
+
+<div id="crate-hub-overlay" class="crate-hub-overlay hidden">
+  <div class="crate-hub panel">
+    <div class="crate-hub-head">
+      <h3 class="crate-hub-title">📦 KISTEN · INVENTAR</h3>
+      <button type="button" class="crate-modal-close" id="btn-crate-hub-close" aria-label="Schließen">✕</button>
+    </div>
+    <div id="crate-premium-banner" class="crate-premium-banner hidden"></div>
+    <div id="crate-inventory" class="crate-inventory"></div>
+    <div id="crate-history" class="crate-history"></div>
+  </div>
+</div>
+
+<div id="crate-drop-info-overlay" class="crate-drop-info-overlay hidden">
+  <div class="crate-drop-info panel">
+    <div class="crate-drop-info-head">
+      <h3 id="crate-drop-info-title" class="crate-drop-info-title">DROP-RATEN</h3>
+      <button type="button" class="crate-modal-close" id="btn-crate-drop-info-close" aria-label="Schließen">✕</button>
+    </div>
+    <div id="crate-drop-info-body" class="crate-drop-info-body"></div>
+  </div>
+</div>
+
+<div id="crate-overlay" class="crate-overlay hidden">
+  <div class="crate-modal panel">
+    <div class="crate-modal-head">
+      <h3 id="crate-modal-title" class="crate-modal-title">FRONT-KISTE</h3>
+      <button type="button" class="crate-modal-close" id="btn-crate-close" aria-label="Schließen">✕</button>
+    </div>
+    <div id="crate-open-stage" class="crate-open-stage">
+      <div class="crate-open-scene">
+        <div id="crate-open-glow" class="crate-open-glow"></div>
+        <div id="crate-open-rays" class="crate-open-rays"></div>
+        <div id="crate-open-particles" class="crate-open-particles"></div>
+        <div id="crate-open-box" class="crate-open-box">
+          <span class="crate-box-base">📦</span>
+          <span class="crate-box-lid"></span>
+          <span class="crate-box-shine"></span>
+        </div>
+      </div>
+      <div class="crate-open-progress"><div id="crate-open-progress-fill" class="crate-open-progress-fill"></div></div>
+      <p id="crate-open-hint" class="crate-open-hint">Bereit zum Öffnen</p>
+    </div>
+    <div id="crate-reward-panel" class="crate-reward-panel hidden"></div>
+    <div class="crate-modal-actions">
+      <button type="button" class="btn btn-primary" id="btn-crate-open-confirm">ÖFFNEN</button>
+      <button type="button" class="btn btn-crate-all hidden" id="btn-crate-open-all">ALLE ÖFFNEN</button>
+      <button type="button" class="btn hidden" id="btn-crate-open-done">FERTIG</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="js/progress.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/bp-xp-tokens.js"></script>
+<script src="js/battle-pass.js"></script>
+<script src="js/release.js"></script>
+<script src="js/meta.js"></script>
+<script src="js/features.js"></script>
+<script src="js/faction-war.js"></script>
+<script src="js/extras.js"></script>
+<script src="js/polish.js"></script>
+<script src="js/meta-motivation.js"></script>
+<script src="js/social.js"></script>
+<script src="js/clan-ext.js"></script>
+<script src="js/clan-chat.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/weapons.js"></script>
+<script src="js/event-pass.js"></script>
+<script src="js/operator-skills.js"></script>
+<script src="js/crates.js"></script>
+<script src="js/map.js"></script>
+<script src="js/enemies.js"></script>
+<script src="js/game.js"></script>
+<script src="js/modes.js"></script>
+<script src="js/live-ops.js"></script>
+<script src="js/modes-ext.js"></script>
+<script src="js/menu.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

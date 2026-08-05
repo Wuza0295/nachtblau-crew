@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <title>Bluepole — NachtBlau</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Exo+2:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="game-wrapper">
+    <canvas id="game" width="640" height="360" tabindex="0" aria-label="Bluepole"></canvas>
+    <div id="touch-controls" class="hidden">
+      <div class="touch-left">
+        <button type="button" data-key="ArrowLeft" aria-label="Links">◀</button>
+        <button type="button" data-key="ArrowRight" aria-label="Rechts">▶</button>
+      </div>
+      <div class="touch-right">
+        <button type="button" data-key="KeyZ" class="item-btn" aria-label="Item 1">①</button>
+        <button type="button" data-key="KeyX" class="item-btn" aria-label="Item 2">②</button>
+        <button type="button" data-key="ShiftLeft" class="drift-btn" aria-label="Drift">D</button>
+        <button type="button" data-key="ArrowUp" class="accel-btn" aria-label="Gas">▲</button>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="js/main.js?v=8"></script>
+</body>
+</html>

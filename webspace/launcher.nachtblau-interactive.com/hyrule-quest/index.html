@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hyrule Quest — SNES Zelda</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="game-wrapper">
+    <canvas id="game" width="256" height="224"></canvas>
+    <div id="overlay">
+      <div id="title-screen">
+        <h1>HYRULE QUEST</h1>
+        <p class="subtitle">Ein Abenteuer im Stil von A Link to the Past</p>
+        <p class="blink">Drücke ENTER zum Starten</p>
+        <div class="controls">
+          <span>↑↓←→ Bewegen</span>
+          <span>Leertaste Schwert</span>
+          <span>Z Item benutzen</span>
+        </div>
+      </div>
+      <div id="game-over" class="hidden">
+        <h2>GAME OVER</h2>
+        <p class="blink">Drücke ENTER</p>
+      </div>
+      <div id="victory" class="hidden">
+        <h2>Sieg!</h2>
+        <p>Du hast das Triforce erobert!</p>
+        <p class="blink">Drücke ENTER</p>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
