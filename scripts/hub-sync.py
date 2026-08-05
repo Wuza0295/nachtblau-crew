@@ -81,12 +81,23 @@ def _copy_tree(src: Path, dst: Path, *, skip_names: set[str] | None = None) -> i
     return count
 
 
-def _write_platform_index(template: Path, out: Path, platform: str, bridge: str, label: str) -> None:
+def _write_platform_index(
+    template: Path,
+    out: Path,
+    platform: str,
+    bridge: str,
+    label: str,
+    extra_css: str | None = None,
+) -> None:
     html = template.read_text(encoding="utf-8")
     html = html.replace('class="platform-web"', f'class="platform-{platform}"')
     html = html.replace(">Web Hub<", f">{label}<")
     html = html.replace('src="site-bridge.js"', f'src="{bridge}"')
-    # Keep id for JS; only visible label text was replaced above.
+    if extra_css and f'href="{extra_css}"' not in html:
+        html = html.replace(
+            'href="styles-web.css">',
+            f'href="styles-web.css">\n  <link rel="stylesheet" href="{extra_css}">',
+        )
     out.write_text(html, encoding="utf-8")
 
 
@@ -132,13 +143,15 @@ def apply_platforms() -> dict[str, int]:
 
     # Web bridge lives in shared as site-bridge.js (from webspace)
     # Linux / Android get a full copy of shared + their bridge + patched index
-    for platform, www, bridge_src, bridge_name, label in (
+    for platform, www, bridge_src, bridge_name, label, css_src, css_name in (
         (
             "linux",
             LINUX_WWW,
             BRIDGES / "linux-bridge.js",
             "linux-bridge.js",
             "Linux Desktop",
+            HUB / "linux" / "styles-linux.css",
+            "styles-linux.css",
         ),
         (
             "android",
@@ -146,6 +159,8 @@ def apply_platforms() -> dict[str, int]:
             BRIDGES / "android-bridge.js",
             "android-bridge.js",
             "Android App",
+            HUB / "android" / "styles-android.css",
+            "styles-android.css",
         ),
     ):
         if www.exists():
@@ -155,14 +170,23 @@ def apply_platforms() -> dict[str, int]:
         if not bridge_src.is_file():
             raise SystemExit(f"Bridge fehlt: {bridge_src}")
         shutil.copy2(bridge_src, www / bridge_name)
+        if css_src.is_file():
+            shutil.copy2(css_src, www / css_name)
         # Remove web-only bridge from native packages to avoid confusion
         web_bridge = www / "site-bridge.js"
         if web_bridge.exists():
             web_bridge.unlink()
-        _write_platform_index(template, www / "index.html", platform, bridge_name, label)
+        _write_platform_index(
+            template,
+            www / "index.html",
+            platform,
+            bridge_name,
+            label,
+            extra_css=css_name if css_src.is_file() else None,
+        )
         # Mirror index.htm for local static servers / ALL-INKL habit
         shutil.copy2(www / "index.html", www / "index.htm")
-        n += 1
+        n += 2
         counts[platform] = n
         print(f"✓ {platform}: {www} ({n} Dateien, Bridge={bridge_name})")
 
