@@ -341,6 +341,8 @@ const profileRouter = router({
     }),
 });
 
+import { socialRouter } from "./socialRouter";
+
 // ─── App Router ───────────────────────────────────────────────────────────────
 export const appRouter = router({
   system: systemRouter,
@@ -352,6 +354,7 @@ export const appRouter = router({
       return { success: true } as const;
     }),
   }),
+  social: socialRouter,
   games: gamesRouter,
   news: newsRouter,
   forum: forumRouter,

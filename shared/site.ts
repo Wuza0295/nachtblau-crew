@@ -1,39 +1,69 @@
+/** Temporary working name — final brand name TBD */
 export const SITE = {
-  name: "NachtBlau Crew",
-  shortName: "NachtBlau",
-  tagline: "Deine Gaming Community für PC, Konsolen, Steam und mehr.",
+  name: "Cadence",
+  shortName: "Cadence",
+  workingNameNote: "Arbeitsname — finaler Name folgt",
+  tagline: "Du wählst die Frequenz.",
   description:
-    "NachtBlau Crew – Deine Gaming Community für PC, Konsolen, Steam und mehr. Aktuelle News, kostenlose Spiele und ein aktives Forum.",
-  logoUrl:
-    "https://d2xsxph8kpxj0f.cloudfront.net/310519663739653758/PbtcqHtcftAKnwDnhmoduf/nachtblau-logo-Li7umgFb8XhrYaRtYVFm4Z.webp",
-  heroBgUrl:
-    "https://d2xsxph8kpxj0f.cloudfront.net/310519663739653758/PbtcqHtcftAKnwDnhmoduf/nachtblau-hero-bg-HgRTyjrF5BBTepdctiJ8Mj.webp",
-  webspaceUrl: "https://nacht-blau.de",
-  webspaceLabel: "NachtBlau Webspace",
+    "Cadence vereint das Beste aus allen sozialen Netzwerken: wählbare Feeds, echte Momente, Kreise, Gespräche und Entdeckung — ohne eine Black-Box-Algorithmus-Diktatur.",
+  logoLetter: "C",
+  logoUrl: "",
+  heroBgUrl: "",
+  webspaceUrl: "https://cadence.social",
+  webspaceLabel: "Cadence",
   githubUrl: "https://github.com/Wuza0295/nachtblau-crew",
   githubOrgUrl: "https://github.com/Wuza0295",
   githubLabel: "GitHub Repository",
-  contactEmail: "info@nacht-blau.de",
+  contactEmail: "hello@cadence.social",
   gamerPowerUrl: "https://www.gamerpower.com",
 } as const;
 
-export const EXTERNAL_LINKS = [
+export const MOODS = [
   {
-    href: SITE.webspaceUrl,
-    label: SITE.webspaceLabel,
-    description: "Offizielle Website der NachtBlau GbR mit Infos zum Projekt und Team.",
-    external: true,
+    id: "nah",
+    label: "Nah",
+    description: "Freunde, Stories und echte Momente",
+    inspiredBy: "Instagram Stories + BeReal",
   },
   {
+    id: "gespraech",
+    label: "Gespräch",
+    description: "Text, Threads und starke Antworten",
+    inspiredBy: "X / Threads",
+  },
+  {
+    id: "entdecken",
+    label: "Entdecken",
+    description: "Visuelle Impulse und neue Stimmen",
+    inspiredBy: "TikTok + Instagram Explore",
+  },
+  {
+    id: "kreise",
+    label: "Kreise",
+    description: "Themen-Communities und Räume",
+    inspiredBy: "Reddit + Discord",
+  },
+  {
+    id: "fokus",
+    label: "Fokus",
+    description: "Tiefe Gedanken und Intentionalität",
+    inspiredBy: "LinkedIn + Substack",
+  },
+] as const;
+
+export type MoodId = (typeof MOODS)[number]["id"];
+
+export const EXTERNAL_LINKS = [
+  {
     href: SITE.githubUrl,
-    label: SITE.githubLabel,
-    description: "Quellcode, Issues und Beiträge zur NachtBlau Crew App auf GitHub.",
+    label: "GitHub",
+    description: "Quellcode und Beiträge",
     external: true,
   },
   {
     href: `mailto:${SITE.contactEmail}`,
     label: "Kontakt",
-    description: "Schreib uns eine E-Mail an info@nacht-blau.de.",
+    description: "Schreib uns eine E-Mail",
     external: true,
   },
 ] as const;
