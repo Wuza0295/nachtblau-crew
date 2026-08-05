@@ -48,23 +48,25 @@ export default function CirclesPage() {
               className="glass rounded-2xl overflow-hidden fade-up group"
               style={{ animationDelay: `${i * 0.05}s` }}
             >
-              <div className="relative h-36 overflow-hidden">
-                <img
-                  src={c.cover}
-                  alt=""
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[var(--mira-ink)]/70 to-transparent" />
-                <div className="absolute bottom-3 left-4 right-4 flex items-end justify-between gap-2">
-                  <div className="flex items-center gap-2 text-white">
-                    <Icon className="size-5" />
-                    <h2 className="font-display font-700 text-xl">{c.name}</h2>
+              <Link href={`/circles/${c.slug}`} className="block">
+                <div className="relative h-36 overflow-hidden">
+                  <img
+                    src={c.cover}
+                    alt=""
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[var(--mira-ink)]/70 to-transparent" />
+                  <div className="absolute bottom-3 left-4 right-4 flex items-end justify-between gap-2">
+                    <div className="flex items-center gap-2 text-white">
+                      <Icon className="size-5" />
+                      <h2 className="font-display font-700 text-xl">{c.name}</h2>
+                    </div>
+                    <span className="text-white/80 text-xs">
+                      {c.memberCount.toLocaleString("de")} Mitglieder
+                    </span>
                   </div>
-                  <span className="text-white/80 text-xs">
-                    {c.memberCount.toLocaleString("de")} Mitglieder
-                  </span>
                 </div>
-              </div>
+              </Link>
               <div className="p-4">
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   {c.description}
