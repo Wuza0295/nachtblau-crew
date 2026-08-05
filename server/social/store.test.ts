@@ -9,11 +9,22 @@ describe("Lumen social store", () => {
     expect(feed[0].signal).toBeGreaterThanOrEqual(feed[feed.length - 1].signal - 50);
   });
 
-  it("chrono lens only shows followed authors", () => {
+  it("chrono lens only shows followed authors and self", () => {
     const feed = store.getFeed("chrono");
     expect(feed.every((p) => store.isFollowing(p.authorId) || p.authorId === "me")).toBe(
       true
     );
+  });
+
+  it("surfaces own fresh posts near the top of signal", () => {
+    const post = store.createPost({
+      body: "Eigener frischer Post für Ranking-Test",
+      kind: "thought",
+    });
+    const feed = store.getFeed("signal");
+    const idx = feed.findIndex((p) => p.id === post.id);
+    expect(idx).toBeGreaterThanOrEqual(0);
+    expect(idx).toBeLessThan(4);
   });
 
   it("focus lens prefers depth and thoughts", () => {

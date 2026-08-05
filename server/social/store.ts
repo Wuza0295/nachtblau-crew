@@ -542,15 +542,19 @@ function scorePost(post: PostItem, lens: LensId, now = Date.now()) {
   const meta = LENSES.find((l) => l.id === lens)!;
   const ageH = Math.max(0.1, (now - new Date(post.createdAt).getTime()) / 3600_000);
   const freshness = Math.exp(-ageH / 10);
-  const affinity = followingIds.has(post.authorId) ? 1 : 0.25;
+  const affinity =
+    post.authorId === "me" ? 1.4 : followingIds.has(post.authorId) ? 1 : 0.25;
   const signalNorm = Math.min(1, post.signal / 100);
-  const exploration = followingIds.has(post.authorId) ? 0.2 : 1;
+  const exploration =
+    followingIds.has(post.authorId) || post.authorId === "me" ? 0.2 : 1;
   const kindBoost =
     lens === "focus" && (post.kind === "depth" || post.kind === "thought")
       ? 1.25
       : lens === "discover" && (post.kind === "spark" || !followingIds.has(post.authorId))
         ? 1.3
         : 1;
+  // Fresh own posts surface near the top so composers see immediate feedback
+  const ownBoost = post.authorId === "me" && ageH < 2 ? 1.8 : 1;
 
   const raw =
     meta.weights.freshness * freshness +
@@ -558,12 +562,13 @@ function scorePost(post: PostItem, lens: LensId, now = Date.now()) {
     meta.weights.signal * signalNorm +
     meta.weights.exploration * exploration;
 
-  return raw * kindBoost;
+  return raw * kindBoost * ownBoost;
 }
 
 function reasonsFor(post: PostItem, lens: LensId): string[] {
   const reasons: string[] = [];
-  if (followingIds.has(post.authorId)) reasons.push("Du folgst dem Autor");
+  if (post.authorId === "me") reasons.push("Dein eigener Beitrag");
+  else if (followingIds.has(post.authorId)) reasons.push("Du folgst dem Autor");
   else reasons.push("Entdeckung außerhalb deines Graphs");
 
   if (lens === "signal") reasons.push(`Hohes Signal (${post.signal})`);
@@ -590,7 +595,7 @@ export function getFeed(lens: LensId) {
     }));
 
   if (lens === "chrono") {
-    return ranked.filter((p) => followingIds.has(p.authorId));
+    return ranked.filter((p) => p.authorId === "me" || followingIds.has(p.authorId));
   }
   if (lens === "focus") {
     return ranked.filter((p) => p.kind === "depth" || p.kind === "thought");
