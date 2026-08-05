@@ -21,12 +21,16 @@ import {
   X,
   ChevronRight,
   Shield,
+  UserPlus,
+  Layers,
 } from "lucide-react";
+import PostCard from "@/components/social/PostCard";
+import { ALLXION } from "@/lib/site";
 
 export default function Profile() {
   const { id } = useParams<{ id: string }>();
   const userId = parseInt(id ?? "0");
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, isAuthenticated } = useAuth();
   const utils = trpc.useUtils();
 
   const [editing, setEditing] = useState(false);
@@ -37,6 +41,15 @@ export default function Profile() {
     { userId },
     { enabled: !!userId }
   );
+
+  const { data: socialPosts } = trpc.social.getUserPosts.useQuery(
+    { userId },
+    { enabled: !!userId }
+  );
+
+  const followMut = trpc.social.follow.useMutation({
+    onSuccess: () => toast.success(`Du folgst jetzt auf ${ALLXION.name}`),
+  });
 
   const updateProfile = trpc.profile.updateProfile.useMutation({
     onSuccess: () => {
@@ -164,6 +177,10 @@ export default function Profile() {
                       )}
                     </div>
 
+                    {user.handle && (
+                      <p className="text-sm text-primary/80 mb-1">@{user.handle}</p>
+                    )}
+
                     {user.bio ? (
                       <p className="text-sm text-muted-foreground mb-3">{user.bio}</p>
                     ) : (
@@ -189,6 +206,18 @@ export default function Profile() {
                 >
                   <Edit3 className="h-4 w-4" />
                   Bearbeiten
+                </Button>
+              )}
+              {!isOwn && isAuthenticated && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1.5 flex-shrink-0"
+                  onClick={() => followMut.mutate({ userId })}
+                  disabled={followMut.isPending}
+                >
+                  <UserPlus className="h-4 w-4" />
+                  Auf {ALLXION.name} folgen
                 </Button>
               )}
             </div>
@@ -220,6 +249,27 @@ export default function Profile() {
             </CardContent>
           </Card>
         </div>
+
+        {socialPosts?.posts && socialPosts.posts.length > 0 && (
+          <Card className="bg-card border-border mb-6">
+            <CardHeader className="pb-3 flex flex-row items-center justify-between">
+              <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
+                <Layers className="h-4 w-4 text-primary" />
+                Beiträge auf {ALLXION.name}
+              </CardTitle>
+              <Link href="/">
+                <Button variant="ghost" size="sm" className="text-xs">
+                  Zum Hub
+                </Button>
+              </Link>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {socialPosts.posts.map((post) => (
+                <PostCard key={post.id} post={post} />
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Recent Threads */}
         {recentThreads.length > 0 && (

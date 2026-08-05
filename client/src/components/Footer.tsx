@@ -35,6 +35,8 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2">
               {[
+                { href: "/", label: "Allxion" },
+                { href: "/crew", label: "NachtBlau Crew" },
                 { href: "/free-games", label: "Free Games" },
                 { href: "/news", label: "Gaming News" },
                 { href: "/forum", label: "Community Forum" },

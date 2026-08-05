@@ -1,6 +1,7 @@
 import { eq, sql } from "drizzle-orm";
 import {
   socialCommunities,
+  socialFollows,
   socialPosts,
   socialStories,
   users,
@@ -203,7 +204,14 @@ export async function ensureSocialDemoContent(): Promise<void> {
       });
     }
 
-    console.log("[Seed] Social Portal Demo-Inhalte angelegt");
+    for (const followerId of authorIds) {
+      for (const followingId of authorIds) {
+        if (followerId === followingId) continue;
+        await db.insert(socialFollows).values({ followerId, followingId });
+      }
+    }
+
+    console.log("[Seed] Allxion Demo-Inhalte angelegt");
   } catch (error) {
     console.error("[Seed] Social demo failed:", error);
   }

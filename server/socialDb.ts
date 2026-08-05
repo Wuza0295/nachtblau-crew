@@ -201,6 +201,18 @@ async function enrichPosts(
   }));
 }
 
+export async function getPostsByAuthor(authorId: number, limit = 12, viewerId?: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const postRows = await db
+    .select()
+    .from(socialPosts)
+    .where(eq(socialPosts.authorId, authorId))
+    .orderBy(desc(socialPosts.createdAt))
+    .limit(limit);
+  return enrichPosts(postRows, viewerId);
+}
+
 export async function getFeedPosts(options: {
   mode: FeedMode;
   viewerId?: number;
