@@ -1,59 +1,72 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import Home from "./pages/Home";
-import FreeGames from "./pages/FreeGames";
-import News from "./pages/News";
-import Forum from "./pages/Forum";
-import ForumCategory from "./pages/ForumCategory";
-import ForumThread from "./pages/ForumThread";
-import NewThread from "./pages/NewThread";
-import Profile from "./pages/Profile";
-import ProfileRedirect from "./pages/ProfileRedirect";
-import About from "./pages/About";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
+import { Route, Switch, useParams } from "wouter";
+import Landing from "./pages/Landing";
+import FeedPage from "./pages/FeedPage";
+import CirclesPage, { CircleDetailPage } from "./pages/CirclesPage";
+import CollectivesPage, { CollectiveDetailPage } from "./pages/CollectivesPage";
+import SparksPage from "./pages/SparksPage";
+import MessagesPage from "./pages/MessagesPage";
+import ExplorePage from "./pages/ExplorePage";
+import SocialProfilePage from "./pages/SocialProfilePage";
+import PostDetailPage from "./pages/PostDetailPage";
+import NotFound from "./pages/NotFound";
+
+function CircleRoute() {
+  const params = useParams<{ slug: string }>();
+  return <CircleDetailPage slug={params.slug ?? ""} />;
+}
+
+function CollectiveRoute() {
+  const params = useParams<{ slug: string }>();
+  return <CollectiveDetailPage slug={params.slug ?? ""} />;
+}
+
+function ProfileRoute() {
+  const params = useParams<{ handle: string }>();
+  return <SocialProfilePage handle={params.handle ?? ""} />;
+}
+
+function PostRoute() {
+  const params = useParams<{ id: string }>();
+  return <PostDetailPage id={params.id ?? ""} />;
+}
 
 function Router() {
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Navbar />
-      <main className="flex-1">
-        <Switch>
-          <Route path="/" component={Home} />
-          <Route path="/free-games" component={FreeGames} />
-          <Route path="/news" component={News} />
-          <Route path="/forum" component={Forum} />
-          <Route path="/forum/kategorie/:slug" component={ForumCategory} />
-          <Route path="/forum/thread/:id" component={ForumThread} />
-          <Route path="/forum/neu" component={NewThread} />
-          <Route path="/profil" component={ProfileRedirect} />
-          <Route path="/profil/:id" component={Profile} />
-          <Route path="/ueber-uns" component={About} />
-          <Route path="/404" component={NotFound} />
-          <Route component={NotFound} />
-        </Switch>
-      </main>
-      <Footer />
-    </div>
+    <Switch>
+      <Route path="/" component={Landing} />
+      <Route path="/app" component={FeedPage} />
+      <Route path="/app/sparks" component={SparksPage} />
+      <Route path="/app/circles" component={CirclesPage} />
+      <Route path="/app/circles/:slug" component={CircleRoute} />
+      <Route path="/app/collectives" component={CollectivesPage} />
+      <Route path="/app/collectives/:slug" component={CollectiveRoute} />
+      <Route path="/app/explore" component={ExplorePage} />
+      <Route path="/app/messages" component={MessagesPage} />
+      <Route path="/app/u/:handle" component={ProfileRoute} />
+      <Route path="/u/:handle" component={ProfileRoute} />
+      <Route path="/post/:id" component={PostRoute} />
+      <Route path="/404" component={NotFound} />
+      <Route component={NotFound} />
+    </Switch>
   );
 }
 
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider defaultTheme="dark">
+      <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster
-            theme="dark"
+            theme="light"
             toastOptions={{
               style: {
-                background: "oklch(0.12 0.03 250)",
-                border: "1px solid oklch(0.22 0.04 250)",
-                color: "oklch(0.93 0.015 220)",
+                background: "oklch(0.985 0.008 95)",
+                border: "1px solid oklch(0.88 0.015 95)",
+                color: "oklch(0.22 0.02 150)",
               },
             }}
           />

@@ -1,17 +1,11 @@
 {
-  "name": "NachtBlau Crew",
-  "short_name": "NachtBlau",
-  "description": "Gaming Community für PC, Konsolen, Steam und mehr.",
+  "name": "Lumen",
+  "short_name": "Lumen",
+  "description": "Dein Feed. Deine Regeln. Deine Kreise. Social neu zusammengesetzt.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0e1a",
-  "theme_color": "#0a0e1a",
+  "background_color": "#f3efe6",
+  "theme_color": "#f3efe6",
   "lang": "de",
-  "icons": [
-    {
-      "src": "https://d2xsxph8kpxj0f.cloudfront.net/310519663739653758/PbtcqHtcftAKnwDnhmoduf/nachtblau-logo-Li7umgFb8XhrYaRtYVFm4Z.webp",
-      "sizes": "512x512",
-      "type": "image/webp"
-    }
-  ]
+  "icons": []
 }
