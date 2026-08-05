@@ -1,0 +1,14 @@
+{
+  "name": "nachtblau-hub-linux",
+  "version": "1.0.0",
+  "private": true,
+  "description": "NachtBlau Hub — Linux Desktop (Electron), synced with Webspace & Android",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "sync": "python3 ../../../scripts/hub-sync.py sync"
+  },
+  "devDependencies": {
+    "electron": "^37.2.0"
+  }
+}
