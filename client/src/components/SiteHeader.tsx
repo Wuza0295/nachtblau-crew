@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const NAV = [
   { href: "/feed", label: "Feed", icon: Home },
@@ -88,8 +89,22 @@ export default function SiteHeader() {
                 </Button>
               </div>
             ) : (
-              <Button asChild size="sm" className="rounded-full">
-                <a href={getLoginUrl()}>Beitreten</a>
+              <Button
+                size="sm"
+                className="rounded-full"
+                onClick={() => {
+                  const url = getLoginUrl();
+                  if (url) window.location.href = url;
+                  else {
+                    toast.message("Demo-Modus", {
+                      description:
+                        "OAuth ist hier nicht konfiguriert — Feed & Features sind trotzdem offen.",
+                    });
+                    window.location.href = "/feed";
+                  }
+                }}
+              >
+                Beitreten
               </Button>
             )
           )}

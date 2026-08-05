@@ -56,14 +56,26 @@ export function listFeed(opts: {
     posts = posts.filter((p) => p.lens === lens);
   }
 
-  // Chronological vs discovery blend
+  // Chronological vs discovery blend (higher score first)
+  const maxEng = Math.max(
+    1,
+    ...posts.map((p) => Object.values(p.signals).reduce((s, n) => s + n, 0))
+  );
+  const times = posts.map((p) => new Date(p.createdAt).getTime());
+  const minT = Math.min(...times);
+  const maxT = Math.max(...times);
+  const span = Math.max(1, maxT - minT);
+
   posts.sort((a, b) => {
-    const chrono = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    const engagement =
-      Object.values(b.signals).reduce((s, n) => s + n, 0) -
-      Object.values(a.signals).reduce((s, n) => s + n, 0);
-    const score = (chrono * (100 - mix) + engagement * mix) / 100;
-    return score > 0 ? -1 : score < 0 ? 1 : 0;
+    const chronoA = (new Date(a.createdAt).getTime() - minT) / span;
+    const chronoB = (new Date(b.createdAt).getTime() - minT) / span;
+    const engA =
+      Object.values(a.signals).reduce((s, n) => s + n, 0) / maxEng;
+    const engB =
+      Object.values(b.signals).reduce((s, n) => s + n, 0) / maxEng;
+    const scoreA = chronoA * (100 - mix) + engA * mix;
+    const scoreB = chronoB * (100 - mix) + engB * mix;
+    return scoreB - scoreA;
   });
 
   return posts.map(enrichPost);
