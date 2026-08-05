@@ -2,7 +2,7 @@ import { trpc } from "@/lib/trpc";
 import { Avatar } from "@/components/PostCard";
 import { cn } from "@/lib/utils";
 import { Camera } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function MomentsRail() {
   const { data: moments = [] } = trpc.social.moments.useQuery();
@@ -10,6 +10,20 @@ export function MomentsRail() {
   const [active, setActive] = useState<number | null>(null);
 
   const activeMoment = moments.find((m) => m.id === active);
+
+  useEffect(() => {
+    if (active === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setActive(null);
+    };
+    window.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [active]);
 
   return (
     <section className="space-y-3 animate-rise">
@@ -58,6 +72,9 @@ export function MomentsRail() {
         <div
           className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 animate-fade-scale"
           onClick={() => setActive(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Echtzeit-Moment"
         >
           <div
             className="relative w-full max-w-sm aspect-[9/16] rounded-3xl overflow-hidden"
@@ -74,17 +91,21 @@ export function MomentsRail() {
                 name={activeMoment.author.name}
                 size="sm"
               />
-              <div>
-                <p className="font-semibold text-sm">{activeMoment.author.name}</p>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-sm truncate">{activeMoment.author.name}</p>
                 <p className="text-xs text-white/70">{activeMoment.caption}</p>
               </div>
               <button
-                className="ml-auto text-sm font-medium"
+                type="button"
+                className="shrink-0 rounded-full bg-white/15 hover:bg-white/25 px-3 py-1.5 text-sm font-medium"
                 onClick={() => setActive(null)}
               >
                 Schließen
               </button>
             </div>
+            <p className="absolute bottom-6 inset-x-0 text-center text-white/50 text-xs">
+              Tippe außerhalb oder Esc zum Schließen
+            </p>
           </div>
         </div>
       )}

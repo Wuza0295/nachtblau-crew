@@ -24,14 +24,12 @@ export function Logo({ className }: { className?: string }) {
   return (
     <Link href="/" className={cn("inline-flex items-center gap-2.5 group", className)}>
       <span
-        className="relative grid place-items-center size-9 rounded-xl text-primary-foreground font-display font-800 text-lg shadow-sm animate-wave"
+        className="relative grid place-items-center size-9 rounded-xl text-primary-foreground font-display font-extrabold text-lg shadow-sm"
         style={{
           background: "linear-gradient(145deg, oklch(0.55 0.12 175), oklch(0.38 0.08 175))",
-          fontWeight: 800,
         }}
       >
         {SITE.logoLetter}
-        <span className="absolute -inset-0.5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity animate-pulse-ring" />
       </span>
       <span className="font-display text-xl font-bold tracking-tight text-foreground">
         {SITE.name}
@@ -59,7 +57,7 @@ export function MoodSwitcher({ compact = false }: { compact?: boolean }) {
           aria-selected={mood === m.id}
           onClick={() => setMood(m.id as MoodId)}
           className={cn(
-            "shrink-0 px-3 py-1.5 rounded-xl text-sm font-medium transition-all duration-300",
+            "shrink-0 px-3.5 py-2 rounded-xl text-sm font-medium transition-all duration-300 min-h-10",
             mood === m.id
               ? "bg-primary text-primary-foreground shadow-sm"
               : "text-muted-foreground hover:text-foreground hover:bg-secondary/80"

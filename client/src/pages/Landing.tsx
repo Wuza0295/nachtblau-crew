@@ -18,25 +18,24 @@ export default function Landing() {
       {/* Hero — one composition, brand first, full-bleed atmosphere */}
       <section className="relative min-h-dvh flex flex-col overflow-hidden grain">
         <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage:
+              "url(https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=2400&q=80)",
+          }}
+        />
+        <div
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(165deg, oklch(0.92 0.04 175) 0%, oklch(0.88 0.05 190) 35%, oklch(0.78 0.07 175) 70%, oklch(0.45 0.08 175) 100%)",
+              "linear-gradient(165deg, oklch(0.92 0.03 175 / 0.82) 0%, oklch(0.85 0.04 180 / 0.75) 40%, oklch(0.55 0.06 175 / 0.78) 100%)",
           }}
         />
         <div
-          className="absolute inset-0 opacity-40 mix-blend-soft-light"
+          className="absolute inset-0 opacity-30 mix-blend-soft-light"
           style={{
             backgroundImage:
-              "radial-gradient(circle at 30% 40%, transparent 0%, oklch(0.3 0.05 175 / 0.35) 100%), url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230f766e' fill-opacity='0.08'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
-          }}
-        />
-        {/* Photographic atmosphere plane — abstract city/horizon as dominant visual */}
-        <div
-          className="absolute inset-0 opacity-30"
-          style={{
-            background:
-              "linear-gradient(to top, oklch(0.35 0.06 175 / 0.85), transparent 45%), radial-gradient(ellipse at 70% 60%, oklch(0.7 0.08 85 / 0.4), transparent 50%)",
+              "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230f766e' fill-opacity='0.08'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
           }}
         />
 
@@ -55,7 +54,7 @@ export default function Landing() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-sm font-semibold tracking-wide text-primary-foreground/80 mb-4 md:text-primary/90"
+            className="text-sm font-semibold tracking-wide mb-4"
             style={{ color: "oklch(0.28 0.04 175)" }}
           >
             {SITE.workingNameNote}
@@ -64,7 +63,7 @@ export default function Landing() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.75, delay: 0.08 }}
-            className="font-display text-[clamp(3.5rem,12vw,8rem)] font-extrabold leading-[0.9] text-[oklch(0.18_0.04_165)] max-w-4xl"
+            className="font-display text-[clamp(3rem,14vw,8rem)] font-extrabold leading-[0.9] text-[oklch(0.18_0.04_165)] max-w-4xl break-words"
           >
             {SITE.name}
           </motion.h1>
@@ -82,8 +81,7 @@ export default function Landing() {
             transition={{ duration: 0.7, delay: 0.32 }}
             className="mt-3 text-base text-[oklch(0.32_0.03_165_/0.85)] max-w-lg"
           >
-            Das Beste aus Instagram, TikTok, X, Discord, Reddit, Bluesky, BeReal und
-            LinkedIn — in einem Portal, das Resonanz misst statt Aufmerksamkeit.
+            Resonanz statt Aufmerksamkeit — du wählst, wie das Netz klingt.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 14 }}
