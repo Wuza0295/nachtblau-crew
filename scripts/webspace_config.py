@@ -183,6 +183,11 @@ def upload_tree(ftp, local: Path, remote_prefix: str = "") -> int:
             count += upload_tree(ftp, item, remote_name)
             ftp.cwd("..")
         else:
+            local_size = item.stat().st_size
+            remote_size = _remote_size(ftp, item.name)
+            if remote_size is not None and remote_size == local_size:
+                print(f"  = {remote_name}", flush=True)
+                continue
             print(f"  ↑ {remote_name}", flush=True)
             with item.open("rb") as fh:
                 ftp.storbinary(f"STOR {item.name}", fh, blocksize=64 * 1024)
