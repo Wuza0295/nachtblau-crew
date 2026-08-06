@@ -1,6 +1,6 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { apiCreatePost } from "../lib/api";
+import { apiBrandAccounts, apiCreatePost, type BrandAccount } from "../lib/api";
 import { useAuth } from "../lib/auth";
 
 export function ComposePage() {
@@ -10,6 +10,15 @@ export function ComposePage() {
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [busy, setBusy] = useState(false);
+  const [brands, setBrands] = useState<BrandAccount[]>([]);
+  const [asUserId, setAsUserId] = useState(0);
+
+  useEffect(() => {
+    if (!user?.isAdmin) return;
+    void apiBrandAccounts()
+      .then((d) => setBrands(d.accounts))
+      .catch(() => setBrands([]));
+  }, [user?.isAdmin]);
 
   if (!user) return <Navigate to="/login" replace />;
 
@@ -19,6 +28,7 @@ export function ComposePage() {
     const fd = new FormData(form);
     if (adult) fd.set("isAdult", "1");
     if (adult && fd.get("policyOk") === "on") fd.set("policyOk", "1");
+    if (asUserId > 0) fd.set("asUserId", String(asUserId));
     setBusy(true);
     setError("");
     setInfo("");
@@ -66,6 +76,19 @@ export function ComposePage() {
       ) : null}
 
       <form className="form" encType="multipart/form-data" onSubmit={(e) => void onSubmit(e)}>
+        {user.isAdmin && brands.length > 0 ? (
+          <label>
+            Posten als
+            <select value={asUserId} onChange={(e) => setAsUserId(Number(e.target.value))}>
+              <option value={0}>@{user.username} (du)</option>
+              {brands.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.displayName} (@{b.username})
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
         <label>
           Dein Text
           <textarea name="body" maxLength={4000} placeholder="Was gibt's Neues?" />

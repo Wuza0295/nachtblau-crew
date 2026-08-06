@@ -75,11 +75,70 @@ function dm_unblock(int $blockerId, int $blockedId): void
 function dm_find_user_by_username(string $username): ?array
 {
     $stmt = allxion_db()->prepare(
-        'SELECT id, username, birthdate, dm_rules_accepted_at, is_admin FROM users WHERE username = ? LIMIT 1'
+        'SELECT id, username, display_name, birthdate, dm_rules_accepted_at, dm_rules_version,
+                is_admin, account_kind, login_disabled, banned_at
+         FROM users WHERE lower(username) = lower(?) LIMIT 1'
     );
     $stmt->execute([trim($username)]);
     $row = $stmt->fetch();
     return $row ?: null;
+}
+
+function dm_find_thread(int $userId, int $otherId): ?array
+{
+    [$a, $b] = dm_pair_ids($userId, $otherId);
+    $stmt = allxion_db()->prepare('SELECT * FROM dm_threads WHERE user_a = ? AND user_b = ?');
+    $stmt->execute([$a, $b]);
+    $row = $stmt->fetch();
+    return $row ?: null;
+}
+
+/**
+ * Resolve where to send the viewer for a PN with $username.
+ * Existing chat → message.php; otherwise messages.php?to=…
+ *
+ * @return array{ok: true, url: string, threadId: ?int}|array{ok: false, error: string}
+ */
+function dm_open_with_username(array $viewer, string $username): array
+{
+    if (!dm_user_eligible($viewer)) {
+        return ['ok' => false, 'error' => 'DMs erst ab ' . DM_MIN_AGE . ' Jahren.'];
+    }
+    $other = dm_find_user_by_username($username);
+    if (!$other) {
+        return ['ok' => false, 'error' => 'Benutzer nicht gefunden.'];
+    }
+    if ((int)$other['id'] === (int)$viewer['id']) {
+        return ['ok' => false, 'error' => 'Du kannst dir keine PN schreiben.'];
+    }
+    if (!empty($other['banned_at'])) {
+        return ['ok' => false, 'error' => 'Dieses Konto ist gesperrt.'];
+    }
+    if (!dm_user_eligible($other)) {
+        return ['ok' => false, 'error' => 'Diese Person kann noch keine DMs empfangen.'];
+    }
+    if (dm_is_blocked((int)$viewer['id'], (int)$other['id'])) {
+        return ['ok' => false, 'error' => 'Nachricht nicht möglich (Blockierung).'];
+    }
+
+    $thread = dm_find_thread((int)$viewer['id'], (int)$other['id']);
+    if ($thread) {
+        $msgCount = allxion_db()->prepare('SELECT COUNT(*) FROM dm_messages WHERE thread_id = ?');
+        $msgCount->execute([(int)$thread['id']]);
+        if ((int)$msgCount->fetchColumn() > 0) {
+            return [
+                'ok' => true,
+                'url' => allxion_url('message.php?id=' . (int)$thread['id']),
+                'threadId' => (int)$thread['id'],
+            ];
+        }
+    }
+
+    return [
+        'ok' => true,
+        'url' => allxion_url('messages.php?to=' . rawurlencode((string)$other['username'])),
+        'threadId' => $thread ? (int)$thread['id'] : null,
+    ];
 }
 
 function dm_get_or_create_thread(int $userId, int $otherId): array

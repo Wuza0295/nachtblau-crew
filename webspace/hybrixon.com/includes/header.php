@@ -82,7 +82,7 @@ if (!headers_sent()) {
       <?php if ($currentUser): ?>
         <a href="<?= e(allxion_url('compose.php')) ?>" class="<?= $activeNav === 'compose' ? 'active' : '' ?>">Posten</a>
         <a href="<?= e(allxion_url('messages.php')) ?>" class="<?= $activeNav === 'messages' ? 'active' : '' ?>">DMs<?php if ($dmUnread > 0): ?> <span class="nav-badge"><?= (int)$dmUnread ?></span><?php endif; ?></a>
-        <a href="<?= e(allxion_url('profile.php')) ?>" class="<?= $activeNav === 'profile' ? 'active' : '' ?>">@<?= e($currentUser['username']) ?></a>
+        <a href="<?= e(allxion_url('u.php?u=' . rawurlencode((string)$currentUser['username']))) ?>" class="<?= $activeNav === 'profile' ? 'active' : '' ?>">@<?= e($currentUser['username']) ?></a>
         <?php if (user_is_admin($currentUser)): ?>
           <a href="<?= e(allxion_url('admin/')) ?>" class="<?= $activeNav === 'admin' ? 'active' : '' ?>">Admin</a>
         <?php endif; ?>
@@ -109,7 +109,7 @@ if (!headers_sent()) {
         <?php if ($dmUnread > 0): ?><span class="dock-dot" aria-hidden="true"></span><?php endif; ?>
         <span class="dock-label">DMs</span>
       </a>
-      <a href="<?= e(allxion_url('profile.php')) ?>" class="dock-item <?= $activeNav === 'profile' ? 'active' : '' ?>" aria-label="Profil">
+      <a href="<?= e(allxion_url('u.php?u=' . rawurlencode((string)$currentUser['username']))) ?>" class="dock-item <?= $activeNav === 'profile' ? 'active' : '' ?>" aria-label="Profil">
         <span class="dock-icon dock-icon-profile" aria-hidden="true"></span>
         <span class="dock-label">Profil</span>
       </a>

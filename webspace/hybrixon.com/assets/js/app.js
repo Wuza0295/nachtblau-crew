@@ -15,6 +15,16 @@ document.addEventListener('DOMContentLoaded', () => {
     sync();
   }
 
+  // Only one author menu open at a time
+  document.querySelectorAll('details.author-menu').forEach((menu) => {
+    menu.addEventListener('toggle', () => {
+      if (!menu.open) return;
+      document.querySelectorAll('details.author-menu[open]').forEach((other) => {
+        if (other !== menu) other.open = false;
+      });
+    });
+  });
+
   const toggle = document.querySelector('[data-nav-toggle]');
   const nav = document.querySelector('[data-site-nav]');
   if (toggle && nav) {

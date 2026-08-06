@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { AuthorMenu } from "../components/AuthorMenu";
 import { apiFeed, apiLike, apiReportPost, timeAgo, type Post } from "../lib/api";
 import { useAuth } from "../lib/auth";
 
@@ -100,9 +101,21 @@ export function FeedPage() {
         {posts.map((post) => (
           <article key={post.id} className={`post-card ${post.isAdult ? "adult" : ""}`}>
             <div className="post-meta">
-              <div>
-                <strong>@{post.username}</strong>
-                <span className="muted"> · {timeAgo(post.createdAt)}</span>
+              <div className="post-author">
+                {post.avatarUrl ? (
+                  <img className="post-avatar" src={post.avatarUrl} alt="" />
+                ) : (
+                  <span className="post-avatar post-avatar-fallback">
+                    {(post.displayName || post.username).slice(0, 1).toUpperCase()}
+                  </span>
+                )}
+                <div>
+                  <AuthorMenu username={post.username} displayName={post.displayName} />
+                  {post.displayName && post.displayName !== post.username ? (
+                    <span className="muted"> @{post.username}</span>
+                  ) : null}
+                  <span className="muted"> · {timeAgo(post.createdAt)}</span>
+                </div>
               </div>
               <div className="pill-row">
                 {post.isAdult ? <span className="badge-18">18+</span> : null}

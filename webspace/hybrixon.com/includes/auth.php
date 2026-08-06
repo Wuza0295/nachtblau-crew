@@ -28,7 +28,10 @@ function allxion_current_user(): ?array
         return null;
     }
     $stmt = allxion_db()->prepare(
-        'SELECT id, username, email, birthdate, age_verified_at, age_status, age_doc_path, age_requested_at, age_reviewed_at, age_review_note, age_provider, dm_rules_accepted_at, dm_rules_version, is_admin, banned_at, ban_reason, banned_by, created_at FROM users WHERE id = ?'
+        'SELECT id, username, email, birthdate, age_verified_at, age_status, age_doc_path, age_requested_at, age_reviewed_at, age_review_note, age_provider, dm_rules_accepted_at, dm_rules_version, is_admin, banned_at, ban_reason, banned_by, created_at,
+                display_name, bio, location, website, link_instagram, link_facebook, link_tiktok, link_x,
+                avatar_path, banner_path, account_kind, login_disabled, admin_postable
+         FROM users WHERE id = ?'
     );
     $stmt->execute([(int)$id]);
     $user = $stmt->fetch();
@@ -62,6 +65,9 @@ function allxion_login(string $login, string $password): bool|string
     $user = $stmt->fetch();
     if (!$user || !password_verify($password, $user['password_hash'])) {
         return false;
+    }
+    if (!empty($user['login_disabled']) || (($user['account_kind'] ?? '') === 'brand')) {
+        return 'Dieses Profil hat keinen direkten Login. Admins posten darüber im Compose-Menü.';
     }
     if (user_is_banned($user)) {
         $reason = trim((string)($user['ban_reason'] ?? ''));

@@ -163,6 +163,20 @@ SQL);
         'banned_at' => 'TEXT',
         'ban_reason' => 'TEXT',
         'banned_by' => 'INTEGER',
+        // Social-style profile
+        'display_name' => 'TEXT',
+        'bio' => 'TEXT',
+        'location' => 'TEXT',
+        'website' => 'TEXT',
+        'link_instagram' => 'TEXT',
+        'link_facebook' => 'TEXT',
+        'link_tiktok' => 'TEXT',
+        'link_x' => 'TEXT',
+        'avatar_path' => 'TEXT',
+        'banner_path' => 'TEXT',
+        'account_kind' => "TEXT NOT NULL DEFAULT 'user'",
+        'login_disabled' => 'INTEGER NOT NULL DEFAULT 0',
+        'admin_postable' => 'INTEGER NOT NULL DEFAULT 0',
     ];
     foreach ($add as $name => $def) {
         if (!isset($cols[$name])) {
@@ -225,4 +239,120 @@ SQL);
              age_provider = CASE WHEN age_provider IS NULL OR age_provider = 'none' THEN 'admin' ELSE age_provider END
          WHERE is_admin = 1"
     );
+
+    hybrixon_ensure_brand_team($pdo);
+}
+
+/**
+ * Official brand profile: no direct login, admins may post as this account.
+ */
+function hybrixon_ensure_brand_team(PDO $pdo): void
+{
+    $username = 'HybrixonTeam';
+    $email = 'hello@hybrixon.com';
+    $display = 'Hybrixon Team';
+    $bio = "Offizielles Hybrixon-Profil.\nAlles kann, nichts muss — nur keine 18++ / pornografischen Inhalte, keine Waffen und keine Gewalt.\nCloser. Freer.";
+    $website = 'https://hybrixon.com';
+
+    $stmt = $pdo->prepare('SELECT id, email, avatar_path FROM users WHERE lower(username) = lower(?) LIMIT 1');
+    $stmt->execute([$username]);
+    $row = $stmt->fetch();
+
+    $avatarRel = null;
+    $bannerRel = null;
+    $logoSrc = ALLXION_ROOT . '/assets/img/welcome-logo.png';
+    $logoSvg = ALLXION_ROOT . '/assets/img/logo.svg';
+    $avatarsDir = ALLXION_UPLOADS . '/avatars';
+    $bannersDir = ALLXION_UPLOADS . '/banners';
+    foreach ([$avatarsDir, $bannersDir] as $d) {
+        if (!is_dir($d)) {
+            mkdir($d, 0750, true);
+        }
+    }
+
+    if (is_file($logoSrc)) {
+        $avatarName = 'brand-hybrixonteam-avatar.png';
+        $bannerName = 'brand-hybrixonteam-banner.png';
+        $avatarAbs = $avatarsDir . '/' . $avatarName;
+        $bannerAbs = $bannersDir . '/' . $bannerName;
+        if (!is_file($avatarAbs)) {
+            @copy($logoSrc, $avatarAbs);
+            @chmod($avatarAbs, 0640);
+        }
+        if (!is_file($bannerAbs)) {
+            @copy($logoSrc, $bannerAbs);
+            @chmod($bannerAbs, 0640);
+        }
+        if (is_file($avatarAbs)) {
+            $avatarRel = 'avatars/' . $avatarName;
+        }
+        if (is_file($bannerAbs)) {
+            $bannerRel = 'banners/' . $bannerName;
+        }
+    } elseif (is_file($logoSvg)) {
+        // SVG stored as-is only if we later serve it — skip for mime safety
+    }
+
+    if ($row) {
+        // Free email if held by another row
+        $pdo->prepare(
+            "UPDATE users SET email = lower(username) || '@brand.invalid'
+             WHERE lower(email) = lower(?) AND id != ?"
+        )->execute([$email, (int)$row['id']]);
+
+        $pdo->prepare(
+            "UPDATE users SET
+                email = ?,
+                display_name = COALESCE(NULLIF(display_name, ''), ?),
+                bio = COALESCE(NULLIF(bio, ''), ?),
+                website = COALESCE(NULLIF(website, ''), ?),
+                account_kind = 'brand',
+                login_disabled = 1,
+                admin_postable = 1,
+                age_status = 'approved',
+                age_verified_at = COALESCE(age_verified_at, datetime('now')),
+                age_provider = CASE WHEN age_provider IS NULL OR age_provider = 'none' THEN 'admin' ELSE age_provider END,
+                avatar_path = COALESCE(NULLIF(avatar_path, ''), ?),
+                banner_path = COALESCE(NULLIF(banner_path, ''), ?)
+             WHERE id = ?"
+        )->execute([
+            $email,
+            $display,
+            $bio,
+            $website,
+            $avatarRel,
+            $bannerRel,
+            (int)$row['id'],
+        ]);
+        return;
+    }
+
+    // Unusable login: random hash + login_disabled
+    $hash = password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFAULT);
+    $pdo->prepare(
+        "INSERT INTO users (
+            username, email, password_hash, birthdate,
+            display_name, bio, website, location,
+            avatar_path, banner_path,
+            account_kind, login_disabled, admin_postable,
+            age_status, age_verified_at, age_reviewed_at, age_provider,
+            legal_accepted_at, legal_docs_version, is_admin, created_at
+         ) VALUES (
+            ?, ?, ?, '1990-01-01',
+            ?, ?, ?, 'Community',
+            ?, ?,
+            'brand', 1, 1,
+            'approved', datetime('now'), datetime('now'), 'admin',
+            datetime('now'), 'brand', 0, datetime('now')
+         )"
+    )->execute([
+        $username,
+        $email,
+        $hash,
+        $display,
+        $bio,
+        $website,
+        $avatarRel,
+        $bannerRel,
+    ]);
 }

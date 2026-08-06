@@ -19,6 +19,19 @@ if (!dm_user_eligible($user)) {
     exit;
 }
 
+$prefillTo = trim((string)($_GET['to'] ?? $_POST['username'] ?? ''));
+
+// Deep-link: existing chat with this user → open thread directly
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && $prefillTo !== '') {
+    $open = dm_open_with_username($user, $prefillTo);
+    if ($open['ok'] && !empty($open['threadId']) && str_contains($open['url'], 'message.php')) {
+        redirect($open['url']);
+    }
+    if (!$open['ok']) {
+        $errors[] = $open['error'];
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'start') {
     verify_csrf();
     $toName = trim((string)($_POST['username'] ?? ''));
@@ -36,6 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'start
         }
     }
     $user = allxion_current_user() ?? $user;
+    $prefillTo = $toName;
 }
 
 $inbox = dm_inbox((int)$user['id']);
@@ -57,11 +71,17 @@ require __DIR__ . '/includes/header.php';
     <div class="flash flash-error" style="margin-bottom:0.6rem;"><?= e($err) ?></div>
   <?php endforeach; ?>
 
+  <?php if ($prefillTo !== ''): ?>
+    <div class="flash flash-info" style="margin-bottom:0.85rem;">
+      Neue PN an <strong>@<?= e($prefillTo) ?></strong> — erste Nachricht schreiben.
+    </div>
+  <?php endif; ?>
+
   <form method="post" class="form">
     <?= csrf_field() ?>
     <input type="hidden" name="action" value="start">
     <label>An (Benutzername)
-      <input type="text" name="username" required maxlength="24" pattern="[A-Za-z0-9_]+" autocomplete="off" value="<?= e($_POST['username'] ?? '') ?>" placeholder="z.B. name">
+      <input type="text" name="username" required maxlength="24" pattern="[A-Za-z0-9_]+" autocomplete="off" value="<?= e($prefillTo) ?>" placeholder="z.B. name">
     </label>
     <label>Erste Nachricht
       <textarea name="body" required maxlength="<?= (int)DM_MAX_LENGTH ?>" placeholder="Nur Text …"><?= e($_POST['body'] ?? '') ?></textarea>

@@ -6,6 +6,7 @@ require_once __DIR__ . '/moderation.php';
 
 /**
  * @param array<string,mixed>|null $imageFile $_FILES['image'] or null
+ * @param array<string,mixed>|null $actor Admin/user performing the action (for post-as)
  * @return array{errors: list<string>, pending_review?: bool, post_id?: int}
  */
 function allxion_create_post(
@@ -13,9 +14,12 @@ function allxion_create_post(
     string $body,
     bool $isAdult,
     bool $policyAccepted = false,
-    ?array $imageFile = null
+    ?array $imageFile = null,
+    ?array $actor = null,
+    ?int $asUserId = null
 ): array {
     require_once __DIR__ . '/policy.php';
+    require_once __DIR__ . '/profile.php';
 
     $body = trim($body);
     $hasImage = $imageFile
@@ -25,8 +29,17 @@ function allxion_create_post(
         return ['errors' => ['Beitrag muss Text (1–4000 Zeichen) und/oder ein Soft-18+-Bild enthalten.']];
     }
 
+    $authorId = $userId;
+    if ($asUserId !== null && $asUserId > 0 && $asUserId !== $userId) {
+        $actor = $actor ?? profile_find_by_id($userId);
+        if (!$actor || !profile_can_admin_post_as($actor, $asUserId)) {
+            return ['errors' => ['Als dieses Profil posten ist nicht erlaubt.']];
+        }
+        $authorId = $asUserId;
+    }
+
     $userStmt = allxion_db()->prepare('SELECT * FROM users WHERE id = ?');
-    $userStmt->execute([$userId]);
+    $userStmt->execute([$authorId]);
     $user = $userStmt->fetch();
     if (!$user) {
         return ['errors' => ['Benutzer nicht gefunden.']];
@@ -74,7 +87,7 @@ function allxion_create_post(
          VALUES (?, ?, ?, ?, ?, ?)'
     );
     $stmt->execute([
-        $userId,
+        $authorId,
         $body,
         $isAdult ? 1 : 0,
         $imagePath,
@@ -127,7 +140,7 @@ function allxion_feed(?array $viewer, bool $includeAdult, int $limit = 50): arra
     $isAdmin = $viewer && user_is_admin($viewer) ? 1 : 0;
 
     $sql = <<<'SQL'
-SELECT p.*, u.username,
+SELECT p.*, u.username, u.display_name, u.avatar_path, u.account_kind,
   (SELECT COUNT(*) FROM reactions r WHERE r.post_id = p.id AND r.kind = 'like') AS like_count
 FROM posts p
 JOIN users u ON u.id = p.user_id

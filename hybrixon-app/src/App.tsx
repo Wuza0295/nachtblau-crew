@@ -19,6 +19,7 @@ export default function App() {
             <Route path="register" element={<RegisterPage />} />
             <Route path="compose" element={<ComposePage />} />
             <Route path="profile" element={<ProfilePage />} />
+            <Route path="u/:username" element={<ProfilePage />} />
             <Route path="messages" element={<MessagesPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>

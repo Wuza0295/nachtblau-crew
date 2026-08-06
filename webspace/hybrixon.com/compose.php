@@ -3,9 +3,11 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/includes/posts.php';
 require_once __DIR__ . '/includes/policy.php';
+require_once __DIR__ . '/includes/profile.php';
 
 $user = allxion_require_login();
 $errors = [];
+$brandAccounts = user_is_admin($user) ? profile_admin_postable_accounts() : [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
@@ -13,7 +15,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $isAdult = !empty($_POST['is_adult']);
     $policyOk = !empty($_POST['policy_ok']);
     $image = isset($_FILES['image']) && is_array($_FILES['image']) ? $_FILES['image'] : null;
-    $result = allxion_create_post((int)$user['id'], $body, $isAdult, $policyOk, $image);
+    $asUserId = (int)($_POST['as_user_id'] ?? 0);
+    $result = allxion_create_post(
+        (int)$user['id'],
+        $body,
+        $isAdult,
+        $policyOk,
+        $image,
+        $user,
+        $asUserId > 0 ? $asUserId : null
+    );
     $errors = $result['errors'];
     if (!$errors) {
         if (!empty($result['pending_review'])) {
@@ -58,6 +69,20 @@ require __DIR__ . '/includes/header.php';
 
   <form method="post" class="form" enctype="multipart/form-data">
     <?= csrf_field() ?>
+
+    <?php if ($brandAccounts): ?>
+      <label>Posten als
+        <select name="as_user_id">
+          <option value="0">@<?= e($user['username']) ?> (du)</option>
+          <?php foreach ($brandAccounts as $acc): ?>
+            <option value="<?= (int)$acc['id'] ?>" <?= ((int)($_POST['as_user_id'] ?? 0) === (int)$acc['id']) ? 'selected' : '' ?>>
+              <?= e(user_display_name($acc)) ?> (@<?= e($acc['username']) ?>)
+            </option>
+          <?php endforeach; ?>
+        </select>
+      </label>
+    <?php endif; ?>
+
     <label>Dein Text
       <textarea name="body" maxlength="4000" placeholder="Was gibt's Neues?"><?= e($_POST['body'] ?? '') ?></textarea>
     </label>

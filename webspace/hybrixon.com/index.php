@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/includes/posts.php';
 require_once __DIR__ . '/includes/moderation.php';
+require_once __DIR__ . '/includes/dm.php';
 
 $user = allxion_current_user();
 $canSeeAdult = $user && user_age_verified($user);
@@ -75,8 +76,25 @@ require __DIR__ . '/includes/header.php';
     <?php foreach ($posts as $post): ?>
       <article class="post<?= !empty($post['is_adult']) ? ' post-adult' : '' ?>">
         <div class="post-meta">
-          <div>
-            <span class="post-user">@<?= e($post['username']) ?></span>
+          <div class="post-author-line">
+            <details class="author-menu">
+              <summary class="author-menu-trigger">
+                <?= e(trim((string)($post['display_name'] ?? '')) !== '' ? (string)$post['display_name'] : '@' . $post['username']) ?>
+              </summary>
+              <div class="author-menu-panel" role="menu">
+                <a href="<?= e(allxion_url('u.php?u=' . rawurlencode((string)$post['username']))) ?>">Profil ansehen</a>
+                <?php if ($user && (int)$user['id'] !== (int)$post['user_id'] && dm_user_eligible($user)): ?>
+                  <a href="<?= e(allxion_url('messages.php?to=' . rawurlencode((string)$post['username']))) ?>">Nachricht schreiben</a>
+                <?php elseif ($user && (int)$user['id'] !== (int)$post['user_id']): ?>
+                  <span class="muted">PN ab <?= (int)DM_MIN_AGE ?> Jahren</span>
+                <?php elseif (!$user): ?>
+                  <a href="<?= e(allxion_url('login.php')) ?>">Anmelden für PN</a>
+                <?php endif; ?>
+              </div>
+            </details>
+            <?php if (trim((string)($post['display_name'] ?? '')) !== ''): ?>
+              <span class="muted"> @<?= e($post['username']) ?></span>
+            <?php endif; ?>
             <span> · <?= e(time_ago($post['created_at'])) ?></span>
             <?php if (!empty($post['is_adult'])): ?>
               <span class="badge-18" title="Soft-18+ · sensible Inhalte">Soft-18+</span>
