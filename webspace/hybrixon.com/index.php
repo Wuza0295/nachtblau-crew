@@ -57,7 +57,7 @@ require __DIR__ . '/includes/header.php';
     <?php if (user_age_pending($user)): ?>
       <p>Dein Antrag wird vom Admin geprüft. Soft-18+ bleibt bis zur Freigabe gesperrt.</p>
     <?php else: ?>
-      <p>Für Soft-18+ (inkl. Soft-Nacktheit): Passwort, Bestätigungssatz und Admin-Freigabe — ohne Ausweis. 18++ / Porno und Gewalt sind verboten.</p>
+      <p>Für Soft-18+: Gesichtsprüfung (wenn aktiv) oder Soft-Antrag mit Admin-Freigabe. 18++ / Porno und Gewalt sind verboten.</p>
       <a class="btn btn-sm" href="<?= e(allxion_url('age-verify.php')) ?>">Altersprüfung starten</a>
     <?php endif; ?>
   </section>
@@ -81,19 +81,25 @@ require __DIR__ . '/includes/header.php';
             <?php if (!empty($post['is_adult'])): ?>
               <span class="badge-18" title="Soft-18+ · sensible Inhalte">Soft-18+</span>
             <?php endif; ?>
+            <?php if (($post['moderation_status'] ?? '') === 'flagged'): ?>
+              <span class="badge-18" title="Wartet auf Admin-Freigabe" style="opacity:.85;">Prüfung</span>
+            <?php endif; ?>
           </div>
         </div>
         <?php if (trim((string)$post['body']) !== ''): ?>
           <div class="post-body"><?= nl2br(e($post['body'])) ?></div>
         <?php endif; ?>
-        <?php if (!empty($post['image_path'])): ?>
+        <?php if (!empty($post['image_path']) && allxion_can_view_post_image($post, $user)): ?>
           <figure class="post-image">
             <img src="<?= e(allxion_url('media.php?id=' . (int)$post['id'])) ?>" alt="Soft-18+ Bild" loading="lazy">
           </figure>
+        <?php elseif (!empty($post['image_path'])): ?>
+          <p class="muted" style="margin-top:0.5rem;">Bild wird geprüft und ist noch nicht öffentlich.</p>
         <?php endif; ?>
         <div class="post-actions">
           <?php if ($user): ?>
             <a class="btn btn-sm btn-ghost" href="<?= e(allxion_url('?like=' . (int)$post['id'])) ?>">♥ <?= (int)$post['like_count'] ?></a>
+            <?php if ((int)$post['user_id'] !== (int)$user['id']): ?>
             <details class="report-details">
               <summary class="btn btn-sm btn-ghost">Melden</summary>
               <form method="post" class="form" style="margin-top:0.65rem;">
@@ -103,9 +109,10 @@ require __DIR__ . '/includes/header.php';
                 <label>Grund
                   <textarea name="reason" required maxlength="500" rows="2" placeholder="Was verstößt gegen die Regeln?"></textarea>
                 </label>
-                <button class="btn btn-sm btn-danger" type="submit">Erneut melden</button>
+                <button class="btn btn-sm btn-danger" type="submit">Meldung absenden</button>
               </form>
             </details>
+            <?php endif; ?>
           <?php else: ?>
             <span class="muted">♥ <?= (int)$post['like_count'] ?></span>
           <?php endif; ?>

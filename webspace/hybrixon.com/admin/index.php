@@ -101,12 +101,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $pending = allxion_db()->query(
-    "SELECT id, username, email, birthdate, age_doc_path, age_requested_at, created_at
+    "SELECT id, username, email, birthdate, age_doc_path, age_requested_at, age_provider, created_at
      FROM users WHERE age_status = 'pending' ORDER BY age_requested_at ASC"
 )->fetchAll();
 
 $recent = allxion_db()->query(
-    "SELECT id, username, age_status, age_verified_at, age_reviewed_at, age_review_note
+    "SELECT id, username, age_status, age_provider, age_verified_at, age_reviewed_at, age_review_note
      FROM users WHERE age_status IN ('approved','rejected') ORDER BY COALESCE(age_reviewed_at, age_verified_at) DESC LIMIT 20"
 )->fetchAll();
 
@@ -139,9 +139,8 @@ require __DIR__ . '/../includes/header.php';
 <section class="panel" id="content">
   <h2>Inhalt-Meldungen offen (<?= count($contentReports) ?>)</h2>
   <p class="muted" style="margin-bottom:1rem;">
-    Soft-18+-Bilder und Text-Treffer werden automatisch gemeldet.
-    Bei 18++: Beitrag entfernen — bei schweren Verstößen Nutzer sperren.
-    Nach „OK“ können Nutzer den Beitrag erneut melden.
+    Soft-18+-Bilder und Text-Treffer werden automatisch gemeldet und bleiben bis „OK“ aus dem öffentlichen Feed.
+    Bildprüfung liefert Hautanteil-Hinweise. Bei 18++: entfernen — bei schweren Verstößen sperren.
   </p>
   <?php if (!$contentReports): ?>
     <p class="muted">Keine offenen Meldungen.</p>
@@ -200,8 +199,8 @@ require __DIR__ . '/../includes/header.php';
             <span class="post-user">@<?= e($row['username']) ?></span>
             <span>Antrag: <?= e($row['age_requested_at'] ?? '') ?></span>
           </div>
-          <p class="muted">Geburtsdatum (Konto): <strong><?= e($row['birthdate']) ?></strong> · Alter <?= (int)(age_from_birthdate($row['birthdate']) ?? 0) ?></p>
-          <p class="muted">Soft-18+ Selbstauskunft + Passwort — ohne Ausweis. Freigabe nur für Soft-18+, nicht für 18++/Porno.</p>
+          <p class="muted">Geburtsdatum (Konto): <strong><?= e($row['birthdate']) ?></strong> · Alter <?= (int)(age_from_birthdate($row['birthdate']) ?? 0) ?> · Provider: <?= e((string)($row['age_provider'] ?? 'soft')) ?></p>
+          <p class="muted">Soft-Antrag (Selbstauskunft) — ohne Ausweis. Freigabe nur für Soft-18+, nicht für 18++/Porno. Gesichtsprüfung (Yoti) schaltet bei Erfolg automatisch frei.</p>
           <form method="post" class="form" style="margin-top:0.75rem;">
             <?= csrf_field() ?>
             <input type="hidden" name="user_id" value="<?= (int)$row['id'] ?>">
@@ -229,6 +228,7 @@ require __DIR__ . '/../includes/header.php';
         <li>
           @<?= e($row['username']) ?> —
           <strong><?= e($row['age_status']) ?></strong>
+          (<?= e((string)($row['age_provider'] ?? '—')) ?>)
           <?= e($row['age_reviewed_at'] ?? $row['age_verified_at'] ?? '') ?>
           <?php if (!empty($row['age_review_note'])): ?>
             · <?= e($row['age_review_note']) ?>

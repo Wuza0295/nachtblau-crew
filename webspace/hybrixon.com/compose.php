@@ -13,14 +13,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $isAdult = !empty($_POST['is_adult']);
     $policyOk = !empty($_POST['policy_ok']);
     $image = isset($_FILES['image']) && is_array($_FILES['image']) ? $_FILES['image'] : null;
-    $errors = allxion_create_post((int)$user['id'], $body, $isAdult, $policyOk, $image);
+    $result = allxion_create_post((int)$user['id'], $body, $isAdult, $policyOk, $image);
+    $errors = $result['errors'];
     if (!$errors) {
-        flash(
-            'success',
-            $isAdult
-                ? 'Soft-18+-Beitrag veröffentlicht' . ($image && ($image['error'] ?? 0) !== UPLOAD_ERR_NO_FILE ? ' (Bild zur Admin-Prüfung gemeldet).' : '.')
-                : 'Beitrag veröffentlicht.'
-        );
+        if (!empty($result['pending_review'])) {
+            flash(
+                'success',
+                'Beitrag eingereicht. Soft-18+-Inhalt / Bild wird geprüft und erscheint erst nach Freigabe öffentlich.'
+            );
+        } else {
+            flash('success', 'Beitrag veröffentlicht.');
+        }
         redirect(allxion_url());
     }
     $user = allxion_current_user() ?? $user;
@@ -37,7 +40,7 @@ require __DIR__ . '/includes/header.php';
   <p class="muted" style="margin-bottom:1rem;">
     Soft-18+ = sensible Inhalte inkl. Soft-Nacktheit (z. B. Brüste) —
     <strong>kein 18++ / Porno, keine Genitalien, keine Sexakte, keine Gewalt</strong>.
-    Bilder nur als Soft-18+; automatische Prüfung + Admin-Meldung.
+    Bilder nur als Soft-18+; automatische Bildprüfung + Admin-Freigabe (nicht sofort öffentlich).
     <a href="<?= e(allxion_url('rules.php')) ?>">Regeln</a>
   </p>
 
@@ -67,7 +70,7 @@ require __DIR__ . '/includes/header.php';
       <div data-adult-hint hidden>
         <p class="hint">
           Soft ok (u. a. Brüste). Verboten: 18++ / Porno, Genitalien, Sexakte, Gewalt.
-          Jedes Bild wird automatisch den Admins gemeldet.
+          Jedes Bild wird geprüft und erst nach Admin-OK öffentlich.
         </p>
         <label>Bild (optional, JPEG/PNG/WebP, max. 4&nbsp;MB)
           <input type="file" name="image" accept="image/jpeg,image/png,image/webp">

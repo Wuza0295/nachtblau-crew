@@ -4,5 +4,7 @@
   "api_key": "",
   "age_threshold": 18,
   "buffer_years": 5,
-  "note": "KJM-positiv bewertetes Konzept (Yoti). Keys hier eintragen und enabled=true setzen. Niemals committen."
+  "api_base": "https://age.yoti.com/api/v1",
+  "user_view_base": "https://age.yoti.com",
+  "note": "KJM-positiv bewertetes Facial Age Estimation (Yoti). Keys aus dem Yoti Hub eintragen, enabled=true setzen. Niemals committen. Effektiver Gesichtsschwellenwert = age_threshold + buffer_years."
 }

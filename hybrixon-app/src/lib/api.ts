@@ -16,6 +16,7 @@ export type Post = {
   likeCount: number;
   createdAt: string;
   imageUrl: string | null;
+  pendingReview?: boolean;
 };
 
 type ApiOk<T> = T & { ok: true };
@@ -104,7 +105,7 @@ export async function apiFeed() {
 
 export async function apiCreatePost(form: FormData) {
   if (!csrf) await apiRefreshCsrf();
-  return parse<{ ok: true }>(
+  return parse<{ ok: true; pendingReview?: boolean; postId?: number }>(
     await fetch("/api/posts", {
       method: "POST",
       credentials: "same-origin",
@@ -121,6 +122,21 @@ export async function apiLike(postId: number) {
       method: "POST",
       credentials: "same-origin",
       headers: { "X-CSRF-Token": csrf },
+    })
+  );
+}
+
+export async function apiReportPost(postId: number, reason: string) {
+  if (!csrf) await apiRefreshCsrf();
+  return parse<{ ok: true }>(
+    await fetch(`/api/posts/${postId}/report`, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrf,
+      },
+      body: JSON.stringify({ reason }),
     })
   );
 }

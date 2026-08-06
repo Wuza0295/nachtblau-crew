@@ -62,10 +62,12 @@ function api_public_user(?array $user): ?array
     ];
 }
 
-function api_public_post(array $post): array
+function api_public_post(array $post, ?array $viewer = null): array
 {
     $id = (int)$post['id'];
     $hasImage = !empty($post['image_path']);
+    $pending = (($post['moderation_status'] ?? '') === 'flagged');
+    $canImage = $hasImage && allxion_can_view_post_image($post, $viewer);
     return [
         'id' => $id,
         'username' => (string)$post['username'],
@@ -73,7 +75,8 @@ function api_public_post(array $post): array
         'isAdult' => !empty($post['is_adult']),
         'likeCount' => (int)($post['like_count'] ?? 0),
         'createdAt' => (string)($post['created_at'] ?? ''),
-        'imageUrl' => $hasImage ? allxion_url('media.php?id=' . $id) : null,
+        'imageUrl' => $canImage ? allxion_url('media.php?id=' . $id) : null,
+        'pendingReview' => $pending,
     ];
 }
 
@@ -160,7 +163,7 @@ try {
             $posts = allxion_feed($user, $showAdult);
             api_json([
                 'ok' => true,
-                'posts' => array_map('api_public_post', $posts),
+                'posts' => array_map(static fn(array $p) => api_public_post($p, $user), $posts),
                 'canSeeAdult' => (bool)$canAdult,
             ]);
         })(),
@@ -175,11 +178,15 @@ try {
             $policyOk = !empty($_POST['policyOk']) || !empty($_POST['policy_ok']);
             $body = (string)($_POST['body'] ?? '');
             $image = isset($_FILES['image']) && is_array($_FILES['image']) ? $_FILES['image'] : null;
-            $errors = allxion_create_post((int)$user['id'], $body, $isAdult, $policyOk, $image);
-            if ($errors) {
-                api_error($errors[0], 400, ['errors' => $errors]);
+            $result = allxion_create_post((int)$user['id'], $body, $isAdult, $policyOk, $image);
+            if ($result['errors']) {
+                api_error($result['errors'][0], 400, ['errors' => $result['errors']]);
             }
-            api_json(['ok' => true]);
+            api_json([
+                'ok' => true,
+                'pendingReview' => !empty($result['pending_review']),
+                'postId' => (int)($result['post_id'] ?? 0),
+            ]);
         })(),
 
         preg_match('#^posts/(\d+)/like$#', $route, $lm) === 1 && $method === 'POST' => (function () use ($lm) {
@@ -190,6 +197,32 @@ try {
             }
             allxion_toggle_like((int)$user['id'], (int)$lm[1]);
             api_json(['ok' => true]);
+        })(),
+
+        preg_match('#^posts/(\d+)/report$#', $route, $rm) === 1 && $method === 'POST' => (function () use ($rm) {
+            api_require_csrf();
+            $user = allxion_current_user();
+            if (!$user) {
+                api_error('Nicht angemeldet.', 401);
+            }
+            $body = api_read_json();
+            $reason = (string)($body['reason'] ?? $_POST['reason'] ?? '');
+            $errors = content_user_report_post($user, (int)$rm[1], $reason);
+            if ($errors) {
+                api_error($errors[0], 400, ['errors' => $errors]);
+            }
+            api_json(['ok' => true]);
+        })(),
+
+        $route === 'age/status' && $method === 'GET' => (function () {
+            require_once dirname(__DIR__) . '/includes/yoti.php';
+            $user = allxion_current_user();
+            api_json([
+                'ok' => true,
+                'yotiEnabled' => yoti_is_enabled(),
+                'yotiStatus' => yoti_status_label(),
+                'user' => api_public_user($user),
+            ]);
         })(),
 
         default => api_error('Not found', 404, ['route' => $route, 'method' => $method]),

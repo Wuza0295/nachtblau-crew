@@ -8,6 +8,7 @@ export function ComposePage() {
   const nav = useNavigate();
   const [adult, setAdult] = useState(false);
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
   const [busy, setBusy] = useState(false);
 
   if (!user) return <Navigate to="/login" replace />;
@@ -20,9 +21,17 @@ export function ComposePage() {
     if (adult && fd.get("policyOk") === "on") fd.set("policyOk", "1");
     setBusy(true);
     setError("");
+    setInfo("");
     try {
-      await apiCreatePost(fd);
-      nav("/");
+      const res = await apiCreatePost(fd);
+      if (res.pendingReview) {
+        setInfo(
+          "Beitrag eingereicht. Soft-18+-Inhalt / Bild wird geprüft und erscheint erst nach Freigabe öffentlich."
+        );
+        window.setTimeout(() => nav("/"), 1200);
+      } else {
+        nav("/");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Post fehlgeschlagen");
     } finally {
@@ -34,10 +43,28 @@ export function ComposePage() {
     <section className="panel-card">
       <h1>Neuen Beitrag</h1>
       <p className="muted">
-        Soft-18+ nur mit Freigabe — kein 18++ / Porno / Gewalt.{" "}
+        Soft-18+ nur mit Freigabe — kein 18++ / Porno / Gewalt. Bilder werden automatisch geprüft.{" "}
         <a href="/rules.php">Regeln</a>
       </p>
       {error ? <div className="flash error">{error}</div> : null}
+      {info ? <div className="flash">{info}</div> : null}
+
+      {user.isAdult && !user.ageVerified ? (
+        <div className="age-card" style={{ marginBottom: "1rem" }}>
+          <h2>Soft-18+ noch nicht freigeschaltet</h2>
+          <p>
+            {user.agePending
+              ? "Dein Antrag wird geprüft. Normale Beiträge gehen immer."
+              : "Für Soft-18+ / Bilder: Gesichtsprüfung oder Soft-Antrag."}
+          </p>
+          {!user.agePending ? (
+            <a className="btn btn-sm" href="/age-verify.php">
+              Altersprüfung öffnen
+            </a>
+          ) : null}
+        </div>
+      ) : null}
+
       <form className="form" encType="multipart/form-data" onSubmit={(e) => void onSubmit(e)}>
         <label>
           Dein Text
@@ -56,7 +83,7 @@ export function ComposePage() {
             {adult ? (
               <>
                 <label>
-                  Bild (optional, nur Soft-18+)
+                  Bild (optional, nur Soft-18+ — Prüfung vor Veröffentlichung)
                   <input name="image" type="file" accept="image/jpeg,image/png,image/webp" />
                 </label>
                 <label className="check">

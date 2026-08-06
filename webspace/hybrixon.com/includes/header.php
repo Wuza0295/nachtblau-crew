@@ -23,7 +23,9 @@ if (!headers_sent()) {
     header('X-Content-Type-Options: nosniff');
     header('X-Frame-Options: SAMEORIGIN');
     header('Referrer-Policy: strict-origin-when-cross-origin');
-    header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
+    // Facial age estimation (Yoti) needs camera on dedicated pages only.
+    $cameraPolicy = !empty($allowCamera) ? 'camera=(self)' : 'camera=()';
+    header('Permissions-Policy: geolocation=(), microphone=(), ' . $cameraPolicy);
 }
 ?>
 <!DOCTYPE html>

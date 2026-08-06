@@ -10,6 +10,7 @@ AddHandler php85-cgi .php
   Header set X-Content-Type-Options "nosniff"
   Header set X-Frame-Options "SAMEORIGIN"
   Header set Referrer-Policy "strict-origin-when-cross-origin"
+  # Camera stays off globally; age-verify.php / yoti-callback.php open it for facial AVS.
   Header set Permissions-Policy "geolocation=(), microphone=(), camera=()"
 </IfModule>
 
@@ -24,9 +25,9 @@ RewriteRule ^includes/ - [F,L]
 # JSON API (PHP 8.5 engine)
 RewriteRule ^api(?:/(.*))?$ api/index.php [L,QSA]
 
-# Keep classic PHP endpoints & uploads reachable
-RewriteRule ^(admin|uploads|assets/img|assets/css|assets/js)(/|$) - [L]
-RewriteRule ^(media|messages|message|age-verify|profile|rules|terms|privacy|impressum|login|logout|register|compose)\.php$ - [L]
+# Keep classic PHP endpoints reachable (uploads are denied via uploads/.htaccess)
+RewriteRule ^(admin|assets/img|assets/css|assets/js)(/|$) - [L]
+RewriteRule ^(media|messages|message|age-verify|yoti-callback|profile|rules|terms|privacy|impressum|login|logout|register|compose)\.php$ - [L]
 RewriteRule ^manifest\.json$ - [L]
 
 # SPA build output

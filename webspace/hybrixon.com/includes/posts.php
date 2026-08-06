@@ -6,7 +6,7 @@ require_once __DIR__ . '/moderation.php';
 
 /**
  * @param array<string,mixed>|null $imageFile $_FILES['image'] or null
- * @return list<string>
+ * @return array{errors: list<string>, pending_review?: bool, post_id?: int}
  */
 function allxion_create_post(
     int $userId,
@@ -22,53 +22,57 @@ function allxion_create_post(
         && (($imageFile['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE);
 
     if (($body === '' && !$hasImage) || mb_strlen($body) > 4000) {
-        return ['Beitrag muss Text (1–4000 Zeichen) und/oder ein Soft-18+-Bild enthalten.'];
+        return ['errors' => ['Beitrag muss Text (1–4000 Zeichen) und/oder ein Soft-18+-Bild enthalten.']];
     }
 
     $userStmt = allxion_db()->prepare('SELECT * FROM users WHERE id = ?');
     $userStmt->execute([$userId]);
     $user = $userStmt->fetch();
     if (!$user) {
-        return ['Benutzer nicht gefunden.'];
+        return ['errors' => ['Benutzer nicht gefunden.']];
     }
 
     if ($hasImage && !$isAdult) {
-        return ['Bilder nur als Soft-18+ (mit Inhaltsregeln).'];
+        return ['errors' => ['Bilder nur als Soft-18+ (mit Inhaltsregeln).']];
     }
 
     if ($isAdult) {
         if (!user_is_adult($user)) {
-            return ['18+-Inhalte nur ab ' . ALLXION_ADULT_AGE . ' Jahren.'];
+            return ['errors' => ['18+-Inhalte nur ab ' . ALLXION_ADULT_AGE . ' Jahren.']];
         }
         if (!user_age_verified($user)) {
-            return ['Bitte zuerst die Altersprüfung für Soft-18+ bestätigen.'];
+            return ['errors' => ['Bitte zuerst die Altersprüfung für Soft-18+ bestätigen.']];
         }
         if (!$policyAccepted) {
-            return ['Bitte die Inhaltsregeln für Soft-18+ akzeptieren.'];
+            return ['errors' => ['Bitte die Inhaltsregeln für Soft-18+ akzeptieren.']];
         }
     }
 
     $scan = content_scan_text($body);
     if ($scan['action'] === 'block') {
-        return [$scan['reasons'][0] ?? 'Inhalt verstößt gegen die Regeln (kein 18++ / Porno).'];
+        return ['errors' => [$scan['reasons'][0] ?? 'Inhalt verstößt gegen die Regeln (kein 18++ / Porno).']];
     }
 
     $imagePath = null;
     $imageMime = null;
+    $imageScan = null;
     if ($hasImage) {
         $stored = content_store_post_image($imageFile);
         if (!$stored['ok']) {
-            return [$stored['error']];
+            return ['errors' => [$stored['error']]];
         }
         $imagePath = $stored['path'];
         $imageMime = $stored['mime'];
+        $imageScan = $stored['scan'] ?? null;
     }
+
+    $needsReview = $scan['action'] === 'flag' || $hasImage;
+    $status = $needsReview ? 'flagged' : 'ok';
 
     $stmt = allxion_db()->prepare(
         'INSERT INTO posts (user_id, body, is_adult, image_path, image_mime, moderation_status)
          VALUES (?, ?, ?, ?, ?, ?)'
     );
-    $status = ($scan['action'] === 'flag' || $hasImage) ? 'flagged' : 'ok';
     $stmt->execute([
         $userId,
         $body,
@@ -79,26 +83,49 @@ function allxion_create_post(
     ]);
     $postId = (int)allxion_db()->lastInsertId();
 
-    if ($scan['action'] === 'flag' || $hasImage) {
+    if ($needsReview) {
         $bits = [];
         if ($scan['action'] === 'flag') {
             $bits[] = $scan['reasons'][0] ?? 'Automatische Textprüfung — Soft-NSFW';
         }
         if ($hasImage) {
-            $bits[] = 'Soft-18+ Bild — automatische Prüfung (kein 18++: keine Genitalien/Sexakte)';
+            if (is_array($imageScan) && !empty($imageScan['reasons'])) {
+                $bits[] = implode(' · ', $imageScan['reasons']);
+                $meta = $imageScan['meta'] ?? [];
+                if (isset($meta['skinRatio'])) {
+                    $bits[] = sprintf(
+                        'Meta: %dx%d, Haut %.0f%%',
+                        (int)($meta['width'] ?? 0),
+                        (int)($meta['height'] ?? 0),
+                        ((float)$meta['skinRatio']) * 100
+                    );
+                }
+            } else {
+                $bits[] = 'Soft-18+ Bild — automatische Prüfung (kein 18++: keine Genitalien/Sexakte)';
+            }
         }
         content_create_report(null, $postId, 'auto', implode(' · ', $bits));
     }
 
-    return [];
+    return [
+        'errors' => [],
+        'pending_review' => $needsReview,
+        'post_id' => $postId,
+    ];
 }
 
 /**
+ * Public feed: approved posts for everyone (adult filter separate).
+ * Flagged posts only for author or admin until cleared.
+ *
  * @return list<array<string,mixed>>
  */
 function allxion_feed(?array $viewer, bool $includeAdult, int $limit = 50): array
 {
     $limit = max(1, min(100, $limit));
+    $viewerId = $viewer ? (int)$viewer['id'] : 0;
+    $isAdmin = $viewer && user_is_admin($viewer) ? 1 : 0;
+
     $sql = <<<'SQL'
 SELECT p.*, u.username,
   (SELECT COUNT(*) FROM reactions r WHERE r.post_id = p.id AND r.kind = 'like') AS like_count
@@ -106,12 +133,22 @@ FROM posts p
 JOIN users u ON u.id = p.user_id
 WHERE p.moderation_status != 'removed'
   AND (u.banned_at IS NULL OR u.banned_at = '')
+  AND (
+    p.moderation_status = 'ok'
+    OR p.user_id = :viewerId
+    OR :isAdmin = 1
+  )
 SQL;
     if (!$includeAdult) {
         $sql .= ' AND p.is_adult = 0';
     }
     $sql .= ' ORDER BY p.created_at DESC LIMIT ' . $limit;
-    return allxion_db()->query($sql)->fetchAll();
+
+    $stmt = allxion_db()->prepare($sql);
+    $stmt->bindValue(':viewerId', $viewerId, PDO::PARAM_INT);
+    $stmt->bindValue(':isAdmin', $isAdmin, PDO::PARAM_INT);
+    $stmt->execute();
+    return $stmt->fetchAll();
 }
 
 function allxion_toggle_like(int $userId, int $postId): void
@@ -119,9 +156,14 @@ function allxion_toggle_like(int $userId, int $postId): void
     $pdo = allxion_db();
     $check = $pdo->prepare(
         "SELECT id FROM reactions WHERE post_id = ? AND user_id = ? AND kind = ?
-         AND EXISTS (SELECT 1 FROM posts p WHERE p.id = ? AND p.moderation_status != 'removed')"
+         AND EXISTS (
+           SELECT 1 FROM posts p
+           WHERE p.id = ?
+             AND p.moderation_status != 'removed'
+             AND (p.moderation_status = 'ok' OR p.user_id = ?)
+         )"
     );
-    $check->execute([$postId, $userId, 'like', $postId]);
+    $check->execute([$postId, $userId, 'like', $postId, $userId]);
     if ($check->fetch()) {
         $del = $pdo->prepare('DELETE FROM reactions WHERE post_id = ? AND user_id = ? AND kind = ?');
         $del->execute([$postId, $userId, 'like']);
@@ -129,4 +171,33 @@ function allxion_toggle_like(int $userId, int $postId): void
         $ins = $pdo->prepare('INSERT INTO reactions (post_id, user_id, kind) VALUES (?, ?, ?)');
         $ins->execute([$postId, $userId, 'like']);
     }
+}
+
+/**
+ * Whether a viewer may see a post image (age + moderation).
+ */
+function allxion_can_view_post_image(array $post, ?array $viewer): bool
+{
+    $status = (string)($post['moderation_status'] ?? '');
+    if ($status === 'removed' || empty($post['image_path'])) {
+        return false;
+    }
+
+    $isAuthor = $viewer && (int)$viewer['id'] === (int)$post['user_id'];
+    $isAdmin = $viewer && user_is_admin($viewer);
+
+    if ($status === 'flagged' && !$isAuthor && !$isAdmin) {
+        return false;
+    }
+
+    if (!empty($post['is_adult'])) {
+        if (!$viewer) {
+            return false;
+        }
+        if (!$isAdmin && !user_age_verified($viewer) && !$isAuthor) {
+            return false;
+        }
+    }
+
+    return true;
 }

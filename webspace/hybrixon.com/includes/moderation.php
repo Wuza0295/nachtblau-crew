@@ -64,9 +64,195 @@ function content_scan_text(string $text): array
 }
 
 /**
- * Validate and store Soft-18+ image. Returns relative path under uploads/ or error.
+ * Lightweight image heuristics (GD). Not a full NSFW model — used to block
+ * obvious junk and prioritize Soft-18+ review. Always pairs with auto-report.
  *
- * @return array{ok: true, path: string, mime: string}|array{ok: false, error: string}
+ * @return array{action: 'allow'|'block'|'flag', reasons: list<string>, meta: array<string,mixed>}
+ */
+function content_scan_image(string $absolutePath, string $mime): array
+{
+    $reasons = [];
+    $meta = [
+        'width' => 0,
+        'height' => 0,
+        'skinRatio' => null,
+        'engine' => extension_loaded('gd') ? 'gd' : 'none',
+    ];
+
+    $info = @getimagesize($absolutePath);
+    if ($info === false) {
+        return [
+            'action' => 'block',
+            'reasons' => ['Bildprüfung: Datei ist kein gültiges Bild.'],
+            'meta' => $meta,
+        ];
+    }
+    $w = (int)($info[0] ?? 0);
+    $h = (int)($info[1] ?? 0);
+    $meta['width'] = $w;
+    $meta['height'] = $h;
+
+    if ($w < 64 || $h < 64) {
+        return [
+            'action' => 'block',
+            'reasons' => ['Bildprüfung: Auflösung zu gering (min. 64×64).'],
+            'meta' => $meta,
+        ];
+    }
+    if ($w > 8000 || $h > 8000) {
+        return [
+            'action' => 'block',
+            'reasons' => ['Bildprüfung: Auflösung zu hoch (max. 8000px).'],
+            'meta' => $meta,
+        ];
+    }
+
+    $ratio = $w > 0 ? ($h / $w) : 0.0;
+    if ($ratio < 0.2 || $ratio > 5.0) {
+        $reasons[] = 'Bildprüfung: extremes Seitenverhältnis — Admin-Review';
+    }
+
+    if (!extension_loaded('gd')) {
+        $reasons[] = 'Soft-18+ Bild — automatische Prüfung (GD nicht verfügbar, Review Pflicht)';
+        return ['action' => 'flag', 'reasons' => $reasons, 'meta' => $meta];
+    }
+
+    $im = match ($mime) {
+        'image/jpeg' => @imagecreatefromjpeg($absolutePath),
+        'image/png' => @imagecreatefrompng($absolutePath),
+        'image/webp' => function_exists('imagecreatefromwebp') ? @imagecreatefromwebp($absolutePath) : false,
+        default => false,
+    };
+    if ($im === false) {
+        return [
+            'action' => 'block',
+            'reasons' => ['Bildprüfung: Bild konnte nicht gelesen werden.'],
+            'meta' => $meta,
+        ];
+    }
+
+    // Downsample grid for skin-tone estimate (center-weighted).
+    $sampleW = 48;
+    $sampleH = 48;
+    $sample = imagecreatetruecolor($sampleW, $sampleH);
+    if ($sample === false) {
+        imagedestroy($im);
+        $reasons[] = 'Soft-18+ Bild — automatische Prüfung (Sampling fehlgeschlagen)';
+        return ['action' => 'flag', 'reasons' => $reasons, 'meta' => $meta];
+    }
+    imagecopyresampled($sample, $im, 0, 0, 0, 0, $sampleW, $sampleH, $w, $h);
+
+    $skin = 0;
+    $total = $sampleW * $sampleH;
+    $centerSkin = 0;
+    $centerTotal = 0;
+    for ($y = 0; $y < $sampleH; $y++) {
+        for ($x = 0; $x < $sampleW; $x++) {
+            $rgb = imagecolorat($sample, $x, $y);
+            $r = ($rgb >> 16) & 0xFF;
+            $g = ($rgb >> 8) & 0xFF;
+            $b = $rgb & 0xFF;
+            $isSkin = content_pixel_looks_like_skin($r, $g, $b);
+            if ($isSkin) {
+                $skin++;
+            }
+            // Center 50% area
+            if ($x >= 12 && $x < 36 && $y >= 12 && $y < 36) {
+                $centerTotal++;
+                if ($isSkin) {
+                    $centerSkin++;
+                }
+            }
+        }
+    }
+    imagedestroy($sample);
+    imagedestroy($im);
+
+    $skinRatio = $total > 0 ? $skin / $total : 0.0;
+    $centerRatio = $centerTotal > 0 ? $centerSkin / $centerTotal : 0.0;
+    $meta['skinRatio'] = round($skinRatio, 3);
+    $meta['centerSkinRatio'] = round($centerRatio, 3);
+
+    // Very high skin share → likely Soft-NSFW / possible hard content → flag (not auto-block;
+    // false positives on portraits exist; humans decide 18++).
+    if ($skinRatio >= 0.42 || $centerRatio >= 0.55) {
+        $reasons[] = sprintf(
+            'Bildprüfung: hoher Hautanteil (gesamt %.0f%%, Zentrum %.0f%%) — Soft-NSFW-Review',
+            $skinRatio * 100,
+            $centerRatio * 100
+        );
+    } else {
+        $reasons[] = 'Soft-18+ Bild — automatische Prüfung + Admin-Review';
+    }
+
+    // Extremely skin-dominant + low colour variance can still be Soft; keep as flag.
+    return [
+        'action' => 'flag',
+        'reasons' => array_values(array_unique($reasons)),
+        'meta' => $meta,
+    ];
+}
+
+function content_pixel_looks_like_skin(int $r, int $g, int $b): bool
+{
+    // Classic RGB skin heuristics (works across several tones; imperfect).
+    if ($r < 60 || $g < 30 || $b < 15) {
+        return false;
+    }
+    if ($r < $g || $r < $b) {
+        return false;
+    }
+    if (($r - $g) < 10) {
+        return false;
+    }
+    $max = max($r, $g, $b);
+    $min = min($r, $g, $b);
+    if (($max - $min) < 15) {
+        return false; // grey
+    }
+    // YCbCr-ish window
+    $cb = 128 + (-0.148 * $r) - (0.291 * $g) + (0.439 * $b);
+    $cr = 128 + (0.439 * $r) - (0.368 * $g) - (0.071 * $b);
+    return $cb >= 77 && $cb <= 127 && $cr >= 133 && $cr <= 173;
+}
+
+/**
+ * Re-encode JPEG/PNG/WebP without EXIF (privacy) when GD allows.
+ */
+function content_strip_image_metadata(string $absolutePath, string $mime): void
+{
+    if (!extension_loaded('gd')) {
+        return;
+    }
+    $im = match ($mime) {
+        'image/jpeg' => @imagecreatefromjpeg($absolutePath),
+        'image/png' => @imagecreatefrompng($absolutePath),
+        'image/webp' => function_exists('imagecreatefromwebp') ? @imagecreatefromwebp($absolutePath) : false,
+        default => false,
+    };
+    if ($im === false) {
+        return;
+    }
+    if ($mime === 'image/png') {
+        imagealphablending($im, false);
+        imagesavealpha($im, true);
+    }
+    $ok = match ($mime) {
+        'image/jpeg' => imagejpeg($im, $absolutePath, 88),
+        'image/png' => imagepng($im, $absolutePath, 6),
+        'image/webp' => function_exists('imagewebp') ? imagewebp($im, $absolutePath, 85) : false,
+        default => false,
+    };
+    imagedestroy($im);
+    if ($ok) {
+        @chmod($absolutePath, 0640);
+    }
+}
+
+/**
+ * Validate, scan, and store Soft-18+ image. Returns relative path under uploads/ or error.
+ *
+ * @return array{ok: true, path: string, mime: string, scan: array}|array{ok: false, error: string}
  */
 function content_store_post_image(array $file): array
 {
@@ -116,7 +302,20 @@ function content_store_post_image(array $file): array
     }
     @chmod($dest, 0640);
 
-    return ['ok' => true, 'path' => 'posts/' . $name, 'mime' => $mime];
+    content_strip_image_metadata($dest, $mime);
+
+    $scan = content_scan_image($dest, $mime);
+    if ($scan['action'] === 'block') {
+        @unlink($dest);
+        return ['ok' => false, 'error' => $scan['reasons'][0] ?? 'Bild abgelehnt.'];
+    }
+
+    return [
+        'ok' => true,
+        'path' => 'posts/' . $name,
+        'mime' => $mime,
+        'scan' => $scan,
+    ];
 }
 
 function content_delete_image(?string $relativePath): void
