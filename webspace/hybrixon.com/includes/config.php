@@ -89,8 +89,8 @@ function allxion_base_path(): string
 {
     $script = str_replace('\\', '/', (string)($_SERVER['SCRIPT_NAME'] ?? '/index.php'));
 
-    // Admin lives in a subfolder — keep cookie/url root at the app base
-    if (preg_match('#^(.*?)/admin(?:/|$)#', $script, $m)) {
+    // Admin / API live in subfolders — keep cookie/url root at the app base
+    if (preg_match('#^(.*?)/(?:admin|api)(?:/|$)#', $script, $m)) {
         $base = rtrim($m[1], '/');
         return $base === '' ? '' : $base;
     }

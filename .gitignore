@@ -137,3 +137,5 @@ webspace/hybrixon.com/uploads/*
 *.py[cod]
 
 .project-config.json
+
+webspace/hybrixon.com/data/seed.key
