@@ -1,6 +1,18 @@
 <?php
 declare(strict_types=1);
 
+/** Hybrixon targets PHP 8.5 on ALL-INKL (AddHandler php85-cgi). */
+const HYBRIXON_MIN_PHP = '8.5.0';
+if (PHP_VERSION_ID < 80500) {
+    http_response_code(500);
+    header('Content-Type: text/plain; charset=utf-8');
+    exit(
+        'Hybrixon benötigt PHP ' . HYBRIXON_MIN_PHP . '+ (aktuell: ' . PHP_VERSION . ").\n"
+        . "Bitte in KAS → Domain → Bearbeiten „PHP 8.5“ wählen,\n"
+        . "oder in .htaccess: AddHandler php85-cgi .php\n"
+    );
+}
+
 const ALLXION_NAME = 'Hybrixon';
 const ALLXION_TAGLINE = 'Closer. Freer.';
 const ALLXION_MIN_REGISTER_AGE = 16;
