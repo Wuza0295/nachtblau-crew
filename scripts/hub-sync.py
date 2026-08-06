@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Sync NachtBlau Hub across Webspace, Linux desktop app, and Android app.
+"""Sync NachtBlau Hub — Webspace is always the live source of truth.
 
-Source of truth for shared UI: webspace/launcher.nachtblau-interactive.com
-(or remote via FTPS pull). Platform shells keep only bridges + native wrappers.
+Linux (Electron) and Android (Capacitor) load
+https://launcher.nachtblau-interactive.com/ directly.
+These scripts only pull/push the FTPS mirror for edits & backup;
+day-to-day use does not need local www/ copies.
 """
 
 from __future__ import annotations
