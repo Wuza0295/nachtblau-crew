@@ -20,6 +20,10 @@
     </p>
   </footer>
 </div>
-<script src="<?= e(allxion_url('assets/js/app.js')) ?>" defer></script>
+<?php
+  $jsPath = ALLXION_ROOT . '/assets/js/app.js';
+  $jsVer = is_file($jsPath) ? (string)filemtime($jsPath) : '1';
+?>
+<script src="<?= e(allxion_url('assets/js/app.js') . '?v=' . $jsVer) ?>" defer></script>
 </body>
 </html>

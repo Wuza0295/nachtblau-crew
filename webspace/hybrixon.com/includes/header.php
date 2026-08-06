@@ -30,7 +30,10 @@ if (!headers_sent()) {
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title><?= e($pageTitle) ?></title>
   <meta name="description" content="<?= e($pageDescription) ?>">
   <?php
@@ -51,7 +54,11 @@ if (!headers_sent()) {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=Oxanium:wght@600;700;800&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="<?= e(allxion_url('assets/css/style.css')) ?>">
+  <?php
+    $cssPath = ALLXION_ROOT . '/assets/css/style.css';
+    $cssVer = is_file($cssPath) ? (string)filemtime($cssPath) : '1';
+  ?>
+  <link rel="stylesheet" href="<?= e(allxion_url('assets/css/style.css') . '?v=' . $cssVer) ?>">
 </head>
 <body>
 <div class="app">
@@ -63,7 +70,12 @@ if (!headers_sent()) {
         <small><?= e(ALLXION_TAGLINE) ?></small>
       </span>
     </a>
-    <nav class="nav">
+    <button type="button" class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="site-nav" aria-label="Menü öffnen">
+      <span class="nav-toggle-bar" aria-hidden="true"></span>
+      <span class="nav-toggle-bar" aria-hidden="true"></span>
+      <span class="nav-toggle-bar" aria-hidden="true"></span>
+    </button>
+    <nav class="nav" id="site-nav" data-site-nav>
       <a href="<?= e(allxion_url()) ?>" class="<?= $activeNav === 'feed' ? 'active' : '' ?>">Feed</a>
       <?php if ($currentUser): ?>
         <a href="<?= e(allxion_url('compose.php')) ?>" class="<?= $activeNav === 'compose' ? 'active' : '' ?>">Posten</a>
@@ -79,6 +91,36 @@ if (!headers_sent()) {
       <?php endif; ?>
     </nav>
   </header>
+
+  <nav class="tabbar" aria-label="Schnellnavigation">
+    <a href="<?= e(allxion_url()) ?>" class="tabbar-item <?= $activeNav === 'feed' ? 'active' : '' ?>">
+      <span class="tabbar-icon tabbar-icon-feed" aria-hidden="true"></span>
+      <span>Feed</span>
+    </a>
+    <?php if ($currentUser): ?>
+      <a href="<?= e(allxion_url('compose.php')) ?>" class="tabbar-item <?= $activeNav === 'compose' ? 'active' : '' ?>">
+        <span class="tabbar-icon tabbar-icon-compose" aria-hidden="true"></span>
+        <span>Posten</span>
+      </a>
+      <a href="<?= e(allxion_url('messages.php')) ?>" class="tabbar-item <?= $activeNav === 'messages' ? 'active' : '' ?>">
+        <span class="tabbar-icon tabbar-icon-dm" aria-hidden="true"></span>
+        <span>DMs<?php if ($dmUnread > 0): ?> <span class="nav-badge"><?= (int)$dmUnread ?></span><?php endif; ?></span>
+      </a>
+      <a href="<?= e(allxion_url('profile.php')) ?>" class="tabbar-item <?= $activeNav === 'profile' ? 'active' : '' ?>">
+        <span class="tabbar-icon tabbar-icon-profile" aria-hidden="true"></span>
+        <span>Profil</span>
+      </a>
+    <?php else: ?>
+      <a href="<?= e(allxion_url('login.php')) ?>" class="tabbar-item <?= $activeNav === 'login' ? 'active' : '' ?>">
+        <span class="tabbar-icon tabbar-icon-login" aria-hidden="true"></span>
+        <span>Login</span>
+      </a>
+      <a href="<?= e(allxion_url('register.php')) ?>" class="tabbar-item <?= $activeNav === 'register' ? 'active' : '' ?>">
+        <span class="tabbar-icon tabbar-icon-join" aria-hidden="true"></span>
+        <span>Join</span>
+      </a>
+    <?php endif; ?>
+  </nav>
 
   <?php if (hybrixon_is_interim()): ?>
     <div class="flash-wrap">
