@@ -1,4 +1,6 @@
 {
   "url": "https://launcher.nachtblau-interactive.com/",
+  "linuxUrl": "https://launcher.nachtblau-interactive.com/linux.html",
+  "androidUrl": "https://launcher.nachtblau-interactive.com/android.html",
   "label": "NachtBlau Hub — Webspace"
 }

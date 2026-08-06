@@ -149,7 +149,13 @@ apps/nachtblau-hub/linux/www/
 apps/nachtblau-hub/android/www/
 apps/nachtblau-hub/linux/node_modules/
 apps/nachtblau-hub/android/node_modules/
-apps/nachtblau-hub/android/android/
+# Capacitor Android build outputs (source project is committed)
+apps/nachtblau-hub/android/android/.gradle/
+apps/nachtblau-hub/android/android/app/build/
+apps/nachtblau-hub/android/android/build/
+apps/nachtblau-hub/android/android/captures/
+apps/nachtblau-hub/android/android/local.properties
+apps/nachtblau-hub/android/android/.idea/
 
 # Local launcher mirror (pulled via FTPS; may be large)
 webspace/launcher.nachtblau-interactive.com/

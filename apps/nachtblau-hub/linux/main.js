@@ -2,18 +2,19 @@ const { app, BrowserWindow, ipcMain, shell } = require("electron");
 const path = require("path");
 const fs = require("fs");
 
-/** Immer Webspace — eine Quelle für PC, Android und Browser. */
+/** Immer Webspace — Linux-Einstieg (gleiche Quelle wie Android/Browser). */
 function hubUrl() {
   if (process.env.NACHTBLAU_HUB_URL) return process.env.NACHTBLAU_HUB_URL;
   try {
     const cfg = JSON.parse(
       fs.readFileSync(path.join(__dirname, "..", "hub-url.json"), "utf8"),
     );
+    if (cfg.linuxUrl) return cfg.linuxUrl;
     if (cfg.url) return cfg.url;
   } catch {
     /* fall through */
   }
-  return "https://launcher.nachtblau-interactive.com/";
+  return "https://launcher.nachtblau-interactive.com/linux.html";
 }
 
 let mainWindow;

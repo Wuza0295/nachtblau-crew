@@ -3,11 +3,17 @@
   "appName": "NachtBlau Hub",
   "webDir": "www",
   "server": {
-    "url": "https://launcher.nachtblau-interactive.com",
+    "url": "https://launcher.nachtblau-interactive.com/android.html",
     "cleartext": false,
     "androidScheme": "https"
   },
   "android": {
     "allowMixedContent": true
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchAutoHide": true,
+      "backgroundColor": "#030510"
+    }
   }
 }

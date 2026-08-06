@@ -1,12 +1,16 @@
 {
   "name": "nachtblau-hub-android",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
-  "description": "NachtBlau Hub — Android App (Capacitor), synced with Webspace & Linux",
+  "description": "NachtBlau Hub — Android App, live vom Webspace (android.html)",
   "scripts": {
     "sync": "python3 ../../../scripts/hub-sync.py sync",
-    "cap:sync": "npx cap sync android",
-    "open": "npx cap open android"
+    "update": "python3 ../../../scripts/hub-sync.py pull && node ./scripts/prepare-www.js && npx cap sync android",
+    "prepare:www": "node ./scripts/prepare-www.js",
+    "cap:add": "npx cap add android",
+    "cap:sync": "node ./scripts/prepare-www.js && npx cap sync android",
+    "open": "npx cap open android",
+    "run": "npx cap run android"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.0",
