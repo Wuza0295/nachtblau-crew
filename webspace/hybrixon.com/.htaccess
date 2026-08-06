@@ -1,0 +1,27 @@
+Options -MultiViews
+DirectoryIndex index.php
+RewriteEngine On
+
+# Works both as /hybrixon/ on nacht-blau.de and as document root of hybrixon.com
+# (no fixed RewriteBase)
+
+# Basic hardening
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+  Header set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+</IfModule>
+
+# www → apex (when domain is live)
+RewriteCond %{HTTP_HOST} ^www\.hybrixon\.com$ [NC]
+RewriteRule ^(.*)$ https://hybrixon.com/$1 [R=301,L]
+
+# Block direct access to data files
+RewriteRule ^data/ - [F,L]
+RewriteRule ^includes/ - [F,L]
+
+# Prefer PHP over leftover static files
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [L]

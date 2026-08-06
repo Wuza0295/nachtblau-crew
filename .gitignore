@@ -122,6 +122,16 @@ webspace/nacht-blau.de/allxion/robots.txt
 !webspace/nacht-blau.de/allxion/.gitkeep
 !webspace/nacht-blau.de/allxion/index.stub.html
 
+# Hybrixon runtime data (live DB / uploads / age docs — nicht committen)
+webspace/hybrixon.com/data/*.sqlite
+webspace/hybrixon.com/data/*.sqlite-*
+webspace/hybrixon.com/data/admin.password
+webspace/hybrixon.com/data/yoti.json
+webspace/hybrixon.com/data/age-docs/**
+!webspace/hybrixon.com/data/age-docs/.htaccess
+webspace/hybrixon.com/uploads/*
+!webspace/hybrixon.com/uploads/.gitkeep
+
 # Python
 **/__pycache__/
 *.py[cod]
