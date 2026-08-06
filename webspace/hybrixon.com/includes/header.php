@@ -93,38 +93,38 @@ if (!headers_sent()) {
   </header>
 
   <nav class="dock" data-dock aria-label="Schnellnavigation">
-    <div class="dock-glass">
-      <a href="<?= e(allxion_url()) ?>" class="dock-item <?= $activeNav === 'feed' ? 'active' : '' ?>" aria-label="Feed">
-        <span class="dock-icon dock-icon-feed" aria-hidden="true"></span>
-        <span class="dock-label">Feed</span>
+    <a href="<?= e(allxion_url()) ?>" class="dock-item <?= $activeNav === 'feed' ? 'active' : '' ?>" aria-label="Feed">
+      <span class="dock-icon dock-icon-feed" aria-hidden="true"></span>
+      <span class="dock-label">Feed</span>
+    </a>
+    <?php if ($currentUser): ?>
+      <a href="<?= e(allxion_url('compose.php')) ?>" class="dock-item <?= $activeNav === 'compose' ? 'active' : '' ?>" aria-label="Neuen Beitrag">
+        <span class="dock-icon dock-icon-compose" aria-hidden="true"></span>
+        <span class="dock-label">Posten</span>
       </a>
-      <?php if ($currentUser): ?>
-        <a href="<?= e(allxion_url('messages.php')) ?>" class="dock-item <?= $activeNav === 'messages' ? 'active' : '' ?>" aria-label="Nachrichten">
-          <span class="dock-icon dock-icon-dm" aria-hidden="true"></span>
-          <?php if ($dmUnread > 0): ?><span class="dock-dot" aria-hidden="true"></span><?php endif; ?>
-          <span class="dock-label">DMs</span>
-        </a>
-        <a href="<?= e(allxion_url('compose.php')) ?>" class="dock-fab <?= $activeNav === 'compose' ? 'active' : '' ?>" aria-label="Neuen Beitrag">
-          <span class="dock-fab-core" aria-hidden="true"></span>
-        </a>
-        <a href="<?= e(allxion_url('profile.php')) ?>" class="dock-item <?= $activeNav === 'profile' ? 'active' : '' ?>" aria-label="Profil">
-          <span class="dock-icon dock-icon-profile" aria-hidden="true"></span>
-          <span class="dock-label">Profil</span>
-        </a>
-      <?php else: ?>
-        <a href="<?= e(allxion_url('login.php')) ?>" class="dock-item <?= $activeNav === 'login' ? 'active' : '' ?>" aria-label="Anmelden">
-          <span class="dock-icon dock-icon-login" aria-hidden="true"></span>
-          <span class="dock-label">Login</span>
-        </a>
-        <a href="<?= e(allxion_url('register.php')) ?>" class="dock-fab <?= $activeNav === 'register' ? 'active' : '' ?>" aria-label="Registrieren">
-          <span class="dock-fab-core" aria-hidden="true"></span>
-        </a>
-        <a href="<?= e(allxion_url('rules.php')) ?>" class="dock-item <?= $activeNav === 'rules' ? 'active' : '' ?>" aria-label="Regeln">
-          <span class="dock-icon dock-icon-info" aria-hidden="true"></span>
-          <span class="dock-label">Info</span>
-        </a>
-      <?php endif; ?>
-    </div>
+      <a href="<?= e(allxion_url('messages.php')) ?>" class="dock-item <?= $activeNav === 'messages' ? 'active' : '' ?>" aria-label="Nachrichten">
+        <span class="dock-icon dock-icon-dm" aria-hidden="true"></span>
+        <?php if ($dmUnread > 0): ?><span class="dock-dot" aria-hidden="true"></span><?php endif; ?>
+        <span class="dock-label">DMs</span>
+      </a>
+      <a href="<?= e(allxion_url('profile.php')) ?>" class="dock-item <?= $activeNav === 'profile' ? 'active' : '' ?>" aria-label="Profil">
+        <span class="dock-icon dock-icon-profile" aria-hidden="true"></span>
+        <span class="dock-label">Profil</span>
+      </a>
+    <?php else: ?>
+      <a href="<?= e(allxion_url('login.php')) ?>" class="dock-item <?= $activeNav === 'login' ? 'active' : '' ?>" aria-label="Anmelden">
+        <span class="dock-icon dock-icon-login" aria-hidden="true"></span>
+        <span class="dock-label">Login</span>
+      </a>
+      <a href="<?= e(allxion_url('register.php')) ?>" class="dock-item <?= $activeNav === 'register' ? 'active' : '' ?>" aria-label="Registrieren">
+        <span class="dock-icon dock-icon-compose" aria-hidden="true"></span>
+        <span class="dock-label">Join</span>
+      </a>
+      <a href="<?= e(allxion_url('rules.php')) ?>" class="dock-item <?= $activeNav === 'rules' ? 'active' : '' ?>" aria-label="Regeln">
+        <span class="dock-icon dock-icon-info" aria-hidden="true"></span>
+        <span class="dock-label">Info</span>
+      </a>
+    <?php endif; ?>
   </nav>
 
   <?php if (hybrixon_is_interim()): ?>

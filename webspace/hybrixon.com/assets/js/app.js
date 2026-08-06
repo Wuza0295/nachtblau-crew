@@ -37,25 +37,4 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  const dock = document.querySelector('[data-dock]');
-  if (dock && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    let lastY = window.scrollY;
-    let ticking = false;
-    const onScroll = () => {
-      const y = window.scrollY;
-      const goingDown = y > lastY && y > 48;
-      dock.classList.toggle('is-compact', goingDown);
-      lastY = y;
-      ticking = false;
-    };
-    window.addEventListener(
-      'scroll',
-      () => {
-        if (ticking) return;
-        ticking = true;
-        window.requestAnimationFrame(onScroll);
-      },
-      { passive: true }
-    );
-  }
 });

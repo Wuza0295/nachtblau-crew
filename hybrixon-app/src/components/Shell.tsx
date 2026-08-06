@@ -1,6 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../lib/auth";
+import {
+  IconChat,
+  IconCompose,
+  IconFeed,
+  IconInfo,
+  IconLogin,
+  IconProfile,
+} from "./icons";
 
 export function Shell() {
   const { user, brand, logout, loading } = useAuth();
@@ -127,36 +135,36 @@ export function Shell() {
 
       <nav className="tabbar" aria-label="Mobile Navigation">
         <NavLink to="/" className="tab" end>
-          <i className="ico ico-feed" aria-hidden />
+          <IconFeed className="tab-ico" />
           <span>Feed</span>
         </NavLink>
         {user ? (
           <>
             <NavLink to="/compose" className="tab">
-              <i className="ico ico-compose" aria-hidden />
+              <IconCompose className="tab-ico" />
               <span>Posten</span>
             </NavLink>
             <NavLink to="/messages" className="tab">
-              <i className="ico ico-dm" aria-hidden />
+              <IconChat className="tab-ico" />
               <span>Chats</span>
             </NavLink>
             <NavLink to="/profile" className="tab">
-              <i className="ico ico-profile" aria-hidden />
+              <IconProfile className="tab-ico" />
               <span>Profil</span>
             </NavLink>
           </>
         ) : (
           <>
             <NavLink to="/login" className="tab">
-              <i className="ico ico-login" aria-hidden />
+              <IconLogin className="tab-ico" />
               <span>Login</span>
             </NavLink>
-            <NavLink to="/register" className="tab tab-emphasis">
-              <i className="ico ico-compose" aria-hidden />
+            <NavLink to="/register" className="tab">
+              <IconCompose className="tab-ico" />
               <span>Join</span>
             </NavLink>
             <a href="/rules.php" className="tab">
-              <i className="ico ico-info" aria-hidden />
+              <IconInfo className="tab-ico" />
               <span>Info</span>
             </a>
           </>
