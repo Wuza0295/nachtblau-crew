@@ -1,9 +1,25 @@
 const { app, BrowserWindow, ipcMain, shell } = require("electron");
 const path = require("path");
+const fs = require("fs");
+
+/** Immer Webspace — eine Quelle für PC, Android und Browser. */
+function hubUrl() {
+  if (process.env.NACHTBLAU_HUB_URL) return process.env.NACHTBLAU_HUB_URL;
+  try {
+    const cfg = JSON.parse(
+      fs.readFileSync(path.join(__dirname, "..", "hub-url.json"), "utf8"),
+    );
+    if (cfg.url) return cfg.url;
+  } catch {
+    /* fall through */
+  }
+  return "https://launcher.nachtblau-interactive.com/";
+}
 
 let mainWindow;
 
 function createWindow() {
+  const url = hubUrl();
   mainWindow = new BrowserWindow({
     width: 1440,
     height: 900,
@@ -12,13 +28,13 @@ function createWindow() {
     backgroundColor: "#030510",
     title: "NachtBlau Hub",
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
+      nodeIntegration: false,
+      contextIsolation: true,
       webviewTag: true,
     },
   });
 
-  mainWindow.loadFile(path.join(__dirname, "www", "index.html"));
+  mainWindow.loadURL(url);
 }
 
 app.whenReady().then(() => {
@@ -47,14 +63,15 @@ ipcMain.handle("open-game-window", async (_event, url, gameId) => {
       contextIsolation: true,
     },
   });
-  await win.loadURL(url);
+  const abs = /^https?:\/\//i.test(url) ? url : new URL(url, hubUrl()).href;
+  await win.loadURL(abs);
 });
 
 ipcMain.handle("update-game", async () => ({
-  success: false,
-  error: "Nutze pnpm hub:pull / hub:sync, um den Webspace-Stand zu übernehmen.",
+  success: true,
+  message: "Inhalt kommt live vom Webspace — Seite neu laden (Ctrl+R).",
 }));
 
 ipcMain.handle("open-folder", async () => {
-  await shell.openPath(path.join(__dirname, "www"));
+  await shell.openExternal(hubUrl());
 });

@@ -1,36 +1,38 @@
-# NachtBlau Hub — Multi-Platform Sync
+# NachtBlau Hub — immer Webspace
 
-Ein gemeinsamer Hub-Stand für **Webspace**, **Linux Desktop** und **Android**.
+**Eine Quelle:** `https://launcher.nachtblau-interactive.com/`
 
-## Quelle der Wahrheit
+PC (Bazzite), Android und Browser laden **live vom Webspace**.  
+Kein Datei-Kopieren zwischen den Geräten nötig.
 
-`launcher.nachtblau-interactive.com` auf dem ALL-INKL-Webspace  
-→ lokal: `webspace/launcher.nachtblau-interactive.com/`  
-→ shared: `apps/nachtblau-hub/shared/`  
-→ Linux: `apps/nachtblau-hub/linux/www/`  
-→ Android: `apps/nachtblau-hub/android/www/`
-
-Die UI-Dateien sind auf allen Plattformen identisch. Nur die Bridge unterscheidet sich:
-
-| Plattform | Bridge | Label |
-|-----------|--------|-------|
-| Webspace  | `site-bridge.js` | Web Hub |
-| Linux     | `linux-bridge.js` | Linux Desktop |
-| Android   | `android-bridge.js` | Android App |
-
-## Befehle (Repo-Root)
-
-```bash
-cp .env.webspace.example .env.webspace   # FTP_USER / FTP_PASS
-
-pnpm webspace:connect                   # FTPS-Test
-pnpm hub:pull                           # Remote → shared + Linux + Android
-pnpm hub:sync                           # lokaler Webspace-Spiegel → Linux + Android
-pnpm hub:push                           # shared → Webspace-Launcher
-pnpm hub:status                         # Dateizahlen / Manifest
+```
+Bazzite / Android / Browser  ──lesen──►  Webspace (ALL-INKL)
+                 ▲
+                 │  pnpm hub:push  (nur wenn du etwas änderst)
+            dein PC
 ```
 
-## Linux starten
+## Alltag
+
+| Ziel | Was tun |
+|------|---------|
+| Gleicher Stand überall | Nichts — alle öffnen den Webspace |
+| Etwas ändern | Auf dem PC ändern → `pnpm hub:push` |
+| Prüfen | Browser / Linux-App / Android-App neu laden |
+
+## Webspace aktualisieren (vom PC)
+
+```bash
+cp .env.webspace.example .env.webspace   # einmalig: FTP_USER / FTP_PASS
+pnpm webspace:connect
+pnpm hub:push                            # lokaler Stand → Webspace
+```
+
+Optional vorher vom Server holen: `pnpm hub:pull`
+
+## Linux (Bazzite) starten
+
+Öffnet immer den Webspace:
 
 ```bash
 cd apps/nachtblau-hub/linux
@@ -38,16 +40,27 @@ pnpm install
 pnpm start
 ```
 
+Oder einfach im Browser: https://launcher.nachtblau-interactive.com/
+
 ## Android
+
+Die App zeigt dieselbe URL (Capacitor `server.url`):
 
 ```bash
 cd apps/nachtblau-hub/android
 pnpm install
-# einmalig: npx cap add android   (Android SDK nötig)
+npx cap add android    # einmalig, Android SDK nötig
 pnpm cap:sync
-pnpm open
+pnpm open              # aufs Handy installieren
 ```
 
-## Sync-Manifest
+**Ohne eigene App:** Handy-Browser → dieselbe Webspace-URL (am besten als Startbildschirm / PWA).
 
-Nach jedem `hub:pull|sync|push` wird `sync-manifest.json` geschrieben (Content-Hash + Dateizahlen).
+## Hilfsbefehle
+
+```bash
+pnpm hub:status    # Manifest / Dateizahlen
+pnpm hub:pull      # Webspace → lokaler Spiegel (Backup / Offline-Arbeit)
+pnpm hub:sync      # Spiegel → linux/www + android/www (nur Offline-Fallback)
+pnpm hub:push      # lokal → Webspace (Live-Stand für alle)
+```

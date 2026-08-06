@@ -3,6 +3,8 @@
   "appName": "NachtBlau Hub",
   "webDir": "www",
   "server": {
+    "url": "https://launcher.nachtblau-interactive.com",
+    "cleartext": false,
     "androidScheme": "https"
   },
   "android": {
