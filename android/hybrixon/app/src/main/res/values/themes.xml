@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Hybrixon" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#2DD4BF</item>
+        <item name="colorPrimaryVariant">#0F766E</item>
+        <item name="colorSecondary">#F59E0B</item>
+        <item name="android:statusBarColor">#12100E</item>
+        <item name="android:navigationBarColor">#12100E</item>
+        <item name="android:windowBackground">#12100E</item>
+        <item name="android:colorBackground">#12100E</item>
+    </style>
+</resources>

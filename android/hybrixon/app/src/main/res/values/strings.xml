@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Hybrixon</string>
+    <string name="offline_title">Keine Verbindung</string>
+    <string name="offline_body">Hybrixon braucht Internet. Bitte Verbindung prüfen und erneut laden.</string>
+    <string name="retry">Erneut laden</string>
+</resources>
