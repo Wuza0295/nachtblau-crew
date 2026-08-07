@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 return [
-    'footer.app' => 'App Android',
+    'footer.app' => 'App',
     'nav.groups' => 'Gruppi',
     'nav.search' => 'Cerca',
     'nav.post' => 'Pubblica',

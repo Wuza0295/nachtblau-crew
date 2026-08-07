@@ -13,6 +13,7 @@ $apkBytes = is_file($apkPath) ? (int)filesize($apkPath) : 0;
 $apkMb = $apkBytes > 0 ? number_format($apkBytes / 1048576, 1, ',', '.') : '—';
 $version = '1.0.0';
 $downloadUrl = allxion_url('downloads/hybrixon.apk');
+$homeUrl = allxion_url();
 
 require __DIR__ . '/includes/header.php';
 ?>
@@ -26,36 +27,73 @@ require __DIR__ . '/includes/header.php';
     </div>
   </div>
 
-  <div class="pill-row" style="margin:1rem 0;">
-    <span class="pill">Android 7+</span>
-    <span class="pill">v<?= e($version) ?></span>
-    <span class="pill"><?= e($apkMb) ?> MB</span>
+  <div class="app-platform" id="android">
+    <h2><?= e(t('app.android_title')) ?></h2>
+    <p class="muted"><?= e(t('app.android_lead')) ?></p>
+
+    <div class="pill-row" style="margin:1rem 0;">
+      <span class="pill">Android 7+</span>
+      <span class="pill">v<?= e($version) ?></span>
+      <span class="pill"><?= e($apkMb) ?> MB</span>
+    </div>
+
+    <?php if ($apkBytes > 0): ?>
+      <a class="btn btn-block" href="<?= e($downloadUrl) ?>" download="hybrixon-<?= e($version) ?>.apk">
+        <?= e(t('app.download')) ?>
+      </a>
+    <?php else: ?>
+      <div class="flash flash-error"><?= e(t('app.missing')) ?></div>
+    <?php endif; ?>
+
+    <h3 class="app-subhead"><?= e(t('app.install_title')) ?></h3>
+    <ol class="app-install-steps">
+      <li><?= e(t('app.step1')) ?></li>
+      <li><?= e(t('app.step2')) ?></li>
+      <li><?= e(t('app.step3')) ?></li>
+    </ol>
+
+    <h3 class="app-subhead"><?= e(t('app.features_title')) ?></h3>
+    <ul class="muted app-feature-list">
+      <li><?= e(t('app.feature1')) ?></li>
+      <li><?= e(t('app.feature2')) ?></li>
+      <li><?= e(t('app.feature3')) ?></li>
+      <li><?= e(t('app.feature4')) ?></li>
+    </ul>
+
+    <p class="hint" style="margin-top:1rem;"><?= e(t('app.note')) ?></p>
   </div>
 
-  <?php if ($apkBytes > 0): ?>
-    <a class="btn btn-block" href="<?= e($downloadUrl) ?>" download="hybrixon-<?= e($version) ?>.apk">
-      <?= e(t('app.download')) ?>
+  <div class="app-platform" id="apple">
+    <h2><?= e(t('app.ios_title')) ?></h2>
+    <p class="muted"><?= e(t('app.ios_lead')) ?></p>
+
+    <div class="pill-row" style="margin:1rem 0;">
+      <span class="pill">iPhone / iPad</span>
+      <span class="pill">Safari</span>
+      <span class="pill">iOS 16+</span>
+    </div>
+
+    <a class="btn btn-block btn-ghost" href="<?= e($homeUrl) ?>">
+      <?= e(t('app.ios_open')) ?>
     </a>
-  <?php else: ?>
-    <div class="flash flash-error"><?= e(t('app.missing')) ?></div>
-  <?php endif; ?>
 
-  <h2 style="margin-top:1.5rem;font-size:1.1rem;"><?= e(t('app.install_title')) ?></h2>
-  <ol class="app-install-steps">
-    <li><?= e(t('app.step1')) ?></li>
-    <li><?= e(t('app.step2')) ?></li>
-    <li><?= e(t('app.step3')) ?></li>
-  </ol>
+    <h3 class="app-subhead"><?= e(t('app.ios_install_title')) ?></h3>
+    <ol class="app-install-steps">
+      <li><?= e(t('app.ios_step1')) ?></li>
+      <li><?= e(t('app.ios_step2')) ?></li>
+      <li><?= e(t('app.ios_step3')) ?></li>
+      <li><?= e(t('app.ios_step4')) ?></li>
+    </ol>
 
-  <h2 style="margin-top:1.25rem;font-size:1.1rem;"><?= e(t('app.features_title')) ?></h2>
-  <ul class="muted app-feature-list">
-    <li><?= e(t('app.feature1')) ?></li>
-    <li><?= e(t('app.feature2')) ?></li>
-    <li><?= e(t('app.feature3')) ?></li>
-    <li><?= e(t('app.feature4')) ?></li>
-  </ul>
+    <h3 class="app-subhead"><?= e(t('app.ios_tips_title')) ?></h3>
+    <ul class="muted app-feature-list">
+      <li><?= e(t('app.ios_tip1')) ?></li>
+      <li><?= e(t('app.ios_tip2')) ?></li>
+      <li><?= e(t('app.ios_tip3')) ?></li>
+    </ul>
 
-  <p class="hint" style="margin-top:1rem;"><?= e(t('app.note')) ?></p>
+    <p class="hint" style="margin-top:1rem;"><?= e(t('app.ios_note')) ?></p>
+  </div>
 </section>
 
 <?php require __DIR__ . '/includes/footer.php'; ?>
