@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 return [
-    'footer.app' => 'App',
+    'footer.app' => 'Hybrixon App',
     'app.title' => 'Hybrixon as an app',
     'app.lead' => 'Install the Android APK — or on iPhone/iPad add Hybrixon to your Home Screen from Safari.',
     'app.android_title' => 'Android',
@@ -50,6 +50,7 @@ return [
     'nav.register' => 'Sign up',
     'nav.logout' => 'Log out',
     'nav.search_placeholder' => 'Search Hybrixon',
+    'nav.app' => 'Hybrixon App',
 
     'footer.rules' => 'Rules',
     'footer.terms' => 'Terms',

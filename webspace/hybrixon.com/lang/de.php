@@ -20,8 +20,9 @@ return [
     'nav.register' => 'Registrieren',
     'nav.logout' => 'Abmelden',
     'nav.search_placeholder' => 'Hybrixon durchsuchen',
+    'nav.app' => 'Hybrixon App',
 
-    'footer.app' => 'App',
+    'footer.app' => 'Hybrixon App',
     'footer.rules' => 'Regeln',
     'footer.terms' => 'Nutzungsbedingungen',
     'footer.privacy' => 'Datenschutz',

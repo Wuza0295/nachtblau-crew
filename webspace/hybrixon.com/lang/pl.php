@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 return [
-    'footer.app' => 'App',
+    'footer.app' => 'Hybrixon App',
     'nav.groups' => 'Grupy',
     'nav.search' => 'Szukaj',
     'nav.post' => 'Opublikuj',
@@ -15,6 +15,7 @@ return [
     'nav.register' => 'Zarejestruj',
     'nav.logout' => 'Wyloguj',
     'nav.search_placeholder' => 'Szukaj w Hybrixon',
+    'nav.app' => 'Hybrixon App',
     'footer.rules' => 'Zasady',
     'footer.terms' => 'Regulamin',
     'footer.privacy' => 'Prywatność',
