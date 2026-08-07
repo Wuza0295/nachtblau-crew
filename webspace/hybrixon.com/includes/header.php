@@ -57,7 +57,7 @@ if (!isset($pageUrl)) {
 <html lang="<?= e($uiLang) ?>">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title><?= e($pageTitle) ?></title>
   <meta name="description" content="<?= e($pageDescription) ?>">
   <link rel="canonical" href="<?= e($pageUrl) ?>">
