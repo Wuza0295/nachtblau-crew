@@ -73,17 +73,20 @@ function time_ago(string $datetime): string
         return $datetime;
     }
     $diff = (new DateTimeImmutable('now'))->getTimestamp() - $then->getTimestamp();
+    if (!function_exists('t')) {
+        require_once __DIR__ . '/i18n.php';
+    }
     if ($diff < 60) {
-        return 'gerade eben';
+        return t('time.just_now');
     }
     if ($diff < 3600) {
-        return (int)floor($diff / 60) . ' Min.';
+        return t('time.minutes', ['n' => (string)(int)floor($diff / 60)]);
     }
     if ($diff < 86400) {
-        return (int)floor($diff / 3600) . ' Std.';
+        return t('time.hours', ['n' => (string)(int)floor($diff / 3600)]);
     }
     if ($diff < 604800) {
-        return (int)floor($diff / 86400) . ' T.';
+        return t('time.days', ['n' => (string)(int)floor($diff / 86400)]);
     }
     return $then->format('d.m.Y');
 }
