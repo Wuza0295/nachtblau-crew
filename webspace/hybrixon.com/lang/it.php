@@ -87,6 +87,8 @@ return [
     'feed.stories' => 'Storie',
     'feed.add_story' => '+ Storia',
     'feed.no_stories' => 'Ancora nessuna storia — sii il primo.',
+    'feed.compose_prompt' => 'Cosa vuoi condividere?',
+    'feed.compose_more' => 'Altre opzioni',
     'post.link' => 'Link',
     'post.share' => 'Condividi',
     'post.saved' => 'Salvato',

@@ -87,6 +87,8 @@ return [
     'feed.stories' => 'Hikayeler',
     'feed.add_story' => '+ Hikaye',
     'feed.no_stories' => 'Henüz hikaye yok — ilk sen ol.',
+    'feed.compose_prompt' => 'Ne paylaşmak istiyorsun?',
+    'feed.compose_more' => 'Daha fazla',
     'post.link' => 'Bağlantı',
     'post.share' => 'Paylaş',
     'post.saved' => 'Kaydedildi',
