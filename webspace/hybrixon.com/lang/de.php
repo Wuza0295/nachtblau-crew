@@ -21,7 +21,6 @@ return [
     'nav.logout' => 'Abmelden',
     'nav.search_placeholder' => 'Hybrixon durchsuchen',
     'nav.app' => 'Hybrixon App',
-
     'footer.app' => 'Hybrixon App',
     'footer.rules' => 'Regeln',
     'footer.terms' => 'Nutzungsbedingungen',
@@ -59,7 +58,6 @@ return [
     'app.ios_tip2' => 'Das Symbol öffnet Hybrixon im Vollbild (ohne Safari-Leiste).',
     'app.ios_tip3' => 'Benachrichtigungen und Kamera funktionieren wie in der mobilen Website.',
     'app.ios_note' => 'Hinweis: Es gibt derzeit keine native iOS-App im App Store. Home-Bildschirm ist der offizielle Weg für Apple-Geräte.',
-
     'common.share' => 'Teilen',
     'common.copy_link' => 'Link kopieren',
     'common.copied' => 'Kopiert',
@@ -82,7 +80,6 @@ return [
     'common.translate_failed' => 'Übersetzung fehlgeschlagen.',
     'common.close' => 'Schließen',
     'common.loading' => 'Laden…',
-
     'feed.all' => 'Alle',
     'feed.friends' => 'Freunde',
     'feed.following' => 'Folgend',
@@ -90,7 +87,6 @@ return [
     'feed.stories' => 'Stories',
     'feed.add_story' => '+ Story',
     'feed.no_stories' => 'Noch keine Stories — sei der Erste.',
-
     'post.link' => 'Link',
     'post.share' => 'Teilen',
     'post.saved' => 'Gespeichert',
@@ -111,7 +107,6 @@ return [
     'compose.body' => 'Text',
     'compose.images' => 'Bilder (optional)',
     'compose.video' => 'Oder Video (optional)',
-
     'notif.title' => 'Benachrichtigungen',
     'notif.mark_all' => 'Alle als gelesen',
     'notif.marked_all' => 'Alle als gelesen markiert.',
@@ -127,12 +122,10 @@ return [
     'notif.report_post' => ':who hat einen Beitrag gemeldet',
     'notif.report_dm' => ':who hat eine DM gemeldet',
     'notif.default' => 'Neue Benachrichtigung',
-
     'time.just_now' => 'gerade eben',
     'time.minutes' => ':n Min.',
     'time.hours' => ':n Std.',
     'time.days' => ':n T.',
-
     'login.lead' => 'Nur registrierte Mitglieder können Beiträge schreiben.',
     'login.user' => 'Benutzername oder E-Mail',
     'login.password' => 'Passwort',
@@ -141,7 +134,6 @@ return [
     'login.error_empty' => 'Bitte Login und Passwort ausfüllen.',
     'login.error_failed' => 'Login fehlgeschlagen.',
     'login.welcome' => 'Willkommen zurück.',
-
     'profile.share' => 'Profil teilen',
     'profile.public' => 'Öffentliches Profil',
     'profile.message' => 'Nachricht',
@@ -152,7 +144,6 @@ return [
     'profile.block' => 'Blockieren',
     'profile.unblock' => 'Blockierung aufheben',
     'profile.login_follow' => 'Anmelden zum Folgen',
-
     'settings.title' => 'Profil & Privatsphäre',
     'settings.avatar' => 'Profilbild',
     'settings.banner' => 'Profilbanner',
@@ -165,12 +156,10 @@ return [
     'settings.saved' => 'Profil & Privatsphäre gespeichert.',
     'settings.theme' => 'Theme',
     'settings.appearance' => 'Darstellung',
-
     'messages.title' => 'Nachrichten',
     'messages.inbox' => 'Posteingang',
     'messages.empty' => 'Noch keine Nachrichten.',
     'messages.write' => 'Nachricht schreiben',
-
     'vis.public' => 'Alle (öffentlich)',
     'vis.friends' => 'Freunde',
     'vis.followers' => 'Follower',
@@ -179,7 +168,7 @@ return [
     'vis.dm_friends' => 'Nur Freunde',
     'vis.dm_followers' => 'Nur Follower',
     'vis.dm_none' => 'Niemand',
-'messages.lead' => 'Privat zwischen Mitgliedern, nur Text, ab :age Jahren. Kein Porno, keine Gewalt.',
+    'messages.lead' => 'Privat zwischen Mitgliedern, nur Text, ab :age Jahren. Kein Porno, keine Gewalt.',
     'messages.admin_note' => 'Plattform-Admins können Nachrichten einsehen (Regel-Durchsetzung, Zugriffe protokolliert).',
     'messages.retention' => 'Aufbewahrung ca. :days Tage.',
     'messages.to' => 'An (Benutzername)',
@@ -212,7 +201,6 @@ return [
     'messages.confirm_block' => 'Wirklich blockieren?',
     'messages.chat_empty' => 'Noch keine Nachrichten in diesem Chat.',
     'messages.dm_rules_link' => 'Nachrichten-Regeln',
-
     'friends.title' => 'Freunde',
     'friends.summary' => ':friends Freunde · :requests offene Anfragen',
     'friends.list' => 'Freundesliste',
@@ -233,12 +221,10 @@ return [
     'friends.cancelled' => 'Anfrage zurückgezogen.',
     'friends.now_friends' => 'Ihr seid jetzt Freunde.',
     'friends.user_missing' => 'Nutzer nicht gefunden.',
-
     'reels.title' => 'Reels',
     'reels.lead' => 'Kurze Videos — sortiert nach Relevanz (Freunde, Follower, Likes, Aktualität).',
     'reels.create' => 'Reel erstellen',
     'reels.empty' => 'Noch keine Reels.',
-
     'stories.create_title' => 'Story erstellen',
     'stories.lead' => 'Verschwindet nach :hours Stunden. Soft-18+ nur mit Freischaltung.',
     'stories.media' => 'Bild oder kurzes Video',
@@ -248,7 +234,6 @@ return [
     'stories.view' => 'Ansehen',
     'stories.pick_media' => 'Bitte Bild oder Video wählen.',
     'stories.online' => 'Story online — :hours Stunden sichtbar.',
-
     'common.you' => 'Du',
     'common.send' => 'Senden',
     'common.username' => 'Benutzername',
