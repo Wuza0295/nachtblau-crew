@@ -1,22 +1,13 @@
 <?php
 declare(strict_types=1);
 
-/** Hybrixon targets PHP 8.5 on ALL-INKL (AddHandler php85-cgi). */
-const HYBRIXON_MIN_PHP = '8.5.0';
-if (PHP_VERSION_ID < 80500) {
-    http_response_code(500);
-    header('Content-Type: text/plain; charset=utf-8');
-    exit(
-        'Hybrixon benötigt PHP ' . HYBRIXON_MIN_PHP . '+ (aktuell: ' . PHP_VERSION . ").\n"
-        . "Bitte in KAS → Domain → Bearbeiten „PHP 8.5“ wählen,\n"
-        . "oder in .htaccess: AddHandler php85-cgi .php\n"
-    );
-}
-
 const ALLXION_NAME = 'Hybrixon';
 const ALLXION_TAGLINE = 'Closer. Freer.';
 const ALLXION_MIN_REGISTER_AGE = 16;
 const ALLXION_ADULT_AGE = 18;
+
+/** Minimum supported PHP version for this portal build. */
+const HYBRIXON_MIN_PHP = '8.5.0';
 
 /** Canonical public domain (no scheme) — final home. */
 const HYBRIXON_CANONICAL_HOST = 'hybrixon.com';
@@ -52,6 +43,35 @@ const DM_REPORT_REASON_MAX = 500;
 
 /** Bump when DM privacy/admin policy changes — forces re-consent. */
 const DM_CONSENT_VERSION = '2026-08-05-full-admin';
+
+/** Media limits (images / shorts). */
+const MEDIA_IMAGE_MAX_BYTES = 12_000_000;
+const MEDIA_VIDEO_MAX_BYTES = 50_000_000;
+const MEDIA_VIDEO_MAX_SECONDS = 300;
+const MEDIA_POST_IMAGES_MAX = 15;
+const MEDIA_IMAGE_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
+const MEDIA_VIDEO_MIMES = ['video/mp4', 'video/webm', 'video/quicktime'];
+
+/** Stories expire after this many hours. */
+const STORY_TTL_HOURS = 24;
+
+/** „Eingeloggt bleiben“ cookie lifetime (days). */
+const REMEMBER_ME_DAYS = 30;
+
+/**
+ * IP-Verlauf für Sicherheit/Moderation (Art. 6 Abs. 1 lit. f DSGVO).
+ * Ältere Einträge werden automatisch gelöscht; bei Kontolöschung vollständig.
+ */
+const IP_LOG_RETENTION_DAYS = 90;
+
+/** Soft switch for outbound notification e-mails (PHP mail()). */
+const HYBRIXON_MAIL_ENABLED = true;
+
+/** Public brand account (@Hybrixon) — auto-created, auto-accepts friends. */
+const HYBRIXON_OFFICIAL_USERNAME = 'Hybrixon';
+const HYBRIXON_OFFICIAL_EMAIL = 'official@hybrixon.com';
+/** Legacy username merged into @Hybrixon (kept for redirects / reserved names). */
+const HYBRIXON_LEGACY_TEAM_USERNAME = 'HybrixonTeam';
 
 define('ALLXION_ROOT', dirname(__DIR__));
 define('ALLXION_DATA', ALLXION_ROOT . '/data');

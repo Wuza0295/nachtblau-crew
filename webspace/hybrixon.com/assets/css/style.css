@@ -563,6 +563,7 @@ body.theme-light .mention-box {
   border: 1px solid var(--line);
 }
 .flash-success { background: rgba(74,222,128,0.1); color: var(--ok); border-color: rgba(74,222,128,0.28); }
+.flash-warn { background: rgba(245,158,11,0.12); color: #fbbf24; border-color: rgba(245,158,11,0.35); }
 .flash-error { background: rgba(232,93,93,0.12); color: #fca5a5; border-color: rgba(232,93,93,0.3); }
 .flash-info { background: rgba(45,212,191,0.1); color: var(--accent); border-color: rgba(45,212,191,0.28); }
 
@@ -1016,6 +1017,7 @@ body.theme-light .pill {
   color: var(--muted);
   border-color: rgba(18, 42, 52, 0.12);
 }
+body.theme-light .flash-warn { color: #92400e; }
 body.theme-light .flash-error { color: #9f1239; }
 body.theme-light .empty {
   background: #f0f5f6;
