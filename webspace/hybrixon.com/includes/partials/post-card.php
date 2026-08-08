@@ -102,19 +102,19 @@ $commentCount = isset($post['comment_count']) ? (int)$post['comment_count'] : co
   <?php if ($showComments): ?>
     <?php $comments = comments_for_post((int)$post['id'], $user); ?>
     <div id="comments" class="comments-block" style="margin-top:1rem;padding-top:0.85rem;border-top:1px solid var(--line);">
-      <h3 style="font-size:1rem;margin-bottom:0.65rem;">Kommentare</h3>
+      <h3 style="font-size:1rem;margin-bottom:0.65rem;"><?= e(t('common.comments')) ?></h3>
       <?php if ($user): ?>
         <form method="post" class="form" style="margin-bottom:1rem;">
           <?= csrf_field() ?>
           <input type="hidden" name="action" value="add_comment">
-          <label>Schreiben
-            <textarea name="body" required maxlength="2000" rows="2" data-mention placeholder="Kommentar… #tag @user"></textarea>
+          <label><?= e(t('common.comment')) ?>
+            <textarea name="body" required maxlength="2000" rows="2" data-mention placeholder="#tag @user"></textarea>
           </label>
-          <button class="btn btn-sm" type="submit">Kommentieren</button>
+          <button class="btn btn-sm" type="submit"><?= e(t('common.comment')) ?></button>
         </form>
       <?php endif; ?>
       <?php if (!$comments): ?>
-        <p class="muted">Noch keine Kommentare.</p>
+        <p class="muted"><?= e(t('comments.empty')) ?></p>
       <?php else: ?>
         <?php foreach ($comments as $c): ?>
           <div class="dm-bubble" style="max-width:100%;margin-bottom:0.5rem;">

@@ -2,12 +2,13 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/includes/dm.php';
+require_once __DIR__ . '/includes/i18n.php';
 
 $user = allxion_require_login();
 $errors = [];
 
 if (!dm_user_eligible($user)) {
-    flash('error', 'DMs erst ab ' . DM_MIN_AGE . ' Jahren.');
+    flash('error', t('messages.age_gate', ['age' => (string)(int)DM_MIN_AGE]));
     redirect(allxion_url('messages.php'));
 }
 
@@ -20,13 +21,13 @@ if ($threadId <= 0 && $withName !== '') {
         $thread = dm_get_or_create_thread((int)$user['id'], (int)$other['id']);
         redirect(allxion_url('message.php?id=' . (int)$thread['id']));
     }
-    flash('error', 'Benutzer nicht gefunden.');
+    flash('error', t('messages.user_missing'));
     redirect(allxion_url('messages.php'));
 }
 
 $thread = $threadId > 0 ? dm_thread_for_user($threadId, (int)$user['id']) : null;
 if (!$thread) {
-    flash('error', 'Unterhaltung nicht gefunden.');
+    flash('error', t('messages.thread_missing'));
     redirect(allxion_url('messages.php'));
 }
 
@@ -35,7 +36,7 @@ $otherStmt = allxion_db()->prepare('SELECT id, username, birthdate FROM users WH
 $otherStmt->execute([$otherId]);
 $other = $otherStmt->fetch();
 if (!$other) {
-    flash('error', 'Gegenüber existiert nicht mehr.');
+    flash('error', t('messages.user_missing'));
     redirect(allxion_url('messages.php'));
 }
 
@@ -49,12 +50,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'block') {
         $errors = dm_block((int)$user['id'], $otherId);
         if (!$errors) {
-            flash('success', '@' . $other['username'] . ' blockiert.');
+            flash('success', t('profile.block') . ': @' . $other['username']);
             redirect(allxion_url('message.php?id=' . (int)$thread['id']));
         }
     } elseif ($action === 'unblock') {
         dm_unblock((int)$user['id'], $otherId);
-        flash('success', 'Blockierung aufgehoben.');
+        flash('success', t('profile.unblock'));
         redirect(allxion_url('message.php?id=' . (int)$thread['id']));
     } elseif ($action === 'report') {
         $errors = dm_report(
@@ -64,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             isset($_POST['message_id']) && $_POST['message_id'] !== '' ? (int)$_POST['message_id'] : null
         );
         if (!$errors) {
-            flash('success', 'Meldung eingegangen. Ein Admin prüft die Unterhaltung.');
+            flash('success', t('messages.report_thread'));
             redirect(allxion_url('message.php?id=' . (int)$thread['id']));
         }
     } else {
@@ -88,10 +89,10 @@ require __DIR__ . '/includes/header.php';
 <section class="panel">
   <div class="post-meta" style="margin-bottom:0.5rem;">
     <h1 style="margin:0;font-size:1.25rem;">@<?= e($other['username']) ?></h1>
-    <a class="btn btn-sm btn-ghost" href="<?= e(allxion_url('messages.php')) ?>">Posteingang</a>
+    <a class="btn btn-sm btn-ghost" href="<?= e(allxion_url('messages.php')) ?>"><?= e(t('messages.inbox')) ?></a>
   </div>
   <p class="muted" style="margin-bottom:0.75rem;font-size:0.85rem;">
-    Text only · Soft-18+-Verbote · Admins können einsehen · Speicherung ca. <?= (int)DM_RETENTION_DAYS ?> Tage
+    <?= e(t('messages.meta', ['days' => (string)(int)DM_RETENTION_DAYS])) ?>
   </p>
 
   <?php foreach ($errors as $err): ?>
@@ -101,31 +102,31 @@ require __DIR__ . '/includes/header.php';
   <?php if ($blockedEither): ?>
     <div class="flash flash-info" style="margin-bottom:0.75rem;">
       <?php if ($iBlocked): ?>
-        Du hast @<?= e($other['username']) ?> blockiert. Nachrichten sind gestoppt.
+        <?= e(t('messages.blocked_by_you', ['who' => '@' . $other['username']])) ?>
       <?php else: ?>
-        Unterhaltung nicht verfügbar (Blockierung).
+        <?= e(t('messages.blocked')) ?>
       <?php endif; ?>
     </div>
   <?php endif; ?>
 
   <div class="hero-actions" style="margin-top:0;">
     <?php if ($iBlocked): ?>
-      <form method="post"><?= csrf_field() ?><input type="hidden" name="action" value="unblock"><button class="btn btn-sm btn-ghost" type="submit">Block aufheben</button></form>
+      <form method="post"><?= csrf_field() ?><input type="hidden" name="action" value="unblock"><button class="btn btn-sm btn-ghost" type="submit"><?= e(t('profile.unblock')) ?></button></form>
     <?php else: ?>
-      <form method="post" onsubmit="return confirm('Wirklich blockieren?');"><?= csrf_field() ?><input type="hidden" name="action" value="block"><button class="btn btn-sm btn-danger" type="submit">Blockieren</button></form>
+      <form method="post" onsubmit="return confirm(<?= json_encode(t('messages.confirm_block'), JSON_UNESCAPED_UNICODE) ?>);"><?= csrf_field() ?><input type="hidden" name="action" value="block"><button class="btn btn-sm btn-danger" type="submit"><?= e(t('profile.block')) ?></button></form>
     <?php endif; ?>
   </div>
 </section>
 
 <section class="dm-thread">
   <?php if (!$msgs): ?>
-    <div class="empty"><p>Noch keine Nachrichten in diesem Chat.</p></div>
+    <div class="empty"><p><?= e(t('messages.chat_empty')) ?></p></div>
   <?php else: ?>
     <?php foreach ($msgs as $m): ?>
       <?php $mine = (int)$m['sender_id'] === (int)$user['id']; ?>
       <article class="dm-bubble<?= $mine ? ' dm-mine' : '' ?>">
         <div class="dm-meta">
-          <strong><?= $mine ? 'Du' : '@' . e($m['username']) ?></strong>
+          <strong><?= $mine ? e(t('messages.you')) : '@' . e($m['username']) ?></strong>
           <span><?= e(time_ago((string)$m['created_at'])) ?></span>
         </div>
         <div class="dm-body"><?= nl2br(e($m['body'])) ?></div>
@@ -139,35 +140,34 @@ require __DIR__ . '/includes/header.php';
   <form method="post" class="form">
     <?= csrf_field() ?>
     <input type="hidden" name="action" value="send">
-    <label>Nachricht
-      <textarea name="body" required maxlength="<?= (int)DM_MAX_LENGTH ?>" placeholder="Nur Text …"><?= e($_POST['action'] ?? '') === 'send' ? ($_POST['body'] ?? '') : '' ?></textarea>
+    <label><?= e(t('messages.label')) ?>
+      <textarea name="body" required maxlength="<?= (int)DM_MAX_LENGTH ?>" placeholder="<?= e(t('messages.text_only_ph')) ?>"><?= e(($_POST['action'] ?? '') === 'send' ? ($_POST['body'] ?? '') : '') ?></textarea>
     </label>
     <?php if (!dm_rules_accepted($user)): ?>
       <label class="check">
         <input type="checkbox" name="policy_ok" value="1" required>
-        <span>DM-Regeln akzeptieren (<a href="<?= e(allxion_url('rules.php')) ?>" target="_blank" rel="noopener">lesen</a>)</span>
+        <span><?= e(t('messages.accept_dm_rules')) ?> (<a href="<?= e(allxion_url('rules.php')) ?>" target="_blank" rel="noopener"><?= e(t('messages.read')) ?></a>)</span>
       </label>
     <?php else: ?>
       <input type="hidden" name="policy_ok" value="1">
     <?php endif; ?>
-    <button class="btn btn-block" type="submit">Senden</button>
+    <button class="btn btn-block" type="submit"><?= e(t('messages.send_short')) ?></button>
   </form>
 </section>
 <?php endif; ?>
 
 <section class="panel">
-  <h2>Melden</h2>
+  <h2><?= e(t('messages.report_title')) ?></h2>
   <p class="muted" style="margin-bottom:0.75rem;">
-    Bei Belästigung, illegalen oder verbotenen Inhalten. Meldungen priorisieren die Prüfung;
-    Admins können DMs ohnehin zur Regel-Durchsetzung einsehen (protokolliert).
+    <?= e(t('messages.report_lead')) ?>
   </p>
   <form method="post" class="form">
     <?= csrf_field() ?>
     <input type="hidden" name="action" value="report">
-    <label>Grund
-      <textarea name="reason" required maxlength="<?= (int)DM_REPORT_REASON_MAX ?>" placeholder="Was ist passiert?"><?= e(($_POST['action'] ?? '') === 'report' ? ($_POST['reason'] ?? '') : '') ?></textarea>
+    <label><?= e(t('post.report_reason')) ?>
+      <textarea name="reason" required maxlength="<?= (int)DM_REPORT_REASON_MAX ?>" placeholder="<?= e(t('messages.report_reason_ph')) ?>"><?= e(($_POST['action'] ?? '') === 'report' ? ($_POST['reason'] ?? '') : '') ?></textarea>
     </label>
-    <button class="btn btn-sm btn-danger" type="submit">Unterhaltung melden</button>
+    <button class="btn btn-sm btn-danger" type="submit"><?= e(t('messages.report_thread')) ?></button>
   </form>
 </section>
 
