@@ -136,6 +136,15 @@ return [
     'time.hours' => ':n h',
     'time.days' => ':n d',
 
+    'login.lead' => 'Only registered members can post.',
+    'login.user' => 'Username or email',
+    'login.password' => 'Password',
+    'login.remember' => 'Stay signed in (:n days)',
+    'login.no_account' => 'No account yet?',
+    'login.error_empty' => 'Please enter login and password.',
+    'login.error_failed' => 'Login failed.',
+    'login.welcome' => 'Welcome back.',
+
     'profile.share' => 'Share profile',
     'profile.public' => 'Public profile',
     'profile.message' => 'Message',

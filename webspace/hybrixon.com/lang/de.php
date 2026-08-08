@@ -133,6 +133,15 @@ return [
     'time.hours' => ':n Std.',
     'time.days' => ':n T.',
 
+    'login.lead' => 'Nur registrierte Mitglieder können Beiträge schreiben.',
+    'login.user' => 'Benutzername oder E-Mail',
+    'login.password' => 'Passwort',
+    'login.remember' => 'Eingeloggt bleiben (:n Tage)',
+    'login.no_account' => 'Noch kein Konto?',
+    'login.error_empty' => 'Bitte Login und Passwort ausfüllen.',
+    'login.error_failed' => 'Login fehlgeschlagen.',
+    'login.welcome' => 'Willkommen zurück.',
+
     'profile.share' => 'Profil teilen',
     'profile.public' => 'Öffentliches Profil',
     'profile.message' => 'Nachricht',

@@ -93,6 +93,15 @@ return [
     'time.hours' => ':n godz.',
     'time.days' => ':n dn.',
 
+    'login.lead' => 'Tylko zarejestrowani członkowie mogą publikować.',
+    'login.user' => 'Nazwa użytkownika lub e-mail',
+    'login.password' => 'Hasło',
+    'login.remember' => 'Pozostań zalogowany (:n dni)',
+    'login.no_account' => 'Nie masz konta?',
+    'login.error_empty' => 'Podaj login i hasło.',
+    'login.error_failed' => 'Logowanie nieudane.',
+    'login.welcome' => 'Witaj ponownie.',
+
     'profile.share' => 'Udostępnij profil',
     'profile.message' => 'Wiadomość',
     'settings.who_may_message' => 'Kto może zacząć rozmowę',
