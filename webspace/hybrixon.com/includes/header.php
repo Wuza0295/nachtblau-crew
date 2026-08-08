@@ -106,8 +106,8 @@ if (!isset($pageUrl)) {
         <svg class="top-search-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
         <input type="search" name="q" value="<?= e($searchQ) ?>" minlength="2" placeholder="<?= e(t('nav.search_placeholder')) ?>" aria-label="<?= e(t('nav.search_placeholder')) ?>">
       </form>
-      <a href="<?= e(allxion_url('search.php')) ?>" class="top-search-btn nav-icon-link nav-round<?= $activeNav === 'search' ? ' active' : '' ?>" aria-label="<?= e(t('nav.search')) ?>" title="<?= e(t('nav.search')) ?>">
-        <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <a href="<?= e(allxion_url('search.php')) ?>" class="top-search-btn<?= $activeNav === 'search' ? ' active' : '' ?>" aria-label="<?= e(t('nav.search')) ?>" title="<?= e(t('nav.search')) ?>">
+        <svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
       </a>
     </div>
 
