@@ -134,6 +134,10 @@ button, input, textarea { font: inherit; }
   flex: 1;
   max-width: 15rem;
 }
+.top-search-btn {
+  display: none;
+  flex-shrink: 0;
+}
 .top-search-ico {
   position: absolute;
   left: 0.75rem;
@@ -830,8 +834,9 @@ body.theme-light .avatar-on-banner {
   }
   .topbar-tab { width: auto; flex: 1; max-width: 5.5rem; min-height: 2.7rem; margin: 0.1rem 0; }
   .topbar-tab.active::after { bottom: 0; }
-  /* Search lives in the icon row / search page — keep top row uncrowded */
+  /* Full search field → compact search icon on narrow screens */
   .top-search { display: none; }
+  .top-search-btn { display: inline-flex; }
   .brand-tagline { display: none; }
   .nav-menu {
     position: relative;
