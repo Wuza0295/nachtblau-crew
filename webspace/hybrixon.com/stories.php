@@ -10,7 +10,19 @@ $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
-    $files = media_normalize_files(isset($_FILES['media']) && is_array($_FILES['media']) ? $_FILES['media'] : []);
+    $images = media_normalize_files(isset($_FILES['images']) && is_array($_FILES['images']) ? $_FILES['images'] : []);
+    $videos = media_normalize_files(isset($_FILES['videos']) && is_array($_FILES['videos']) ? $_FILES['videos'] : []);
+    // Backward compatible combined field
+    if ($images === [] && $videos === [] && isset($_FILES['media']) && is_array($_FILES['media'])) {
+        foreach (media_normalize_files($_FILES['media']) as $file) {
+            if (stories_file_is_video($file)) {
+                $videos[] = $file;
+            } else {
+                $images[] = $file;
+            }
+        }
+    }
+    $files = array_merge($images, $videos);
     if ($files === []) {
         $errors[] = t('stories.pick_media');
     } else {
@@ -45,7 +57,8 @@ require __DIR__ . '/includes/header.php';
   <p class="muted" style="margin-bottom:1rem;">
     <?= e(t('stories.lead', ['hours' => (string)(int)STORY_TTL_HOURS])) ?>
     <?= e(t('stories.multi_hint', [
-        'n' => (string)(int)MEDIA_STORY_MEDIA_MAX,
+        'imgN' => (string)(int)MEDIA_STORY_IMAGES_MAX,
+        'vidN' => (string)(int)MEDIA_STORY_VIDEOS_MAX,
         'imgMb' => (string)(int)(MEDIA_IMAGE_MAX_BYTES / 1_000_000),
         'vidMb' => (string)(int)(MEDIA_VIDEO_MAX_BYTES / 1_000_000),
     ])) ?>
@@ -55,8 +68,11 @@ require __DIR__ . '/includes/header.php';
   <?php endforeach; ?>
   <form method="post" class="form" enctype="multipart/form-data">
     <?= csrf_field() ?>
-    <label><?= e(t('stories.media')) ?> (max. <?= (int)MEDIA_STORY_MEDIA_MAX ?>)
-      <input type="file" name="media[]" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime" multiple required data-max-files="<?= (int)MEDIA_STORY_MEDIA_MAX ?>">
+    <label><?= e(t('compose.images')) ?> (max. <?= (int)MEDIA_STORY_IMAGES_MAX ?>, je <?= (int)(MEDIA_IMAGE_MAX_BYTES / 1_000_000) ?> MB)
+      <input type="file" name="images[]" accept="image/jpeg,image/png,image/webp" multiple data-max-files="<?= (int)MEDIA_STORY_IMAGES_MAX ?>">
+    </label>
+    <label><?= e(t('compose.video')) ?> (max. <?= (int)MEDIA_STORY_VIDEOS_MAX ?>, je <?= (int)(MEDIA_VIDEO_MAX_BYTES / 1_000_000) ?> MB)
+      <input type="file" name="videos[]" accept="video/mp4,video/webm,video/quicktime" multiple data-max-files="<?= (int)MEDIA_STORY_VIDEOS_MAX ?>">
     </label>
     <label><?= e(t('stories.caption')) ?>
       <input type="text" name="caption" maxlength="300" value="<?= e($_POST['caption'] ?? '') ?>">

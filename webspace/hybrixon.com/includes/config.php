@@ -44,14 +44,17 @@ const DM_REPORT_REASON_MAX = 500;
 /** Bump when DM privacy/admin policy changes — forces re-consent. */
 const DM_CONSENT_VERSION = '2026-08-05-full-admin';
 
-/** Media limits (images / shorts). Per-file size stays large; counts allow multi-select. */
+/** Media limits (images / shorts). Per-file size stays large; multi-select up to 15+15. */
 const MEDIA_IMAGE_MAX_BYTES = 12_000_000;
 const MEDIA_VIDEO_MAX_BYTES = 50_000_000;
 const MEDIA_VIDEO_MAX_SECONDS = 300;
 const MEDIA_POST_IMAGES_MAX = 15;
-const MEDIA_POST_VIDEOS_MAX = 10;
-const MEDIA_REEL_VIDEOS_MAX = 10;
-const MEDIA_STORY_MEDIA_MAX = 10;
+const MEDIA_POST_VIDEOS_MAX = 15;
+const MEDIA_REEL_VIDEOS_MAX = 15;
+const MEDIA_STORY_IMAGES_MAX = 15;
+const MEDIA_STORY_VIDEOS_MAX = 15;
+/** @deprecated use MEDIA_STORY_IMAGES_MAX / MEDIA_STORY_VIDEOS_MAX */
+const MEDIA_STORY_MEDIA_MAX = 30;
 const MEDIA_IMAGE_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
 const MEDIA_VIDEO_MIMES = ['video/mp4', 'video/webm', 'video/quicktime'];
 

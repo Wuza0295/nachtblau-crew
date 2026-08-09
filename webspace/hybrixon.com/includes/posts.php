@@ -44,20 +44,17 @@ function allxion_create_post(
         }
     }
     $videoMax = $postType === 'short' ? MEDIA_REEL_VIDEOS_MAX : MEDIA_POST_VIDEOS_MAX;
+    if (count($imageFiles) > MEDIA_POST_IMAGES_MAX) {
+        return ['Maximal ' . MEDIA_POST_IMAGES_MAX . ' Bilder pro Beitrag.'];
+    }
     if (count($videoList) > $videoMax) {
         return ['Maximal ' . $videoMax . ' Videos pro ' . ($postType === 'short' ? 'Reel-Upload' : 'Beitrag') . '.'];
     }
     $videos = array_slice($videoList, 0, $videoMax);
     $hasVideo = $videos !== [];
 
-    if ($hasImages && count($imageFiles) > MEDIA_POST_IMAGES_MAX) {
-        return ['Maximal ' . MEDIA_POST_IMAGES_MAX . ' Bilder pro Beitrag.'];
-    }
-    if ($hasImages && $hasVideo) {
-        return ['Entweder Bilder oder Video(s) — nicht beides.'];
-    }
-    if ($postType === 'short' && !$hasVideo) {
-        return ['Reels brauchen mindestens ein Video.'];
+    if ($postType === 'short' && ($hasImages || !$hasVideo)) {
+        return ['Reels brauchen Video(s) — ohne Bilder-Upload.'];
     }
     if (($body === '' && !$hasImages && !$hasVideo) || mb_strlen($body) > 4000) {
         return ['Beitrag braucht Text und/oder Medien (max. 4000 Zeichen Text).'];

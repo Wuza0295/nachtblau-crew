@@ -68,6 +68,10 @@ require __DIR__ . '/includes/header.php';
         <?= e(t('compose.images')) ?>
         <input type="file" name="images[]" accept="image/jpeg,image/png,image/webp" multiple hidden data-max-files="<?= (int)MEDIA_POST_IMAGES_MAX ?>">
       </label>
+      <label class="feed-compose-media btn btn-sm btn-ghost">
+        <?= e(t('compose.video')) ?>
+        <input type="file" name="videos[]" accept="video/mp4,video/webm,video/quicktime" multiple hidden data-max-files="<?= (int)MEDIA_POST_VIDEOS_MAX ?>">
+      </label>
       <a class="btn btn-sm btn-ghost" href="<?= e(allxion_url('compose.php')) ?>"><?= e(t('feed.compose_more')) ?></a>
       <button class="btn btn-sm" type="submit"><?= e(t('compose.publish')) ?></button>
     </div>

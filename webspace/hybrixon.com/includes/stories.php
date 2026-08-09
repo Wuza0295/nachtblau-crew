@@ -64,7 +64,25 @@ function stories_create(array $user, array $file, string $caption = '', bool $is
 }
 
 /**
- * Create one story slide per selected file (images and/or videos).
+ * Detect whether an upload looks like video (MIME / finfo).
+ */
+function stories_file_is_video(array $file): bool
+{
+    $kindHint = (string)($file['type'] ?? '');
+    $tmp = (string)($file['tmp_name'] ?? '');
+    if ($tmp !== '' && is_uploaded_file($tmp)) {
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $detected = (string)$finfo->file($tmp);
+        if ($detected !== '') {
+            $kindHint = $detected;
+        }
+    }
+    return str_starts_with($kindHint, 'video/')
+        || in_array($kindHint, MEDIA_VIDEO_MIMES, true);
+}
+
+/**
+ * Create one story slide per selected file (up to 15 images and/or 15 videos).
  *
  * @param list<array<string,mixed>> $files
  * @return list<string>
@@ -74,10 +92,22 @@ function stories_create_many(array $user, array $files, string $caption = '', bo
     if ($files === []) {
         return ['Bitte Bild oder Video wählen.'];
     }
-    if (count($files) > MEDIA_STORY_MEDIA_MAX) {
-        return ['Maximal ' . MEDIA_STORY_MEDIA_MAX . ' Dateien pro Story-Upload.'];
-    }
+    $images = [];
+    $videos = [];
     foreach ($files as $file) {
+        if (stories_file_is_video($file)) {
+            $videos[] = $file;
+        } else {
+            $images[] = $file;
+        }
+    }
+    if (count($images) > MEDIA_STORY_IMAGES_MAX) {
+        return ['Maximal ' . MEDIA_STORY_IMAGES_MAX . ' Bilder pro Story-Upload.'];
+    }
+    if (count($videos) > MEDIA_STORY_VIDEOS_MAX) {
+        return ['Maximal ' . MEDIA_STORY_VIDEOS_MAX . ' Videos pro Story-Upload.'];
+    }
+    foreach (array_merge($images, $videos) as $file) {
         $errors = stories_create($user, $file, $caption, $isAdult);
         if ($errors) {
             return $errors;
