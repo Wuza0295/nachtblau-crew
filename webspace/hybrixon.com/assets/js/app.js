@@ -108,9 +108,27 @@ document.addEventListener('DOMContentLoaded', () => {
     );
     if (!Number.isFinite(max) || max < 1) return;
     input.addEventListener('change', () => {
-      if (input.files && input.files.length > max) {
+      if (!input.files) return;
+      if (input.files.length > max) {
         alert('Maximal ' + max + ' Dateien.');
         input.value = '';
+        return;
+      }
+      // Show selected count next to the control (helps in the Android app).
+      const label = input.closest('label');
+      if (label) {
+        let hint = label.querySelector('[data-file-count]');
+        if (!hint) {
+          hint = document.createElement('small');
+          hint.className = 'muted';
+          hint.setAttribute('data-file-count', '1');
+          hint.style.display = 'block';
+          hint.style.marginTop = '0.35rem';
+          label.appendChild(hint);
+        }
+        hint.textContent = input.files.length
+          ? (input.files.length + ' Datei(en) ausgewählt')
+          : '';
       }
     });
   });

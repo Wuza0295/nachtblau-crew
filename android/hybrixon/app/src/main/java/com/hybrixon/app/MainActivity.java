@@ -59,16 +59,37 @@ public class MainActivity extends AppCompatActivity {
                 Uri[] uris = null;
                 if (result.getResultCode() == RESULT_OK) {
                     Intent data = result.getData();
-                    if (data != null && data.getData() != null) {
-                        uris = new Uri[]{data.getData()};
-                    } else if (data != null && data.getClipData() != null) {
+                    // Prefer ClipData: many pickers set both getData() (first file)
+                    // and ClipData (all files). Old code took only getData() → 1 file.
+                    if (data != null && data.getClipData() != null && data.getClipData().getItemCount() > 0) {
                         int count = data.getClipData().getItemCount();
                         uris = new Uri[count];
                         for (int i = 0; i < count; i++) {
                             uris[i] = data.getClipData().getItemAt(i).getUri();
+                            try {
+                                getContentResolver().takePersistableUriPermission(
+                                        uris[i],
+                                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                );
+                            } catch (SecurityException ignored) {
+                                // Not all providers support persistable grants.
+                            }
+                        }
+                    } else if (data != null && data.getData() != null) {
+                        uris = new Uri[]{data.getData()};
+                        try {
+                            getContentResolver().takePersistableUriPermission(
+                                    data.getData(),
+                                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                            );
+                        } catch (SecurityException ignored) {
                         }
                     } else if (cameraImageUri != null) {
                         uris = new Uri[]{cameraImageUri};
+                    } else {
+                        // Fallback for OEM pickers
+                        uris = WebChromeClient.FileChooserParams.parseResult(
+                                result.getResultCode(), data);
                     }
                 }
                 if (filePathCallback != null) {
@@ -102,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
         settings.setAllowFileAccess(true);
         settings.setAllowContentAccess(true);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
-        settings.setUserAgentString(settings.getUserAgentString() + " HybrixonApp/1.0");
+        settings.setUserAgentString(settings.getUserAgentString() + " HybrixonApp/1.0.1");
 
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.setAcceptCookie(true);
@@ -176,8 +197,55 @@ public class MainActivity extends AppCompatActivity {
                     cameraPermissionLauncher.launch(Manifest.permission.CAMERA);
                 }
 
-                Intent contentIntent = fileChooserParams.createIntent();
-                contentIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                boolean allowMultiple = fileChooserParams.getMode()
+                        == FileChooserParams.MODE_OPEN_MULTIPLE;
+                // HTML inputs use multiple — always enable multi-select for media forms.
+                allowMultiple = true;
+
+                Intent contentIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                contentIntent.addCategory(Intent.CATEGORY_OPENABLE);
+                java.util.ArrayList<String> mimeList = new java.util.ArrayList<>();
+                String[] acceptTypes = fileChooserParams.getAcceptTypes();
+                if (acceptTypes != null) {
+                    for (String raw : acceptTypes) {
+                        if (raw == null || raw.isEmpty()) continue;
+                        for (String part : raw.split(",")) {
+                            String mime = part.trim();
+                            if (!mime.isEmpty()) mimeList.add(mime);
+                        }
+                    }
+                }
+                if (mimeList.isEmpty()) {
+                    contentIntent.setType("*/*");
+                } else if (mimeList.size() == 1) {
+                    contentIntent.setType(mimeList.get(0));
+                } else {
+                    boolean allVideo = true;
+                    boolean allImage = true;
+                    for (String mime : mimeList) {
+                        if (!mime.startsWith("video/")) allVideo = false;
+                        if (!mime.startsWith("image/")) allImage = false;
+                    }
+                    if (allVideo) {
+                        contentIntent.setType("video/*");
+                    } else if (allImage) {
+                        contentIntent.setType("image/*");
+                    } else {
+                        contentIntent.setType("*/*");
+                    }
+                    contentIntent.putExtra(
+                            Intent.EXTRA_MIME_TYPES,
+                            mimeList.toArray(new String[0])
+                    );
+                }
+                contentIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, allowMultiple);
+                contentIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                contentIntent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+
+                // Fallback GET_CONTENT for pickers that ignore OPEN_DOCUMENT
+                Intent getContent = fileChooserParams.createIntent();
+                getContent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, allowMultiple);
+                getContent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
                 Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
                 try {
@@ -192,10 +260,13 @@ public class MainActivity extends AppCompatActivity {
                     cameraImageUri = null;
                 }
 
-                Intent chooser = Intent.createChooser(contentIntent, "Datei wählen");
+                Intent chooser = Intent.createChooser(contentIntent, "Dateien wählen");
+                java.util.ArrayList<Intent> initial = new java.util.ArrayList<>();
+                initial.add(getContent);
                 if (cameraImageUri != null) {
-                    chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{cameraIntent});
+                    initial.add(cameraIntent);
                 }
+                chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, initial.toArray(new Intent[0]));
                 try {
                     fileChooserLauncher.launch(chooser);
                 } catch (ActivityNotFoundException e) {
