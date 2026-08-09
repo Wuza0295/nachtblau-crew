@@ -9,32 +9,54 @@ document.addEventListener('DOMContentLoaded', () => {
   const isAndroid = /Android/i.test(navigator.userAgent || '');
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
 
-  const openInHybrixonApp = () => {
+  const downloadUrl = i18n.appDownloadUrl || '/app.php';
+
+  /**
+   * Open the native Android app when installed.
+   * If not installed (or the OS ignores the intent), send the user to the APK download page.
+   * Note: Browsers block *automatic* custom-scheme / intent jumps without a user tap —
+   * so this must run from a click for reliable handoff.
+   */
+  const openInHybrixonApp = (opts = {}) => {
+    const goDownloadOnMiss = opts.goDownloadOnMiss !== false;
     const path = location.pathname + location.search + location.hash;
     const httpsUrl = location.origin + path;
-    const fallback = httpsUrl + (location.search ? '&' : '?') + 'web=1';
-    if (isAndroid) {
-      // Prefer Android Intent URL (opens app if installed, else stays/falls back to web)
-      const intentUrl = 'intent://'
-        + location.host + path
-        + '#Intent;scheme=https;package='
-        + encodeURIComponent(i18n.appPackage || 'com.hybrixon.app')
-        + ';S.browser_fallback_url=' + encodeURIComponent(fallback)
-        + ';end';
-      location.href = intentUrl;
-      // Custom-scheme backup for older WebViews / after a short delay
-      setTimeout(() => {
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = 'hybrixon://open?url=' + encodeURIComponent(httpsUrl);
-        document.body.appendChild(iframe);
-        setTimeout(() => iframe.remove(), 1500);
-      }, 400);
+    const fallback = downloadUrl;
+
+    if (!isAndroid) {
+      // No native store app on iOS yet → install / Home-Screen guide
+      location.href = downloadUrl;
       return;
     }
-    // iOS: no native store app — keep website / offer install guide
-    if (i18n.appDownloadUrl) {
-      location.href = i18n.appDownloadUrl;
+
+    const pkg = i18n.appPackage || 'com.hybrixon.app';
+    // Custom scheme is the most reliable opener for sideloaded APKs.
+    // browser_fallback_url → Download page when the app is missing.
+    const intentUrl = 'intent://open?url='
+      + encodeURIComponent(httpsUrl)
+      + '#Intent;scheme=hybrixon;package='
+      + encodeURIComponent(pkg)
+      + ';S.browser_fallback_url='
+      + encodeURIComponent(fallback)
+      + ';end';
+
+    let leftPage = false;
+    const onHide = () => { leftPage = true; };
+    document.addEventListener('visibilitychange', onHide);
+    window.addEventListener('pagehide', onHide);
+
+    location.href = intentUrl;
+
+    // Some browsers ignore S.browser_fallback_url for sideloaded packages —
+    // if we're still here after ~1.6s, go to the download page.
+    if (goDownloadOnMiss) {
+      setTimeout(() => {
+        document.removeEventListener('visibilitychange', onHide);
+        window.removeEventListener('pagehide', onHide);
+        if (!leftPage && !document.hidden) {
+          location.href = fallback;
+        }
+      }, 1600);
     }
   };
 
@@ -45,24 +67,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const stayBtn = banner.querySelector('[data-app-stay-web]');
     if (openBtn) openBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      openInHybrixonApp();
+      openInHybrixonApp({ goDownloadOnMiss: true });
     });
     if (stayBtn) stayBtn.addEventListener('click', (e) => {
       e.preventDefault();
       localStorage.setItem('hybrixon_stay_web', '1');
       banner.hidden = true;
-      // Soft cookie via navigation once
       const u = new URL(location.href);
       u.searchParams.set('web', '1');
       history.replaceState({}, '', u.toString());
     });
-
-    // Auto-try once per session on Android when the app may be installed
-    if (isAndroid && sessionStorage.getItem('hybrixon_app_autolaunch') !== '1') {
-      sessionStorage.setItem('hybrixon_app_autolaunch', '1');
-      // Delay so the page can paint; Intent fallback keeps users on web if no app
-      setTimeout(() => openInHybrixonApp(), 350);
-    }
   }
 
   const adultToggle = document.querySelector('[data-adult-toggle]');
