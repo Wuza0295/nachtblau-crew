@@ -8,7 +8,7 @@ require_once __DIR__ . '/social.php';
 
 /**
  * @param list<array<string,mixed>> $imageFiles
- * @param array<string,mixed>|null $videoFile
+ * @param list<array<string,mixed>>|array<string,mixed>|null $videoFiles Single file or list
  * @return list<string>
  */
 function allxion_create_post(
@@ -17,7 +17,7 @@ function allxion_create_post(
     bool $isAdult,
     bool $policyAccepted = false,
     array $imageFiles = [],
-    ?array $videoFile = null,
+    array|null $videoFiles = null,
     string $postType = 'post',
     bool $allowPublicImages = false
 ): array {
@@ -27,17 +27,37 @@ function allxion_create_post(
     $postType = $postType === 'short' ? 'short' : 'post';
     $images = array_slice($imageFiles, 0, MEDIA_POST_IMAGES_MAX);
     $hasImages = $images !== [];
-    $hasVideo = $videoFile
-        && (($videoFile['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE);
+
+    // Accept legacy single $_FILES['video'] array or a list of file arrays.
+    $videoList = [];
+    if (is_array($videoFiles)) {
+        if (isset($videoFiles['tmp_name']) && !is_array($videoFiles['tmp_name'])) {
+            if (($videoFiles['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+                $videoList[] = $videoFiles;
+            }
+        } else {
+            foreach ($videoFiles as $vf) {
+                if (is_array($vf) && (($vf['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE)) {
+                    $videoList[] = $vf;
+                }
+            }
+        }
+    }
+    $videoMax = $postType === 'short' ? MEDIA_REEL_VIDEOS_MAX : MEDIA_POST_VIDEOS_MAX;
+    if (count($videoList) > $videoMax) {
+        return ['Maximal ' . $videoMax . ' Videos pro ' . ($postType === 'short' ? 'Reel-Upload' : 'Beitrag') . '.'];
+    }
+    $videos = array_slice($videoList, 0, $videoMax);
+    $hasVideo = $videos !== [];
 
     if ($hasImages && count($imageFiles) > MEDIA_POST_IMAGES_MAX) {
         return ['Maximal ' . MEDIA_POST_IMAGES_MAX . ' Bilder pro Beitrag.'];
     }
     if ($hasImages && $hasVideo) {
-        return ['Entweder Bilder oder ein Video/Short — nicht beides.'];
+        return ['Entweder Bilder oder Video(s) — nicht beides.'];
     }
     if ($postType === 'short' && !$hasVideo) {
-        return ['Shorts brauchen ein Video.'];
+        return ['Reels brauchen mindestens ein Video.'];
     }
     if (($body === '' && !$hasImages && !$hasVideo) || mb_strlen($body) > 4000) {
         return ['Beitrag braucht Text und/oder Medien (max. 4000 Zeichen Text).'];
@@ -92,24 +112,26 @@ function allxion_create_post(
         $storedImages[] = $stored;
     }
 
-    $videoPath = null;
-    $videoMime = null;
-    $videoDuration = null;
-    if ($hasVideo) {
-        $storedV = media_store_video($videoFile);
+    $storedVideos = [];
+    foreach ($videos as $vf) {
+        $storedV = media_store_video($vf);
         if (!$storedV['ok']) {
             foreach ($storedImages as $prev) {
                 media_delete_path($prev['path']);
             }
+            foreach ($storedVideos as $prev) {
+                media_delete_path($prev['path']);
+            }
             return [$storedV['error']];
         }
-        $videoPath = $storedV['path'];
-        $videoMime = $storedV['mime'];
-        $videoDuration = $storedV['duration'];
+        $storedVideos[] = $storedV;
     }
 
     $legacyPath = $storedImages[0]['path'] ?? null;
     $legacyMime = $storedImages[0]['mime'] ?? null;
+    $videoPath = $storedVideos[0]['path'] ?? null;
+    $videoMime = $storedVideos[0]['mime'] ?? null;
+    $videoDuration = $storedVideos[0]['duration'] ?? null;
     // Nur Soft-18+/NSFW-Text → flagged; normale Beiträge sind sofort öffentlich (außer Ort-Pflicht)
     $needsMediaReview = $isAdult && (($hasImages && !$allowPublicImages) || $hasVideo);
     $status = ($scan['action'] === 'flag' || $needsMediaReview) ? 'flagged' : 'ok';
@@ -142,11 +164,14 @@ function allxion_create_post(
     $ins = allxion_db()->prepare(
         'INSERT INTO post_media (post_id, kind, path, mime, sort_order, duration_sec) VALUES (?, ?, ?, ?, ?, ?)'
     );
-    foreach ($storedImages as $i => $img) {
-        $ins->execute([$postId, 'image', $img['path'], $img['mime'], $i, null]);
+    $sort = 0;
+    foreach ($storedImages as $img) {
+        $ins->execute([$postId, 'image', $img['path'], $img['mime'], $sort, null]);
+        $sort++;
     }
-    if ($videoPath) {
-        $ins->execute([$postId, 'video', $videoPath, $videoMime, 0, $videoDuration]);
+    foreach ($storedVideos as $vid) {
+        $ins->execute([$postId, 'video', $vid['path'], $vid['mime'], $sort, $vid['duration'] ?? null]);
+        $sort++;
     }
 
     if ($needsLocationReview) {

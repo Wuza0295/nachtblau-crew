@@ -17,8 +17,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $isAdult = !empty($_POST['is_adult']);
     $policyOk = !empty($_POST['policy_ok']);
     $images = media_normalize_files(isset($_FILES['images']) && is_array($_FILES['images']) ? $_FILES['images'] : []);
-    $video = isset($_FILES['video']) && is_array($_FILES['video']) ? $_FILES['video'] : null;
-    $errors = allxion_create_post((int)$user['id'], $body, $isAdult, $policyOk, $images, $video, 'post');
+    $videos = media_normalize_files(isset($_FILES['videos']) && is_array($_FILES['videos']) ? $_FILES['videos'] : []);
+    // Backward compatible single-file field name
+    if ($videos === [] && isset($_FILES['video']) && is_array($_FILES['video'])) {
+        $videos = media_normalize_files($_FILES['video']);
+    }
+    $errors = allxion_create_post((int)$user['id'], $body, $isAdult, $policyOk, $images, $videos, 'post');
     if (!$errors) {
         if ($hasLocation) {
             flash('success', 'Beitrag veröffentlicht.');
@@ -41,8 +45,15 @@ require __DIR__ . '/includes/header.php';
   <h1><?= e(t('compose.title')) ?></h1>
   <p class="muted" style="margin-bottom:1rem;">
     <?= e(t('compose.lead')) ?>
-    Bis <?= (int)MEDIA_POST_IMAGES_MAX ?> <?= e(t('compose.images')) ?>
-    (je max. <?= (int)(MEDIA_IMAGE_MAX_BYTES / 1_000_000) ?> MB).
+    <?= e(t('compose.images_multi', [
+        'n' => (string)(int)MEDIA_POST_IMAGES_MAX,
+        'mb' => (string)(int)(MEDIA_IMAGE_MAX_BYTES / 1_000_000),
+    ])) ?>
+    <?= e(t('compose.videos_multi', [
+        'n' => (string)(int)MEDIA_POST_VIDEOS_MAX,
+        'mb' => (string)(int)(MEDIA_VIDEO_MAX_BYTES / 1_000_000),
+        'min' => (string)(int)(MEDIA_VIDEO_MAX_SECONDS / 60),
+    ])) ?>
     <a href="<?= e(allxion_url('shorts.php')) ?>"><?= e(t('nav.reels')) ?></a> ·
     <a href="<?= e(allxion_url('stories.php')) ?>"><?= e(t('nav.stories')) ?></a> ·
     <a href="<?= e(allxion_url('rules.php')) ?>"><?= e(t('footer.rules')) ?></a>
@@ -74,11 +85,11 @@ require __DIR__ . '/includes/header.php';
       <textarea name="body" maxlength="4000" data-mention placeholder="@user #tag"><?= e($_POST['body'] ?? '') ?></textarea>
     </label>
 
-    <label><?= e(t('compose.images')) ?> (max. <?= (int)MEDIA_POST_IMAGES_MAX ?>)
-      <input type="file" name="images[]" accept="image/jpeg,image/png,image/webp" multiple data-max-images="<?= (int)MEDIA_POST_IMAGES_MAX ?>">
+    <label><?= e(t('compose.images')) ?> (max. <?= (int)MEDIA_POST_IMAGES_MAX ?>, je <?= (int)(MEDIA_IMAGE_MAX_BYTES / 1_000_000) ?> MB)
+      <input type="file" name="images[]" accept="image/jpeg,image/png,image/webp" multiple data-max-files="<?= (int)MEDIA_POST_IMAGES_MAX ?>">
     </label>
-    <label><?= e(t('compose.video')) ?> (max. <?= (int)(MEDIA_VIDEO_MAX_BYTES / 1_000_000) ?> MB / <?= (int)(MEDIA_VIDEO_MAX_SECONDS / 60) ?> Min.)
-      <input type="file" name="video" accept="video/mp4,video/webm,video/quicktime">
+    <label><?= e(t('compose.video')) ?> (max. <?= (int)MEDIA_POST_VIDEOS_MAX ?>, je <?= (int)(MEDIA_VIDEO_MAX_BYTES / 1_000_000) ?> MB / <?= (int)(MEDIA_VIDEO_MAX_SECONDS / 60) ?> Min.)
+      <input type="file" name="videos[]" accept="video/mp4,video/webm,video/quicktime" multiple data-max-files="<?= (int)MEDIA_POST_VIDEOS_MAX ?>">
     </label>
 
     <?php if ($canAdult): ?>

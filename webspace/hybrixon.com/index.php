@@ -66,7 +66,7 @@ require __DIR__ . '/includes/header.php';
     <div class="feed-compose-actions">
       <label class="feed-compose-media btn btn-sm btn-ghost">
         <?= e(t('compose.images')) ?>
-        <input type="file" name="images[]" accept="image/jpeg,image/png,image/webp" multiple hidden>
+        <input type="file" name="images[]" accept="image/jpeg,image/png,image/webp" multiple hidden data-max-files="<?= (int)MEDIA_POST_IMAGES_MAX ?>">
       </label>
       <a class="btn btn-sm btn-ghost" href="<?= e(allxion_url('compose.php')) ?>"><?= e(t('feed.compose_more')) ?></a>
       <button class="btn btn-sm" type="submit"><?= e(t('compose.publish')) ?></button>
