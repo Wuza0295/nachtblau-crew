@@ -111,6 +111,14 @@ function allxion_create_post(
 
     $storedVideos = [];
     foreach ($videos as $vf) {
+        if (is_array($vf) && isset($vf['stored_path'], $vf['stored_mime'])) {
+            $storedVideos[] = [
+                'path' => (string)$vf['stored_path'],
+                'mime' => (string)$vf['stored_mime'],
+                'duration' => isset($vf['stored_duration']) ? $vf['stored_duration'] : null,
+            ];
+            continue;
+        }
         $storedV = media_store_video($vf);
         if (!$storedV['ok']) {
             foreach ($storedImages as $prev) {

@@ -18,34 +18,41 @@ function stories_create(array $user, array $file, string $caption = '', bool $is
         return ['Soft-18+ Stories nur mit Freischaltung.'];
     }
 
-    $kindHint = (string)($file['type'] ?? '');
-    $tmp = (string)($file['tmp_name'] ?? '');
-    if ($tmp !== '' && is_uploaded_file($tmp)) {
-        $finfo = new finfo(FILEINFO_MIME_TYPE);
-        $detected = (string)$finfo->file($tmp);
-        if ($detected !== '') {
-            $kindHint = $detected;
-        }
-    }
-    $isVideo = str_starts_with($kindHint, 'video/')
-        || in_array($kindHint, MEDIA_VIDEO_MIMES, true);
-
-    if ($isVideo) {
-        $stored = media_store_video($file);
-        if (!$stored['ok']) {
-            return [$stored['error']];
-        }
-        $kind = 'video';
-        $path = $stored['path'];
-        $mime = $stored['mime'];
+    // Already staged upload (sequential client upload to avoid HTTP 413)
+    if (isset($file['stored_path'], $file['stored_mime'], $file['stored_kind'])) {
+        $kind = (string)$file['stored_kind'] === 'video' ? 'video' : 'image';
+        $path = (string)$file['stored_path'];
+        $mime = (string)$file['stored_mime'];
     } else {
-        $stored = media_store_image($file, 'stories');
-        if (!$stored['ok']) {
-            return [$stored['error']];
+        $kindHint = (string)($file['type'] ?? '');
+        $tmp = (string)($file['tmp_name'] ?? '');
+        if ($tmp !== '' && is_uploaded_file($tmp)) {
+            $finfo = new finfo(FILEINFO_MIME_TYPE);
+            $detected = (string)$finfo->file($tmp);
+            if ($detected !== '') {
+                $kindHint = $detected;
+            }
         }
-        $kind = 'image';
-        $path = $stored['path'];
-        $mime = $stored['mime'];
+        $isVideo = str_starts_with($kindHint, 'video/')
+            || in_array($kindHint, MEDIA_VIDEO_MIMES, true);
+
+        if ($isVideo) {
+            $stored = media_store_video($file);
+            if (!$stored['ok']) {
+                return [$stored['error']];
+            }
+            $kind = 'video';
+            $path = $stored['path'];
+            $mime = $stored['mime'];
+        } else {
+            $stored = media_store_image($file, 'stories');
+            if (!$stored['ok']) {
+                return [$stored['error']];
+            }
+            $kind = 'image';
+            $path = $stored['path'];
+            $mime = $stored['mime'];
+        }
     }
 
     $hours = max(1, (int)STORY_TTL_HOURS);
@@ -68,6 +75,9 @@ function stories_create(array $user, array $file, string $caption = '', bool $is
  */
 function stories_file_is_video(array $file): bool
 {
+    if (isset($file['stored_kind'])) {
+        return (string)$file['stored_kind'] === 'video';
+    }
     $kindHint = (string)($file['type'] ?? '');
     $tmp = (string)($file['tmp_name'] ?? '');
     if ($tmp !== '' && is_uploaded_file($tmp)) {

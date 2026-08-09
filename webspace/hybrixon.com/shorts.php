@@ -19,6 +19,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($videos === [] && isset($_FILES['video']) && is_array($_FILES['video'])) {
         $videos = media_normalize_files($_FILES['video']);
     }
+    foreach (media_stage_take_many($_POST['staged'] ?? [], (int)$user['id']) as $staged) {
+        if (($staged['stored_kind'] ?? '') === 'video') {
+            $videos[] = $staged;
+        }
+    }
     if ($videos === []) {
         $errors = ['Bitte mindestens ein Video wählen.'];
     } elseif (count($videos) > MEDIA_REEL_VIDEOS_MAX) {
@@ -71,10 +76,10 @@ require __DIR__ . '/includes/header.php';
     <div class="flash flash-error" style="margin-bottom:0.6rem;"><?= e($err) ?></div>
   <?php endforeach; ?>
 
-  <form method="post" class="form" enctype="multipart/form-data">
+  <form method="post" class="form" enctype="multipart/form-data" data-stage-uploads data-stage-purpose="reels" data-stage-url="<?= e(allxion_url('api-media-stage.php')) ?>">
     <?= csrf_field() ?>
     <label><?= e(t('compose.video')) ?> (max. <?= (int)MEDIA_REEL_VIDEOS_MAX ?>, je <?= (int)(MEDIA_VIDEO_MAX_BYTES / 1_000_000) ?> MB)
-      <input type="file" name="videos[]" accept="video/mp4,video/webm,video/quicktime" multiple required data-max-files="<?= (int)MEDIA_REEL_VIDEOS_MAX ?>">
+      <input type="file" name="videos[]" accept="video/mp4,video/webm,video/quicktime" multiple required data-max-files="<?= (int)MEDIA_REEL_VIDEOS_MAX ?>" data-stage-kind="video">
     </label>
     <label>Caption (optional)
       <textarea name="body" maxlength="4000" placeholder="Kurzbeschreibung…"><?= e($_POST['body'] ?? '') ?></textarea>

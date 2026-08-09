@@ -22,6 +22,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($videos === [] && isset($_FILES['video']) && is_array($_FILES['video'])) {
         $videos = media_normalize_files($_FILES['video']);
     }
+    // Sequentially staged files (client upload one-by-one to avoid HTTP 413)
+    foreach (media_stage_take_many($_POST['staged'] ?? [], (int)$user['id']) as $staged) {
+        if (($staged['stored_kind'] ?? '') === 'video') {
+            $videos[] = $staged;
+        } else {
+            $images[] = $staged;
+        }
+    }
     $errors = allxion_create_post((int)$user['id'], $body, $isAdult, $policyOk, $images, $videos, 'post');
     if (!$errors) {
         if ($hasLocation) {
@@ -79,17 +87,17 @@ require __DIR__ . '/includes/header.php';
     </div>
   <?php endif; ?>
 
-  <form method="post" class="form" enctype="multipart/form-data">
+  <form method="post" class="form" enctype="multipart/form-data" data-stage-uploads data-stage-purpose="posts" data-stage-url="<?= e(allxion_url('api-media-stage.php')) ?>">
     <?= csrf_field() ?>
     <label><?= e(t('compose.body')) ?>
       <textarea name="body" maxlength="4000" data-mention placeholder="@user #tag"><?= e($_POST['body'] ?? '') ?></textarea>
     </label>
 
     <label><?= e(t('compose.images')) ?> (max. <?= (int)MEDIA_POST_IMAGES_MAX ?>, je <?= (int)(MEDIA_IMAGE_MAX_BYTES / 1_000_000) ?> MB)
-      <input type="file" name="images[]" accept="image/jpeg,image/png,image/webp" multiple data-max-files="<?= (int)MEDIA_POST_IMAGES_MAX ?>">
+      <input type="file" name="images[]" accept="image/jpeg,image/png,image/webp" multiple data-max-files="<?= (int)MEDIA_POST_IMAGES_MAX ?>" data-stage-kind="image">
     </label>
     <label><?= e(t('compose.video')) ?> (max. <?= (int)MEDIA_POST_VIDEOS_MAX ?>, je <?= (int)(MEDIA_VIDEO_MAX_BYTES / 1_000_000) ?> MB / <?= (int)(MEDIA_VIDEO_MAX_SECONDS / 60) ?> Min.)
-      <input type="file" name="videos[]" accept="video/mp4,video/webm,video/quicktime" multiple data-max-files="<?= (int)MEDIA_POST_VIDEOS_MAX ?>">
+      <input type="file" name="videos[]" accept="video/mp4,video/webm,video/quicktime" multiple data-max-files="<?= (int)MEDIA_POST_VIDEOS_MAX ?>" data-stage-kind="video">
     </label>
 
     <?php if ($canAdult): ?>

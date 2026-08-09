@@ -115,6 +115,93 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Sequential media staging: upload each file in its own request to avoid HTTP 413
+  // ("Request Entity Too Large") on multi-select batches.
+  document.querySelectorAll('form[data-stage-uploads]').forEach((form) => {
+    form.addEventListener('submit', async (event) => {
+      if (form.dataset.stageDone === '1') return;
+      const fileInputs = Array.from(form.querySelectorAll('input[type="file"]'));
+      const queue = [];
+      fileInputs.forEach((input) => {
+        if (!input.files || !input.files.length) return;
+        const kind = input.getAttribute('data-stage-kind') || 'auto';
+        Array.from(input.files).forEach((file) => queue.push({ file, kind }));
+      });
+      if (!queue.length) return;
+
+      event.preventDefault();
+      const stageUrl = form.getAttribute('data-stage-url') || 'api-media-stage.php';
+      const purpose = form.getAttribute('data-stage-purpose') || 'posts';
+      const csrfInput = form.querySelector('input[name="_csrf"]');
+      const csrf = csrfInput ? csrfInput.value : '';
+      const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+      const prevLabel = submitBtn ? (submitBtn.textContent || submitBtn.value || '') : '';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        if ('textContent' in submitBtn) {
+          submitBtn.textContent = 'Upload 0/' + queue.length + '…';
+        }
+      }
+
+      const tokens = [];
+      try {
+        for (let i = 0; i < queue.length; i++) {
+          const item = queue[i];
+          if (submitBtn && 'textContent' in submitBtn) {
+            submitBtn.textContent = 'Upload ' + (i + 1) + '/' + queue.length + '…';
+          }
+          const body = new FormData();
+          body.append('_csrf', csrf);
+          body.append('kind', item.kind);
+          body.append('purpose', purpose);
+          body.append('file', item.file, item.file.name);
+          const res = await fetch(stageUrl, {
+            method: 'POST',
+            body,
+            credentials: 'same-origin',
+            headers: { Accept: 'application/json' },
+          });
+          let data = null;
+          try {
+            data = await res.json();
+          } catch (_) {
+            data = null;
+          }
+          if (!res.ok || !data || !data.ok || !data.token) {
+            const msg = (data && data.error) ? data.error : ('Upload fehlgeschlagen (HTTP ' + res.status + ').');
+            throw new Error(msg);
+          }
+          tokens.push(data.token);
+        }
+
+        fileInputs.forEach((input) => {
+          input.value = '';
+          input.removeAttribute('required');
+        });
+        form.querySelectorAll('input[name="staged[]"]').forEach((el) => el.remove());
+        tokens.forEach((token) => {
+          const hidden = document.createElement('input');
+          hidden.type = 'hidden';
+          hidden.name = 'staged[]';
+          hidden.value = token;
+          form.appendChild(hidden);
+        });
+        form.dataset.stageDone = '1';
+        if (typeof form.requestSubmit === 'function') {
+          form.requestSubmit();
+        } else {
+          form.submit();
+        }
+      } catch (err) {
+        alert(err && err.message ? err.message : 'Upload fehlgeschlagen.');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          if ('textContent' in submitBtn) submitBtn.textContent = prevLabel;
+        }
+      }
+    });
+  });
+
   const plzInput = document.querySelector('[data-plz-input]');
   const citySelect = document.querySelector('[data-city-select]');
   const plzHidden = document.querySelector('[data-plz-hidden]');

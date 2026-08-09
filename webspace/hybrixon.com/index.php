@@ -48,7 +48,7 @@ require __DIR__ . '/includes/header.php';
 </section>
 
 <section class="panel feed-compose" aria-label="<?= e(t('compose.title')) ?>">
-  <form method="post" action="<?= e(allxion_url('compose.php')) ?>" class="feed-compose-form" enctype="multipart/form-data">
+  <form method="post" action="<?= e(allxion_url('compose.php')) ?>" class="feed-compose-form" enctype="multipart/form-data" data-stage-uploads data-stage-purpose="posts" data-stage-url="<?= e(allxion_url('api-media-stage.php')) ?>">
     <?= csrf_field() ?>
     <div class="feed-compose-row">
       <a class="avatar feed-compose-avatar" href="<?= e(user_public_url((string)$user['username'])) ?>" aria-label="@<?= e((string)$user['username']) ?>">
@@ -66,11 +66,11 @@ require __DIR__ . '/includes/header.php';
     <div class="feed-compose-actions">
       <label class="feed-compose-media btn btn-sm btn-ghost">
         <?= e(t('compose.images')) ?>
-        <input type="file" name="images[]" accept="image/jpeg,image/png,image/webp" multiple hidden data-max-files="<?= (int)MEDIA_POST_IMAGES_MAX ?>">
+        <input type="file" name="images[]" accept="image/jpeg,image/png,image/webp" multiple hidden data-max-files="<?= (int)MEDIA_POST_IMAGES_MAX ?>" data-stage-kind="image">
       </label>
       <label class="feed-compose-media btn btn-sm btn-ghost">
         <?= e(t('compose.video')) ?>
-        <input type="file" name="videos[]" accept="video/mp4,video/webm,video/quicktime" multiple hidden data-max-files="<?= (int)MEDIA_POST_VIDEOS_MAX ?>">
+        <input type="file" name="videos[]" accept="video/mp4,video/webm,video/quicktime" multiple hidden data-max-files="<?= (int)MEDIA_POST_VIDEOS_MAX ?>" data-stage-kind="video">
       </label>
       <a class="btn btn-sm btn-ghost" href="<?= e(allxion_url('compose.php')) ?>"><?= e(t('feed.compose_more')) ?></a>
       <button class="btn btn-sm" type="submit"><?= e(t('compose.publish')) ?></button>
