@@ -123,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
         settings.setAllowFileAccess(true);
         settings.setAllowContentAccess(true);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
-        settings.setUserAgentString(settings.getUserAgentString() + " HybrixonApp/1.0.1");
+        settings.setUserAgentString(settings.getUserAgentString() + " HybrixonApp/1.0.2");
 
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.setAcceptCookie(true);
@@ -324,9 +324,21 @@ public class MainActivity extends AppCompatActivity {
     private void handleLaunchIntent(Intent intent) {
         String start = BuildConfig.APP_URL;
         if (intent != null && Intent.ACTION_VIEW.equals(intent.getAction()) && intent.getData() != null) {
-            String host = intent.getData().getHost();
-            if (host != null && (host.equals("hybrixon.com") || host.equals("www.hybrixon.com"))) {
-                start = intent.getData().toString();
+            Uri data = intent.getData();
+            String scheme = data.getScheme() == null ? "" : data.getScheme().toLowerCase(Locale.ROOT);
+            String host = data.getHost() == null ? "" : data.getHost().toLowerCase(Locale.ROOT);
+            if ("hybrixon".equals(scheme) && "open".equals(host)) {
+                // hybrixon://open?url=https%3A%2F%2Fhybrixon.com%2F...
+                String target = data.getQueryParameter("url");
+                if (target != null && !target.isEmpty()) {
+                    Uri targetUri = Uri.parse(target);
+                    String th = targetUri.getHost() == null ? "" : targetUri.getHost().toLowerCase(Locale.ROOT);
+                    if (th.equals("hybrixon.com") || th.equals("www.hybrixon.com")) {
+                        start = target;
+                    }
+                }
+            } else if (host.equals("hybrixon.com") || host.equals("www.hybrixon.com")) {
+                start = data.toString();
             }
         }
         if (isOnline()) {

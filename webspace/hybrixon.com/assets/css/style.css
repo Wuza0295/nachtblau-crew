@@ -1026,6 +1026,30 @@ body.theme-light .footer {
   border-top-color: rgba(18, 42, 52, 0.1);
 }
 
+.app-open-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem 1rem;
+  padding: 0.7rem 1rem;
+  background: linear-gradient(90deg, rgba(15, 118, 110, 0.18), rgba(194, 65, 12, 0.14));
+  border-bottom: 1px solid var(--line);
+}
+.app-open-banner p {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+.app-open-banner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+@media (min-width: 901px) {
+  .app-open-banner { display: none !important; }
+}
+
 .feed-compose { padding: 0.9rem 1rem; }
 .feed-compose-form { display: grid; gap: 0.75rem; }
 .feed-compose-row {

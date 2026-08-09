@@ -65,6 +65,7 @@ require __DIR__ . '/includes/header.php';
         'min' => (string)(int)(MEDIA_VIDEO_MAX_SECONDS / 60),
     ])) ?>
     <?= e(t('reels.multi_hint')) ?>
+    <?= e(t('compose.web_hint')) ?>
   </p>
   <?php if (!$hasLocation): ?>
     <div class="flash flash-info" style="margin-bottom:1rem;">

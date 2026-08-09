@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.hybrixon.app",
+      "sha256_cert_fingerprints": [
+        "4A33F7FF30D3FB87780FCA2A546A6C0B14B17C4C38E88ACAD490016419C362F6"
+      ]
+    }
+  }
+]

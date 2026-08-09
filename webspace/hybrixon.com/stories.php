@@ -69,6 +69,7 @@ require __DIR__ . '/includes/header.php';
         'imgMb' => (string)(int)(MEDIA_IMAGE_MAX_BYTES / 1_000_000),
         'vidMb' => (string)(int)(MEDIA_VIDEO_MAX_BYTES / 1_000_000),
     ])) ?>
+    <?= e(t('compose.web_hint')) ?>
   </p>
   <?php foreach ($errors as $err): ?>
     <div class="flash flash-error" style="margin-bottom:0.6rem;"><?= e($err) ?></div>

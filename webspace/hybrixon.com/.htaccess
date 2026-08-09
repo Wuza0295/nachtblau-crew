@@ -25,6 +25,9 @@ LimitRequestBody 1073741824
 RewriteCond %{HTTP_HOST} ^www\.hybrixon\.com$ [NC]
 RewriteRule ^(.*)$ https://hybrixon.com/$1 [R=301,L]
 
+# Android App Links / Digital Asset Links must be publicly readable
+RewriteRule ^\.well-known/ - [L]
+
 # Block direct access to data files
 RewriteRule ^data/ - [F,L]
 RewriteRule ^includes/ - [F,L]
@@ -33,3 +36,7 @@ RewriteRule ^includes/ - [F,L]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^ index.php [L]
+
+<IfModule mod_mime.c>
+  AddType application/json .json
+</IfModule>

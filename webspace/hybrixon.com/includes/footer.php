@@ -43,8 +43,12 @@ window.HYBRIXON_I18N = <?= json_encode([
     'translating' => t('common.translating'),
     'translateFailed' => t('common.translate_failed'),
     'translateUrl' => allxion_url('api-translate.php'),
+    'appPackage' => 'com.hybrixon.app',
+    'appDownloadUrl' => allxion_url('app.php'),
+    'openInApp' => t('app.open_in_app'),
+    'stayWeb' => t('app.stay_web'),
 ], JSON_UNESCAPED_UNICODE) ?>;
 </script>
-<script src="<?= e(allxion_url('assets/js/app.js')) ?>" defer></script>
+<script src="<?= e(allxion_url('assets/js/app.js')) ?>?v=102" defer></script>
 </body>
 </html>

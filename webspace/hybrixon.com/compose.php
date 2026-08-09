@@ -62,6 +62,7 @@ require __DIR__ . '/includes/header.php';
         'mb' => (string)(int)(MEDIA_VIDEO_MAX_BYTES / 1_000_000),
         'min' => (string)(int)(MEDIA_VIDEO_MAX_SECONDS / 60),
     ])) ?>
+    <?= e(t('compose.web_hint')) ?>
     <a href="<?= e(allxion_url('shorts.php')) ?>"><?= e(t('nav.reels')) ?></a> ·
     <a href="<?= e(allxion_url('stories.php')) ?>"><?= e(t('nav.stories')) ?></a> ·
     <a href="<?= e(allxion_url('rules.php')) ?>"><?= e(t('footer.rules')) ?></a>

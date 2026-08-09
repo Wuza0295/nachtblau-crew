@@ -86,7 +86,33 @@ if (!isset($pageUrl)) {
   <link rel="stylesheet" href="<?= e(allxion_url('assets/css/style.css')) ?>">
 </head>
 <body class="theme-<?= e($uiTheme) ?>">
-<div class="app">
+<?php
+  $ua = (string)($_SERVER['HTTP_USER_AGENT'] ?? '');
+  $inHybrixonApp = str_contains($ua, 'HybrixonApp');
+  $forceStayWeb = isset($_GET['web']) || (($_COOKIE['hybrixon_stay_web'] ?? '') === '1');
+  if (isset($_GET['web']) && !headers_sent()) {
+      setcookie('hybrixon_stay_web', '1', [
+          'expires' => time() + 86400 * 30,
+          'path' => allxion_base_path() === '' ? '/' : allxion_base_path() . '/',
+          'secure' => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),
+          'httponly' => false,
+          'samesite' => 'Lax',
+      ]);
+      $forceStayWeb = true;
+  }
+  $isMobileUa = (bool)preg_match('/Android|iPhone|iPad|iPod/i', $ua);
+  $showAppBanner = !$inHybrixonApp && $isMobileUa && !$forceStayWeb && ($activeNav ?? '') !== 'app';
+?>
+<div class="app" data-in-app="<?= $inHybrixonApp ? '1' : '0' ?>" data-stay-web="<?= $forceStayWeb ? '1' : '0' ?>">
+  <?php if ($showAppBanner): ?>
+    <div class="app-open-banner" data-app-open-banner hidden>
+      <p><?= e(t('app.redirect_banner')) ?></p>
+      <div class="app-open-banner-actions">
+        <button type="button" class="btn btn-sm" data-app-open><?= e(t('app.open_in_app')) ?></button>
+        <button type="button" class="btn btn-sm btn-ghost" data-app-stay-web><?= e(t('app.stay_web')) ?></button>
+      </div>
+    </div>
+  <?php endif; ?>
   <header class="topbar">
     <div class="topbar-left">
       <a class="brand brand-<?= e($brandStyle) ?>" href="<?= e(allxion_url()) ?>" aria-label="Hybrixon">

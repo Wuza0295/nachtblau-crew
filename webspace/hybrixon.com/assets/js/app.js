@@ -1,4 +1,70 @@
 document.addEventListener('DOMContentLoaded', () => {
+  const root = document.querySelector('.app');
+  const i18n = window.HYBRIXON_I18N || {};
+  const inApp = !!(root && root.getAttribute('data-in-app') === '1')
+    || /HybrixonApp/i.test(navigator.userAgent || '');
+  const stayWebPref = !!(root && root.getAttribute('data-stay-web') === '1')
+    || localStorage.getItem('hybrixon_stay_web') === '1'
+    || /[?&]web=1(?:&|$)/.test(location.search);
+  const isAndroid = /Android/i.test(navigator.userAgent || '');
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+
+  const openInHybrixonApp = () => {
+    const path = location.pathname + location.search + location.hash;
+    const httpsUrl = location.origin + path;
+    const fallback = httpsUrl + (location.search ? '&' : '?') + 'web=1';
+    if (isAndroid) {
+      // Prefer Android Intent URL (opens app if installed, else stays/falls back to web)
+      const intentUrl = 'intent://'
+        + location.host + path
+        + '#Intent;scheme=https;package='
+        + encodeURIComponent(i18n.appPackage || 'com.hybrixon.app')
+        + ';S.browser_fallback_url=' + encodeURIComponent(fallback)
+        + ';end';
+      location.href = intentUrl;
+      // Custom-scheme backup for older WebViews / after a short delay
+      setTimeout(() => {
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = 'hybrixon://open?url=' + encodeURIComponent(httpsUrl);
+        document.body.appendChild(iframe);
+        setTimeout(() => iframe.remove(), 1500);
+      }, 400);
+      return;
+    }
+    // iOS: no native store app — keep website / offer install guide
+    if (i18n.appDownloadUrl) {
+      location.href = i18n.appDownloadUrl;
+    }
+  };
+
+  const banner = document.querySelector('[data-app-open-banner]');
+  if (banner && isMobile && !inApp && !stayWebPref) {
+    banner.hidden = false;
+    const openBtn = banner.querySelector('[data-app-open]');
+    const stayBtn = banner.querySelector('[data-app-stay-web]');
+    if (openBtn) openBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      openInHybrixonApp();
+    });
+    if (stayBtn) stayBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      localStorage.setItem('hybrixon_stay_web', '1');
+      banner.hidden = true;
+      // Soft cookie via navigation once
+      const u = new URL(location.href);
+      u.searchParams.set('web', '1');
+      history.replaceState({}, '', u.toString());
+    });
+
+    // Auto-try once per session on Android when the app may be installed
+    if (isAndroid && sessionStorage.getItem('hybrixon_app_autolaunch') !== '1') {
+      sessionStorage.setItem('hybrixon_app_autolaunch', '1');
+      // Delay so the page can paint; Intent fallback keeps users on web if no app
+      setTimeout(() => openInHybrixonApp(), 350);
+    }
+  }
+
   const adultToggle = document.querySelector('[data-adult-toggle]');
   const adultHint = document.querySelector('[data-adult-hint]');
   const policyRequired = document.querySelector('[data-policy-required]');

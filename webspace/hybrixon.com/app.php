@@ -7,11 +7,11 @@ require_once __DIR__ . '/includes/i18n.php';
 $pageTitle = t('app.title') . ' · Hybrixon';
 $activeNav = 'app';
 $apkLatest = ALLXION_ROOT . '/downloads/hybrixon.apk';
-$apkVersioned = ALLXION_ROOT . '/downloads/hybrixon-1.0.1.apk';
+$apkVersioned = ALLXION_ROOT . '/downloads/hybrixon-1.0.2.apk';
 $apkPath = is_file($apkLatest) ? $apkLatest : $apkVersioned;
 $apkBytes = is_file($apkPath) ? (int)filesize($apkPath) : 0;
 $apkMb = $apkBytes > 0 ? number_format($apkBytes / 1048576, 1, ',', '.') : '—';
-$version = '1.0.1';
+$version = '1.0.2';
 $downloadUrl = allxion_url('downloads/hybrixon.apk');
 $homeUrl = allxion_url();
 
