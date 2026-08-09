@@ -4,9 +4,12 @@ declare(strict_types=1);
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/social.php';
 require_once __DIR__ . '/i18n.php';
+require_once __DIR__ . '/app_redirect.php';
 
 hybrixon_enforce_canonical_host();
 hybrixon_handle_lang_switch();
+// Android: open installed app automatically (Intent). Missing app → ?web=1 fallback.
+hybrixon_maybe_redirect_to_app();
 
 $currentUser = allxion_current_user();
 $pageTitle = $pageTitle ?? ALLXION_NAME;

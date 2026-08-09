@@ -77,6 +77,22 @@ document.addEventListener('DOMContentLoaded', () => {
       u.searchParams.set('web', '1');
       history.replaceState({}, '', u.toString());
     });
+
+    // Client-side auto handoff when Chrome reports the related Android app is installed.
+    // (Server-side Intent redirect also runs in header.php for Android.)
+    if (isAndroid && typeof navigator.getInstalledRelatedApps === 'function'
+        && sessionStorage.getItem('hybrixon_app_autolaunch') !== '1') {
+      sessionStorage.setItem('hybrixon_app_autolaunch', '1');
+      navigator.getInstalledRelatedApps().then((apps) => {
+        const found = (apps || []).some((a) =>
+          (a.id || a.url || '').indexOf('com.hybrixon.app') !== -1
+          || a.id === 'com.hybrixon.app'
+        );
+        if (found) {
+          openInHybrixonApp({ goDownloadOnMiss: false });
+        }
+      }).catch(() => {});
+    }
   }
 
   const adultToggle = document.querySelector('[data-adult-toggle]');
