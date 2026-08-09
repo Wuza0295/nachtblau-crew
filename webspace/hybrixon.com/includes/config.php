@@ -46,8 +46,9 @@ const DM_CONSENT_VERSION = '2026-08-05-full-admin';
 
 /** Media limits (images / shorts). Per-file size stays large; multi-select up to 15+15. */
 const MEDIA_IMAGE_MAX_BYTES = 12_000_000;
-const MEDIA_VIDEO_MAX_BYTES = 50_000_000;
-const MEDIA_VIDEO_MAX_SECONDS = 300;
+/** Phone camera clips often exceed 50 MB — allow up to 200 MB per video. */
+const MEDIA_VIDEO_MAX_BYTES = 200_000_000;
+const MEDIA_VIDEO_MAX_SECONDS = 600;
 const MEDIA_POST_IMAGES_MAX = 15;
 const MEDIA_POST_VIDEOS_MAX = 15;
 const MEDIA_REEL_VIDEOS_MAX = 15;

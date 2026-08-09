@@ -162,9 +162,21 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const tokens = [];
+      const maxVideoBytes = 200 * 1000 * 1000;
+      const maxImageBytes = 12 * 1000 * 1000;
       try {
         for (let i = 0; i < queue.length; i++) {
           const item = queue[i];
+          const isVideo = item.kind === 'video'
+            || (item.file.type && item.file.type.indexOf('video/') === 0);
+          const maxBytes = isVideo ? maxVideoBytes : maxImageBytes;
+          if (item.file.size > maxBytes) {
+            throw new Error(
+              (isVideo ? 'Video' : 'Bild') + ' „' + item.file.name + '“ ist zu groß ('
+              + Math.ceil(item.file.size / 1000000) + ' MB). Max. '
+              + Math.floor(maxBytes / 1000000) + ' MB.'
+            );
+          }
           if (submitBtn && 'textContent' in submitBtn) {
             submitBtn.textContent = 'Upload ' + (i + 1) + '/' + queue.length + '…';
           }
