@@ -3,7 +3,8 @@ declare(strict_types=1);
 
 /**
  * On Android mobile browsers, hand off to the installed Hybrixon app via an
- * Intent URL. If the app is missing, Chrome follows browser_fallback_url (?web=1).
+ * Intent URL. If the app is missing, Chrome follows browser_fallback_url
+ * (?from_app=1) — that must NOT permanently hide the open/download banner.
  *
  * Must run before any HTML output.
  */
@@ -15,8 +16,14 @@ function hybrixon_maybe_redirect_to_app(): void
     if (headers_sent()) {
         return;
     }
-    // Explicit "stay in browser" or previous fallback
-    if (isset($_GET['web']) || (($_COOKIE['hybrixon_stay_web'] ?? '') === '1')) {
+
+    // Skip after Intent fallback, explicit stay, or legacy ?web=1 links.
+    if (
+        isset($_GET['from_app'])
+        || isset($_GET['web'])
+        || isset($_GET['stay'])
+        || (($_COOKIE['hybrixon_prefer_web'] ?? '') === '1')
+    ) {
         return;
     }
 
@@ -53,8 +60,9 @@ function hybrixon_maybe_redirect_to_app(): void
     }
     $httpsUrl = ($https ? 'https' : 'http') . '://' . $host . $uri;
 
+    // Fallback stays on the same page and keeps the banner visible (no stay_web cookie).
     $fallback = $httpsUrl;
-    $fallback .= str_contains($fallback, '?') ? '&web=1' : '?web=1';
+    $fallback .= str_contains($fallback, '?') ? '&from_app=1' : '?from_app=1';
 
     $intent = 'intent://open?url=' . rawurlencode($httpsUrl)
         . '#Intent;scheme=hybrixon;package=com.hybrixon.app'

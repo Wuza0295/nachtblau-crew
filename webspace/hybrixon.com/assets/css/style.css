@@ -1036,8 +1036,12 @@ body.theme-light .footer {
   background: linear-gradient(90deg, rgba(15, 118, 110, 0.18), rgba(194, 65, 12, 0.14));
   border-bottom: 1px solid var(--line);
 }
+.app-open-banner[hidden] {
+  display: none !important;
+}
 .app-open-banner p {
   margin: 0;
+  flex: 1 1 12rem;
   font-size: 0.92rem;
   font-weight: 600;
 }
@@ -1046,8 +1050,8 @@ body.theme-light .footer {
   flex-wrap: wrap;
   gap: 0.4rem;
 }
-@media (min-width: 901px) {
-  .app-open-banner { display: none !important; }
+.app-open-banner-actions .btn {
+  text-decoration: none;
 }
 
 .feed-compose { padding: 0.9rem 1rem; }

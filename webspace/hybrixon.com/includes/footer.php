@@ -49,6 +49,6 @@ window.HYBRIXON_I18N = <?= json_encode([
     'stayWeb' => t('app.stay_web'),
 ], JSON_UNESCAPED_UNICODE) ?>;
 </script>
-<script src="<?= e(allxion_url('assets/js/app.js')) ?>?v=104" defer></script>
+<script src="<?= e(allxion_url('assets/js/app.js')) ?>?v=105" defer></script>
 </body>
 </html>

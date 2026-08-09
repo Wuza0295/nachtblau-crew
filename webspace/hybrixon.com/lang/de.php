@@ -60,7 +60,7 @@ return [
     'app.ios_note' => 'Hinweis: Es gibt derzeit keine native iOS-App im App Store. Home-Bildschirm ist der offizielle Weg für Apple-Geräte.',
     'app.open_in_app' => 'In der App öffnen',
     'app.stay_web' => 'Im Browser bleiben',
-    'app.redirect_banner' => 'Hybrixon-App erkannt — für Uploads und Benachrichtigungen die App nutzen.',
+    'app.redirect_banner' => 'Besser in der Hybrixon-App — öffnen oder APK laden.',
     'compose.web_hint' => 'Gilt für Desktop und Handy im Browser: Mehrfachauswahl bis 15 Bilder und/oder 15 Videos.',
     'common.share' => 'Teilen',
     'common.copy_link' => 'Link kopieren',

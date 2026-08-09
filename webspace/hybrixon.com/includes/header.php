@@ -8,7 +8,7 @@ require_once __DIR__ . '/app_redirect.php';
 
 hybrixon_enforce_canonical_host();
 hybrixon_handle_lang_switch();
-// Android: open installed app automatically (Intent). Missing app → ?web=1 fallback.
+// Android: open installed app automatically (Intent). Missing app → ?from_app=1 (banner stays).
 hybrixon_maybe_redirect_to_app();
 
 $currentUser = allxion_current_user();
@@ -36,12 +36,43 @@ if ($activeNav !== 'search') {
     $searchQ = '';
 }
 
+$cookiePath = allxion_base_path() === '' ? '/' : allxion_base_path() . '/';
+$secureCookie = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+$ua = (string)($_SERVER['HTTP_USER_AGENT'] ?? '');
+$inHybrixonApp = str_contains($ua, 'HybrixonApp');
+
 if (!headers_sent()) {
     header('X-Content-Type-Options: nosniff');
     header('X-Frame-Options: SAMEORIGIN');
     header('Referrer-Policy: strict-origin-when-cross-origin');
     header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
+
+    // Expire the legacy trap cookie (old Intent fallback used ?web=1 → stay_web for 30 days).
+    if (isset($_COOKIE['hybrixon_stay_web'])) {
+        setcookie('hybrixon_stay_web', '', [
+            'expires' => time() - 3600,
+            'path' => $cookiePath,
+            'secure' => $secureCookie,
+            'httponly' => false,
+            'samesite' => 'Lax',
+        ]);
+    }
+
+    // Explicit "stay in browser" only (new cookie). Never set from Intent fallback.
+    if (isset($_GET['stay'])) {
+        setcookie('hybrixon_prefer_web', '1', [
+            'expires' => time() + 86400 * 7,
+            'path' => $cookiePath,
+            'secure' => $secureCookie,
+            'httponly' => false,
+            'samesite' => 'Lax',
+        ]);
+    }
 }
+
+$forceStayWeb = isset($_GET['stay']) || (($_COOKIE['hybrixon_prefer_web'] ?? '') === '1');
+$isMobileUa = (bool)preg_match('/Android|iPhone|iPad|iPod/i', $ua);
+$showAppBanner = !$inHybrixonApp && $isMobileUa && !$forceStayWeb && ($activeNav ?? '') !== 'app';
 
 if (!isset($pageUrl)) {
     $reqPath = (string)(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/');
@@ -86,32 +117,16 @@ if (!isset($pageUrl)) {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=Oxanium:wght@600;700;800&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="<?= e(allxion_url('assets/css/style.css')) ?>">
+  <link rel="stylesheet" href="<?= e(allxion_url('assets/css/style.css')) ?>?v=105">
 </head>
 <body class="theme-<?= e($uiTheme) ?>">
-<?php
-  $ua = (string)($_SERVER['HTTP_USER_AGENT'] ?? '');
-  $inHybrixonApp = str_contains($ua, 'HybrixonApp');
-  $forceStayWeb = isset($_GET['web']) || (($_COOKIE['hybrixon_stay_web'] ?? '') === '1');
-  if (isset($_GET['web']) && !headers_sent()) {
-      setcookie('hybrixon_stay_web', '1', [
-          'expires' => time() + 86400 * 30,
-          'path' => allxion_base_path() === '' ? '/' : allxion_base_path() . '/',
-          'secure' => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),
-          'httponly' => false,
-          'samesite' => 'Lax',
-      ]);
-      $forceStayWeb = true;
-  }
-  $isMobileUa = (bool)preg_match('/Android|iPhone|iPad|iPod/i', $ua);
-  $showAppBanner = !$inHybrixonApp && $isMobileUa && !$forceStayWeb && ($activeNav ?? '') !== 'app';
-?>
-<div class="app" data-in-app="<?= $inHybrixonApp ? '1' : '0' ?>" data-stay-web="<?= $forceStayWeb ? '1' : '0' ?>">
+<div class="app" data-in-app="<?= $inHybrixonApp ? '1' : '0' ?>" data-stay-web="<?= $forceStayWeb ? '1' : '0' ?>" data-from-app="<?= isset($_GET['from_app']) || isset($_GET['web']) ? '1' : '0' ?>">
   <?php if ($showAppBanner): ?>
-    <div class="app-open-banner" data-app-open-banner hidden>
+    <div class="app-open-banner" data-app-open-banner>
       <p><?= e(t('app.redirect_banner')) ?></p>
       <div class="app-open-banner-actions">
         <button type="button" class="btn btn-sm" data-app-open><?= e(t('app.open_in_app')) ?></button>
+        <a class="btn btn-sm btn-ghost" href="<?= e(allxion_url('app.php')) ?>" data-app-download><?= e(t('app.download')) ?></a>
         <button type="button" class="btn btn-sm btn-ghost" data-app-stay-web><?= e(t('app.stay_web')) ?></button>
       </div>
     </div>

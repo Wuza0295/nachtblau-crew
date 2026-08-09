@@ -3,42 +3,56 @@ document.addEventListener('DOMContentLoaded', () => {
   const i18n = window.HYBRIXON_I18N || {};
   const inApp = !!(root && root.getAttribute('data-in-app') === '1')
     || /HybrixonApp/i.test(navigator.userAgent || '');
+  // Clear legacy localStorage trap from older builds (!== prefer_web).
+  try { localStorage.removeItem('hybrixon_stay_web'); } catch (_) {}
   const stayWebPref = !!(root && root.getAttribute('data-stay-web') === '1')
-    || localStorage.getItem('hybrixon_stay_web') === '1'
-    || /[?&]web=1(?:&|$)/.test(location.search);
+    || localStorage.getItem('hybrixon_prefer_web') === '1';
+  const fromAppFallback = !!(root && root.getAttribute('data-from-app') === '1')
+    || /[?&](?:from_app|web)=1(?:&|$)/.test(location.search);
   const isAndroid = /Android/i.test(navigator.userAgent || '');
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
 
   const downloadUrl = i18n.appDownloadUrl || '/app.php';
 
+  const setPreferWebCookie = () => {
+    const maxAge = 60 * 60 * 24 * 7;
+    const secure = location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie = 'hybrixon_prefer_web=1; Path=/; Max-Age=' + maxAge + '; SameSite=Lax' + secure;
+  };
+
   /**
    * Open the native Android app when installed.
-   * If not installed (or the OS ignores the intent), send the user to the APK download page.
-   * Note: Browsers block *automatic* custom-scheme / intent jumps without a user tap —
-   * so this must run from a click for reliable handoff.
+   * On user tap: Intent with download fallback.
+   * On auto: never force-download / never set stay-web — keep the banner.
    */
   const openInHybrixonApp = (opts = {}) => {
-    const goDownloadOnMiss = opts.goDownloadOnMiss !== false;
+    const goDownloadOnMiss = !!opts.goDownloadOnMiss;
     const path = location.pathname + location.search + location.hash;
-    const httpsUrl = location.origin + path;
+    // Strip fallback flags so the app opens the clean URL.
+    let httpsUrl = location.origin + path;
+    try {
+      const u = new URL(httpsUrl);
+      u.searchParams.delete('from_app');
+      u.searchParams.delete('web');
+      u.searchParams.delete('stay');
+      httpsUrl = u.toString();
+    } catch (_) {}
     const fallback = downloadUrl;
 
     if (!isAndroid) {
-      // No native store app on iOS yet → install / Home-Screen guide
       location.href = downloadUrl;
       return;
     }
 
     const pkg = i18n.appPackage || 'com.hybrixon.app';
-    // Custom scheme is the most reliable opener for sideloaded APKs.
-    // browser_fallback_url → Download page when the app is missing.
-    const intentUrl = 'intent://open?url='
+    let intentUrl = 'intent://open?url='
       + encodeURIComponent(httpsUrl)
       + '#Intent;scheme=hybrixon;package='
-      + encodeURIComponent(pkg)
-      + ';S.browser_fallback_url='
-      + encodeURIComponent(fallback)
-      + ';end';
+      + encodeURIComponent(pkg);
+    if (goDownloadOnMiss) {
+      intentUrl += ';S.browser_fallback_url=' + encodeURIComponent(fallback);
+    }
+    intentUrl += ';end';
 
     let leftPage = false;
     const onHide = () => { leftPage = true; };
@@ -47,8 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     location.href = intentUrl;
 
-    // Some browsers ignore S.browser_fallback_url for sideloaded packages —
-    // if we're still here after ~1.6s, go to the download page.
     if (goDownloadOnMiss) {
       setTimeout(() => {
         document.removeEventListener('visibilitychange', onHide);
@@ -61,27 +73,34 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const banner = document.querySelector('[data-app-open-banner]');
-  if (banner && isMobile && !inApp && !stayWebPref) {
-    banner.hidden = false;
-    const openBtn = banner.querySelector('[data-app-open]');
-    const stayBtn = banner.querySelector('[data-app-stay-web]');
-    if (openBtn) openBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      openInHybrixonApp({ goDownloadOnMiss: true });
-    });
-    if (stayBtn) stayBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      localStorage.setItem('hybrixon_stay_web', '1');
+  if (banner && isMobile && !inApp) {
+    if (stayWebPref) {
       banner.hidden = true;
-      const u = new URL(location.href);
-      u.searchParams.set('web', '1');
-      history.replaceState({}, '', u.toString());
-    });
+    } else {
+      banner.hidden = false;
+      const openBtn = banner.querySelector('[data-app-open]');
+      const stayBtn = banner.querySelector('[data-app-stay-web]');
+      if (openBtn) openBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openInHybrixonApp({ goDownloadOnMiss: true });
+      });
+      if (stayBtn) stayBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        try { localStorage.setItem('hybrixon_prefer_web', '1'); } catch (_) {}
+        setPreferWebCookie();
+        banner.hidden = true;
+      });
+    }
 
-    // Client-side auto handoff when Chrome reports the related Android app is installed.
-    // (Server-side Intent redirect also runs in header.php for Android.)
-    if (isAndroid && typeof navigator.getInstalledRelatedApps === 'function'
-        && sessionStorage.getItem('hybrixon_app_autolaunch') !== '1') {
+    // Extra client handoff when Chrome reports the related app (sideload often empty).
+    // Skip when we just came back from a server Intent miss — banner stays usable.
+    if (
+      !stayWebPref
+      && !fromAppFallback
+      && isAndroid
+      && typeof navigator.getInstalledRelatedApps === 'function'
+      && sessionStorage.getItem('hybrixon_app_autolaunch') !== '1'
+    ) {
       sessionStorage.setItem('hybrixon_app_autolaunch', '1');
       navigator.getInstalledRelatedApps().then((apps) => {
         const found = (apps || []).some((a) =>
