@@ -148,6 +148,9 @@ export async function processUploadQueue(
   while (queue.length) {
     const post = queue[0];
     if (!post) break;
+    // Refresh an expired short-lived access token before a potentially long
+    // multipart upload; the rotating refresh token remains in SecureStore.
+    await api.me();
     const auth = await tokens();
     if (!auth.access) throw new Error("Keine aktive Anmeldung.");
     const ids: string[] = [];
