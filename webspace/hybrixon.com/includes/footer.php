@@ -51,6 +51,6 @@ window.HYBRIXON_I18N = <?= json_encode([
     'maxImageBytes' => MEDIA_IMAGE_MAX_BYTES,
 ], JSON_UNESCAPED_UNICODE) ?>;
 </script>
-<script src="<?= e(allxion_url('assets/js/app.js')) ?>?v=106" defer></script>
+<script src="<?= e(allxion_url('assets/js/app.js')) ?>?v=107" defer></script>
 </body>
 </html>

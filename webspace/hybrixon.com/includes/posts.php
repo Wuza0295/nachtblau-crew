@@ -28,16 +28,27 @@ function allxion_create_post(
     $images = array_slice($imageFiles, 0, MEDIA_POST_IMAGES_MAX);
     $hasImages = $images !== [];
 
-    // Accept legacy single $_FILES['video'] array or a list of file arrays.
+    // Accept legacy single $_FILES['video'], a list of upload arrays, or staged
+    // items ({stored_path, stored_mime}) from sequential client uploads.
     $videoList = [];
+    $acceptVideoItem = static function (array $vf): bool {
+        if (isset($vf['stored_path'], $vf['stored_mime'])) {
+            return (string)$vf['stored_path'] !== '' && (string)$vf['stored_mime'] !== '';
+        }
+        return ($vf['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
+    };
     if (is_array($videoFiles)) {
         if (isset($videoFiles['tmp_name']) && !is_array($videoFiles['tmp_name'])) {
-            if (($videoFiles['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+            if ($acceptVideoItem($videoFiles)) {
+                $videoList[] = $videoFiles;
+            }
+        } elseif (isset($videoFiles['stored_path'], $videoFiles['stored_mime'])) {
+            if ($acceptVideoItem($videoFiles)) {
                 $videoList[] = $videoFiles;
             }
         } else {
             foreach ($videoFiles as $vf) {
-                if (is_array($vf) && (($vf['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE)) {
+                if (is_array($vf) && $acceptVideoItem($vf)) {
                     $videoList[] = $vf;
                 }
             }

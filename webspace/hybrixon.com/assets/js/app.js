@@ -248,8 +248,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Sequential media staging: upload each file in its own request to avoid HTTP 413
-  // ("Request Entity Too Large") on multi-select batches.
+  // Media staging: upload files in small parallel batches (avoids HTTP 413 on
+  // multi-select) with per-file progress. Tokens are submitted as staged[].
   document.querySelectorAll('form[data-stage-uploads]').forEach((form) => {
     form.addEventListener('submit', async (event) => {
       if (form.dataset.stageDone === '1') return;
@@ -269,59 +269,87 @@ document.addEventListener('DOMContentLoaded', () => {
       const csrf = csrfInput ? csrfInput.value : '';
       const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
       const prevLabel = submitBtn ? (submitBtn.textContent || submitBtn.value || '') : '';
+      const setStatus = (text) => {
+        if (submitBtn && 'textContent' in submitBtn) submitBtn.textContent = text;
+      };
       if (submitBtn) {
         submitBtn.disabled = true;
-        if ('textContent' in submitBtn) {
-          submitBtn.textContent = 'Upload 0/' + queue.length + '…';
-        }
+        setStatus('Upload 0/' + queue.length + '…');
       }
 
-      const tokens = [];
       const maxVideoBytes = Number(i18n.maxVideoBytes) > 0
         ? Number(i18n.maxVideoBytes)
         : 500 * 1000 * 1000;
       const maxImageBytes = Number(i18n.maxImageBytes) > 0
         ? Number(i18n.maxImageBytes)
         : 12 * 1000 * 1000;
-      try {
-        for (let i = 0; i < queue.length; i++) {
-          const item = queue[i];
-          const isVideo = item.kind === 'video'
-            || (item.file.type && item.file.type.indexOf('video/') === 0);
-          const maxBytes = isVideo ? maxVideoBytes : maxImageBytes;
-          if (item.file.size > maxBytes) {
-            throw new Error(
-              (isVideo ? 'Video' : 'Bild') + ' „' + item.file.name + '“ ist zu groß ('
-              + Math.ceil(item.file.size / 1000000) + ' MB). Max. '
-              + Math.floor(maxBytes / 1000000) + ' MB.'
-            );
-          }
-          if (submitBtn && 'textContent' in submitBtn) {
-            submitBtn.textContent = 'Upload ' + (i + 1) + '/' + queue.length + '…';
-          }
-          const body = new FormData();
-          body.append('_csrf', csrf);
-          body.append('kind', item.kind);
-          body.append('purpose', purpose);
-          body.append('file', item.file, item.file.name);
-          const res = await fetch(stageUrl, {
-            method: 'POST',
-            body,
-            credentials: 'same-origin',
-            headers: { Accept: 'application/json' },
-          });
-          let data = null;
-          try {
-            data = await res.json();
-          } catch (_) {
-            data = null;
-          }
-          if (!res.ok || !data || !data.ok || !data.token) {
-            const msg = (data && data.error) ? data.error : ('Upload fehlgeschlagen (HTTP ' + res.status + ').');
-            throw new Error(msg);
-          }
-          tokens.push(data.token);
+
+      const fmtMb = (n) => (n / 1000000).toFixed(n >= 100000000 ? 0 : 1);
+
+      const stageFile = (item, index) => new Promise((resolve, reject) => {
+        const isVideo = item.kind === 'video'
+          || (item.file.type && item.file.type.indexOf('video/') === 0);
+        const maxBytes = isVideo ? maxVideoBytes : maxImageBytes;
+        if (item.file.size > maxBytes) {
+          reject(new Error(
+            (isVideo ? 'Video' : 'Bild') + ' „' + item.file.name + '“ ist zu groß ('
+            + Math.ceil(item.file.size / 1000000) + ' MB). Max. '
+            + Math.floor(maxBytes / 1000000) + ' MB.'
+          ));
+          return;
         }
+        const body = new FormData();
+        body.append('_csrf', csrf);
+        body.append('kind', item.kind);
+        body.append('purpose', purpose);
+        body.append('file', item.file, item.file.name);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', stageUrl);
+        xhr.withCredentials = true;
+        xhr.setRequestHeader('Accept', 'application/json');
+        xhr.upload.onprogress = (e) => {
+          if (!e.lengthComputable) return;
+          const pct = Math.min(99, Math.round((e.loaded / e.total) * 100));
+          setStatus(
+            'Upload ' + (index + 1) + '/' + queue.length
+            + ' · ' + fmtMb(e.loaded) + '/' + fmtMb(e.total) + ' MB (' + pct + '%)'
+          );
+        };
+        xhr.onload = () => {
+          let data = null;
+          try { data = JSON.parse(xhr.responseText); } catch (_) { data = null; }
+          if (xhr.status < 200 || xhr.status >= 300 || !data || !data.ok || !data.token) {
+            const msg = (data && data.error)
+              ? data.error
+              : ('Upload fehlgeschlagen (HTTP ' + xhr.status + ').');
+            reject(new Error(msg));
+            return;
+          }
+          resolve(data.token);
+        };
+        xhr.onerror = () => reject(new Error('Netzwerkfehler beim Upload.'));
+        xhr.ontimeout = () => reject(new Error('Upload-Timeout — bitte erneut versuchen.'));
+        xhr.timeout = 30 * 60 * 1000;
+        xhr.send(body);
+      });
+
+      try {
+        // Two parallel uploads: faster on good mobile networks, still avoids 413.
+        const tokens = new Array(queue.length);
+        const concurrency = Math.min(2, queue.length);
+        let nextIndex = 0;
+        let completed = 0;
+        const worker = async () => {
+          while (nextIndex < queue.length) {
+            const i = nextIndex++;
+            setStatus('Upload ' + (completed + 1) + '/' + queue.length + '…');
+            tokens[i] = await stageFile(queue[i], i);
+            completed += 1;
+            setStatus('Upload ' + completed + '/' + queue.length + ' fertig…');
+          }
+        };
+        await Promise.all(Array.from({ length: concurrency }, () => worker()));
 
         fileInputs.forEach((input) => {
           input.value = '';
@@ -336,6 +364,7 @@ document.addEventListener('DOMContentLoaded', () => {
           form.appendChild(hidden);
         });
         form.dataset.stageDone = '1';
+        setStatus('Veröffentlichen…');
         if (typeof form.requestSubmit === 'function') {
           form.requestSubmit();
         } else {
@@ -345,7 +374,7 @@ document.addEventListener('DOMContentLoaded', () => {
         alert(err && err.message ? err.message : 'Upload fehlgeschlagen.');
         if (submitBtn) {
           submitBtn.disabled = false;
-          if ('textContent' in submitBtn) submitBtn.textContent = prevLabel;
+          setStatus(prevLabel);
         }
       }
     });
