@@ -277,8 +277,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const tokens = [];
-      const maxVideoBytes = 200 * 1000 * 1000;
-      const maxImageBytes = 12 * 1000 * 1000;
+      const maxVideoBytes = Number(i18n.maxVideoBytes) > 0
+        ? Number(i18n.maxVideoBytes)
+        : 500 * 1000 * 1000;
+      const maxImageBytes = Number(i18n.maxImageBytes) > 0
+        ? Number(i18n.maxImageBytes)
+        : 12 * 1000 * 1000;
       try {
         for (let i = 0; i < queue.length; i++) {
           const item = queue[i];

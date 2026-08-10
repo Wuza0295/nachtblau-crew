@@ -47,8 +47,10 @@ window.HYBRIXON_I18N = <?= json_encode([
     'appDownloadUrl' => allxion_url('app.php'),
     'openInApp' => t('app.open_in_app'),
     'stayWeb' => t('app.stay_web'),
+    'maxVideoBytes' => MEDIA_VIDEO_MAX_BYTES,
+    'maxImageBytes' => MEDIA_IMAGE_MAX_BYTES,
 ], JSON_UNESCAPED_UNICODE) ?>;
 </script>
-<script src="<?= e(allxion_url('assets/js/app.js')) ?>?v=105" defer></script>
+<script src="<?= e(allxion_url('assets/js/app.js')) ?>?v=106" defer></script>
 </body>
 </html>

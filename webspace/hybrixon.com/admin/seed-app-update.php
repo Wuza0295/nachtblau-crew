@@ -38,7 +38,7 @@ Bitte die APK noch einmal herunterladen und installieren — Updates kommen nich
 
 Was neu ist:
 • Mehrfachauswahl: bis 15 Bilder und/oder 15 Videos
-• Videos bis 200 MB / 10 Minuten
+• Videos bis 500 MB / 15 Minuten
 • Stabile Uploads (kein „Request Entity Too Large“)
 • Mobile Website öffnet die App, wenn sie installiert ist
 
