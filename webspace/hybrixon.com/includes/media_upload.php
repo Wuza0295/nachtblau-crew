@@ -42,7 +42,7 @@ function media_store_image(array $file, string $subdir = 'posts'): array
 /**
  * @return array{ok: true, path: string, mime: string, duration: ?int}|array{ok: false, error: string}
  */
-function media_store_video(array $file): array
+function media_store_video(array $file, bool $probeDuration = true): array
 {
     if (($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
         return ['ok' => false, 'error' => 'Kein Video gewählt.'];
@@ -63,9 +63,14 @@ function media_store_video(array $file): array
     if (!in_array($mime, MEDIA_VIDEO_MIMES, true)) {
         return ['ok' => false, 'error' => 'Nur MP4, WebM oder MOV erlaubt.'];
     }
-    $duration = media_probe_video_duration($tmp);
-    if ($duration !== null && $duration > MEDIA_VIDEO_MAX_SECONDS) {
-        return ['ok' => false, 'error' => 'Video max. ' . (int)(MEDIA_VIDEO_MAX_SECONDS / 60) . ' Minuten.'];
+    // Duration probe skipped by default during staging (reads up to 2 MB and is
+    // often inconclusive when moov is at EOF). Enforce only when explicitly asked.
+    $duration = null;
+    if ($probeDuration) {
+        $duration = media_probe_video_duration($tmp);
+        if ($duration !== null && $duration > MEDIA_VIDEO_MAX_SECONDS) {
+            return ['ok' => false, 'error' => 'Video max. ' . (int)(MEDIA_VIDEO_MAX_SECONDS / 60) . ' Minuten.'];
+        }
     }
     $ext = match ($mime) {
         'video/mp4' => 'mp4',
@@ -229,7 +234,8 @@ function media_stage_store(int $userId, array $file, string $prefer = 'auto', st
     }
 
     if ($isVideo) {
-        $stored = media_store_video($file);
+        // Skip duration probe on the hot staging path (faster; moov often at EOF).
+        $stored = media_store_video($file, false);
         if (!$stored['ok']) {
             return ['ok' => false, 'error' => (string)$stored['error']];
         }

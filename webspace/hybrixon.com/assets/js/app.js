@@ -216,48 +216,20 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
 
-  document.querySelectorAll('[data-max-files], [data-max-images]').forEach((input) => {
-    const max = parseInt(
-      input.getAttribute('data-max-files') || input.getAttribute('data-max-images') || '15',
-      10
-    );
-    if (!Number.isFinite(max) || max < 1) return;
-    input.addEventListener('change', () => {
-      if (!input.files) return;
-      if (input.files.length > max) {
-        alert('Maximal ' + max + ' Dateien.');
-        input.value = '';
-        return;
-      }
-      // Show selected count next to the control (helps in the Android app).
-      const label = input.closest('label');
-      if (label) {
-        let hint = label.querySelector('[data-file-count]');
-        if (!hint) {
-          hint = document.createElement('small');
-          hint.className = 'muted';
-          hint.setAttribute('data-file-count', '1');
-          hint.style.display = 'block';
-          hint.style.marginTop = '0.35rem';
-          label.appendChild(hint);
-        }
-        hint.textContent = input.files.length
-          ? (input.files.length + ' Datei(en) ausgewählt')
-          : '';
-      }
-    });
-  });
-
   // Keep screen / WebView awake during long uploads (Android bridge + Wake Lock).
   let wakeLock = null;
+  let uploadGuardDepth = 0;
   const setUploadingGuard = (on) => {
+    if (on) uploadGuardDepth += 1;
+    else uploadGuardDepth = Math.max(0, uploadGuardDepth - 1);
+    const active = uploadGuardDepth > 0;
     try {
       if (window.HybrixonNative && typeof window.HybrixonNative.setUploading === 'function') {
-        window.HybrixonNative.setUploading(!!on);
+        window.HybrixonNative.setUploading(active);
       }
     } catch (_) {}
-    if (on) {
-      if (navigator.wakeLock && navigator.wakeLock.request) {
+    if (active) {
+      if (!wakeLock && navigator.wakeLock && navigator.wakeLock.request) {
         navigator.wakeLock.request('screen').then((lock) => {
           wakeLock = lock;
           lock.addEventListener('release', () => { wakeLock = null; });
@@ -269,141 +241,349 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // Media staging: parallel batches, retries, progress. Survives brief network blips.
+  const maxVideoBytes = Number(i18n.maxVideoBytes) > 0
+    ? Number(i18n.maxVideoBytes)
+    : 500 * 1000 * 1000;
+  const maxImageBytes = Number(i18n.maxImageBytes) > 0
+    ? Number(i18n.maxImageBytes)
+    : 12 * 1000 * 1000;
+  const fmtMb = (n) => (n / 1000000).toFixed(n >= 100000000 ? 0 : 1);
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const fileKey = (file) => file.name + ':' + file.size + ':' + file.lastModified;
+  const inNativeApp = !!(window.HybrixonNative)
+    || /HybrixonApp/i.test(navigator.userAgent || '');
+
+  /** Downscale large phone photos before upload (often 5–12 MB → <1.5 MB). */
+  const maybeCompressImage = async (file) => {
+    if (!file || !file.type || file.type.indexOf('image/') !== 0) return file;
+    if (file.size < 900000) return file;
+    if (!/^image\/(jpeg|png|webp)$/i.test(file.type)) return file;
+    if (typeof createImageBitmap !== 'function') return file;
+    try {
+      const bmp = await createImageBitmap(file);
+      const maxSide = 2048;
+      const scale = Math.min(1, maxSide / Math.max(bmp.width, bmp.height));
+      const w = Math.max(1, Math.round(bmp.width * scale));
+      const h = Math.max(1, Math.round(bmp.height * scale));
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d', { alpha: false });
+      if (!ctx) {
+        bmp.close();
+        return file;
+      }
+      ctx.drawImage(bmp, 0, 0, w, h);
+      bmp.close();
+      const blob = await new Promise((resolve) => {
+        canvas.toBlob(resolve, 'image/jpeg', 0.82);
+      });
+      if (!blob || blob.size >= file.size * 0.95) return file;
+      const base = file.name.replace(/\.[^.]+$/, '') || 'image';
+      return new File([blob], base + '.jpg', {
+        type: 'image/jpeg',
+        lastModified: file.lastModified,
+      });
+    } catch (_) {
+      return file;
+    }
+  };
+
+  const ensureFileCountHint = (input) => {
+    const label = input.closest('label');
+    if (!label) return null;
+    let hint = label.querySelector('[data-file-count]');
+    if (!hint) {
+      hint = document.createElement('small');
+      hint.className = 'muted';
+      hint.setAttribute('data-file-count', '1');
+      hint.style.display = 'block';
+      hint.style.marginTop = '0.35rem';
+      label.appendChild(hint);
+    }
+    return hint;
+  };
+
+  /**
+   * Fast media staging:
+   * - start uploading as soon as files are chosen (while user writes the caption)
+   * - parallel XHRs (2–4)
+   * - compress images client-side
+   * - retry transient network errors
+   */
   document.querySelectorAll('form[data-stage-uploads]').forEach((form) => {
-    form.addEventListener('submit', async (event) => {
-      if (form.dataset.stageDone === '1') return;
-      const fileInputs = Array.from(form.querySelectorAll('input[type="file"]'));
+    const stageUrl = form.getAttribute('data-stage-url') || 'api-media-stage.php';
+    const purpose = form.getAttribute('data-stage-purpose') || 'posts';
+    const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+    const prevLabel = submitBtn ? (submitBtn.textContent || submitBtn.value || '') : '';
+    const state = {
+      // key -> { token?: string, promise?: Promise<string>, loaded: number, total: number, error?: string }
+      items: new Map(),
+      busy: 0,
+    };
+    form._hxStage = state;
+
+    let progressEl = form.querySelector('[data-upload-progress]');
+    if (!progressEl) {
+      progressEl = document.createElement('p');
+      progressEl.className = 'muted';
+      progressEl.setAttribute('data-upload-progress', '1');
+      progressEl.hidden = true;
+      progressEl.style.margin = '0.5rem 0 0';
+      progressEl.style.fontWeight = '600';
+      if (submitBtn && submitBtn.parentNode) {
+        submitBtn.parentNode.insertBefore(progressEl, submitBtn.nextSibling);
+      } else {
+        form.appendChild(progressEl);
+      }
+    }
+
+    const renderProgress = () => {
+      let done = 0;
+      let total = 0;
+      let loaded = 0;
+      let bytes = 0;
+      let errors = 0;
+      state.items.forEach((row) => {
+        total += 1;
+        if (row.token) done += 1;
+        if (row.error) errors += 1;
+        loaded += row.loaded || 0;
+        bytes += row.total || 0;
+      });
+      if (total === 0) {
+        progressEl.hidden = true;
+        progressEl.textContent = '';
+        return;
+      }
+      progressEl.hidden = false;
+      const pct = bytes > 0 ? Math.min(99, Math.round((loaded / bytes) * 100)) : 0;
+      let text = 'Upload ' + done + '/' + total;
+      if (bytes > 0 && done < total) {
+        text += ' · ' + fmtMb(loaded) + '/' + fmtMb(bytes) + ' MB (' + pct + '%)';
+      } else if (done === total && errors === 0) {
+        text += ' · fertig — kannst veröffentlichen';
+      }
+      if (errors) text += ' · ' + errors + ' Fehler';
+      progressEl.textContent = text;
+      if (submitBtn && state.busy > 0 && form.dataset.stageSubmitting === '1') {
+        submitBtn.textContent = text;
+      }
+    };
+
+    const stageOne = (key, file, kind) => {
+      if (state.items.has(key) && (state.items.get(key).token || state.items.get(key).promise)) {
+        return state.items.get(key).promise || Promise.resolve(state.items.get(key).token);
+      }
+      const row = {
+        token: null,
+        promise: null,
+        loaded: 0,
+        total: file.size || 0,
+        error: null,
+        kind,
+        file,
+      };
+      state.items.set(key, row);
+
+      row.promise = (async () => {
+        state.busy += 1;
+        setUploadingGuard(true);
+        try {
+          const isVideo = kind === 'video'
+            || (file.type && file.type.indexOf('video/') === 0);
+          let uploadFile = file;
+          if (!isVideo) {
+            uploadFile = await maybeCompressImage(file);
+            row.total = uploadFile.size || row.total;
+          }
+          const maxBytes = isVideo ? maxVideoBytes : maxImageBytes;
+          if (uploadFile.size > maxBytes) {
+            throw Object.assign(new Error(
+              (isVideo ? 'Video' : 'Bild') + ' „' + file.name + '“ ist zu groß ('
+              + Math.ceil(uploadFile.size / 1000000) + ' MB). Max. '
+              + Math.floor(maxBytes / 1000000) + ' MB.'
+            ), { retryable: false });
+          }
+
+          const csrfInput = form.querySelector('input[name="_csrf"]');
+          const csrf = csrfInput ? csrfInput.value : (i18n.csrf || '');
+
+          let lastErr = null;
+          for (let attempt = 1; attempt <= 4; attempt++) {
+            try {
+              if (attempt > 1) await sleep(400 * attempt);
+              const token = await new Promise((resolve, reject) => {
+                const body = new FormData();
+                body.append('_csrf', csrf);
+                body.append('kind', kind);
+                body.append('purpose', purpose);
+                body.append('file', uploadFile, uploadFile.name);
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', stageUrl);
+                xhr.withCredentials = true;
+                xhr.setRequestHeader('Accept', 'application/json');
+                xhr.upload.onprogress = (e) => {
+                  if (!e.lengthComputable) return;
+                  row.loaded = e.loaded;
+                  row.total = e.total;
+                  renderProgress();
+                };
+                xhr.onload = () => {
+                  let data = null;
+                  try { data = JSON.parse(xhr.responseText); } catch (_) { data = null; }
+                  if (xhr.status < 200 || xhr.status >= 300 || !data || !data.ok || !data.token) {
+                    const err = new Error(
+                      (data && data.error) ? data.error : ('Upload fehlgeschlagen (HTTP ' + xhr.status + ').')
+                    );
+                    err.retryable = xhr.status === 0 || xhr.status === 408 || xhr.status === 429
+                      || xhr.status >= 500;
+                    reject(err);
+                    return;
+                  }
+                  resolve(data.token);
+                };
+                xhr.onerror = () => reject(Object.assign(new Error('Netzwerkfehler beim Upload.'), { retryable: true }));
+                xhr.ontimeout = () => reject(Object.assign(new Error('Upload-Timeout.'), { retryable: true }));
+                xhr.timeout = 30 * 60 * 1000;
+                xhr.send(body);
+              });
+              row.token = token;
+              row.loaded = row.total;
+              row.error = null;
+              renderProgress();
+              return token;
+            } catch (err) {
+              lastErr = err;
+              if (!err || !err.retryable || attempt === 4) throw err;
+            }
+          }
+          throw lastErr || new Error('Upload fehlgeschlagen.');
+        } catch (err) {
+          row.error = (err && err.message) ? err.message : 'Fehler';
+          row.promise = null;
+          renderProgress();
+          throw err;
+        } finally {
+          state.busy = Math.max(0, state.busy - 1);
+          setUploadingGuard(false);
+          renderProgress();
+        }
+      })();
+
+      return row.promise;
+    };
+
+    const collectQueue = () => {
       const queue = [];
-      fileInputs.forEach((input) => {
+      form.querySelectorAll('input[type="file"]').forEach((input) => {
         if (!input.files || !input.files.length) return;
         const kind = input.getAttribute('data-stage-kind') || 'auto';
-        Array.from(input.files).forEach((file) => queue.push({ file, kind }));
+        Array.from(input.files).forEach((file) => {
+          queue.push({ file, kind, key: fileKey(file), input });
+        });
       });
+      return queue;
+    };
+
+    const syncSelectionAndStart = () => {
+      const queue = collectQueue();
+      const liveKeys = new Set(queue.map((q) => q.key));
+      // Drop deselected entries (tokens remain server-side until expiry — OK).
+      Array.from(state.items.keys()).forEach((key) => {
+        if (!liveKeys.has(key)) state.items.delete(key);
+      });
+      queue.forEach((q) => {
+        const hint = ensureFileCountHint(q.input);
+        if (hint) {
+          const n = q.input.files ? q.input.files.length : 0;
+          hint.textContent = n ? (n + ' Datei(en) — Upload startet…') : '';
+        }
+      });
+      renderProgress();
+      if (!queue.length) return;
+
+      // Parallelism: more for small files, a bit less for huge videos.
+      const hasHuge = queue.some((q) => q.file.size > 60 * 1000 * 1000);
+      const concurrency = hasHuge
+        ? (inNativeApp ? 2 : 3)
+        : (inNativeApp ? 3 : 4);
+
+      let next = 0;
+      const worker = async () => {
+        while (next < queue.length) {
+          const i = next++;
+          const item = queue[i];
+          try {
+            await stageOne(item.key, item.file, item.kind);
+          } catch (_) {
+            // keep going; submit path surfaces errors
+          }
+        }
+      };
+      const n = Math.min(concurrency, queue.length);
+      Promise.all(Array.from({ length: n }, () => worker())).then(() => {
+        form.querySelectorAll('input[type="file"]').forEach((input) => {
+          const hint = ensureFileCountHint(input);
+          if (!hint || !input.files || !input.files.length) return;
+          let ready = 0;
+          Array.from(input.files).forEach((file) => {
+            const row = state.items.get(fileKey(file));
+            if (row && row.token) ready += 1;
+          });
+          hint.textContent = ready + '/' + input.files.length + ' hochgeladen';
+        });
+        renderProgress();
+      });
+    };
+
+    form.querySelectorAll('input[type="file"]').forEach((input) => {
+      const max = parseInt(
+        input.getAttribute('data-max-files') || input.getAttribute('data-max-images') || '15',
+        10
+      );
+      input.addEventListener('change', () => {
+        if (input.files && Number.isFinite(max) && max > 0 && input.files.length > max) {
+          alert('Maximal ' + max + ' Dateien.');
+          input.value = '';
+          syncSelectionAndStart();
+          return;
+        }
+        // New selection → clear submit lock so tokens can be rebuilt.
+        form.dataset.stageDone = '0';
+        syncSelectionAndStart();
+      });
+    });
+
+    form.addEventListener('submit', async (event) => {
+      if (form.dataset.stageDone === '1') return;
+      const queue = collectQueue();
       if (!queue.length) return;
 
       event.preventDefault();
-      const stageUrl = form.getAttribute('data-stage-url') || 'api-media-stage.php';
-      const purpose = form.getAttribute('data-stage-purpose') || 'posts';
-      const csrfInput = form.querySelector('input[name="_csrf"]');
-      const csrf = csrfInput ? csrfInput.value : (i18n.csrf || '');
-      const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
-      const prevLabel = submitBtn ? (submitBtn.textContent || submitBtn.value || '') : '';
-      const setStatus = (text) => {
-        if (submitBtn && 'textContent' in submitBtn) submitBtn.textContent = text;
-      };
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        setStatus('Upload 0/' + queue.length + '…');
-      }
+      form.dataset.stageSubmitting = '1';
+      if (submitBtn) submitBtn.disabled = true;
       setUploadingGuard(true);
-
-      const maxVideoBytes = Number(i18n.maxVideoBytes) > 0
-        ? Number(i18n.maxVideoBytes)
-        : 500 * 1000 * 1000;
-      const maxImageBytes = Number(i18n.maxImageBytes) > 0
-        ? Number(i18n.maxImageBytes)
-        : 12 * 1000 * 1000;
-
-      const fmtMb = (n) => (n / 1000000).toFixed(n >= 100000000 ? 0 : 1);
-      const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-      const stageFileOnce = (item, index) => new Promise((resolve, reject) => {
-        const isVideo = item.kind === 'video'
-          || (item.file.type && item.file.type.indexOf('video/') === 0);
-        const maxBytes = isVideo ? maxVideoBytes : maxImageBytes;
-        if (item.file.size > maxBytes) {
-          reject(new Error(
-            (isVideo ? 'Video' : 'Bild') + ' „' + item.file.name + '“ ist zu groß ('
-            + Math.ceil(item.file.size / 1000000) + ' MB). Max. '
-            + Math.floor(maxBytes / 1000000) + ' MB.'
-          ));
-          return;
-        }
-        const body = new FormData();
-        body.append('_csrf', csrf);
-        body.append('kind', item.kind);
-        body.append('purpose', purpose);
-        body.append('file', item.file, item.file.name);
-
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', stageUrl);
-        xhr.withCredentials = true;
-        xhr.setRequestHeader('Accept', 'application/json');
-        xhr.upload.onprogress = (e) => {
-          if (!e.lengthComputable) return;
-          const pct = Math.min(99, Math.round((e.loaded / e.total) * 100));
-          setStatus(
-            'Upload ' + (index + 1) + '/' + queue.length
-            + ' · ' + fmtMb(e.loaded) + '/' + fmtMb(e.total) + ' MB (' + pct + '%)'
-          );
-        };
-        xhr.onload = () => {
-          let data = null;
-          try { data = JSON.parse(xhr.responseText); } catch (_) { data = null; }
-          if (xhr.status < 200 || xhr.status >= 300 || !data || !data.ok || !data.token) {
-            const msg = (data && data.error)
-              ? data.error
-              : ('Upload fehlgeschlagen (HTTP ' + xhr.status + ').');
-            const err = new Error(msg);
-            err.retryable = xhr.status === 0 || xhr.status === 408 || xhr.status === 429
-              || xhr.status >= 500;
-            reject(err);
-            return;
-          }
-          resolve(data.token);
-        };
-        xhr.onerror = () => {
-          const err = new Error('Netzwerkfehler beim Upload.');
-          err.retryable = true;
-          reject(err);
-        };
-        xhr.ontimeout = () => {
-          const err = new Error('Upload-Timeout — bitte erneut versuchen.');
-          err.retryable = true;
-          reject(err);
-        };
-        xhr.timeout = 30 * 60 * 1000;
-        xhr.send(body);
-      });
-
-      const stageFile = async (item, index) => {
-        let lastErr = null;
-        for (let attempt = 1; attempt <= 4; attempt++) {
-          try {
-            if (attempt > 1) {
-              setStatus('Upload ' + (index + 1) + '/' + queue.length + ' · Retry ' + attempt + '…');
-              await sleep(1000 * attempt * attempt);
-            }
-            return await stageFileOnce(item, index);
-          } catch (err) {
-            lastErr = err;
-            if (!err || !err.retryable || attempt === 4) throw err;
-          }
-        }
-        throw lastErr || new Error('Upload fehlgeschlagen.');
-      };
+      renderProgress();
 
       try {
-        // One-at-a-time on mobile/app (more stable when OS throttles background tabs).
-        const inNativeApp = !!(window.HybrixonNative)
-          || /HybrixonApp/i.test(navigator.userAgent || '');
-        const concurrency = inNativeApp ? 1 : Math.min(2, queue.length);
+        // Finish any eager uploads still in flight / not started.
+        const hasHuge = queue.some((q) => q.file.size > 60 * 1000 * 1000);
+        const concurrency = hasHuge
+          ? (inNativeApp ? 2 : 3)
+          : (inNativeApp ? 3 : 4);
+        let next = 0;
         const tokens = new Array(queue.length);
-        let nextIndex = 0;
-        let completed = 0;
         const worker = async () => {
-          while (nextIndex < queue.length) {
-            const i = nextIndex++;
-            setStatus('Upload ' + (completed + 1) + '/' + queue.length + '…');
-            tokens[i] = await stageFile(queue[i], i);
-            completed += 1;
-            setStatus('Upload ' + completed + '/' + queue.length + ' fertig…');
+          while (next < queue.length) {
+            const i = next++;
+            const item = queue[i];
+            tokens[i] = await stageOne(item.key, item.file, item.kind);
           }
         };
-        await Promise.all(Array.from({ length: concurrency }, () => worker()));
+        await Promise.all(Array.from({ length: Math.min(concurrency, queue.length) }, () => worker()));
 
-        fileInputs.forEach((input) => {
+        form.querySelectorAll('input[type="file"]').forEach((input) => {
           input.value = '';
           input.removeAttribute('required');
         });
@@ -416,7 +596,8 @@ document.addEventListener('DOMContentLoaded', () => {
           form.appendChild(hidden);
         });
         form.dataset.stageDone = '1';
-        setStatus('Veröffentlichen…');
+        if (submitBtn) submitBtn.textContent = 'Veröffentlichen…';
+        progressEl.textContent = 'Veröffentlichen…';
         if (typeof form.requestSubmit === 'function') {
           form.requestSubmit();
         } else {
@@ -425,14 +606,38 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (err) {
         alert(
           (err && err.message ? err.message : 'Upload fehlgeschlagen.')
-          + '\n\nTipp: App während des Uploads geöffnet lassen (Bildschirm an).'
+          + '\n\nTipp: Bei vielen großen Videos die App geöffnet lassen.'
         );
         if (submitBtn) {
           submitBtn.disabled = false;
-          setStatus(prevLabel);
+          submitBtn.textContent = prevLabel;
         }
       } finally {
+        form.dataset.stageSubmitting = '0';
         setUploadingGuard(false);
+      }
+    });
+  });
+
+  // File-count hints for non-staging forms (legacy).
+  document.querySelectorAll('form:not([data-stage-uploads]) [data-max-files], form:not([data-stage-uploads]) [data-max-images]').forEach((input) => {
+    const max = parseInt(
+      input.getAttribute('data-max-files') || input.getAttribute('data-max-images') || '15',
+      10
+    );
+    if (!Number.isFinite(max) || max < 1) return;
+    input.addEventListener('change', () => {
+      if (!input.files) return;
+      if (input.files.length > max) {
+        alert('Maximal ' + max + ' Dateien.');
+        input.value = '';
+        return;
+      }
+      const hint = ensureFileCountHint(input);
+      if (hint) {
+        hint.textContent = input.files.length
+          ? (input.files.length + ' Datei(en) ausgewählt')
+          : '';
       }
     });
   });
