@@ -92,25 +92,40 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // Extra client handoff when Chrome reports the related app (sideload often empty).
-    // Skip when we just came back from a server Intent miss — banner stays usable.
-    if (
-      !stayWebPref
-      && !fromAppFallback
-      && isAndroid
-      && typeof navigator.getInstalledRelatedApps === 'function'
-      && sessionStorage.getItem('hybrixon_app_autolaunch') !== '1'
-    ) {
+    // Auto handoff to the installed Android app (once per tab session).
+    // Skip when we just came back from a server Intent miss (?from_app=1).
+    if (!stayWebPref && !fromAppFallback && isAndroid
+      && sessionStorage.getItem('hybrixon_app_autolaunch') !== '1') {
       sessionStorage.setItem('hybrixon_app_autolaunch', '1');
-      navigator.getInstalledRelatedApps().then((apps) => {
-        const found = (apps || []).some((a) =>
-          (a.id || a.url || '').indexOf('com.hybrixon.app') !== -1
-          || a.id === 'com.hybrixon.app'
-        );
-        if (found) {
-          openInHybrixonApp({ goDownloadOnMiss: false });
-        }
-      }).catch(() => {});
+
+      // 1) Custom-scheme iframe: opens the app when installed, no navigation if missing.
+      try {
+        let httpsUrl = location.origin + location.pathname + location.search + location.hash;
+        const u = new URL(httpsUrl);
+        u.searchParams.delete('from_app');
+        u.searchParams.delete('web');
+        u.searchParams.delete('stay');
+        httpsUrl = u.toString();
+        const iframe = document.createElement('iframe');
+        iframe.style.cssText = 'display:none;width:0;height:0;border:0';
+        iframe.setAttribute('aria-hidden', 'true');
+        iframe.src = 'hybrixon://open?url=' + encodeURIComponent(httpsUrl);
+        document.body.appendChild(iframe);
+        setTimeout(() => { try { iframe.remove(); } catch (_) {} }, 2500);
+      } catch (_) {}
+
+      // 2) If Chrome reports the related app, use a full Intent navigation.
+      if (typeof navigator.getInstalledRelatedApps === 'function') {
+        navigator.getInstalledRelatedApps().then((apps) => {
+          const found = (apps || []).some((a) =>
+            (a.id || a.url || '').indexOf('com.hybrixon.app') !== -1
+            || a.id === 'com.hybrixon.app'
+          );
+          if (found && !document.hidden) {
+            openInHybrixonApp({ goDownloadOnMiss: false });
+          }
+        }).catch(() => {});
+      }
     }
   }
 

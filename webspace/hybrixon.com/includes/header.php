@@ -118,6 +118,33 @@ if (!isset($pageUrl)) {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=Oxanium:wght@600;700;800&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= e(allxion_url('assets/css/style.css')) ?>?v=105">
+  <?php
+    // Client backup if the server Intent 302 was skipped (cached HTML / CDN / old build).
+    $clientAutoApp = !$inHybrixonApp
+      && !$forceStayWeb
+      && !isset($_GET['from_app'])
+      && !isset($_GET['web'])
+      && (bool)preg_match('/Android/i', $ua);
+  ?>
+  <?php if ($clientAutoApp): ?>
+  <script>
+  (function () {
+    try {
+      if (sessionStorage.getItem('hybrixon_app_autolaunch') === '1') return;
+      sessionStorage.setItem('hybrixon_app_autolaunch', '1');
+      var url = location.href.split('#')[0]
+        .replace(/([?&])(from_app|web|stay)=1(&)?/g, function (_, a, __, c) { return c ? a : ''; })
+        .replace(/[?&]$/, '');
+      var fallback = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'from_app=1';
+      var intent = 'intent://open?url=' + encodeURIComponent(url)
+        + '#Intent;scheme=hybrixon;package=com.hybrixon.app'
+        + ';S.browser_fallback_url=' + encodeURIComponent(fallback)
+        + ';end';
+      location.replace(intent);
+    } catch (e) {}
+  })();
+  </script>
+  <?php endif; ?>
 </head>
 <body class="theme-<?= e($uiTheme) ?>">
 <div class="app" data-in-app="<?= $inHybrixonApp ? '1' : '0' ?>" data-stay-web="<?= $forceStayWeb ? '1' : '0' ?>" data-from-app="<?= isset($_GET['from_app']) || isset($_GET['web']) ? '1' : '0' ?>">
