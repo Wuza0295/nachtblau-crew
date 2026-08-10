@@ -46,6 +46,11 @@ const DM_CONSENT_VERSION = '2026-08-05-full-admin';
 
 /** Media limits (images / shorts). Per-file size stays large; multi-select up to 15+15. */
 const MEDIA_IMAGE_MAX_BYTES = 12_000_000;
+/** Aggressive image downscale for faster uploads (bytes in / long edge out). */
+const MEDIA_IMAGE_COMPRESS_MIN_BYTES = 450_000;
+const MEDIA_IMAGE_COMPRESS_MAX_SIDE = 1920;
+/** Lower bound for parallel staged uploads (network congestion may cap it). */
+const MEDIA_UPLOAD_PARALLEL_MIN = 5;
 /** Phone/4K festival clips often exceed 200 MB — allow up to 500 MB per video. */
 const MEDIA_VIDEO_MAX_BYTES = 500_000_000;
 const MEDIA_VIDEO_MAX_SECONDS = 900;

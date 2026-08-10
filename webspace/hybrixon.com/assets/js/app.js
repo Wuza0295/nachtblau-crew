@@ -290,15 +290,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const inNativeApp = !!(window.HybrixonNative)
     || /HybrixonApp/i.test(navigator.userAgent || '');
 
-  /** Downscale large phone photos before upload (often 5–12 MB → <1.5 MB). */
+  /** True parallel: count real in-flight XHRs (file start → response), not workers. */
+  const activeStagedUploads = () => {
+    let n = 0;
+    state.items.forEach((row) => {
+      if (row && row.xhrActive) n += 1;
+    });
+    return n;
+  };
+
+  /** Downscale large phone photos before upload (often 3–12 MB → <1 MB). */
   const maybeCompressImage = async (file) => {
     if (!file || !file.type || file.type.indexOf('image/') !== 0) return file;
-    if (file.size < 900000) return file;
+    if (file.size < 450000) return file;
     if (!/^image\/(jpeg|png|webp)$/i.test(file.type)) return file;
     if (typeof createImageBitmap !== 'function') return file;
     try {
       const bmp = await createImageBitmap(file);
-      const maxSide = 2048;
+      const maxSide = 1920;
       const scale = Math.min(1, maxSide / Math.max(bmp.width, bmp.height));
       const w = Math.max(1, Math.round(bmp.width * scale));
       const h = Math.max(1, Math.round(bmp.height * scale));
@@ -420,6 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
         error: null,
         kind,
         file,
+        xhrActive: false,
       };
       state.items.set(key, row);
 
@@ -457,6 +467,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 body.append('purpose', purpose);
                 body.append('file', uploadFile, uploadFile.name);
                 const xhr = new XMLHttpRequest();
+                row.xhrActive = true;
                 xhr.open('POST', stageUrl);
                 xhr.withCredentials = true;
                 xhr.setRequestHeader('Accept', 'application/json');
@@ -467,6 +478,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   renderProgress();
                 };
                 xhr.onload = () => {
+                  row.xhrActive = false;
                   let data = null;
                   try { data = JSON.parse(xhr.responseText); } catch (_) { data = null; }
                   if (xhr.status === 413) {
@@ -489,8 +501,8 @@ document.addEventListener('DOMContentLoaded', () => {
                   }
                   resolve(data.token);
                 };
-                xhr.onerror = () => reject(Object.assign(new Error('Netzwerkfehler beim Upload.'), { retryable: true }));
-                xhr.ontimeout = () => reject(Object.assign(new Error('Upload-Timeout.'), { retryable: true }));
+                xhr.onerror = () => { row.xhrActive = false; reject(Object.assign(new Error('Netzwerkfehler beim Upload.'), { retryable: true })); };
+                xhr.ontimeout = () => { row.xhrActive = false; reject(Object.assign(new Error('Upload-Timeout.'), { retryable: true })); };
                 xhr.timeout = 30 * 60 * 1000;
                 xhr.send(body);
               });
@@ -549,15 +561,39 @@ document.addEventListener('DOMContentLoaded', () => {
       renderProgress();
       if (!queue.length) return;
 
-      // Parallelism: more for small files, a bit less for huge videos.
-      const hasHuge = queue.some((q) => q.file.size > 60 * 1000 * 1000);
-      const concurrency = hasHuge
-        ? (inNativeApp ? 2 : 3)
-        : (inNativeApp ? 3 : 4);
+      // Parallelism: scale with real throughput (measured after the first file),
+      // bounded by congestion — server session lock no longer serializes uploads.
+      const completedBytes = () => {
+        let n = 0;
+        state.items.forEach((row) => {
+          if (row && row.token) n += row.total || 0;
+        });
+        return n;
+      };
+      const completedCount = () => {
+        let n = 0;
+        state.items.forEach((row) => {
+          if (row && row.token) n += 1;
+        });
+        return n;
+      };
+      const hugeBytes = queue.reduce((a, q) => a + (q.file.size > 60 * 1000 * 1000 ? q.file.size : 0), 0);
+      const maxParallel = inNativeApp ? 5 : 6;
+      let concurrency = Math.min(3, maxParallel);
+      if (hugeBytes > 0) concurrency = inNativeApp ? 2 : 3;
+      const minParallel = (Number(i18n.uploadParallelMin) > 0) ? Math.min(maxParallel, Number(i18n.uploadParallelMin)) : 1;
+      concurrency = Math.max(concurrency, Math.min(minParallel, maxParallel));
 
       let next = 0;
       const worker = async () => {
         while (next < queue.length) {
+          // Ramp parallelism up as uploads complete quickly.
+          const done = completedCount();
+          if (done >= 2 && hugeBytes === 0) concurrency = Math.max(concurrency, 4);
+          if (done >= 4 && hugeBytes === 0) concurrency = Math.max(concurrency, maxParallel);
+          while (activeStagedUploads() >= concurrency && next < queue.length) {
+            await sleep(80);
+          }
           const i = next++;
           const item = queue[i];
           try {
@@ -692,13 +728,18 @@ document.addEventListener('DOMContentLoaded', () => {
         let tokens = stagedTokens.slice();
         if (queue.length) {
           // Finish any eager uploads still in flight / not started.
-          // Huge videos: max 2 parallel to reduce 413/proxy pressure.
           const hasHuge = queue.some((q) => q.file.size > 60 * 1000 * 1000);
-          const concurrency = hasHuge ? 2 : (inNativeApp ? 3 : 4);
+          const maxParallel = inNativeApp ? 5 : 6;
+          let concurrency = hasHuge ? (inNativeApp ? 2 : 3) : maxParallel;
+          const minParallel = (Number(i18n.uploadParallelMin) > 0) ? Math.min(maxParallel, Number(i18n.uploadParallelMin)) : 1;
+          concurrency = Math.max(concurrency, Math.min(minParallel, maxParallel));
           let next = 0;
           const ordered = new Array(queue.length);
           const worker = async () => {
             while (next < queue.length) {
+              while (activeStagedUploads() >= concurrency && next < queue.length) {
+                await sleep(60);
+              }
               const i = next++;
               const item = queue[i];
               ordered[i] = await stageOne(item.key, item.file, item.kind);

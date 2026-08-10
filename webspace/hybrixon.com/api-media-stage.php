@@ -20,12 +20,26 @@ if (!$user) {
     exit;
 }
 
-allxion_session_start_lite();
+// Release the session lock before receiving/moving the file so parallel
+// XHR uploads are not serialized by PHP's session storage.
+if (session_status() === PHP_SESSION_ACTIVE) {
+    session_write_close();
+}
+
 $csrf = $_POST['_csrf'] ?? '';
-if (!is_string($csrf) || !hash_equals((string)($_SESSION['_csrf'] ?? ''), $csrf)) {
+if (!is_string($csrf)) {
     http_response_code(403);
     echo json_encode(['ok' => false, 'error' => 'CSRF']);
     exit;
+}
+allxion_session_start_lite();
+if (!hash_equals((string)($_SESSION['_csrf'] ?? ''), $csrf)) {
+    http_response_code(403);
+    echo json_encode(['ok' => false, 'error' => 'CSRF']);
+    exit;
+}
+if (session_status() === PHP_SESSION_ACTIVE) {
+    session_write_close();
 }
 
 $file = null;

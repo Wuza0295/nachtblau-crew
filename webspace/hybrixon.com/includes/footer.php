@@ -53,6 +53,7 @@ window.HYBRIXON_I18N = <?= json_encode([
     'stayWeb' => t('app.stay_web'),
     'maxVideoBytes' => MEDIA_VIDEO_MAX_BYTES,
     'maxImageBytes' => MEDIA_IMAGE_MAX_BYTES,
+    'uploadParallelMin' => MEDIA_UPLOAD_PARALLEL_MIN,
     'csrf' => csrf_token(),
     'loggedIn' => !empty($currentUser),
     'vapidPublicKey' => $vapidPublic,
@@ -65,6 +66,6 @@ window.HYBRIXON_I18N = <?= json_encode([
     'pushUnsupported' => t('settings.push_unsupported'),
 ], JSON_UNESCAPED_UNICODE) ?>;
 </script>
-<script src="<?= e(allxion_url('assets/js/app.js')) ?>?v=112" defer></script>
+<script src="<?= e(allxion_url('assets/js/app.js')) ?>?v=113" defer></script>
 </body>
 </html>

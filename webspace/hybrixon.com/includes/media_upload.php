@@ -223,8 +223,9 @@ function media_client_ip(): string
 function media_stage_store(int $userId, array $file, string $prefer = 'auto', string $purpose = 'posts'): array
 {
     require_once __DIR__ . '/helpers.php';
-    allxion_session_start_lite();
 
+    // Validate + move BEFORE touching the session: the PHP session file is
+    // locked for the whole request, which would serialize parallel uploads.
     $kindHint = strtolower((string)($file['type'] ?? ''));
     $isVideo = $prefer === 'video'
         || ($prefer === 'auto' && (str_starts_with($kindHint, 'video/') || in_array($kindHint, MEDIA_VIDEO_MIMES, true)));
@@ -265,6 +266,8 @@ function media_stage_store(int $userId, array $file, string $prefer = 'auto', st
         ];
     }
 
+    // Session only for the short token registration, not during file I/O.
+    allxion_session_start_lite();
     if (!isset($_SESSION['hybrixon_media_stage']) || !is_array($_SESSION['hybrixon_media_stage'])) {
         $_SESSION['hybrixon_media_stage'] = [];
     }
