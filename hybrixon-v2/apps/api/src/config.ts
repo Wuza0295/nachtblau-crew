@@ -15,6 +15,7 @@ const schema = z.object({
   ACCESS_TOKEN_TTL: z.string().default("15m"),
   REFRESH_TOKEN_DAYS: z.coerce.number().int().min(1).max(365).default(30),
   CORS_ORIGINS: z.string().default("http://localhost:5173"),
+  PUBLIC_API_URL: z.url().default("http://localhost:8080/v2"),
   S3_ENDPOINT: z.url(),
   S3_REGION: z.string().default("eu-central-1"),
   S3_BUCKET: z.string().min(3),

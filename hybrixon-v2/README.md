@@ -11,7 +11,10 @@ available until each route has passed production verification.
      multipart PUTs (8 MiB parts, resumable/retryable, no PHP 413 bottleneck).
    - Redis/BullMQ worker uses FFmpeg/ffprobe to create optimized images, video
      posters and HLS streams.
-   - Immutable derived files are ready for CDN delivery.
+   - API-issued HMAC capabilities and short-lived S3 links preserve media
+     privacy without sending bearer tokens from `<img>`/`<video>` elements.
+   - HLS manifests are rewritten to signed segment links; immutable derived
+     files remain ready for a private-origin CDN.
 
 2. **API + PostgreSQL**
    - Fastify/TypeScript API under `/v2`.
