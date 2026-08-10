@@ -3,7 +3,7 @@ import {
   MULTIPART_PART_BYTES,
   type ApiMedia,
   type MediaKind,
-} from "./index.js";
+} from "@hybrixon/contracts";
 
 export interface UploadSource {
   name: string;
