@@ -8,7 +8,7 @@ require_once __DIR__ . '/app_redirect.php';
 
 hybrixon_enforce_canonical_host();
 hybrixon_handle_lang_switch();
-// Android: open installed app automatically (Intent). Missing app → ?from_app=1 (banner stays).
+// No server Intent 302 — that blanked mobile Chrome. Client auto-open + banner instead.
 hybrixon_maybe_redirect_to_app();
 
 $currentUser = allxion_current_user();
@@ -117,14 +117,10 @@ if (!isset($pageUrl)) {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=Oxanium:wght@600;700;800&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="<?= e(allxion_url('assets/css/style.css')) ?>?v=105">
+  <link rel="stylesheet" href="<?= e(allxion_url('assets/css/style.css')) ?>?v=106">
   <?php
-    // Client backup if the server Intent 302 was skipped (cached HTML / CDN / old build).
-    $clientAutoApp = !$inHybrixonApp
-      && !$forceStayWeb
-      && !isset($_GET['from_app'])
-      && !isset($_GET['web'])
-      && (bool)preg_match('/Android/i', $ua);
+    // Immediate client handoff on first paint (HTML always served so the banner stays).
+    $clientAutoApp = hybrixon_should_client_auto_open_app($ua, $forceStayWeb);
   ?>
   <?php if ($clientAutoApp): ?>
   <script>
@@ -136,11 +132,23 @@ if (!isset($pageUrl)) {
         .replace(/([?&])(from_app|web|stay)=1(&)?/g, function (_, a, __, c) { return c ? a : ''; })
         .replace(/[?&]$/, '');
       var fallback = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'from_app=1';
+      // 1) Custom scheme — opens installed app without leaving the page if missing.
+      try {
+        var iframe = document.createElement('iframe');
+        iframe.style.cssText = 'display:none;width:0;height:0;border:0';
+        iframe.setAttribute('aria-hidden', 'true');
+        iframe.src = 'hybrixon://open?url=' + encodeURIComponent(url);
+        (document.documentElement || document.body).appendChild(iframe);
+        setTimeout(function () { try { iframe.remove(); } catch (e) {} }, 2500);
+      } catch (e) {}
+      // 2) Intent navigation with browser fallback back to this page (+ banner).
       var intent = 'intent://open?url=' + encodeURIComponent(url)
         + '#Intent;scheme=hybrixon;package=com.hybrixon.app'
         + ';S.browser_fallback_url=' + encodeURIComponent(fallback)
         + ';end';
-      location.replace(intent);
+      setTimeout(function () {
+        try { location.replace(intent); } catch (e) {}
+      }, 80);
     } catch (e) {}
   })();
   </script>

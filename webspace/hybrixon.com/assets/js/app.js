@@ -92,8 +92,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // Auto handoff to the installed Android app (once per tab session).
-    // Skip when we just came back from a server Intent miss (?from_app=1).
+    // Auto handoff backup (head script usually runs first). Keep banner visible.
+    // Skip when we just came back from an Intent miss (?from_app=1).
     if (!stayWebPref && !fromAppFallback && isAndroid
       && sessionStorage.getItem('hybrixon_app_autolaunch') !== '1') {
       sessionStorage.setItem('hybrixon_app_autolaunch', '1');
@@ -114,7 +114,29 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => { try { iframe.remove(); } catch (_) {} }, 2500);
       } catch (_) {}
 
-      // 2) If Chrome reports the related app, use a full Intent navigation.
+      // 2) Intent with same-page fallback (keeps banner) — not download.
+      try {
+        let httpsUrl = location.origin + location.pathname + location.search + location.hash;
+        const u = new URL(httpsUrl);
+        u.searchParams.delete('from_app');
+        u.searchParams.delete('web');
+        u.searchParams.delete('stay');
+        httpsUrl = u.toString();
+        const fallback = httpsUrl + (httpsUrl.indexOf('?') >= 0 ? '&' : '?') + 'from_app=1';
+        const pkg = i18n.appPackage || 'com.hybrixon.app';
+        const intentUrl = 'intent://open?url='
+          + encodeURIComponent(httpsUrl)
+          + '#Intent;scheme=hybrixon;package='
+          + encodeURIComponent(pkg)
+          + ';S.browser_fallback_url='
+          + encodeURIComponent(fallback)
+          + ';end';
+        setTimeout(() => {
+          if (!document.hidden) location.href = intentUrl;
+        }, 120);
+      } catch (_) {}
+
+      // 3) If Chrome reports the related app, retry Intent once more.
       if (typeof navigator.getInstalledRelatedApps === 'function') {
         navigator.getInstalledRelatedApps().then((apps) => {
           const found = (apps || []).some((a) =>

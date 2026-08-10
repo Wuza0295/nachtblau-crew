@@ -1027,13 +1027,16 @@ body.theme-light .footer {
 }
 
 .app-open-banner {
+  position: relative;
+  z-index: 45;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 0.65rem 1rem;
-  padding: 0.7rem 1rem;
-  background: linear-gradient(90deg, rgba(15, 118, 110, 0.18), rgba(194, 65, 12, 0.14));
+  padding: 0.75rem 1rem;
+  padding-top: calc(0.75rem + env(safe-area-inset-top, 0px));
+  background: linear-gradient(90deg, rgba(15, 118, 110, 0.22), rgba(194, 65, 12, 0.16));
   border-bottom: 1px solid var(--line);
 }
 .app-open-banner[hidden] {
@@ -1052,6 +1055,26 @@ body.theme-light .footer {
 }
 .app-open-banner-actions .btn {
   text-decoration: none;
+}
+@media (max-width: 720px) {
+  .app-open-banner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.55rem;
+  }
+  .app-open-banner-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.45rem;
+  }
+  .app-open-banner-actions [data-app-open] {
+    grid-column: 1 / -1;
+  }
+  .app-open-banner-actions .btn {
+    justify-content: center;
+    text-align: center;
+    min-height: 2.55rem;
+  }
 }
 
 .feed-compose { padding: 0.9rem 1rem; }
