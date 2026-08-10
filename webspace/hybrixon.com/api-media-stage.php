@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$user = allxion_current_user();
+$user = allxion_current_user_for_upload();
 if (!$user) {
     http_response_code(401);
     echo json_encode(['ok' => false, 'error' => 'Login required']);

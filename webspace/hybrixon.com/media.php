@@ -1,11 +1,9 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/includes/auth.php';
-require_once __DIR__ . '/includes/media_upload.php';
-require_once __DIR__ . '/includes/stories.php';
-require_once __DIR__ . '/includes/albums.php';
-require_once __DIR__ . '/includes/social.php';
+// Public post media only needs SQLite. Load session/privacy modules lazily for
+// protected media so common video byte-range requests stay on the fast path.
+require_once __DIR__ . '/includes/db.php';
 
 $mediaId = (int)($_GET['m'] ?? 0);
 $posterMediaId = (int)($_GET['poster'] ?? 0);
@@ -20,6 +18,8 @@ $mime = null;
 $isAdult = false;
 
 if ($storyId > 0) {
+    require_once __DIR__ . '/includes/auth.php';
+    require_once __DIR__ . '/includes/stories.php';
     $stmt = allxion_db()->prepare(
         'SELECT s.*, u.username, u.privacy_stories, u.banned_at, u.id AS owner_id
          FROM stories s JOIN users u ON u.id = s.user_id WHERE s.id = ?'
@@ -42,6 +42,8 @@ if ($storyId > 0) {
         $mime = (string)($row['media_mime'] ?: 'application/octet-stream');
     }
 } elseif ($albumPhotoId > 0) {
+    require_once __DIR__ . '/includes/auth.php';
+    require_once __DIR__ . '/includes/albums.php';
     $stmt = allxion_db()->prepare(
         'SELECT ap.*, a.privacy, a.user_id AS owner_id, u.banned_at
          FROM album_photos ap
@@ -142,6 +144,7 @@ if ($path === null || $path === '') {
 }
 
 if ($isAdult) {
+    require_once __DIR__ . '/includes/auth.php';
     $user = allxion_current_user();
     if (!$user || !user_age_verified($user)) {
         http_response_code(403);
@@ -160,17 +163,37 @@ if (!is_file($full)) {
     exit('Not found');
 }
 
+// Never keep the user's PHP session locked while a large range is streaming.
+if (session_status() === PHP_SESSION_ACTIVE) {
+    session_write_close();
+}
+
 $size = (int)filesize($full);
 $isVideo = str_starts_with((string)$mime, 'video/');
+$modified = (int)(filemtime($full) ?: time());
+$etag = '"' . hash('sha256', $path . '|' . $size . '|' . $modified) . '"';
 
 header('Content-Type: ' . $mime);
 header('X-Content-Type-Options: nosniff');
-header('Cache-Control: private, max-age=3600');
+header('Content-Disposition: inline');
+header('Cache-Control: private, max-age=86400, stale-while-revalidate=604800');
+header('ETag: ' . $etag);
+header('Last-Modified: ' . gmdate('D, d M Y H:i:s', $modified) . ' GMT');
 header('Accept-Ranges: bytes');
 
-// Byte-range support so large feed videos can seek without downloading everything.
 $range = (string)($_SERVER['HTTP_RANGE'] ?? '');
-if ($isVideo && $range !== '' && preg_match('/bytes=(\d*)-(\d*)/', $range, $m)) {
+$ifNoneMatch = trim((string)($_SERVER['HTTP_IF_NONE_MATCH'] ?? ''));
+$ifModifiedSince = strtotime((string)($_SERVER['HTTP_IF_MODIFIED_SINCE'] ?? '')) ?: 0;
+if (
+    $range === ''
+    && ($ifNoneMatch === $etag || ($ifNoneMatch === '' && $ifModifiedSince >= $modified))
+) {
+    http_response_code(304);
+    exit;
+}
+
+// Byte-range support so large feed videos can seek without downloading everything.
+if ($isVideo && $range !== '' && preg_match('/^bytes=(\d*)-(\d*)$/D', $range, $m)) {
     // RFC 7233 suffix range: "bytes=-500000" means the LAST 500000 bytes.
     // MP4 players use this to fetch the moov metadata stored at EOF.
     if ($m[1] === '' && $m[2] !== '') {

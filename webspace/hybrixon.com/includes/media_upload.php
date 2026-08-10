@@ -86,6 +86,42 @@ function media_store_video(array $file, bool $probeDuration = true): array
 }
 
 /**
+ * Store an already assembled local video (used by parallel chunk uploads).
+ *
+ * @return array{ok: true, path: string, mime: string, duration: ?int}|array{ok: false, error: string}
+ */
+function media_store_local_video(string $localPath, bool $probeDuration = false): array
+{
+    if (!is_file($localPath)) {
+        return ['ok' => false, 'error' => 'Zusammengesetztes Video fehlt.'];
+    }
+    $size = (int)filesize($localPath);
+    if ($size <= 0 || $size > MEDIA_VIDEO_MAX_BYTES) {
+        return ['ok' => false, 'error' => 'Video max. ' . (int)(MEDIA_VIDEO_MAX_BYTES / 1_000_000) . ' MB.'];
+    }
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+    $mime = (string)$finfo->file($localPath);
+    if (!in_array($mime, MEDIA_VIDEO_MIMES, true)) {
+        return ['ok' => false, 'error' => 'Nur MP4, WebM oder MOV erlaubt.'];
+    }
+    $duration = $probeDuration ? media_probe_video_duration($localPath) : null;
+    if ($duration !== null && $duration > MEDIA_VIDEO_MAX_SECONDS) {
+        return ['ok' => false, 'error' => 'Video max. ' . (int)(MEDIA_VIDEO_MAX_SECONDS / 60) . ' Minuten.'];
+    }
+    $ext = match ($mime) {
+        'video/mp4' => 'mp4',
+        'video/webm' => 'webm',
+        'video/quicktime' => 'mov',
+        default => 'bin',
+    };
+    $stored = media_move_local($localPath, 'videos', $ext, $mime);
+    if (!$stored['ok']) {
+        return $stored;
+    }
+    return ['ok' => true, 'path' => $stored['path'], 'mime' => $mime, 'duration' => $duration];
+}
+
+/**
  * @return array{ok: true, path: string, mime: string}|array{ok: false, error: string}
  */
 function media_move_upload(string $tmp, string $subdir, string $ext, string $mime): array
@@ -99,6 +135,30 @@ function media_move_upload(string $tmp, string $subdir, string $ext, string $mim
     $dest = $dir . '/' . $name;
     if (!move_uploaded_file($tmp, $dest)) {
         return ['ok' => false, 'error' => 'Datei konnte nicht gespeichert werden.'];
+    }
+    @chmod($dest, 0640);
+    return ['ok' => true, 'path' => $subdir . '/' . $name, 'mime' => $mime];
+}
+
+/**
+ * Atomically move a trusted local staging file into the uploads tree.
+ *
+ * @return array{ok: true, path: string, mime: string}|array{ok: false, error: string}
+ */
+function media_move_local(string $source, string $subdir, string $ext, string $mime): array
+{
+    $subdir = preg_replace('/[^a-z0-9_-]/i', '', $subdir) ?: 'misc';
+    $dir = ALLXION_UPLOADS . '/' . $subdir;
+    if (!is_dir($dir) && !mkdir($dir, 0750, true) && !is_dir($dir)) {
+        return ['ok' => false, 'error' => 'Upload-Verzeichnis konnte nicht erstellt werden.'];
+    }
+    $name = bin2hex(random_bytes(16)) . '.' . $ext;
+    $dest = $dir . '/' . $name;
+    if (!@rename($source, $dest)) {
+        if (!@copy($source, $dest) || !@unlink($source)) {
+            @unlink($dest);
+            return ['ok' => false, 'error' => 'Datei konnte nicht gespeichert werden.'];
+        }
     }
     @chmod($dest, 0640);
     return ['ok' => true, 'path' => $subdir . '/' . $name, 'mime' => $mime];
@@ -216,6 +276,41 @@ function media_client_ip(): string
 }
 
 /**
+ * Register a physically stored file only for the short session write.
+ *
+ * @return array{ok: true, token: string, kind: string, mime: string, size: int}
+ */
+function media_stage_register(int $userId, array $entry, int $size): array
+{
+    require_once __DIR__ . '/helpers.php';
+    allxion_session_start_lite();
+    if (!isset($_SESSION['hybrixon_media_stage']) || !is_array($_SESSION['hybrixon_media_stage'])) {
+        $_SESSION['hybrixon_media_stage'] = [];
+    }
+    foreach ($_SESSION['hybrixon_media_stage'] as $tok => $row) {
+        if (!is_array($row) || (int)($row['created'] ?? 0) < time() - 7200) {
+            if (is_array($row) && !empty($row['path'])) {
+                media_delete_path((string)$row['path']);
+            }
+            if (is_array($row) && !empty($row['poster_path'])) {
+                media_delete_path((string)$row['poster_path']);
+            }
+            unset($_SESSION['hybrixon_media_stage'][$tok]);
+        }
+    }
+
+    $token = bin2hex(random_bytes(16));
+    $_SESSION['hybrixon_media_stage'][$token] = $entry;
+    return [
+        'ok' => true,
+        'token' => $token,
+        'kind' => (string)$entry['kind'],
+        'mime' => (string)$entry['mime'],
+        'size' => $size,
+    ];
+}
+
+/**
  * Stage one uploaded file in the user session (avoids HTTP 413 on huge multi-POSTs).
  *
  * @return array{ok: true, token: string, kind: string, mime: string, size: int}|array{ok: false, error: string}
@@ -290,34 +385,48 @@ function media_stage_store(
         ];
     }
 
-    // Session only for the short token registration, not during file I/O.
-    allxion_session_start_lite();
-    if (!isset($_SESSION['hybrixon_media_stage']) || !is_array($_SESSION['hybrixon_media_stage'])) {
-        $_SESSION['hybrixon_media_stage'] = [];
+    return media_stage_register($userId, $entry, (int)($file['size'] ?? 0));
+}
+
+/**
+ * Finish staging a video assembled by the chunk endpoint.
+ *
+ * @return array{ok: true, token: string, kind: string, mime: string, size: int}|array{ok: false, error: string}
+ */
+function media_stage_store_local_video(
+    int $userId,
+    string $localPath,
+    int $expectedSize,
+    ?array $posterFile = null
+): array {
+    $stored = media_store_local_video($localPath, false);
+    if (!$stored['ok']) {
+        return ['ok' => false, 'error' => (string)$stored['error']];
     }
-    // Drop stale staged files (>2h)
-    foreach ($_SESSION['hybrixon_media_stage'] as $tok => $row) {
-        if (!is_array($row) || (int)($row['created'] ?? 0) < time() - 7200) {
-            if (is_array($row) && !empty($row['path'])) {
-                media_delete_path((string)$row['path']);
-            }
-            if (is_array($row) && !empty($row['poster_path'])) {
-                media_delete_path((string)$row['poster_path']);
-            }
-            unset($_SESSION['hybrixon_media_stage'][$tok]);
+
+    $posterPath = null;
+    $posterMime = null;
+    if (
+        $posterFile !== null
+        && (($posterFile['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK)
+    ) {
+        $posterStored = media_store_image($posterFile, 'posts');
+        if ($posterStored['ok']) {
+            $posterPath = (string)$posterStored['path'];
+            $posterMime = (string)$posterStored['mime'];
         }
     }
-
-    $token = bin2hex(random_bytes(16));
-    $_SESSION['hybrixon_media_stage'][$token] = $entry;
-
-    return [
-        'ok' => true,
-        'token' => $token,
-        'kind' => $kind,
-        'mime' => (string)$entry['mime'],
-        'size' => (int)($file['size'] ?? 0),
+    $entry = [
+        'user_id' => $userId,
+        'path' => $stored['path'],
+        'mime' => $stored['mime'],
+        'kind' => 'video',
+        'duration' => $stored['duration'] ?? null,
+        'poster_path' => $posterPath,
+        'poster_mime' => $posterMime,
+        'created' => time(),
     ];
+    return media_stage_register($userId, $entry, $expectedSize);
 }
 
 /**

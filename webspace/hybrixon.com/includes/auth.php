@@ -223,6 +223,29 @@ function allxion_current_user(): ?array
     return $user;
 }
 
+/**
+ * Authenticate high-frequency upload requests without writing presence/IP
+ * metadata for every parallel chunk. Normal page requests still track it.
+ */
+function allxion_current_user_for_upload(): ?array
+{
+    allxion_session_start();
+    $id = $_SESSION['user_id'] ?? null;
+    if (!$id) {
+        // Preserve remember-me behavior on the first request.
+        return allxion_current_user();
+    }
+    $user = allxion_fetch_user_by_id((int)$id);
+    if (!$user) {
+        return null;
+    }
+    if (user_is_banned($user)) {
+        allxion_logout();
+        return null;
+    }
+    return $user;
+}
+
 function user_is_banned(array $user): bool
 {
     return !empty($user['banned_at']);

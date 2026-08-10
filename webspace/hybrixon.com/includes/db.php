@@ -3,6 +3,9 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/config.php';
 
+// Increment whenever allxion_migrate() gains schema/data migrations.
+const HYBRIXON_SCHEMA_VERSION = 2026081002;
+
 function allxion_db(): PDO
 {
     static $pdo = null;
@@ -26,12 +29,89 @@ function allxion_db(): PDO
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
     $pdo->exec('PRAGMA foreign_keys = ON');
-    allxion_migrate($pdo);
+    $pdo->exec('PRAGMA busy_timeout = 5000');
+    $pdo->exec('PRAGMA synchronous = NORMAL');
+    $pdo->exec('PRAGMA temp_store = MEMORY');
+    $pdo->exec('PRAGMA mmap_size = 134217728');
+
+    $schemaVersion = (int)$pdo->query('PRAGMA user_version')->fetchColumn();
+    if ($schemaVersion < HYBRIXON_SCHEMA_VERSION) {
+        $schemaLock = @fopen(ALLXION_DATA . '/.schema.lock', 'c');
+        if ($schemaLock !== false) {
+            @flock($schemaLock, LOCK_EX);
+        }
+        try {
+            // Another PHP worker may have completed it while this one waited.
+            $schemaVersion = (int)$pdo->query('PRAGMA user_version')->fetchColumn();
+            if ($schemaVersion < HYBRIXON_SCHEMA_VERSION) {
+                allxion_migrate($pdo);
+                $pdo->exec('PRAGMA user_version = ' . HYBRIXON_SCHEMA_VERSION);
+            }
+        } finally {
+            if ($schemaLock !== false) {
+                @flock($schemaLock, LOCK_UN);
+                fclose($schemaLock);
+            }
+        }
+    }
+    allxion_db_maintenance($pdo);
     return $pdo;
+}
+
+/**
+ * Retention used to execute on every DB open, including every byte-range
+ * request. Run it at most hourly under a non-blocking process lock instead.
+ */
+function allxion_db_maintenance(PDO $pdo): void
+{
+    static $checked = false;
+    if ($checked) {
+        return;
+    }
+    $checked = true;
+
+    $stamp = ALLXION_DATA . '/.maintenance-hourly';
+    $lastRun = @filemtime($stamp);
+    if ($lastRun !== false && $lastRun >= time() - 3600) {
+        return;
+    }
+    $lock = @fopen(ALLXION_DATA . '/.maintenance.lock', 'c');
+    if ($lock === false || !@flock($lock, LOCK_EX | LOCK_NB)) {
+        if (is_resource($lock)) {
+            fclose($lock);
+        }
+        return;
+    }
+    try {
+        clearstatcache(true, $stamp);
+        $lastRun = @filemtime($stamp);
+        if ($lastRun !== false && $lastRun >= time() - 3600) {
+            return;
+        }
+        $pdo->exec("DELETE FROM stories WHERE expires_at < datetime('now')");
+        $pdo->exec("DELETE FROM remember_tokens WHERE expires_at < datetime('now')");
+        $ipDays = max(7, (int)IP_LOG_RETENTION_DAYS);
+        $pdo->exec(
+            "DELETE FROM user_ip_log WHERE created_at < datetime('now', '-{$ipDays} days')"
+        );
+        $pdo->exec(
+            "UPDATE users SET last_ip = NULL, last_ip_at = NULL
+             WHERE last_ip_at IS NOT NULL AND last_ip_at < datetime('now', '-{$ipDays} days')"
+        );
+        $days = max(30, (int)DM_RETENTION_DAYS);
+        $pdo->exec(
+            "DELETE FROM dm_messages WHERE created_at < datetime('now', '-{$days} days')"
+        );
+        @touch($stamp);
+    } finally {
+        @flock($lock, LOCK_UN);
+        fclose($lock);
+    }
 }
 
 function allxion_migrate(PDO $pdo): void
 {
+    $pdo->exec('PRAGMA journal_mode = WAL');
     $pdo->exec(<<<'SQL'
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -467,21 +547,6 @@ SQL);
         }
     }
 
-    // Expire old stories + purge orphaned media paths left to GC by cron of deletes
-    $hours = max(1, (int)STORY_TTL_HOURS);
-    $pdo->exec("DELETE FROM stories WHERE expires_at < datetime('now')");
-    $pdo->exec("DELETE FROM remember_tokens WHERE expires_at < datetime('now')");
-
-    // IP-Log: Speicherbegrenzung (DSGVO)
-    $ipDays = max(7, (int)IP_LOG_RETENTION_DAYS);
-    $pdo->exec(
-        "DELETE FROM user_ip_log WHERE created_at < datetime('now', '-{$ipDays} days')"
-    );
-    // last_ip auf Users älter als Retention leeren (kein Dauerarchiv)
-    $pdo->exec(
-        "UPDATE users SET last_ip = NULL, last_ip_at = NULL
-         WHERE last_ip_at IS NOT NULL AND last_ip_at < datetime('now', '-{$ipDays} days')"
-    );
     // Migrate legacy single image_path into post_media once
     $legacy = $pdo->query(
         "SELECT id, image_path, image_mime FROM posts
@@ -494,12 +559,6 @@ SQL);
     foreach ($legacy as $row) {
         $insMedia->execute([(int)$row['id'], $row['image_path'], $row['image_mime'] ?? null]);
     }
-
-    // Retention: purge old DMs (GDPR storage limitation)
-    $days = max(30, (int)DM_RETENTION_DAYS);
-    $pdo->exec(
-        "DELETE FROM dm_messages WHERE created_at < datetime('now', '-{$days} days')"
-    );
 
     // Ensure configured admins stay admins
     $adminStmt = $pdo->prepare('UPDATE users SET is_admin = 1 WHERE lower(username) = lower(?)');

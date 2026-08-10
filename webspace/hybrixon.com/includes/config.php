@@ -51,6 +51,11 @@ const MEDIA_IMAGE_COMPRESS_MIN_BYTES = 450_000;
 const MEDIA_IMAGE_COMPRESS_MAX_SIDE = 1920;
 /** Lower bound for parallel staged uploads (network congestion may cap it). */
 const MEDIA_UPLOAD_PARALLEL_MIN = 5;
+/** Large videos are split so one file can use parallel HTTP connections. */
+const MEDIA_UPLOAD_CHUNK_THRESHOLD_BYTES = 12_000_000;
+const MEDIA_UPLOAD_CHUNK_BYTES = 8_000_000;
+const MEDIA_UPLOAD_CHUNK_PARALLEL = 4;
+const MEDIA_UPLOAD_CHUNK_TTL_SECONDS = 7200;
 /** Phone/4K festival clips often exceed 200 MB — allow up to 500 MB per video. */
 const MEDIA_VIDEO_MAX_BYTES = 500_000_000;
 const MEDIA_VIDEO_MAX_SECONDS = 900;

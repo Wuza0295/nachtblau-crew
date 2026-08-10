@@ -416,7 +416,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const activeStagedUploads = (uploadState) => {
     let n = 0;
     uploadState.items.forEach((row) => {
-      if (row && row.xhrActive) n += 1;
+      if (row && row.xhrActive) {
+        n += Math.max(1, Number(row.xhrActive) || 1);
+      }
     });
     return n;
   };
@@ -564,10 +566,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const purpose = form.getAttribute('data-stage-purpose') || 'posts';
     const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
     const prevLabel = submitBtn ? (submitBtn.textContent || submitBtn.value || '') : '';
+    const uploadConnection = navigator.connection || navigator.mozConnection || navigator.webkitConnection || null;
+    const uploadEffectiveType = uploadConnection && uploadConnection.effectiveType
+      ? uploadConnection.effectiveType
+      : '';
+    const maxUploadRequests = uploadConnection && uploadConnection.saveData
+      ? 2
+      : (/^(slow-2g|2g)$/.test(uploadEffectiveType)
+        ? 2
+        : (uploadEffectiveType === '3g' ? 4 : (inNativeApp ? 5 : 6)));
     const state = {
       // key -> { token?: string, promise?: Promise<string>, loaded: number, total: number, error?: string }
       items: new Map(),
       busy: 0,
+      activeRequests: 0,
+      maxRequests: maxUploadRequests,
     };
     form._hxStage = state;
 
@@ -619,6 +632,231 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     };
 
+    const acquireRequestSlot = async () => {
+      while (state.activeRequests >= state.maxRequests) {
+        await sleep(35);
+      }
+      state.activeRequests += 1;
+    };
+
+    const releaseRequestSlot = () => {
+      state.activeRequests = Math.max(0, state.activeRequests - 1);
+    };
+
+    /**
+     * Send one multipart request through a form-wide connection limiter.
+     * Chunk workers and normal file uploads share this budget.
+     */
+    const sendUploadRequest = async (url, body, row, onProgress, timeoutMs) => {
+      await acquireRequestSlot();
+      row.xhrActive = (Number(row.xhrActive) || 0) + 1;
+      renderProgress();
+
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        let settled = false;
+        const finish = (callback) => {
+          if (settled) return;
+          settled = true;
+          row.xhrActive = Math.max(0, (Number(row.xhrActive) || 1) - 1);
+          releaseRequestSlot();
+          renderProgress();
+          callback();
+        };
+        xhr.open('POST', url);
+        xhr.withCredentials = true;
+        xhr.setRequestHeader('Accept', 'application/json');
+        if (typeof onProgress === 'function') {
+          xhr.upload.onprogress = onProgress;
+        }
+        xhr.onload = () => finish(() => {
+          let data = null;
+          try { data = JSON.parse(xhr.responseText); } catch (_) { data = null; }
+          resolve({ status: xhr.status, data, text: xhr.responseText || '' });
+        });
+        xhr.onerror = () => finish(() => reject(
+          Object.assign(new Error('Netzwerkfehler beim Upload.'), { retryable: true })
+        ));
+        xhr.ontimeout = () => finish(() => reject(
+          Object.assign(new Error('Upload-Timeout.'), { retryable: true })
+        ));
+        xhr.onabort = () => finish(() => reject(
+          Object.assign(new Error('Upload abgebrochen.'), { retryable: true })
+        ));
+        xhr.timeout = timeoutMs || (30 * 60 * 1000);
+        try {
+          xhr.send(body);
+        } catch (err) {
+          finish(() => reject(Object.assign(
+            err instanceof Error ? err : new Error('Upload konnte nicht gestartet werden.'),
+            { retryable: true }
+          )));
+        }
+      });
+    };
+
+    const uploadHttpError = (response, fallback) => {
+      const message = response && response.data && response.data.error
+        ? response.data.error
+        : (fallback || ('Upload fehlgeschlagen (HTTP ' + (response ? response.status : 0) + ').'));
+      const err = new Error(message);
+      const status = response ? response.status : 0;
+      err.retryable = status === 0 || status === 408 || status === 425
+        || status === 429 || status >= 500;
+      return err;
+    };
+
+    /**
+     * Upload one large video in parallel ranges. A failed range is retried
+     * independently, so a connection drop no longer restarts the whole file.
+     */
+    const uploadChunkedVideo = async (uploadFile, posterPromise, row, csrf) => {
+      const chunkUrl = i18n.mediaChunkUrl || 'api-media-chunk.php';
+      let uploadId = '';
+      try {
+        const initBody = new FormData();
+        initBody.append('_csrf', csrf);
+        initBody.append('action', 'init');
+        initBody.append('name', uploadFile.name || 'video');
+        initBody.append('mime', uploadFile.type || 'application/octet-stream');
+        initBody.append('size', String(uploadFile.size));
+        const initResponse = await sendUploadRequest(chunkUrl, initBody, row, null, 60000);
+        if (
+          initResponse.status < 200 || initResponse.status >= 300
+          || !initResponse.data || !initResponse.data.ok || !initResponse.data.upload_id
+        ) {
+          throw uploadHttpError(initResponse, 'Chunk-Upload konnte nicht gestartet werden.');
+        }
+
+        uploadId = String(initResponse.data.upload_id);
+        const chunkSize = Math.max(
+          1024 * 1024,
+          Number(initResponse.data.chunk_size) || Number(i18n.mediaChunkSize) || 8000000
+        );
+        const chunkCount = Math.ceil(uploadFile.size / chunkSize);
+        const perFileParallel = Math.max(
+          1,
+          Math.min(
+            state.maxRequests,
+            Number(i18n.mediaChunkParallel) || 4,
+            chunkCount
+          )
+        );
+        const partLoaded = new Array(chunkCount).fill(0);
+        let nextPart = 0;
+
+        const renderPartProgress = () => {
+          row.loaded = Math.min(
+            uploadFile.size,
+            partLoaded.reduce((sum, bytes) => sum + bytes, 0)
+          );
+          row.total = uploadFile.size;
+          renderProgress();
+        };
+
+        const uploadPart = async (index) => {
+          const start = index * chunkSize;
+          const end = Math.min(uploadFile.size, start + chunkSize);
+          const blob = uploadFile.slice(start, end, uploadFile.type || 'application/octet-stream');
+          let lastErr = null;
+          for (let attempt = 1; attempt <= 4; attempt++) {
+            partLoaded[index] = 0;
+            renderPartProgress();
+            try {
+              if (attempt > 1) await sleep(350 * attempt);
+              const body = new FormData();
+              body.append('_csrf', csrf);
+              body.append('action', 'part');
+              body.append('upload_id', uploadId);
+              body.append('index', String(index));
+              body.append('chunk', blob, 'chunk-' + index + '.part');
+              const response = await sendUploadRequest(
+                chunkUrl,
+                body,
+                row,
+                (event) => {
+                  if (!event.lengthComputable) return;
+                  partLoaded[index] = Math.min(blob.size, event.loaded);
+                  renderPartProgress();
+                },
+                10 * 60 * 1000
+              );
+              if (
+                response.status < 200 || response.status >= 300
+                || !response.data || !response.data.ok
+              ) {
+                throw uploadHttpError(response, 'Video-Block ' + (index + 1) + ' fehlgeschlagen.');
+              }
+              partLoaded[index] = blob.size;
+              renderPartProgress();
+              return;
+            } catch (err) {
+              lastErr = err;
+              if (!err || !err.retryable || attempt === 4) throw err;
+            }
+          }
+          throw lastErr || new Error('Video-Block fehlgeschlagen.');
+        };
+
+        const worker = async () => {
+          while (nextPart < chunkCount) {
+            const index = nextPart++;
+            await uploadPart(index);
+          }
+        };
+        await Promise.all(Array.from({ length: perFileParallel }, () => worker()));
+        row.loaded = uploadFile.size;
+        renderProgress();
+
+        const completeBody = new FormData();
+        completeBody.append('_csrf', csrf);
+        completeBody.append('action', 'complete');
+        completeBody.append('upload_id', uploadId);
+        const posterFile = await posterPromise;
+        if (posterFile) {
+          completeBody.append('poster', posterFile, posterFile.name);
+        }
+
+        let completeResponse = null;
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          try {
+            if (attempt > 1) await sleep(500 * attempt);
+            completeResponse = await sendUploadRequest(
+              chunkUrl,
+              completeBody,
+              row,
+              null,
+              5 * 60 * 1000
+            );
+            if (
+              completeResponse.status >= 200 && completeResponse.status < 300
+              && completeResponse.data && completeResponse.data.ok
+              && completeResponse.data.token
+            ) {
+              return String(completeResponse.data.token);
+            }
+            throw uploadHttpError(completeResponse, 'Video konnte nicht abgeschlossen werden.');
+          } catch (err) {
+            if (!err || !err.retryable || attempt === 3) throw err;
+          }
+        }
+        throw uploadHttpError(completeResponse, 'Video konnte nicht abgeschlossen werden.');
+      } catch (err) {
+        if (uploadId) {
+          const abortBody = new FormData();
+          abortBody.append('_csrf', csrf);
+          abortBody.append('action', 'abort');
+          abortBody.append('upload_id', uploadId);
+          fetch(i18n.mediaChunkUrl || 'api-media-chunk.php', {
+            method: 'POST',
+            credentials: 'same-origin',
+            body: abortBody,
+          }).catch(() => {});
+        }
+        throw err;
+      }
+    };
+
     const stageOne = (key, file, kind) => {
       if (state.items.has(key) && (state.items.get(key).token || state.items.get(key).promise)) {
         return state.items.get(key).promise || Promise.resolve(state.items.get(key).token);
@@ -631,7 +869,7 @@ document.addEventListener('DOMContentLoaded', () => {
         error: null,
         kind,
         file,
-        xhrActive: false,
+        xhrActive: 0,
       };
       state.items.set(key, row);
 
@@ -654,66 +892,63 @@ document.addEventListener('DOMContentLoaded', () => {
               + Math.floor(maxBytes / 1000000) + ' MB.'
             ), { retryable: false });
           }
-          const posterFile = isVideo && purpose !== 'stories'
-            ? await createVideoPoster(uploadFile)
-            : null;
-
           const csrfInput = form.querySelector('input[name="_csrf"]');
           const csrf = csrfInput ? csrfInput.value : (i18n.csrf || '');
+          const posterPromise = isVideo && purpose !== 'stories'
+            ? createVideoPoster(uploadFile)
+            : Promise.resolve(null);
+          const chunkThreshold = Number(i18n.mediaChunkThreshold) || 12000000;
+
+          if (isVideo && uploadFile.size >= chunkThreshold && i18n.mediaChunkUrl) {
+            const token = await uploadChunkedVideo(uploadFile, posterPromise, row, csrf);
+            row.token = token;
+            row.loaded = row.total;
+            row.error = null;
+            renderProgress();
+            return token;
+          }
+
+          const posterFile = await posterPromise;
 
           let lastErr = null;
           for (let attempt = 1; attempt <= 4; attempt++) {
             try {
               if (attempt > 1) await sleep(400 * attempt);
-              const token = await new Promise((resolve, reject) => {
-                const body = new FormData();
-                body.append('_csrf', csrf);
-                body.append('kind', kind);
-                body.append('purpose', purpose);
-                body.append('file', uploadFile, uploadFile.name);
-                if (posterFile) {
-                  body.append('poster', posterFile, posterFile.name);
-                }
-                const xhr = new XMLHttpRequest();
-                row.xhrActive = true;
-                xhr.open('POST', stageUrl);
-                xhr.withCredentials = true;
-                xhr.setRequestHeader('Accept', 'application/json');
-                xhr.upload.onprogress = (e) => {
-                  if (!e.lengthComputable) return;
-                  row.loaded = e.loaded;
-                  row.total = e.total;
+              const body = new FormData();
+              body.append('_csrf', csrf);
+              body.append('kind', kind);
+              body.append('purpose', purpose);
+              body.append('file', uploadFile, uploadFile.name);
+              if (posterFile) {
+                body.append('poster', posterFile, posterFile.name);
+              }
+              const response = await sendUploadRequest(
+                stageUrl,
+                body,
+                row,
+                (event) => {
+                  if (!event.lengthComputable) return;
+                  row.loaded = Math.min(uploadFile.size, event.loaded);
+                  row.total = uploadFile.size;
                   renderProgress();
-                };
-                xhr.onload = () => {
-                  row.xhrActive = false;
-                  let data = null;
-                  try { data = JSON.parse(xhr.responseText); } catch (_) { data = null; }
-                  if (xhr.status === 413) {
-                    const err = new Error(
-                      'Datei zu groß für den Server (413). Max. '
-                      + Math.floor(maxVideoBytes / 1000000) + ' MB je Video.'
-                    );
-                    err.retryable = false;
-                    reject(err);
-                    return;
-                  }
-                  if (xhr.status < 200 || xhr.status >= 300 || !data || !data.ok || !data.token) {
-                    const err = new Error(
-                      (data && data.error) ? data.error : ('Upload fehlgeschlagen (HTTP ' + xhr.status + ').')
-                    );
-                    err.retryable = xhr.status === 0 || xhr.status === 408 || xhr.status === 429
-                      || xhr.status >= 500;
-                    reject(err);
-                    return;
-                  }
-                  resolve(data.token);
-                };
-                xhr.onerror = () => { row.xhrActive = false; reject(Object.assign(new Error('Netzwerkfehler beim Upload.'), { retryable: true })); };
-                xhr.ontimeout = () => { row.xhrActive = false; reject(Object.assign(new Error('Upload-Timeout.'), { retryable: true })); };
-                xhr.timeout = 30 * 60 * 1000;
-                xhr.send(body);
-              });
+                },
+                30 * 60 * 1000
+              );
+              if (response.status === 413) {
+                const err = new Error(
+                  'Datei zu groß für den Server (413). Max. '
+                  + Math.floor(maxBytes / 1000000) + ' MB.'
+                );
+                err.retryable = false;
+                throw err;
+              }
+              if (
+                response.status < 200 || response.status >= 300
+                || !response.data || !response.data.ok || !response.data.token
+              ) {
+                throw uploadHttpError(response);
+              }
+              const token = String(response.data.token);
               row.token = token;
               row.loaded = row.total;
               row.error = null;
