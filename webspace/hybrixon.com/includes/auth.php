@@ -4,6 +4,93 @@ declare(strict_types=1);
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/helpers.php';
 
+const ALLXION_USER_SELECT = 'id, username, email, birthdate, age_verified_at, age_status, age_doc_path, age_requested_at, age_reviewed_at, age_review_note, age_provider, dm_rules_accepted_at, dm_rules_version, is_admin, banned_at, ban_reason, banned_by, display_name, bio, avatar_path, banner_path, postal_code, city, privacy_profile, privacy_posts, privacy_dms, privacy_friends, privacy_albums, privacy_stories, privacy_groups, privacy_relationship, privacy_search, relationship_status, partner_id, partner_pending_id, theme, brand_style, sidebar_items, email_notify_enabled, email_notify_activity, email_notify_messages, email_notify_friend_posts, email_notify_group_posts, auto_accept_friends, ui_lang, last_ip, last_ip_at, last_seen_at, created_at';
+
+function allxion_cookie_path(): string
+{
+    return allxion_base_path() === '' ? '/' : allxion_base_path() . '/';
+}
+
+/** Active UI theme: logged-in preference, else guest cookie, else light. */
+function hybrixon_active_theme(?array $user = null): string
+{
+    if ($user && in_array((string)($user['theme'] ?? ''), ['light', 'dark'], true)) {
+        return (string)$user['theme'];
+    }
+    $cookie = (string)($_COOKIE['hybrixon_theme'] ?? '');
+    if (in_array($cookie, ['light', 'dark'], true)) {
+        return $cookie;
+    }
+    return 'light';
+}
+
+function hybrixon_set_theme_cookie(string $theme): void
+{
+    if (!in_array($theme, ['light', 'dark'], true)) {
+        $theme = 'light';
+    }
+    $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+    setcookie('hybrixon_theme', $theme, [
+        'expires' => time() + (400 * 86400),
+        'path' => allxion_cookie_path(),
+        'secure' => $secure,
+        'httponly' => false,
+        'samesite' => 'Lax',
+    ]);
+    $_COOKIE['hybrixon_theme'] = $theme;
+}
+
+/** Brand mark in topbar: logo | logo_text | text */
+function hybrixon_brand_styles(): array
+{
+    return [
+        'logo' => 'Nur Logo',
+        'logo_text' => 'Logo und Text',
+        'text' => 'Nur Text',
+    ];
+}
+
+function hybrixon_active_brand_style(?array $user = null): string
+{
+    $allowed = array_keys(hybrixon_brand_styles());
+    if ($user && in_array((string)($user['brand_style'] ?? ''), $allowed, true)) {
+        return (string)$user['brand_style'];
+    }
+    $cookie = (string)($_COOKIE['hybrixon_brand'] ?? '');
+    if (in_array($cookie, $allowed, true)) {
+        return $cookie;
+    }
+    return 'logo_text';
+}
+
+function hybrixon_set_brand_cookie(string $style): void
+{
+    if (!isset(hybrixon_brand_styles()[$style])) {
+        $style = 'logo_text';
+    }
+    $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+    setcookie('hybrixon_brand', $style, [
+        'expires' => time() + (400 * 86400),
+        'path' => allxion_cookie_path(),
+        'secure' => $secure,
+        'httponly' => false,
+        'samesite' => 'Lax',
+    ]);
+    $_COOKIE['hybrixon_brand'] = $style;
+}
+
+function hybrixon_sync_ui_cookies(array $user): void
+{
+    $theme = (string)($user['theme'] ?? 'light');
+    if (in_array($theme, ['light', 'dark'], true)) {
+        hybrixon_set_theme_cookie($theme);
+    }
+    $brand = (string)($user['brand_style'] ?? 'logo_text');
+    if (isset(hybrixon_brand_styles()[$brand])) {
+        hybrixon_set_brand_cookie($brand);
+    }
+}
+
 function allxion_session_start(): void
 {
     if (session_status() === PHP_SESSION_ACTIVE) {
@@ -12,7 +99,7 @@ function allxion_session_start(): void
     session_name('hybrixon_sess');
     session_set_cookie_params([
         'lifetime' => 0,
-        'path' => allxion_base_path() === '' ? '/' : allxion_base_path() . '/',
+        'path' => allxion_cookie_path(),
         'secure' => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),
         'httponly' => true,
         'samesite' => 'Lax',
@@ -20,18 +107,107 @@ function allxion_session_start(): void
     session_start();
 }
 
+function allxion_fetch_user_by_id(int $id): ?array
+{
+    $stmt = allxion_db()->prepare('SELECT ' . ALLXION_USER_SELECT . ' FROM users WHERE id = ?');
+    $stmt->execute([$id]);
+    $user = $stmt->fetch();
+    return $user ?: null;
+}
+
+function allxion_remember_cookie_name(): string
+{
+    return 'hybrixon_remember';
+}
+
+function allxion_set_remember_me(int $userId): void
+{
+    $raw = bin2hex(random_bytes(32));
+    $hash = hash('sha256', $raw);
+    $days = max(1, (int)REMEMBER_ME_DAYS);
+    allxion_db()->prepare(
+        "INSERT INTO remember_tokens (user_id, token_hash, expires_at)
+         VALUES (?, ?, datetime('now', '+{$days} days'))"
+    )->execute([$userId, $hash]);
+    $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+    setcookie(allxion_remember_cookie_name(), $userId . ':' . $raw, [
+        'expires' => time() + ($days * 86400),
+        'path' => allxion_cookie_path(),
+        'secure' => $secure,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+}
+
+function allxion_clear_remember_me(?int $userId = null): void
+{
+    $cookie = (string)($_COOKIE[allxion_remember_cookie_name()] ?? '');
+    if ($cookie !== '' && str_contains($cookie, ':')) {
+        [, $raw] = explode(':', $cookie, 2);
+        $hash = hash('sha256', $raw);
+        allxion_db()->prepare('DELETE FROM remember_tokens WHERE token_hash = ?')->execute([$hash]);
+    }
+    if ($userId) {
+        allxion_db()->prepare('DELETE FROM remember_tokens WHERE user_id = ?')->execute([$userId]);
+    }
+    $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+    setcookie(allxion_remember_cookie_name(), '', [
+        'expires' => time() - 42000,
+        'path' => allxion_cookie_path(),
+        'secure' => $secure,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+}
+
+function allxion_try_remember_login(): ?array
+{
+    $cookie = (string)($_COOKIE[allxion_remember_cookie_name()] ?? '');
+    if ($cookie === '' || !str_contains($cookie, ':')) {
+        return null;
+    }
+    [$uidRaw, $raw] = explode(':', $cookie, 2);
+    $userId = (int)$uidRaw;
+    if ($userId <= 0 || $raw === '') {
+        return null;
+    }
+    $hash = hash('sha256', $raw);
+    $stmt = allxion_db()->prepare(
+        "SELECT user_id FROM remember_tokens
+         WHERE token_hash = ? AND user_id = ? AND expires_at > datetime('now')"
+    );
+    $stmt->execute([$hash, $userId]);
+    if (!(int)$stmt->fetchColumn()) {
+        allxion_clear_remember_me();
+        return null;
+    }
+    $user = allxion_fetch_user_by_id($userId);
+    if (!$user || user_is_banned($user)) {
+        allxion_clear_remember_me($userId);
+        return null;
+    }
+    allxion_session_start();
+    session_regenerate_id(true);
+    $_SESSION['user_id'] = $userId;
+    // Rotate token
+    allxion_db()->prepare('DELETE FROM remember_tokens WHERE token_hash = ?')->execute([$hash]);
+    allxion_set_remember_me($userId);
+    hybrixon_sync_ui_cookies($user);
+    return $user;
+}
+
 function allxion_current_user(): ?array
 {
     allxion_session_start();
     $id = $_SESSION['user_id'] ?? null;
     if (!$id) {
-        return null;
+        $remembered = allxion_try_remember_login();
+        if (!$remembered) {
+            return null;
+        }
+        $id = (int)$remembered['id'];
     }
-    $stmt = allxion_db()->prepare(
-        'SELECT id, username, email, birthdate, age_verified_at, age_status, age_doc_path, age_requested_at, age_reviewed_at, age_review_note, age_provider, dm_rules_accepted_at, dm_rules_version, is_admin, banned_at, ban_reason, banned_by, created_at FROM users WHERE id = ?'
-    );
-    $stmt->execute([(int)$id]);
-    $user = $stmt->fetch();
+    $user = allxion_fetch_user_by_id((int)$id);
     if (!$user) {
         return null;
     }
@@ -39,6 +215,8 @@ function allxion_current_user(): ?array
         allxion_logout();
         return null;
     }
+    require_once __DIR__ . '/social.php';
+    social_track_ip((int)$user['id']);
     if (!empty($user['is_admin']) && user_is_adult($user) && !user_age_verified($user)) {
         $user = allxion_ensure_admin_age_verified($user);
     }
@@ -53,7 +231,7 @@ function user_is_banned(array $user): bool
 /**
  * @return true|string true on success, error message on failure
  */
-function allxion_login(string $login, string $password): bool|string
+function allxion_login(string $login, string $password, bool $remember = false): bool|string
 {
     $stmt = allxion_db()->prepare(
         'SELECT * FROM users WHERE username = ? OR email = ? LIMIT 1'
@@ -72,6 +250,12 @@ function allxion_login(string $login, string $password): bool|string
     allxion_session_start();
     session_regenerate_id(true);
     $_SESSION['user_id'] = (int)$user['id'];
+    require_once __DIR__ . '/social.php';
+    social_track_ip((int)$user['id']);
+    if ($remember) {
+        allxion_set_remember_me((int)$user['id']);
+    }
+    hybrixon_sync_ui_cookies($user);
     return true;
 }
 
@@ -85,9 +269,37 @@ function allxion_require_login(): array
     return $user;
 }
 
+function allxion_change_password(array $user, string $current, string $newPassword): array
+{
+    if ($current === '' && $newPassword === '') {
+        return ['Bitte aktuelles und neues Passwort eingeben.'];
+    }
+    if ($current === '') {
+        return ['Bitte aktuelles Passwort eingeben.'];
+    }
+    if (strlen($newPassword) < 8) {
+        return ['Neues Passwort mindestens 8 Zeichen.'];
+    }
+    $row = allxion_db()->prepare('SELECT password_hash FROM users WHERE id = ?');
+    $row->execute([(int)$user['id']]);
+    $hash = (string)$row->fetchColumn();
+    if ($hash === '' || !password_verify($current, $hash)) {
+        return ['Aktuelles Passwort ist falsch.'];
+    }
+    $newHash = password_hash($newPassword, PASSWORD_DEFAULT);
+    allxion_db()->prepare('UPDATE users SET password_hash = ? WHERE id = ?')
+        ->execute([$newHash, (int)$user['id']]);
+    // Invalidate other remember sessions
+    allxion_db()->prepare('DELETE FROM remember_tokens WHERE user_id = ?')
+        ->execute([(int)$user['id']]);
+    return [];
+}
+
 function allxion_logout(): void
 {
     allxion_session_start();
+    $uid = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
+    allxion_clear_remember_me($uid);
     $_SESSION = [];
     if (ini_get('session.use_cookies')) {
         $p = session_get_cookie_params();
@@ -126,17 +338,19 @@ function allxion_ban_user(int $targetUserId, array $actor, string $reason = '', 
     )->execute([$reason !== '' ? $reason : null, (int)$actor['id'], $targetUserId]);
 
     if ($removePosts) {
-        require_once __DIR__ . '/moderation.php';
+        require_once __DIR__ . '/posts.php';
         $posts = allxion_db()->prepare(
-            "SELECT id, image_path FROM posts WHERE user_id = ? AND moderation_status != 'removed'"
+            "SELECT id FROM posts WHERE user_id = ? AND moderation_status != 'removed'"
         );
         $posts->execute([$targetUserId]);
         foreach ($posts->fetchAll() as $p) {
-            content_delete_image($p['image_path'] ?? null);
+            allxion_delete_post_media_files((int)$p['id']);
         }
         allxion_db()->prepare(
-            "UPDATE posts SET moderation_status = 'removed', image_path = NULL, image_mime = NULL WHERE user_id = ?"
+            "UPDATE posts SET moderation_status = 'removed', image_path = NULL, image_mime = NULL,
+             video_path = NULL, video_mime = NULL, video_duration = NULL WHERE user_id = ?"
         )->execute([$targetUserId]);
+        allxion_db()->prepare('DELETE FROM post_media WHERE post_id IN (SELECT id FROM posts WHERE user_id = ?)')->execute([$targetUserId]);
         allxion_db()->prepare(
             "UPDATE content_reports SET status = 'removed', reviewed_at = datetime('now'), reviewed_by = ?,
              admin_note = COALESCE(NULLIF(admin_note, ''), 'user banned')
@@ -176,20 +390,35 @@ function allxion_register(
     string $password,
     string $birthdate,
     bool $termsOk = false,
-    bool $privacyOk = false
+    bool $privacyOk = false,
+    string $theme = 'light',
+    string $postalCode = '',
+    string $city = ''
 ): array
 {
     require_once __DIR__ . '/legal.php';
+    require_once __DIR__ . '/geo.php';
+    require_once __DIR__ . '/social.php';
 
     $username = trim($username);
     $email = trim(mb_strtolower($email));
+    $theme = in_array($theme, ['light', 'dark'], true) ? $theme : 'light';
+    $postalCode = trim($postalCode);
+    $city = trim($city);
     $errors = [];
 
     if (!preg_match('/^[a-zA-Z0-9_]{3,24}$/', $username)) {
         $errors[] = 'Benutzername: 3–24 Zeichen, nur Buchstaben, Zahlen und _.';
     }
+    require_once __DIR__ . '/official.php';
+    if (hybrixon_is_official_username($username)) {
+        $errors[] = 'Dieser Benutzername ist reserviert.';
+    }
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $errors[] = 'Bitte eine gültige E-Mail angeben.';
+    }
+    if (mb_strtolower($email) === mb_strtolower(HYBRIXON_OFFICIAL_EMAIL)) {
+        $errors[] = 'Diese E-Mail ist reserviert.';
     }
     if (strlen($password) < 8) {
         $errors[] = 'Passwort mindestens 8 Zeichen.';
@@ -200,6 +429,7 @@ function allxion_register(
     } elseif ($age < ALLXION_MIN_REGISTER_AGE) {
         $errors[] = 'Registrierung erst ab ' . ALLXION_MIN_REGISTER_AGE . ' Jahren.';
     }
+    $errors = array_merge($errors, social_validate_location($postalCode, $city, true));
     if (!$termsOk) {
         $errors[] = 'Bitte die Nutzungsbedingungen akzeptieren.';
     }
@@ -214,14 +444,16 @@ function allxion_register(
     $hash = password_hash($password, PASSWORD_DEFAULT);
     try {
         $stmt = allxion_db()->prepare(
-            'INSERT INTO users (username, email, password_hash, birthdate, legal_accepted_at, legal_docs_version)
-             VALUES (?, ?, ?, ?, datetime(\'now\'), ?)'
+            'INSERT INTO users (username, email, password_hash, birthdate, legal_accepted_at, legal_docs_version, theme, postal_code, city)
+             VALUES (?, ?, ?, ?, datetime(\'now\'), ?, ?, ?, ?)'
         );
-        $stmt->execute([$username, $email, $hash, $birthdate, LEGAL_DOCS_VERSION]);
+        $stmt->execute([$username, $email, $hash, $birthdate, LEGAL_DOCS_VERSION, $theme, $postalCode, $city]);
         $id = (int)allxion_db()->lastInsertId();
         allxion_session_start();
         session_regenerate_id(true);
         $_SESSION['user_id'] = $id;
+        hybrixon_set_theme_cookie($theme);
+        hybrixon_set_brand_cookie('logo_text');
     } catch (PDOException $e) {
         if (str_contains($e->getMessage(), 'UNIQUE')) {
             return ['Benutzername oder E-Mail ist bereits vergeben.'];
@@ -232,14 +464,17 @@ function allxion_register(
 }
 
 /**
- * Permanently delete account and related data (GDPR).
+ * Permanently delete account and related data (GDPR Art. 17).
  * Last admin cannot delete themselves.
  * @return list<string>
  */
 function allxion_delete_account(array $user, string $password): array
 {
+    require_once __DIR__ . '/media_upload.php';
+    require_once __DIR__ . '/posts.php';
+
     $userId = (int)$user['id'];
-    $row = allxion_db()->prepare('SELECT password_hash, is_admin FROM users WHERE id = ?');
+    $row = allxion_db()->prepare('SELECT password_hash, is_admin, avatar_path, banner_path, age_doc_path FROM users WHERE id = ?');
     $row->execute([$userId]);
     $dbUser = $row->fetch();
     if (!$dbUser || !password_verify($password, $dbUser['password_hash'])) {
@@ -250,6 +485,47 @@ function allxion_delete_account(array $user, string $password): array
     }
 
     $pdo = allxion_db();
+
+    // Media files (DB rows cascade with user)
+    $posts = $pdo->prepare('SELECT id FROM posts WHERE user_id = ?');
+    $posts->execute([$userId]);
+    foreach ($posts->fetchAll() as $p) {
+        allxion_delete_post_media_files((int)$p['id']);
+    }
+
+    $stories = $pdo->prepare('SELECT media_path FROM stories WHERE user_id = ?');
+    $stories->execute([$userId]);
+    foreach ($stories->fetchAll() as $s) {
+        media_delete_path($s['media_path'] ?? null);
+    }
+
+    $albums = $pdo->prepare(
+        'SELECT ap.path FROM album_photos ap
+         JOIN albums a ON a.id = ap.album_id WHERE a.user_id = ?'
+    );
+    $albums->execute([$userId]);
+    foreach ($albums->fetchAll() as $ph) {
+        media_delete_path($ph['path'] ?? null);
+    }
+
+    media_delete_path($dbUser['avatar_path'] ?? null);
+    media_delete_path($dbUser['banner_path'] ?? null);
+    if (!empty($dbUser['age_doc_path'])) {
+        $doc = ALLXION_AGE_DOCS . '/' . basename((string)$dbUser['age_doc_path']);
+        if (is_file($doc)) {
+            @unlink($doc);
+        }
+    }
+
+    // Break partner links pointing at this user
+    $pdo->prepare('UPDATE users SET partner_id = NULL WHERE partner_id = ?')->execute([$userId]);
+    $pdo->prepare('UPDATE users SET partner_pending_id = NULL WHERE partner_pending_id = ?')->execute([$userId]);
+
+    // Explicit privacy-sensitive tables (also covered by FK CASCADE)
+    $pdo->prepare('DELETE FROM remember_tokens WHERE user_id = ?')->execute([$userId]);
+    $pdo->prepare('DELETE FROM user_ip_log WHERE user_id = ?')->execute([$userId]);
+    $pdo->prepare('DELETE FROM age_audit WHERE user_id = ?')->execute([$userId]);
+
     $pdo->prepare('DELETE FROM users WHERE id = ?')->execute([$userId]);
     allxion_logout();
     return [];
@@ -333,11 +609,7 @@ function allxion_ensure_admin_age_verified(array $user): array
     $stmt->execute([(int)$user['id']]);
     age_audit((int)$user['id'], 'admin_auto_age_verify', 'admin role');
 
-    $reload = allxion_db()->prepare(
-        'SELECT id, username, email, birthdate, age_verified_at, age_status, age_doc_path, age_requested_at, age_reviewed_at, age_review_note, age_provider, dm_rules_accepted_at, dm_rules_version, is_admin, banned_at, ban_reason, banned_by, created_at FROM users WHERE id = ?'
-    );
-    $reload->execute([(int)$user['id']]);
-    return $reload->fetch() ?: $user;
+    return allxion_fetch_user_by_id((int)$user['id']) ?: $user;
 }
 
 function admin_count(): int

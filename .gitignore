@@ -128,6 +128,7 @@ webspace/hybrixon.com/data/*.sqlite-*
 webspace/hybrixon.com/data/admin.password
 webspace/hybrixon.com/data/yoti.json
 webspace/hybrixon.com/data/vapid.json
+webspace/hybrixon.com/data/hosting-monitor.json
 webspace/hybrixon.com/data/age-docs/**
 !webspace/hybrixon.com/data/age-docs/.htaccess
 webspace/hybrixon.com/uploads/*

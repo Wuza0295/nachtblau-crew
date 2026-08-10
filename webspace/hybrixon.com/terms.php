@@ -34,6 +34,8 @@ require __DIR__ . '/includes/header.php';
   <p>
     Du bist für Zugangsdaten und Aktivitäten unter deinem Konto verantwortlich.
     Ein Konto pro Person; kein Missbrauch fremder Konten.
+    <strong>Der Ort ist Pflicht</strong>; die PLZ ist optional und muss zutreffend sein, wenn angegeben.
+    Falschangaben können geprüft und mit Einschränkungen oder Sperrung geahndet werden.
   </p>
 
   <h2>4. Erlaubte / verbotene Inhalte</h2>

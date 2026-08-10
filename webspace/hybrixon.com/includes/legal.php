@@ -8,7 +8,7 @@ const LEGAL_EMAIL = 'info@nacht-blau.de';
 const LEGAL_STAND = '2026-08-06';
 
 /** Bump when terms/privacy change — registration stores this version. */
-const LEGAL_DOCS_VERSION = '2026-08-06-soft-images';
+const LEGAL_DOCS_VERSION = '2026-08-06-ort-plz-optional';
 
 function legal_parent_impressum_url(): string
 {
