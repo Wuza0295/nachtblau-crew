@@ -1,0 +1,78 @@
+{
+  "expo": {
+    "name": "Hybrixon",
+    "slug": "hybrixon",
+    "scheme": "hybrixon",
+    "version": "2.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "plugins": [
+      "expo-secure-store",
+      "expo-notifications",
+      "expo-background-task",
+      "expo-document-picker",
+      "expo-image-picker"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.hybrixon.app",
+      "associatedDomains": [
+        "applinks:hybrixon.com"
+      ],
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "processing",
+          "remote-notification"
+        ]
+      }
+    },
+    "android": {
+      "package": "com.hybrixon.app",
+      "versionCode": 5,
+      "permissions": [
+        "INTERNET",
+        "POST_NOTIFICATIONS",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_DATA_SYNC"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "hybrixon.com",
+              "pathPrefix": "/"
+            },
+            {
+              "scheme": "hybrixon",
+              "host": "open"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ],
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "apiUrl": "https://api.hybrixon.com/v2",
+      "eas": {
+        "projectId": "SET_AFTER_EAS_INIT"
+      }
+    }
+  }
+}
