@@ -110,6 +110,10 @@ service plus:
 - TLS/DNS for the PWA and API;
 - Expo/EAS project ID and Android signing migration for `com.hybrixon.app`.
 
+Deploy the v2 PWA on its dedicated host (for example
+`next.hybrixon.com`). Do not mount its root-scoped service worker at the current
+`hybrixon.com/` root while PHP and its existing push service worker are active.
+
 Never use the development MinIO anonymous-read policy for private production
 media.
 
