@@ -291,9 +291,9 @@ document.addEventListener('DOMContentLoaded', () => {
     || /HybrixonApp/i.test(navigator.userAgent || '');
 
   /** True parallel: count real in-flight XHRs (file start → response), not workers. */
-  const activeStagedUploads = () => {
+  const activeStagedUploads = (uploadState) => {
     let n = 0;
-    state.items.forEach((row) => {
+    uploadState.items.forEach((row) => {
       if (row && row.xhrActive) n += 1;
     });
     return n;
@@ -591,7 +591,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const done = completedCount();
           if (done >= 2 && hugeBytes === 0) concurrency = Math.max(concurrency, 4);
           if (done >= 4 && hugeBytes === 0) concurrency = Math.max(concurrency, maxParallel);
-          while (activeStagedUploads() >= concurrency && next < queue.length) {
+          while (activeStagedUploads(state) >= concurrency && next < queue.length) {
             await sleep(80);
           }
           const i = next++;
@@ -737,7 +737,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const ordered = new Array(queue.length);
           const worker = async () => {
             while (next < queue.length) {
-              while (activeStagedUploads() >= concurrency && next < queue.length) {
+              while (activeStagedUploads(state) >= concurrency && next < queue.length) {
                 await sleep(60);
               }
               const i = next++;
