@@ -47,6 +47,8 @@ legacy remains authoritative.
 1. Run `eas init` and replace `SET_AFTER_EAS_INIT` in `apps/mobile/app.json`.
 2. Import the existing Android signing key so the app with package
    `com.hybrixon.app` upgrades in place.
+   Follow `apps/mobile/ANDROID_MIGRATION.md` and verify the APK certificate
+   fingerprint before any installation or upload.
 3. Build an internal APK:
 
    ```bash

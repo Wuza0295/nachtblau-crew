@@ -5,6 +5,7 @@ import {
   FlatList,
   Image,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   Pressable,
   SafeAreaView,
@@ -216,6 +217,40 @@ export default function App() {
     }).catch(() => undefined);
     void load();
     void registerUploadTask();
+  }, []);
+  useEffect(() => {
+    const openDeepLink = (incoming: string) => {
+      try {
+        const outer = new URL(incoming);
+        const nested = outer.protocol === "hybrixon:" && outer.hostname === "open"
+          ? outer.searchParams.get("url")
+          : null;
+        const destination = new URL(nested || incoming, "https://hybrixon.com");
+        const path = destination.pathname.toLowerCase();
+        if (
+          path.includes("post-create")
+          || path.includes("compose")
+          || path.includes("create-post")
+        ) {
+          setTab("compose");
+        } else if (
+          path.includes("profile")
+          || path.includes("settings")
+          || path.endsWith("/u.php")
+        ) {
+          setTab("profile");
+        } else {
+          setTab("feed");
+        }
+      } catch (error) {
+        console.warn("Ignored invalid deep link", error);
+      }
+    };
+    void Linking.getInitialURL().then((url) => {
+      if (url) openDeepLink(url);
+    });
+    const subscription = Linking.addEventListener("url", ({ url }) => openDeepLink(url));
+    return () => subscription.remove();
   }, []);
   if (!user) return <SafeAreaView style={styles.safe}><Auth onDone={setUser} /><StatusBar style="light" /></SafeAreaView>;
   return (

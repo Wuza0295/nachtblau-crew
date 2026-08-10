@@ -47,6 +47,20 @@
               "pathPrefix": "/"
             },
             {
+              "scheme": "https",
+              "host": "www.hybrixon.com",
+              "pathPrefix": "/"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        },
+        {
+          "action": "VIEW",
+          "data": [
+            {
               "scheme": "hybrixon",
               "host": "open"
             }
