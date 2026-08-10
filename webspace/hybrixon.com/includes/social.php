@@ -148,11 +148,16 @@ function social_can_dm(?array $viewer, array $owner): bool
     if ((int)$viewer['id'] === (int)$owner['id']) {
         return false;
     }
+    // Platform admins may initiate a moderation/support DM regardless of the
+    // recipient's friends/followers/none preference. Other DM rules remain.
+    if (user_is_admin($viewer)) {
+        return true;
+    }
     $level = privacy_level($owner, 'privacy_dms');
     if ($level === 'none') {
         return false;
     }
-    if ($level === 'everyone') {
+    if ($level === 'everyone' || $level === 'public') {
         return true;
     }
     if ($level === 'friends') {

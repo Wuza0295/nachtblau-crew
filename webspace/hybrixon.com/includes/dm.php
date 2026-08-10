@@ -75,7 +75,8 @@ function dm_unblock(int $blockerId, int $blockedId): void
 function dm_find_user_by_username(string $username): ?array
 {
     $stmt = allxion_db()->prepare(
-        'SELECT id, username, birthdate, dm_rules_accepted_at, is_admin FROM users WHERE username = ? LIMIT 1'
+        'SELECT id, username, birthdate, dm_rules_accepted_at, is_admin, privacy_dms
+         FROM users WHERE username = ? LIMIT 1'
     );
     $stmt->execute([trim($username)]);
     $row = $stmt->fetch();
