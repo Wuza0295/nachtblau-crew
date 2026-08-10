@@ -8,7 +8,8 @@ require_once __DIR__ . '/app_redirect.php';
 
 hybrixon_enforce_canonical_host();
 hybrixon_handle_lang_switch();
-// No server Intent 302 — that blanked mobile Chrome. Client auto-open + banner instead.
+// Android: server Intent 302 on visit. Missing app → ?from_app=1 (banner stays).
+// Client auto-open in <head> is an additional backup when HTML is served.
 hybrixon_maybe_redirect_to_app();
 
 $currentUser = allxion_current_user();
