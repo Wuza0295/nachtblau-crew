@@ -1060,12 +1060,19 @@ body.theme-light .footer {
   .app-open-banner {
     flex-direction: column;
     align-items: stretch;
-    gap: 0.55rem;
+    gap: 0.4rem;
+    padding: 0.5rem 0.7rem;
+    padding-top: calc(0.5rem + env(safe-area-inset-top, 0px));
+  }
+  .app-open-banner p {
+    flex: 0 0 auto;
+    font-size: 0.82rem;
+    line-height: 1.3;
   }
   .app-open-banner-actions {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 0.45rem;
+    gap: 0.35rem;
   }
   .app-open-banner-actions [data-app-open] {
     grid-column: 1 / -1;
@@ -1073,7 +1080,11 @@ body.theme-light .footer {
   .app-open-banner-actions .btn {
     justify-content: center;
     text-align: center;
-    min-height: 2.55rem;
+    min-height: 2.15rem;
+    padding: 0.38rem 0.65rem;
+    border-radius: 0.7rem;
+    font-size: 0.78rem;
+    line-height: 1.15;
   }
 }
 
