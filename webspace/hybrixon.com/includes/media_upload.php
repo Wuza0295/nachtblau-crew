@@ -220,7 +220,13 @@ function media_client_ip(): string
  *
  * @return array{ok: true, token: string, kind: string, mime: string, size: int}|array{ok: false, error: string}
  */
-function media_stage_store(int $userId, array $file, string $prefer = 'auto', string $purpose = 'posts'): array
+function media_stage_store(
+    int $userId,
+    array $file,
+    string $prefer = 'auto',
+    string $purpose = 'posts',
+    ?array $posterFile = null
+): array
 {
     require_once __DIR__ . '/helpers.php';
 
@@ -241,12 +247,28 @@ function media_stage_store(int $userId, array $file, string $prefer = 'auto', st
             return ['ok' => false, 'error' => (string)$stored['error']];
         }
         $kind = 'video';
+        $posterPath = null;
+        $posterMime = null;
+        if (
+            $posterFile !== null
+            && (($posterFile['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK)
+        ) {
+            // Poster generation is best-effort: an unsupported phone codec
+            // must never make the original video upload fail.
+            $posterStored = media_store_image($posterFile, 'posts');
+            if ($posterStored['ok']) {
+                $posterPath = (string)$posterStored['path'];
+                $posterMime = (string)$posterStored['mime'];
+            }
+        }
         $entry = [
             'user_id' => $userId,
             'path' => $stored['path'],
             'mime' => $stored['mime'],
             'kind' => $kind,
             'duration' => $stored['duration'] ?? null,
+            'poster_path' => $posterPath,
+            'poster_mime' => $posterMime,
             'created' => time(),
         ];
     } else {
@@ -262,6 +284,8 @@ function media_stage_store(int $userId, array $file, string $prefer = 'auto', st
             'mime' => $stored['mime'],
             'kind' => $kind,
             'duration' => null,
+            'poster_path' => null,
+            'poster_mime' => null,
             'created' => time(),
         ];
     }
@@ -276,6 +300,9 @@ function media_stage_store(int $userId, array $file, string $prefer = 'auto', st
         if (!is_array($row) || (int)($row['created'] ?? 0) < time() - 7200) {
             if (is_array($row) && !empty($row['path'])) {
                 media_delete_path((string)$row['path']);
+            }
+            if (is_array($row) && !empty($row['poster_path'])) {
+                media_delete_path((string)$row['poster_path']);
             }
             unset($_SESSION['hybrixon_media_stage'][$tok]);
         }
@@ -297,7 +324,7 @@ function media_stage_store(int $userId, array $file, string $prefer = 'auto', st
  * Take staged media tokens for this user (removes them from the session).
  *
  * @param list<string>|mixed $tokens
- * @return list<array{stored_path: string, stored_mime: string, stored_kind: string, stored_duration: ?int}>
+ * @return list<array{stored_path: string, stored_mime: string, stored_kind: string, stored_duration: ?int, stored_poster_path: ?string, stored_poster_mime: ?string}>
  */
 function media_stage_take_many(mixed $tokens, int $userId): array
 {
@@ -321,10 +348,13 @@ function media_stage_take_many(mixed $tokens, int $userId): array
         $row = $bag[$token];
         unset($_SESSION['hybrixon_media_stage'][$token]);
         if ((int)($row['user_id'] ?? 0) !== $userId) {
+            media_delete_path((string)($row['path'] ?? ''));
+            media_delete_path((string)($row['poster_path'] ?? ''));
             continue;
         }
         if ((int)($row['created'] ?? 0) < time() - 7200) {
             media_delete_path((string)($row['path'] ?? ''));
+            media_delete_path((string)($row['poster_path'] ?? ''));
             continue;
         }
         $out[] = [
@@ -332,6 +362,8 @@ function media_stage_take_many(mixed $tokens, int $userId): array
             'stored_mime' => (string)$row['mime'],
             'stored_kind' => (string)($row['kind'] ?? 'image'),
             'stored_duration' => isset($row['duration']) ? (is_null($row['duration']) ? null : (int)$row['duration']) : null,
+            'stored_poster_path' => !empty($row['poster_path']) ? (string)$row['poster_path'] : null,
+            'stored_poster_mime' => !empty($row['poster_mime']) ? (string)$row['poster_mime'] : null,
         ];
     }
     return $out;

@@ -454,6 +454,19 @@ CREATE TABLE IF NOT EXISTS user_blocks (
 );
 SQL);
 
+    $mediaCols = [];
+    foreach ($pdo->query('PRAGMA table_info(post_media)') as $row) {
+        $mediaCols[$row['name']] = true;
+    }
+    foreach ([
+        'poster_path' => 'TEXT',
+        'poster_mime' => 'TEXT',
+    ] as $name => $def) {
+        if (!isset($mediaCols[$name])) {
+            $pdo->exec("ALTER TABLE post_media ADD COLUMN {$name} {$def}");
+        }
+    }
+
     // Expire old stories + purge orphaned media paths left to GC by cron of deletes
     $hours = max(1, (int)STORY_TTL_HOURS);
     $pdo->exec("DELETE FROM stories WHERE expires_at < datetime('now')");

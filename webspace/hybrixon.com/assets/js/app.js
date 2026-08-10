@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const effectiveType = connection && connection.effectiveType ? connection.effectiveType : '';
     const previewConcurrency = connection && connection.saveData
       ? 1
-      : (/^(slow-2g|2g|3g)$/.test(effectiveType) ? 1 : (isMobile ? 2 : 3));
+      : (/^(slow-2g|2g|3g)$/.test(effectiveType) || isMobile ? 1 : 3);
     const previewQueue = [];
     let activePreviews = 0;
 
@@ -258,9 +258,15 @@ document.addEventListener('DOMContentLoaded', () => {
         entries.forEach((entry) => {
           if (!entry.isIntersecting) return;
           observer.unobserve(entry.target);
+          // A persisted poster is already an instant preview. Do not spend
+          // mobile bandwidth decoding video metadata until the user taps it.
+          if (entry.target.getAttribute('poster')) {
+            entry.target.closest('.post-video')?.classList.add('preview-ready');
+            return;
+          }
           queueVideoPreview(entry.target);
         });
-      }, { rootMargin: '600px 0px', threshold: 0.01 });
+      }, { rootMargin: '220px 0px', threshold: 0.01 });
       previewVideos.forEach((video) => observer.observe(video));
     } else {
       previewVideos.forEach(queueVideoPreview);
@@ -451,6 +457,86 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  /**
+   * Decode one local video frame before upload. The tiny JPEG is persisted
+   * alongside the staged video, so feed cards paint immediately without
+   * downloading MP4 metadata or waiting for a first-frame decode.
+   */
+  const createVideoPoster = async (file) => {
+    if (!file || !file.type || file.type.indexOf('video/') !== 0) return null;
+    if (typeof URL === 'undefined' || typeof document.createElement !== 'function') return null;
+    return new Promise((resolve) => {
+      const objectUrl = URL.createObjectURL(file);
+      const video = document.createElement('video');
+      video.muted = true;
+      video.playsInline = true;
+      video.preload = 'auto';
+      let settled = false;
+      const finish = (poster) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        try {
+          video.removeAttribute('src');
+          video.load();
+          URL.revokeObjectURL(objectUrl);
+        } catch (_) {}
+        resolve(poster || null);
+      };
+      const capture = () => {
+        if (!video.videoWidth || !video.videoHeight) {
+          finish(null);
+          return;
+        }
+        const maxWidth = 720;
+        const scale = Math.min(1, maxWidth / video.videoWidth);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(video.videoWidth * scale));
+        canvas.height = Math.max(1, Math.round(video.videoHeight * scale));
+        const ctx = canvas.getContext('2d', { alpha: false });
+        if (!ctx) {
+          finish(null);
+          return;
+        }
+        try {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              finish(null);
+              return;
+            }
+            const base = file.name.replace(/\.[^.]+$/, '') || 'video';
+            finish(new File([blob], base + '-poster.jpg', {
+              type: 'image/jpeg',
+              lastModified: file.lastModified,
+            }));
+          }, 'image/jpeg', 0.78);
+        } catch (_) {
+          finish(null);
+        }
+      };
+      video.addEventListener('loadedmetadata', () => {
+        const duration = Number.isFinite(video.duration) ? video.duration : 0;
+        const target = duration > 0.2 ? Math.min(0.25, duration * 0.05) : 0;
+        if (target > 0) {
+          try {
+            video.currentTime = target;
+            return;
+          } catch (_) {}
+        }
+        if (video.readyState >= 2) capture();
+      }, { once: true });
+      video.addEventListener('seeked', capture, { once: true });
+      video.addEventListener('loadeddata', () => {
+        if (!settled && video.currentTime === 0) capture();
+      }, { once: true });
+      video.addEventListener('error', () => finish(null), { once: true });
+      const timer = setTimeout(() => finish(null), 7000);
+      video.src = objectUrl;
+      video.load();
+    });
+  };
+
   const ensureFileCountHint = (input) => {
     const label = input.closest('label');
     if (!label) return null;
@@ -568,6 +654,9 @@ document.addEventListener('DOMContentLoaded', () => {
               + Math.floor(maxBytes / 1000000) + ' MB.'
             ), { retryable: false });
           }
+          const posterFile = isVideo && purpose !== 'stories'
+            ? await createVideoPoster(uploadFile)
+            : null;
 
           const csrfInput = form.querySelector('input[name="_csrf"]');
           const csrf = csrfInput ? csrfInput.value : (i18n.csrf || '');
@@ -582,6 +671,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 body.append('kind', kind);
                 body.append('purpose', purpose);
                 body.append('file', uploadFile, uploadFile.name);
+                if (posterFile) {
+                  body.append('poster', posterFile, posterFile.name);
+                }
                 const xhr = new XMLHttpRequest();
                 row.xhrActive = true;
                 xhr.open('POST', stageUrl);

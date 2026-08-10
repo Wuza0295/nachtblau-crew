@@ -8,6 +8,7 @@ require_once __DIR__ . '/includes/albums.php';
 require_once __DIR__ . '/includes/social.php';
 
 $mediaId = (int)($_GET['m'] ?? 0);
+$posterMediaId = (int)($_GET['poster'] ?? 0);
 $postId = (int)($_GET['id'] ?? 0);
 $avatarUser = (int)($_GET['avatar'] ?? 0);
 $bannerUser = (int)($_GET['banner'] ?? 0);
@@ -60,6 +61,22 @@ if ($storyId > 0) {
             $path = (string)$row['path'];
             $mime = (string)($row['mime'] ?: 'image/jpeg');
         }
+    }
+} elseif ($posterMediaId > 0) {
+    $stmt = allxion_db()->prepare(
+        'SELECT pm.poster_path, pm.poster_mime, p.is_adult, p.moderation_status
+         FROM post_media pm JOIN posts p ON p.id = pm.post_id WHERE pm.id = ?'
+    );
+    $stmt->execute([$posterMediaId]);
+    $row = $stmt->fetch();
+    if (
+        $row
+        && ($row['moderation_status'] ?? '') !== 'removed'
+        && !empty($row['poster_path'])
+    ) {
+        $path = (string)$row['poster_path'];
+        $mime = (string)($row['poster_mime'] ?: 'image/jpeg');
+        $isAdult = !empty($row['is_adult']);
     }
 } elseif ($mediaId > 0) {
     $stmt = allxion_db()->prepare(

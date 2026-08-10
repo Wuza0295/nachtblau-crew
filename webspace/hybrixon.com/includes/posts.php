@@ -127,6 +127,8 @@ function allxion_create_post(
                 'path' => (string)$vf['stored_path'],
                 'mime' => (string)$vf['stored_mime'],
                 'duration' => isset($vf['stored_duration']) ? $vf['stored_duration'] : null,
+                'poster_path' => !empty($vf['stored_poster_path']) ? (string)$vf['stored_poster_path'] : null,
+                'poster_mime' => !empty($vf['stored_poster_mime']) ? (string)$vf['stored_poster_mime'] : null,
             ];
             continue;
         }
@@ -137,6 +139,7 @@ function allxion_create_post(
             }
             foreach ($storedVideos as $prev) {
                 media_delete_path($prev['path']);
+                media_delete_path($prev['poster_path'] ?? null);
             }
             return [$storedV['error']];
         }
@@ -178,15 +181,26 @@ function allxion_create_post(
     $postId = (int)allxion_db()->lastInsertId();
 
     $ins = allxion_db()->prepare(
-        'INSERT INTO post_media (post_id, kind, path, mime, sort_order, duration_sec) VALUES (?, ?, ?, ?, ?, ?)'
+        'INSERT INTO post_media
+         (post_id, kind, path, mime, sort_order, duration_sec, poster_path, poster_mime)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
     );
     $sort = 0;
     foreach ($storedImages as $img) {
-        $ins->execute([$postId, 'image', $img['path'], $img['mime'], $sort, null]);
+        $ins->execute([$postId, 'image', $img['path'], $img['mime'], $sort, null, null, null]);
         $sort++;
     }
     foreach ($storedVideos as $vid) {
-        $ins->execute([$postId, 'video', $vid['path'], $vid['mime'], $sort, $vid['duration'] ?? null]);
+        $ins->execute([
+            $postId,
+            'video',
+            $vid['path'],
+            $vid['mime'],
+            $sort,
+            $vid['duration'] ?? null,
+            $vid['poster_path'] ?? null,
+            $vid['poster_mime'] ?? null,
+        ]);
         $sort++;
     }
 
@@ -549,6 +563,7 @@ function allxion_delete_post_media_files(int $postId): void
 {
     foreach (allxion_post_media($postId) as $m) {
         media_delete_path($m['path'] ?? null);
+        media_delete_path($m['poster_path'] ?? null);
     }
     $p = allxion_db()->prepare('SELECT image_path, video_path FROM posts WHERE id = ?');
     $p->execute([$postId]);

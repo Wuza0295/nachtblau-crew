@@ -66,7 +66,16 @@ if (!in_array($purpose, ['posts', 'stories', 'reels'], true)) {
     $purpose = 'posts';
 }
 
-$result = media_stage_store((int)$user['id'], $file, $prefer, $purpose === 'stories' ? 'stories' : 'posts');
+$poster = isset($_FILES['poster']) && is_array($_FILES['poster'])
+    ? $_FILES['poster']
+    : null;
+$result = media_stage_store(
+    (int)$user['id'],
+    $file,
+    $prefer,
+    $purpose === 'stories' ? 'stories' : 'posts',
+    $poster
+);
 if (!$result['ok']) {
     http_response_code(400);
     echo json_encode(['ok' => false, 'error' => $result['error']]);
