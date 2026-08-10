@@ -30,12 +30,6 @@ function notifications_create(
         $body,
     ]);
 
-    $emailTypes = [
-        'like', 'comment', 'friend_request', 'friend_accept', 'mention', 'partner_request',
-    ];
-    if (!in_array($type, $emailTypes, true)) {
-        return; // report_* etc. handled separately for admins
-    }
     $fake = ['type' => $type, 'actor_name' => null, 'body' => $body];
     if ($actorId) {
         $a = allxion_db()->prepare('SELECT username FROM users WHERE id = ?');
@@ -46,6 +40,21 @@ function notifications_create(
     $link = hybrixon_public_url('notifications.php');
     if ($postId) {
         $link = hybrixon_public_url('post.php?id=' . (int)$postId);
+    }
+
+    // Web / App push (best-effort; never blocks the request)
+    try {
+        require_once __DIR__ . '/push.php';
+        hybrixon_push_notify_user($userId, 'Hybrixon', $label, $link);
+    } catch (Throwable $e) {
+        error_log('hybrixon push notify: ' . $e->getMessage());
+    }
+
+    $emailTypes = [
+        'like', 'comment', 'friend_request', 'friend_accept', 'mention', 'partner_request',
+    ];
+    if (!in_array($type, $emailTypes, true)) {
+        return; // report_* etc. handled separately for admins
     }
     hybrixon_notify_email_activity(
         $userId,
@@ -108,10 +117,11 @@ function notifications_label(array $n): string
         'partner_request' => 'notif.partner_request',
         'report_post' => 'notif.report_post',
         'report_dm' => 'notif.report_dm',
+        'dm' => 'notif.dm',
         default => 'notif.default',
     };
     // Stored body may be German admin text — prefer typed i18n labels for known types.
-    if (in_array($type, ['report_post', 'report_dm'], true) && trim((string)($n['body'] ?? '')) !== '') {
+    if (in_array($type, ['report_post', 'report_dm', 'dm'], true) && trim((string)($n['body'] ?? '')) !== '') {
         return (string)$n['body'];
     }
     if ($key === 'notif.default' && trim((string)($n['body'] ?? '')) !== '') {

@@ -45,7 +45,7 @@ function hybrixon_maybe_redirect_to_app(): void
 
     $uri = (string)($_SERVER['REQUEST_URI'] ?? '/');
     $path = (string)(parse_url($uri, PHP_URL_PATH) ?? '/');
-    if (preg_match('#/(?:admin(?:/|$)|api(?:/|$)|api-|assets/|downloads/|spa-assets/|media\.php|manifest\.json|\.well-known/)#', $path)) {
+    if (preg_match('#/(?:admin(?:/|$)|api(?:/|$)|api-|assets/|downloads/|spa-assets/|vendor/|media\.php|manifest\.json|sw\.js|\.well-known/)#', $path)) {
         return;
     }
     if (str_ends_with($path, '/app.php') || $path === '/app.php') {

@@ -28,9 +28,10 @@ RewriteRule ^(.*)$ https://hybrixon.com/$1 [R=301,L]
 # Android App Links / Digital Asset Links must be publicly readable
 RewriteRule ^\.well-known/ - [L]
 
-# Block direct access to data files
+# Block direct access to data / PHP internals / Composer vendor
 RewriteRule ^data/ - [F,L]
 RewriteRule ^includes/ - [F,L]
+RewriteRule ^vendor/ - [F,L]
 
 # Prefer PHP over leftover static files
 RewriteCond %{REQUEST_FILENAME} !-f

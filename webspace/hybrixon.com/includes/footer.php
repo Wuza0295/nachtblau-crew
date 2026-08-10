@@ -34,6 +34,10 @@
     </div><!-- .shell-main -->
   </div><!-- .shell -->
 </div>
+<?php
+  require_once __DIR__ . '/push.php';
+  $vapidPublic = hybrixon_vapid_public_key();
+?>
 <script>
 window.HYBRIXON_I18N = <?= json_encode([
     'lang' => hybrixon_active_lang($currentUser ?? null),
@@ -49,8 +53,18 @@ window.HYBRIXON_I18N = <?= json_encode([
     'stayWeb' => t('app.stay_web'),
     'maxVideoBytes' => MEDIA_VIDEO_MAX_BYTES,
     'maxImageBytes' => MEDIA_IMAGE_MAX_BYTES,
+    'csrf' => csrf_token(),
+    'loggedIn' => !empty($currentUser),
+    'vapidPublicKey' => $vapidPublic,
+    'pushSubscribeUrl' => allxion_url('api-push-subscribe.php'),
+    'pushUnsubscribeUrl' => allxion_url('api-push-unsubscribe.php'),
+    'notifPollUrl' => allxion_url('api-notifications-poll.php'),
+    'swUrl' => allxion_url('sw.js'),
+    'pushEnable' => t('settings.push_activate'),
+    'pushActive' => t('settings.push_active'),
+    'pushUnsupported' => t('settings.push_unsupported'),
 ], JSON_UNESCAPED_UNICODE) ?>;
 </script>
-<script src="<?= e(allxion_url('assets/js/app.js')) ?>?v=107" defer></script>
+<script src="<?= e(allxion_url('assets/js/app.js')) ?>?v=108" defer></script>
 </body>
 </html>

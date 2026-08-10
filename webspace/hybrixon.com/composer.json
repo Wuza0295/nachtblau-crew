@@ -3,7 +3,8 @@
   "description": "Hybrixon social portal (ALL-INKL, PHP 8.5)",
   "type": "project",
   "require": {
-    "php": ">=8.5"
+    "php": ">=8.5",
+    "minishlink/web-push": "^9.0"
   },
   "config": {
     "platform": {

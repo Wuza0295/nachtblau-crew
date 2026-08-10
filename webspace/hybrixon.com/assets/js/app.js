@@ -248,8 +248,28 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Media staging: upload files in small parallel batches (avoids HTTP 413 on
-  // multi-select) with per-file progress. Tokens are submitted as staged[].
+  // Keep screen / WebView awake during long uploads (Android bridge + Wake Lock).
+  let wakeLock = null;
+  const setUploadingGuard = (on) => {
+    try {
+      if (window.HybrixonNative && typeof window.HybrixonNative.setUploading === 'function') {
+        window.HybrixonNative.setUploading(!!on);
+      }
+    } catch (_) {}
+    if (on) {
+      if (navigator.wakeLock && navigator.wakeLock.request) {
+        navigator.wakeLock.request('screen').then((lock) => {
+          wakeLock = lock;
+          lock.addEventListener('release', () => { wakeLock = null; });
+        }).catch(() => {});
+      }
+    } else if (wakeLock) {
+      try { wakeLock.release(); } catch (_) {}
+      wakeLock = null;
+    }
+  };
+
+  // Media staging: parallel batches, retries, progress. Survives brief network blips.
   document.querySelectorAll('form[data-stage-uploads]').forEach((form) => {
     form.addEventListener('submit', async (event) => {
       if (form.dataset.stageDone === '1') return;
@@ -266,7 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const stageUrl = form.getAttribute('data-stage-url') || 'api-media-stage.php';
       const purpose = form.getAttribute('data-stage-purpose') || 'posts';
       const csrfInput = form.querySelector('input[name="_csrf"]');
-      const csrf = csrfInput ? csrfInput.value : '';
+      const csrf = csrfInput ? csrfInput.value : (i18n.csrf || '');
       const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
       const prevLabel = submitBtn ? (submitBtn.textContent || submitBtn.value || '') : '';
       const setStatus = (text) => {
@@ -276,6 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.disabled = true;
         setStatus('Upload 0/' + queue.length + '…');
       }
+      setUploadingGuard(true);
 
       const maxVideoBytes = Number(i18n.maxVideoBytes) > 0
         ? Number(i18n.maxVideoBytes)
@@ -285,8 +306,9 @@ document.addEventListener('DOMContentLoaded', () => {
         : 12 * 1000 * 1000;
 
       const fmtMb = (n) => (n / 1000000).toFixed(n >= 100000000 ? 0 : 1);
+      const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-      const stageFile = (item, index) => new Promise((resolve, reject) => {
+      const stageFileOnce = (item, index) => new Promise((resolve, reject) => {
         const isVideo = item.kind === 'video'
           || (item.file.type && item.file.type.indexOf('video/') === 0);
         const maxBytes = isVideo ? maxVideoBytes : maxImageBytes;
@@ -323,21 +345,51 @@ document.addEventListener('DOMContentLoaded', () => {
             const msg = (data && data.error)
               ? data.error
               : ('Upload fehlgeschlagen (HTTP ' + xhr.status + ').');
-            reject(new Error(msg));
+            const err = new Error(msg);
+            err.retryable = xhr.status === 0 || xhr.status === 408 || xhr.status === 429
+              || xhr.status >= 500;
+            reject(err);
             return;
           }
           resolve(data.token);
         };
-        xhr.onerror = () => reject(new Error('Netzwerkfehler beim Upload.'));
-        xhr.ontimeout = () => reject(new Error('Upload-Timeout — bitte erneut versuchen.'));
+        xhr.onerror = () => {
+          const err = new Error('Netzwerkfehler beim Upload.');
+          err.retryable = true;
+          reject(err);
+        };
+        xhr.ontimeout = () => {
+          const err = new Error('Upload-Timeout — bitte erneut versuchen.');
+          err.retryable = true;
+          reject(err);
+        };
         xhr.timeout = 30 * 60 * 1000;
         xhr.send(body);
       });
 
+      const stageFile = async (item, index) => {
+        let lastErr = null;
+        for (let attempt = 1; attempt <= 4; attempt++) {
+          try {
+            if (attempt > 1) {
+              setStatus('Upload ' + (index + 1) + '/' + queue.length + ' · Retry ' + attempt + '…');
+              await sleep(1000 * attempt * attempt);
+            }
+            return await stageFileOnce(item, index);
+          } catch (err) {
+            lastErr = err;
+            if (!err || !err.retryable || attempt === 4) throw err;
+          }
+        }
+        throw lastErr || new Error('Upload fehlgeschlagen.');
+      };
+
       try {
-        // Two parallel uploads: faster on good mobile networks, still avoids 413.
+        // One-at-a-time on mobile/app (more stable when OS throttles background tabs).
+        const inNativeApp = !!(window.HybrixonNative)
+          || /HybrixonApp/i.test(navigator.userAgent || '');
+        const concurrency = inNativeApp ? 1 : Math.min(2, queue.length);
         const tokens = new Array(queue.length);
-        const concurrency = Math.min(2, queue.length);
         let nextIndex = 0;
         let completed = 0;
         const worker = async () => {
@@ -371,11 +423,16 @@ document.addEventListener('DOMContentLoaded', () => {
           form.submit();
         }
       } catch (err) {
-        alert(err && err.message ? err.message : 'Upload fehlgeschlagen.');
+        alert(
+          (err && err.message ? err.message : 'Upload fehlgeschlagen.')
+          + '\n\nTipp: App während des Uploads geöffnet lassen (Bildschirm an).'
+        );
         if (submitBtn) {
           submitBtn.disabled = false;
           setStatus(prevLabel);
         }
+      } finally {
+        setUploadingGuard(false);
       }
     });
   });
@@ -763,4 +820,165 @@ document.addEventListener('DOMContentLoaded', () => {
       showLightboxAt(lbIndex + 1);
     }
   });
+
+  // ——— Push notifications (Web Push + Android native bridge) ———
+  const urlBase64ToUint8Array = (base64String) => {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const raw = atob(base64);
+    const out = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+    return out;
+  };
+
+  const pushSupported = !!(
+    'serviceWorker' in navigator
+    && 'PushManager' in window
+    && 'Notification' in window
+  );
+
+  const registerServiceWorker = async () => {
+    if (!('serviceWorker' in navigator)) return null;
+    try {
+      return await navigator.serviceWorker.register(i18n.swUrl || '/sw.js', { scope: '/' });
+    } catch (_) {
+      return null;
+    }
+  };
+
+  const subscribeWebPush = async () => {
+    if (!i18n.loggedIn || !i18n.vapidPublicKey || !pushSupported) {
+      return { ok: false, reason: 'unsupported' };
+    }
+    const reg = await registerServiceWorker();
+    if (!reg) return { ok: false, reason: 'sw' };
+    let permission = Notification.permission;
+    if (permission !== 'granted') {
+      permission = await Notification.requestPermission();
+    }
+    if (permission !== 'granted') return { ok: false, reason: 'denied' };
+
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(i18n.vapidPublicKey),
+      });
+    }
+    const res = await fetch(i18n.pushSubscribeUrl || '/api-push-subscribe.php', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ _csrf: i18n.csrf || '', subscription: sub.toJSON() }),
+    });
+    const data = await res.json().catch(() => null);
+    return { ok: !!(res.ok && data && data.ok), reason: data && data.error };
+  };
+
+  // Auto-register SW; try quiet re-subscribe if already granted.
+  if (i18n.loggedIn) {
+    registerServiceWorker().then(async (reg) => {
+      if (!reg || !pushSupported || Notification.permission !== 'granted' || !i18n.vapidPublicKey) {
+        return;
+      }
+      try { await subscribeWebPush(); } catch (_) {}
+    });
+  }
+
+  // Settings button
+  document.querySelectorAll('[data-push-enable]').forEach((btn) => {
+    const statusEl = document.querySelector('[data-push-status]');
+    btn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      btn.disabled = true;
+      try {
+        // Native Android app: request OS permission + start polling bridge
+        if (window.HybrixonNative && typeof window.HybrixonNative.requestNotifications === 'function') {
+          window.HybrixonNative.requestNotifications();
+        }
+        const result = await subscribeWebPush();
+        if (statusEl) {
+          statusEl.hidden = false;
+          if (result.ok) {
+            statusEl.textContent = i18n.pushActive || 'Push aktiv';
+          } else if (!pushSupported && window.HybrixonNative) {
+            statusEl.textContent = i18n.pushActive || 'Push aktiv';
+          } else {
+            statusEl.textContent = i18n.pushUnsupported || 'Push nicht verfügbar';
+          }
+        }
+      } catch (err) {
+        if (statusEl) {
+          statusEl.hidden = false;
+          statusEl.textContent = (err && err.message) || (i18n.pushUnsupported || 'Push fehlgeschlagen');
+        }
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  });
+
+  // Poll for new notifications → native Android tray (and browser Notification).
+  if (i18n.loggedIn && i18n.notifPollUrl) {
+    let seeded = false;
+    let lastShown = Number(localStorage.getItem('hybrixon_last_shown') || '0');
+    const poll = async () => {
+      try {
+        const url = (i18n.notifPollUrl || '/api-notifications-poll.php')
+          + (lastShown > 0 ? ('?since_id=' + lastShown) : '');
+        const res = await fetch(url, {
+          credentials: 'same-origin',
+          headers: { Accept: 'application/json' },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data || !data.ok) return;
+        const maxId = Number(data.max_id || 0);
+        const items = Array.isArray(data.items) ? data.items : [];
+        if (!seeded) {
+          seeded = true;
+          if (maxId > lastShown) {
+            lastShown = maxId;
+            localStorage.setItem('hybrixon_last_shown', String(lastShown));
+          }
+          return;
+        }
+        items.forEach((item) => {
+          const id = Number(item && item.id) || 0;
+          if (id <= lastShown) return;
+          lastShown = id;
+          localStorage.setItem('hybrixon_last_shown', String(lastShown));
+          if (window.HybrixonNative && typeof window.HybrixonNative.showNotification === 'function') {
+            window.HybrixonNative.showNotification(
+              item.title || 'Hybrixon',
+              item.body || '',
+              item.url || '/notifications.php'
+            );
+          } else if (typeof Notification !== 'undefined'
+            && Notification.permission === 'granted'
+            && document.hidden) {
+            try {
+              const n = new Notification(item.title || 'Hybrixon', {
+                body: item.body || '',
+                icon: '/assets/img/logo-avatar.png',
+              });
+              n.onclick = () => {
+                window.focus();
+                location.href = item.url || '/notifications.php';
+              };
+            } catch (_) {}
+          }
+        });
+        if (maxId > lastShown) {
+          lastShown = maxId;
+          localStorage.setItem('hybrixon_last_shown', String(lastShown));
+        }
+      } catch (_) {}
+    };
+    poll();
+    setInterval(poll, 45000);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) poll();
+    });
+  }
 });

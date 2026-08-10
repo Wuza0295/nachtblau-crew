@@ -2,6 +2,9 @@ package com.hybrixon.app;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -9,8 +12,10 @@ import android.graphics.Bitmap;
 import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.view.WindowManager;
 import android.webkit.CookieManager;
 import android.webkit.GeolocationPermissions;
 import android.webkit.PermissionRequest;
@@ -31,6 +36,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -40,18 +46,28 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String ALERT_CHANNEL = "hybrixon_alerts";
+    private static final AtomicInteger NOTIF_SEQ = new AtomicInteger(1000);
+
     private WebView webView;
     private ProgressBar progress;
     private SwipeRefreshLayout swipeRefresh;
     private LinearLayout offline;
     private ValueCallback<Uri[]> filePathCallback;
     private Uri cameraImageUri;
+    private boolean uploading = false;
 
     private final ActivityResultLauncher<String> cameraPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
                 // Permission result handled when file chooser opens next time.
+            });
+
+    private final ActivityResultLauncher<String> notificationPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
+                // User choice persisted by the OS; website can still subscribe to Web Push.
             });
 
     private final ActivityResultLauncher<Intent> fileChooserLauncher =
@@ -123,11 +139,16 @@ public class MainActivity extends AppCompatActivity {
         settings.setAllowFileAccess(true);
         settings.setAllowContentAccess(true);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
-        settings.setUserAgentString(settings.getUserAgentString() + " HybrixonApp/1.0.2");
+        settings.setUserAgentString(settings.getUserAgentString() + " HybrixonApp/1.0.3");
 
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.setAcceptCookie(true);
         cookieManager.setAcceptThirdPartyCookies(webView, true);
+
+        ensureAlertChannel();
+        webView.addJavascriptInterface(new HybrixonJsBridge(this), "HybrixonNative");
+        // Ask for notification permission early on Android 13+.
+        requestNotificationPermission();
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
@@ -384,9 +405,72 @@ public class MainActivity extends AppCompatActivity {
         return File.createTempFile("HX_" + time + "_", ".jpg", dir);
     }
 
+    /** Called from JS while multi-file uploads are in progress. */
+    public void setUploading(boolean value) {
+        uploading = value;
+        if (value) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            UploadForegroundService.start(this);
+        } else {
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            UploadForegroundService.stop(this);
+        }
+    }
+
+    public void requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= 33) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+            }
+        }
+    }
+
+    public void showTrayNotification(String title, String body, String url) {
+        ensureAlertChannel();
+        Intent open = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+        open.setClass(this, MainActivity.class);
+        open.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent pi = PendingIntent.getActivity(
+                this,
+                NOTIF_SEQ.get(),
+                open,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, ALERT_CHANNEL)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle(title)
+                .setContentText(body)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
+                .setAutoCancel(true)
+                .setContentIntent(pi)
+                .setPriority(NotificationCompat.PRIORITY_HIGH);
+        NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        if (nm != null) {
+            nm.notify(NOTIF_SEQ.incrementAndGet(), builder.build());
+        }
+    }
+
+    private void ensureAlertChannel() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
+        NotificationManager nm = getSystemService(NotificationManager.class);
+        if (nm == null) return;
+        NotificationChannel channel = new NotificationChannel(
+                ALERT_CHANNEL,
+                "Hybrixon",
+                NotificationManager.IMPORTANCE_HIGH
+        );
+        channel.setDescription("Likes, Kommentare, Nachrichten");
+        nm.createNotificationChannel(channel);
+    }
+
     @Override
     protected void onPause() {
-        webView.onPause();
+        // Do NOT pause the WebView during uploads — that aborts XHR mid-flight
+        // ("Netzwerkfehler beim Upload") when Android backgrounds the activity.
+        if (!uploading) {
+            webView.onPause();
+        }
         CookieManager.getInstance().flush();
         super.onPause();
     }
@@ -399,6 +483,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        if (uploading) {
+            UploadForegroundService.stop(this);
+        }
         webView.destroy();
         super.onDestroy();
     }
