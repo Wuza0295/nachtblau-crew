@@ -5,7 +5,7 @@ RewriteEngine On
 # Works both as /hybrixon/ on nacht-blau.de and as document root of hybrixon.com
 # (no fixed RewriteBase)
 
-# Allow large multi-media POSTs (15× images/videos). 0 = unlimited for this vhost override.
+# Allow large media POSTs (single staged file up to ~500 MB).
 # Without this, Apache returns HTTP 413 "Request Entity Too Large".
 <IfModule mod_security.c>
   SecRequestBodyLimit 1073741824
@@ -28,6 +28,9 @@ RewriteRule ^(.*)$ https://hybrixon.com/$1 [R=301,L]
 # Android App Links / Digital Asset Links must be publicly readable
 RewriteRule ^\.well-known/ - [L]
 
+# Service worker must not be rewritten
+RewriteRule ^sw\.js$ - [L]
+
 # Block direct access to data / PHP internals / Composer vendor
 RewriteRule ^data/ - [F,L]
 RewriteRule ^includes/ - [F,L]
@@ -40,4 +43,5 @@ RewriteRule ^ index.php [L]
 
 <IfModule mod_mime.c>
   AddType application/json .json
+  AddType application/javascript js
 </IfModule>

@@ -432,6 +432,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 xhr.onload = () => {
                   let data = null;
                   try { data = JSON.parse(xhr.responseText); } catch (_) { data = null; }
+                  if (xhr.status === 413) {
+                    const err = new Error(
+                      'Datei zu groß für den Server (413). Max. '
+                      + Math.floor(maxVideoBytes / 1000000) + ' MB je Video.'
+                    );
+                    err.retryable = false;
+                    reject(err);
+                    return;
+                  }
                   if (xhr.status < 200 || xhr.status >= 300 || !data || !data.ok || !data.token) {
                     const err = new Error(
                       (data && data.error) ? data.error : ('Upload fehlgeschlagen (HTTP ' + xhr.status + ').')
@@ -555,58 +564,141 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
+    /**
+     * Final publish MUST NOT multipart-upload the selected files again.
+     * Android WebView often keeps FileList even after input.value='' → HTTP 413.
+     * Build a clean FormData (fields + staged tokens only) and POST via fetch.
+     */
+    const publishWithTokens = async (tokens) => {
+      const fd = new FormData();
+      Array.from(form.elements).forEach((el) => {
+        if (!el || !el.name || el.disabled) return;
+        const tag = (el.tagName || '').toLowerCase();
+        if (tag !== 'input' && tag !== 'textarea' && tag !== 'select') return;
+        if (el.type === 'file' || el.type === 'submit' || el.type === 'button') return;
+        if (el.name === 'staged[]') return;
+        if ((el.type === 'checkbox' || el.type === 'radio') && !el.checked) return;
+        fd.append(el.name, el.value);
+      });
+      tokens.forEach((token) => {
+        if (token) fd.append('staged[]', token);
+      });
+
+      // Hard-disable file fields so a fallback native submit cannot attach them.
+      form.querySelectorAll('input[type="file"]').forEach((input) => {
+        try { input.value = ''; } catch (_) {}
+        if (input.name) input.setAttribute('data-original-name', input.name);
+        input.removeAttribute('name');
+        input.disabled = true;
+        input.removeAttribute('required');
+      });
+
+      const action = form.getAttribute('action') || window.location.href;
+      const res = await fetch(action, {
+        method: 'POST',
+        body: fd,
+        credentials: 'same-origin',
+        redirect: 'manual',
+      });
+
+      if (res.status === 413) {
+        throw new Error(
+          'Server lehnt den Request ab (413). Bitte Seite neu laden und erneut versuchen.'
+        );
+      }
+
+      // PRG redirect after successful create
+      if (res.status >= 300 && res.status < 400) {
+        const loc = res.headers.get('Location') || '/';
+        window.location.href = loc;
+        return;
+      }
+      if (res.type === 'opaqueredirect' || res.status === 0) {
+        window.location.href = '/';
+        return;
+      }
+      if (res.ok) {
+        // Some hosts return 200 with HTML — navigate home / reload target
+        const next = (form.getAttribute('action') && form.getAttribute('action').indexOf('compose') !== -1)
+          ? '/'
+          : (form.getAttribute('action') || '/');
+        window.location.href = next;
+        return;
+      }
+      const text = await res.text().catch(() => '');
+      throw new Error(
+        'Veröffentlichen fehlgeschlagen (HTTP ' + res.status + ').'
+        + (text && text.length < 180 ? (' ' + text) : '')
+      );
+    };
+
     form.addEventListener('submit', async (event) => {
-      if (form.dataset.stageDone === '1') return;
+      // Always intercept staging forms — never let the browser POST raw files.
       const queue = collectQueue();
-      if (!queue.length) return;
+      const stagedTokens = [];
+      state.items.forEach((row) => {
+        if (row && row.token) stagedTokens.push(row.token);
+      });
+
+      if (!queue.length && !stagedTokens.length) {
+        return; // text-only post
+      }
 
       event.preventDefault();
+      event.stopPropagation();
       form.dataset.stageSubmitting = '1';
       if (submitBtn) submitBtn.disabled = true;
       setUploadingGuard(true);
       renderProgress();
 
       try {
-        // Finish any eager uploads still in flight / not started.
-        const hasHuge = queue.some((q) => q.file.size > 60 * 1000 * 1000);
-        const concurrency = hasHuge
-          ? (inNativeApp ? 2 : 3)
-          : (inNativeApp ? 3 : 4);
-        let next = 0;
-        const tokens = new Array(queue.length);
-        const worker = async () => {
-          while (next < queue.length) {
-            const i = next++;
-            const item = queue[i];
-            tokens[i] = await stageOne(item.key, item.file, item.kind);
-          }
-        };
-        await Promise.all(Array.from({ length: Math.min(concurrency, queue.length) }, () => worker()));
-
-        form.querySelectorAll('input[type="file"]').forEach((input) => {
-          input.value = '';
-          input.removeAttribute('required');
-        });
-        form.querySelectorAll('input[name="staged[]"]').forEach((el) => el.remove());
-        tokens.forEach((token) => {
-          const hidden = document.createElement('input');
-          hidden.type = 'hidden';
-          hidden.name = 'staged[]';
-          hidden.value = token;
-          form.appendChild(hidden);
-        });
-        form.dataset.stageDone = '1';
-        if (submitBtn) submitBtn.textContent = 'Veröffentlichen…';
-        progressEl.textContent = 'Veröffentlichen…';
-        if (typeof form.requestSubmit === 'function') {
-          form.requestSubmit();
-        } else {
-          form.submit();
+        let tokens = stagedTokens.slice();
+        if (queue.length) {
+          // Finish any eager uploads still in flight / not started.
+          // Huge videos: max 2 parallel to reduce 413/proxy pressure.
+          const hasHuge = queue.some((q) => q.file.size > 60 * 1000 * 1000);
+          const concurrency = hasHuge ? 2 : (inNativeApp ? 3 : 4);
+          let next = 0;
+          const ordered = new Array(queue.length);
+          const worker = async () => {
+            while (next < queue.length) {
+              const i = next++;
+              const item = queue[i];
+              ordered[i] = await stageOne(item.key, item.file, item.kind);
+            }
+          };
+          await Promise.all(
+            Array.from({ length: Math.min(concurrency, queue.length) }, () => worker())
+          );
+          tokens = ordered;
         }
+
+        if (!tokens.length) {
+          throw new Error('Keine Medien-Tokens — Upload bitte erneut starten.');
+        }
+
+        if (submitBtn) submitBtn.textContent = 'Veröffentlichen…';
+        progressEl.hidden = false;
+        progressEl.textContent = 'Veröffentlichen…';
+        form.dataset.stageDone = '1';
+        await publishWithTokens(tokens);
       } catch (err) {
+        form.dataset.stageDone = '0';
+        // Re-enable file inputs for retry
+        form.querySelectorAll('input[type="file"]').forEach((input) => {
+          input.disabled = false;
+          if (!input.getAttribute('name')) {
+            const original = input.getAttribute('data-original-name');
+            const kind = input.getAttribute('data-stage-kind');
+            if (original) input.setAttribute('name', original);
+            else if (kind === 'video') input.setAttribute('name', 'videos[]');
+            else input.setAttribute('name', 'images[]');
+          }
+        });
+        const msg = (err && err.message) ? err.message : 'Upload fehlgeschlagen.';
         alert(
-          (err && err.message ? err.message : 'Upload fehlgeschlagen.')
-          + '\n\nTipp: Bei vielen großen Videos die App geöffnet lassen.'
+          msg
+          + '\n\nTipp: Große Videos werden einzeln hochgeladen — App geöffnet lassen.'
         );
         if (submitBtn) {
           submitBtn.disabled = false;
@@ -616,7 +708,7 @@ document.addEventListener('DOMContentLoaded', () => {
         form.dataset.stageSubmitting = '0';
         setUploadingGuard(false);
       }
-    });
+    }, true);
   });
 
   // File-count hints for non-staging forms (legacy).
