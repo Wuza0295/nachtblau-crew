@@ -154,8 +154,16 @@ header('Accept-Ranges: bytes');
 // Byte-range support so large feed videos can seek without downloading everything.
 $range = (string)($_SERVER['HTTP_RANGE'] ?? '');
 if ($isVideo && $range !== '' && preg_match('/bytes=(\d*)-(\d*)/', $range, $m)) {
-    $start = $m[1] !== '' ? (int)$m[1] : 0;
-    $end = $m[2] !== '' ? (int)$m[2] : ($size - 1);
+    // RFC 7233 suffix range: "bytes=-500000" means the LAST 500000 bytes.
+    // MP4 players use this to fetch the moov metadata stored at EOF.
+    if ($m[1] === '' && $m[2] !== '') {
+        $suffixLength = max(1, (int)$m[2]);
+        $start = max(0, $size - $suffixLength);
+        $end = $size - 1;
+    } else {
+        $start = $m[1] !== '' ? (int)$m[1] : 0;
+        $end = $m[2] !== '' ? (int)$m[2] : ($size - 1);
+    }
     if ($start < 0 || $end < $start || $start >= $size) {
         http_response_code(416);
         header('Content-Range: bytes */' . $size);
@@ -166,6 +174,9 @@ if ($isVideo && $range !== '' && preg_match('/bytes=(\d*)-(\d*)/', $range, $m)) 
     http_response_code(206);
     header('Content-Length: ' . (string)$length);
     header('Content-Range: bytes ' . $start . '-' . $end . '/' . $size);
+    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'HEAD') {
+        exit;
+    }
     $fp = fopen($full, 'rb');
     if ($fp === false) {
         http_response_code(500);
@@ -174,17 +185,24 @@ if ($isVideo && $range !== '' && preg_match('/bytes=(\d*)-(\d*)/', $range, $m)) 
     fseek($fp, $start);
     $remaining = $length;
     while ($remaining > 0 && !feof($fp)) {
-        $chunk = fread($fp, (int)min(8192, $remaining));
+        // Larger chunks reduce PHP loop/Apache buffering overhead substantially.
+        $chunk = fread($fp, (int)min(1024 * 1024, $remaining));
         if ($chunk === false) {
             break;
         }
         echo $chunk;
         $remaining -= strlen($chunk);
+        if (connection_aborted()) {
+            break;
+        }
     }
     fclose($fp);
     exit;
 }
 
 header('Content-Length: ' . (string)$size);
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'HEAD') {
+    exit;
+}
 readfile($full);
 exit;

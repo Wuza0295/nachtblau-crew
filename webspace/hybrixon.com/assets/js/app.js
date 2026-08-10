@@ -151,6 +151,122 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  /**
+   * Load posted-video previews in a small priority queue.
+   *
+   * A post may contain 15 large MP4 files whose `moov` metadata is at EOF.
+   * Starting all of them at once splits mobile bandwidth 15 ways and leaves
+   * every tile black. Near-viewport videos now load first, 1–3 at a time.
+   * A tap always bypasses the queue and retains normal full video playback.
+   */
+  const previewVideos = Array.from(document.querySelectorAll('video[data-video-preview][data-video-src]'));
+  if (previewVideos.length) {
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection || null;
+    const effectiveType = connection && connection.effectiveType ? connection.effectiveType : '';
+    const previewConcurrency = connection && connection.saveData
+      ? 1
+      : (/^(slow-2g|2g|3g)$/.test(effectiveType) ? 1 : (isMobile ? 2 : 3));
+    const previewQueue = [];
+    let activePreviews = 0;
+
+    const previewUrl = (video) => {
+      const src = video.getAttribute('data-video-src') || '';
+      if (!src) return '';
+      return src.split('#')[0] + '#t=0.1';
+    };
+
+    const removeQueuedPreview = (video) => {
+      const i = previewQueue.indexOf(video);
+      if (i >= 0) previewQueue.splice(i, 1);
+      delete video.dataset.videoQueued;
+    };
+
+    const pumpVideoPreviews = () => {
+      while (activePreviews < previewConcurrency && previewQueue.length) {
+        const video = previewQueue.shift();
+        if (!video || video.dataset.videoLoaded === '1' || video.dataset.videoLoading === '1') {
+          continue;
+        }
+        delete video.dataset.videoQueued;
+        startVideoPreview(video, false);
+      }
+    };
+
+    const finishVideoPreview = (video, ready) => {
+      if (video.dataset.videoLoading !== '1') return;
+      delete video.dataset.videoLoading;
+      activePreviews = Math.max(0, activePreviews - 1);
+      if (ready) {
+        video.dataset.videoLoaded = '1';
+        video.closest('.post-video')?.classList.add('preview-ready');
+      }
+      pumpVideoPreviews();
+    };
+
+    const startVideoPreview = (video, immediate) => {
+      if (!video || video.dataset.videoLoaded === '1' || video.dataset.videoLoading === '1') {
+        return;
+      }
+      removeQueuedPreview(video);
+      const src = previewUrl(video);
+      if (!src) return;
+      video.dataset.videoLoading = '1';
+      activePreviews += 1;
+      video.preload = immediate ? 'auto' : 'metadata';
+
+      let settled = false;
+      const settle = (ready) => {
+        if (settled) return;
+        settled = true;
+        finishVideoPreview(video, ready);
+      };
+      video.addEventListener('loadeddata', () => settle(true), { once: true });
+      video.addEventListener('canplay', () => settle(true), { once: true });
+      video.addEventListener('error', () => settle(false), { once: true });
+      setTimeout(() => settle(video.readyState >= 2), immediate ? 20000 : 10000);
+      video.src = src;
+      video.load();
+    };
+
+    const queueVideoPreview = (video) => {
+      if (!video || video.dataset.videoLoaded === '1'
+        || video.dataset.videoLoading === '1' || video.dataset.videoQueued === '1') {
+        return;
+      }
+      video.dataset.videoQueued = '1';
+      previewQueue.push(video);
+      pumpVideoPreviews();
+    };
+
+    previewVideos.forEach((video) => {
+      // A direct tap must never wait for background preview work.
+      video.addEventListener('pointerdown', () => {
+        if (video.dataset.videoLoaded !== '1' && video.dataset.videoLoading !== '1') {
+          startVideoPreview(video, true);
+        }
+      }, { passive: true });
+      video.addEventListener('play', () => {
+        video.preload = 'auto';
+        previewVideos.forEach((other) => {
+          if (other !== video && !other.paused) other.pause();
+        });
+      });
+    });
+
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          observer.unobserve(entry.target);
+          queueVideoPreview(entry.target);
+        });
+      }, { rootMargin: '600px 0px', threshold: 0.01 });
+      previewVideos.forEach((video) => observer.observe(video));
+    } else {
+      previewVideos.forEach(queueVideoPreview);
+    }
+  }
+
   const adultToggle = document.querySelector('[data-adult-toggle]');
   const adultHint = document.querySelector('[data-adult-hint]');
   const policyRequired = document.querySelector('[data-policy-required]');
