@@ -103,6 +103,9 @@ function allxion_db_maintenance(PDO $pdo): void
             "DELETE FROM dm_messages WHERE created_at < datetime('now', '-{$days} days')"
         );
         @touch($stamp);
+    } catch (Throwable) {
+        // Cleanup must never make a feed/media request fail. A later request
+        // retries because the success stamp was not updated.
     } finally {
         @flock($lock, LOCK_UN);
         fclose($lock);

@@ -169,6 +169,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const previewQueue = [];
     let activePreviews = 0;
 
+    const showVideoPoster = (video) => {
+      const poster = video ? (video.getAttribute('data-video-poster') || '') : '';
+      if (!poster) return false;
+      if (!video.getAttribute('poster')) {
+        video.setAttribute('poster', poster);
+      }
+      video.closest('.post-video')?.classList.add('preview-ready');
+      return true;
+    };
+
     const previewUrl = (video) => {
       const src = video.getAttribute('data-video-src') || '';
       if (!src) return '';
@@ -241,6 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
     previewVideos.forEach((video) => {
       // A direct tap must never wait for background preview work.
       video.addEventListener('pointerdown', () => {
+        showVideoPoster(video);
         if (video.dataset.videoLoaded !== '1' && video.dataset.videoLoading !== '1') {
           startVideoPreview(video, true);
         }
@@ -254,22 +265,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if ('IntersectionObserver' in window) {
-      const observer = new IntersectionObserver((entries) => {
+      // Posters are tiny: request them well before their card enters view, but
+      // still avoid an eager burst for every video in a long feed.
+      const posterObserver = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
           if (!entry.isIntersecting) return;
-          observer.unobserve(entry.target);
-          // A persisted poster is already an instant preview. Do not spend
-          // mobile bandwidth decoding video metadata until the user taps it.
-          if (entry.target.getAttribute('poster')) {
-            entry.target.closest('.post-video')?.classList.add('preview-ready');
-            return;
-          }
+          posterObserver.unobserve(entry.target);
+          showVideoPoster(entry.target);
+        });
+      }, { rootMargin: '800px 0px', threshold: 0.01 });
+
+      const metadataObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          metadataObserver.unobserve(entry.target);
           queueVideoPreview(entry.target);
         });
       }, { rootMargin: '220px 0px', threshold: 0.01 });
-      previewVideos.forEach((video) => observer.observe(video));
+      previewVideos.forEach((video) => {
+        if (video.getAttribute('data-video-poster')) {
+          posterObserver.observe(video);
+        } else {
+          metadataObserver.observe(video);
+        }
+      });
     } else {
-      previewVideos.forEach(queueVideoPreview);
+      previewVideos.forEach((video) => {
+        if (!showVideoPoster(video)) queueVideoPreview(video);
+      });
     }
   }
 
@@ -744,6 +767,7 @@ document.addEventListener('DOMContentLoaded', () => {
         );
         const partLoaded = new Array(chunkCount).fill(0);
         let nextPart = 0;
+        let partFailure = null;
 
         const renderPartProgress = () => {
           row.loaded = Math.min(
@@ -799,12 +823,20 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const worker = async () => {
-          while (nextPart < chunkCount) {
+          while (nextPart < chunkCount && !partFailure) {
             const index = nextPart++;
-            await uploadPart(index);
+            try {
+              await uploadPart(index);
+            } catch (err) {
+              partFailure = err;
+              throw err;
+            }
           }
         };
-        await Promise.all(Array.from({ length: perFileParallel }, () => worker()));
+        await Promise.allSettled(Array.from({ length: perFileParallel }, () => worker()));
+        if (partFailure) {
+          throw partFailure;
+        }
         row.loaded = uploadFile.size;
         renderProgress();
 

@@ -57,7 +57,7 @@ $commentCount = isset($post['comment_count']) ? (int)$post['comment_count'] : co
         <figure class="post-video">
           <video controls playsinline preload="none"
             data-video-preview
-            <?= $posterUrl !== null ? 'poster="' . e($posterUrl) . '"' : '' ?>
+            <?= $posterUrl !== null ? 'data-video-poster="' . e($posterUrl) . '"' : '' ?>
             data-video-src="<?= e($videoUrl) ?>">
           </video>
           <noscript><a class="btn btn-sm" href="<?= e($videoUrl) ?>">Video öffnen</a></noscript>
