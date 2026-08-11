@@ -1666,18 +1666,9 @@ body.theme-light .footer {
   padding: 0.75rem 0.95rem;
   line-height: 1.35;
 }
-.feed-compose-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.45rem;
-}
 .feed-compose-media { cursor: pointer; }
 @media (max-width: 640px) {
   .feed-compose { padding: 0.8rem 0.85rem; }
-  .feed-compose-actions { justify-content: stretch; }
-  .feed-compose-actions .btn { flex: 1 1 auto; text-align: center; }
 }
 
 .story-tray-wrap { overflow: hidden; }
@@ -3037,6 +3028,53 @@ body.theme-light .media-grid-multi {
     animation: none !important;
     transform: none !important;
     transition: none !important;
+  }
+}
+
+/* Compose publish must stay compact — later flex rules had inflated the icon. */
+.feed-compose-actions {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  align-items: stretch;
+  justify-content: stretch;
+  gap: 0.4rem;
+}
+.feed-compose-actions .btn {
+  flex: none !important;
+  width: auto;
+  min-height: 2.2rem !important;
+  max-height: 2.45rem;
+  height: 2.35rem;
+  padding: 0.35rem 0.65rem !important;
+}
+.feed-compose-publish {
+  min-width: 8.25rem;
+  max-width: 11rem;
+  justify-self: end;
+  align-self: center;
+}
+.feed-compose-publish-icon,
+.feed-compose-actions svg {
+  flex: 0 0 auto !important;
+  width: 0.88rem !important;
+  height: 0.88rem !important;
+  max-width: 0.88rem !important;
+  max-height: 0.88rem !important;
+}
+@media (max-width: 640px) {
+  .feed-compose-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .feed-compose-actions .btn {
+    width: 100%;
+    height: 2.2rem;
+    max-height: 2.2rem;
+    min-height: 2.2rem !important;
+  }
+  .feed-compose-publish {
+    min-width: 0;
+    max-width: none;
+    justify-self: stretch;
   }
 }
 
