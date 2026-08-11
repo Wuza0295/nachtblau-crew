@@ -1,10 +1,66 @@
-/* Hybrixon service worker — Web Push + lightweight offline shell */
+/* Hybrixon service worker — Web Push + background-loaded static shell */
+const STATIC_CACHE = 'hybrixon-static-v3';
+const STATIC_PREFIX = 'hybrixon-static-';
+const STATIC_ASSETS = [
+  '/manifest.json',
+  '/assets/css/style.css?v=113',
+  '/assets/js/app.js?v=121',
+  '/assets/img/logo-avatar.png',
+  '/assets/img/favicon.svg',
+];
+
 self.addEventListener('install', (event) => {
-  self.skipWaiting();
+  event.waitUntil(
+    caches.open(STATIC_CACHE)
+      .then((cache) => Promise.allSettled(
+        STATIC_ASSETS.map(async (url) => {
+          const response = await fetch(new Request(url, { cache: 'reload' }));
+          if (response.ok) await cache.put(url, response);
+        })
+      ))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches.keys()
+      .then((keys) => Promise.all(
+        keys
+          .filter((key) => key.startsWith(STATIC_PREFIX) && key !== STATIC_CACHE)
+          .map((key) => caches.delete(key))
+      ))
+      .then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch', (event) => {
+  const request = event.request;
+  if (request.method !== 'GET' || request.headers.has('range')) return;
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
+  const isStatic = url.pathname.startsWith('/assets/')
+    || url.pathname === '/manifest.json';
+  if (!isStatic) return;
+
+  event.respondWith(
+    caches.open(STATIC_CACHE).then(async (cache) => {
+      const cached = await cache.match(request);
+      const update = fetch(request)
+        .then(async (response) => {
+          if (response.ok && response.status === 200) {
+            await cache.put(request, response.clone());
+          }
+          return response;
+        })
+        .catch(() => null);
+      if (cached) {
+        event.waitUntil(update);
+        return cached;
+      }
+      return (await update) || Response.error();
+    })
+  );
 });
 
 self.addEventListener('push', (event) => {

@@ -249,8 +249,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!video || video.dataset.videoLoaded === '1' || video.dataset.videoLoading === '1') {
           continue;
         }
+        const warmPlayback = video.dataset.videoWarm === '1';
         delete video.dataset.videoQueued;
-        startVideoPreview(video, false);
+        delete video.dataset.videoWarm;
+        startVideoPreview(video, warmPlayback);
       }
     };
 
@@ -290,11 +292,13 @@ document.addEventListener('DOMContentLoaded', () => {
       video.load();
     };
 
-    const queueVideoPreview = (video) => {
+    const queueVideoPreview = (video, warmPlayback = false) => {
       if (!video || video.dataset.videoLoaded === '1'
-        || video.dataset.videoLoading === '1' || video.dataset.videoQueued === '1') {
+        || video.dataset.videoLoading === '1') {
         return;
       }
+      if (warmPlayback) video.dataset.videoWarm = '1';
+      if (video.dataset.videoQueued === '1') return;
       video.dataset.videoQueued = '1';
       previewQueue.push(video);
       pumpVideoPreviews();
@@ -351,7 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
             entries.forEach((entry) => {
               if (!entry.isIntersecting) return;
               warmObserver.unobserve(entry.target);
-              queueVideoPreview(entry.target);
+              queueVideoPreview(entry.target, true);
             });
           }, { rootMargin: '120px 0px', threshold: 0.01 })
         : null;
@@ -363,6 +367,23 @@ document.addEventListener('DOMContentLoaded', () => {
           metadataObserver.observe(video);
         }
       });
+
+      // Fill the first video buffers while the user is reading the page. Keep
+      // this bounded so a post with many large clips never downloads in bulk.
+      if (canWarmPosterVideos) {
+        const warmInitialVideos = () => {
+          previewVideos
+            .filter((video) => video.dataset.videoLoaded !== '1'
+              && video.dataset.videoLoading !== '1')
+            .slice(0, isMobile ? 2 : 4)
+            .forEach((video) => queueVideoPreview(video, true));
+        };
+        if ('requestIdleCallback' in window) {
+          window.requestIdleCallback(warmInitialVideos, { timeout: 1800 });
+        } else {
+          setTimeout(warmInitialVideos, 900);
+        }
+      }
     } else {
       previewVideos.forEach((video) => {
         if (!showVideoPoster(video)) queueVideoPreview(video);
@@ -1799,15 +1820,15 @@ document.addEventListener('DOMContentLoaded', () => {
     return { ok: !!(res.ok && data && data.ok), reason: data && data.error };
   };
 
-  // Auto-register SW; try quiet re-subscribe if already granted.
-  if (i18n.loggedIn) {
-    registerServiceWorker().then(async (reg) => {
-      if (!reg || !pushSupported || Notification.permission !== 'granted' || !i18n.vapidPublicKey) {
-        return;
-      }
-      try { await subscribeWebPush(); } catch (_) {}
-    });
-  }
+  // Register for every visitor so the static shell updates in the background.
+  // Logged-in users additionally keep their existing push subscription fresh.
+  registerServiceWorker().then(async (reg) => {
+    if (!i18n.loggedIn || !reg || !pushSupported
+      || Notification.permission !== 'granted' || !i18n.vapidPublicKey) {
+      return;
+    }
+    try { await subscribeWebPush(); } catch (_) {}
+  });
 
   // Settings button
   document.querySelectorAll('[data-push-enable]').forEach((btn) => {

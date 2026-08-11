@@ -64,12 +64,12 @@ window.HYBRIXON_I18N = <?= json_encode([
     'pushSubscribeUrl' => allxion_url('api-push-subscribe.php'),
     'pushUnsubscribeUrl' => allxion_url('api-push-unsubscribe.php'),
     'notifPollUrl' => allxion_url('api-notifications-poll.php'),
-    'swUrl' => allxion_url('sw.js'),
+    'swUrl' => allxion_url('sw.js?v=3'),
     'pushEnable' => t('settings.push_activate'),
     'pushActive' => t('settings.push_active'),
     'pushUnsupported' => t('settings.push_unsupported'),
 ], JSON_UNESCAPED_UNICODE) ?>;
 </script>
-<script src="<?= e(allxion_url('assets/js/app.js')) ?>?v=120" defer></script>
+<script src="<?= e(allxion_url('assets/js/app.js')) ?>?v=121" defer></script>
 </body>
 </html>
