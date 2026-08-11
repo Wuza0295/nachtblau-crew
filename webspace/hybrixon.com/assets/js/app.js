@@ -307,6 +307,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (video.dataset.videoLoaded !== '1' && video.dataset.videoLoading !== '1') {
           startVideoPreview(video, true);
         }
+        if (video.dataset.videoUserStarted !== '1') {
+          video.dataset.videoUserStarted = '1';
+          const playAttempt = video.play();
+          if (playAttempt && typeof playAttempt.catch === 'function') {
+            playAttempt.catch(() => {
+              // Native controls remain available when autoplay policy or a
+              // codec prevents the programmatic first-tap start.
+            });
+          }
+        }
       }, { passive: true });
       video.addEventListener('play', () => {
         video.preload = 'auto';
@@ -334,9 +344,21 @@ document.addEventListener('DOMContentLoaded', () => {
           queueVideoPreview(entry.target);
         });
       }, { rootMargin: '220px 0px', threshold: 0.01 });
+      const canWarmPosterVideos = !(connection && connection.saveData)
+        && !/^(slow-2g|2g)$/.test(effectiveType);
+      const warmObserver = canWarmPosterVideos
+        ? new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+              if (!entry.isIntersecting) return;
+              warmObserver.unobserve(entry.target);
+              queueVideoPreview(entry.target);
+            });
+          }, { rootMargin: '120px 0px', threshold: 0.01 })
+        : null;
       previewVideos.forEach((video) => {
         if (video.getAttribute('data-video-poster')) {
           posterObserver.observe(video);
+          if (warmObserver) warmObserver.observe(video);
         } else {
           metadataObserver.observe(video);
         }

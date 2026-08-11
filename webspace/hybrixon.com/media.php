@@ -4,6 +4,7 @@ declare(strict_types=1);
 // Public post media only needs SQLite. Load session/privacy modules lazily for
 // protected media so common video byte-range requests stay on the fast path.
 require_once __DIR__ . '/includes/db.php';
+require_once __DIR__ . '/includes/media_faststart.php';
 
 $mediaId = (int)($_GET['m'] ?? 0);
 $posterMediaId = (int)($_GET['poster'] ?? 0);
@@ -171,7 +172,13 @@ if (session_status() === PHP_SESSION_ACTIVE) {
 $size = (int)filesize($full);
 $isVideo = str_starts_with((string)$mime, 'video/');
 $modified = (int)(filemtime($full) ?: time());
-$etag = '"' . hash('sha256', $path . '|' . $size . '|' . $modified) . '"';
+$faststart = $isVideo
+    ? media_faststart_layout($full, $path, (string)$mime)
+    : null;
+$etag = '"' . hash(
+    'sha256',
+    $path . '|' . $size . '|' . $modified . '|' . ($faststart !== null ? 'faststart-v1' : 'original')
+) . '"';
 
 header('Content-Type: ' . $mime);
 header('X-Content-Type-Options: nosniff');
@@ -217,6 +224,10 @@ if ($isVideo && $range !== '' && preg_match('/^bytes=(\d*)-(\d*)$/D', $range, $m
     if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'HEAD') {
         exit;
     }
+    if ($faststart !== null) {
+        media_faststart_stream($faststart, $full, $start, $length);
+        exit;
+    }
     $fp = fopen($full, 'rb');
     if ($fp === false) {
         http_response_code(500);
@@ -242,6 +253,10 @@ if ($isVideo && $range !== '' && preg_match('/^bytes=(\d*)-(\d*)$/D', $range, $m
 
 header('Content-Length: ' . (string)$size);
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'HEAD') {
+    exit;
+}
+if ($faststart !== null) {
+    media_faststart_stream($faststart, $full, 0, $size);
     exit;
 }
 readfile($full);

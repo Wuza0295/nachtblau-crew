@@ -70,6 +70,6 @@ window.HYBRIXON_I18N = <?= json_encode([
     'pushUnsupported' => t('settings.push_unsupported'),
 ], JSON_UNESCAPED_UNICODE) ?>;
 </script>
-<script src="<?= e(allxion_url('assets/js/app.js')) ?>?v=119" defer></script>
+<script src="<?= e(allxion_url('assets/js/app.js')) ?>?v=120" defer></script>
 </body>
 </html>
