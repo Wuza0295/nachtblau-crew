@@ -15,6 +15,9 @@ export const SITE = {
   githubLabel: "GitHub Repository",
   contactEmail: "info@nacht-blau.de",
   gamerPowerUrl: "https://www.gamerpower.com",
+  allInklPartnerUrl: "https://all-inkl.com/PAC24FB89FC115D",
+  allInklBannerUrl: "https://all-inkl.com/banner/all-inkl_banner_468x60_black.jpg",
+  allInklBannerAlt: "ALL-INKL.COM - Webhosting Server Hosting Domain Provider",
 } as const;
 
 export const EXTERNAL_LINKS = [
