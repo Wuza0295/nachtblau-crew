@@ -19,7 +19,11 @@ import {
 import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
 import { StatusBar } from "expo-status-bar";
-import { VideoView, useVideoPlayer } from "expo-video";
+import {
+  setVideoCacheSizeAsync,
+  VideoView,
+  useVideoPlayer,
+} from "expo-video";
 import type { ApiMedia, ApiPost, ApiUser } from "@hybrixon/contracts";
 import {
   api,
@@ -28,13 +32,17 @@ import {
   type QueuedFile,
 } from "./src/api";
 import { registerUploadTask } from "./src/background";
+import { readFeedCache, refreshFeedCache } from "./src/feed-cache";
 import { registerPush } from "./src/push";
 
 type Tab = "feed" | "compose" | "profile";
 
 function PostMedia({ media }: { media: ApiMedia }) {
+  const videoUri = media.kind === "video"
+    ? (media.playbackUrl ?? media.originalUrl ?? "")
+    : "";
   const player = useVideoPlayer(
-    media.kind === "video" ? (media.playbackUrl ?? media.originalUrl ?? "") : "",
+    videoUri ? { uri: videoUri, useCaching: true } : null,
     (instance) => { instance.loop = false; },
   );
   if (media.kind === "image") {
@@ -46,6 +54,15 @@ function PostMedia({ media }: { media: ApiMedia }) {
       {media.status !== "ready" ? <Text style={styles.processing}>Vorschau wird erstellt…</Text> : null}
     </View>
   );
+}
+
+function warmFeedImages(posts: ApiPost[]): void {
+  const urls = posts
+    .flatMap((post) => post.media)
+    .map((media) => media.posterUrl ?? (media.kind === "image" ? media.originalUrl : null))
+    .filter((url): url is string => !!url)
+    .slice(0, 12);
+  void Promise.allSettled(urls.map((url) => Image.prefetch(url)));
 }
 
 function PostCard({ post }: { post: ApiPost }) {
@@ -202,8 +219,15 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const load = async () => {
     setLoading(true);
+    const cached = await readFeedCache();
+    if (cached.length) {
+      setPosts(cached);
+      warmFeedImages(cached);
+    }
     try {
-      setPosts((await api.feed()).posts);
+      const fresh = await refreshFeedCache();
+      setPosts(fresh);
+      warmFeedImages(fresh);
     } catch (error) {
       console.warn(error);
     } finally {
@@ -217,6 +241,7 @@ export default function App() {
     }).catch(() => undefined);
     void load();
     void registerUploadTask();
+    void setVideoCacheSizeAsync(384 * 1024 * 1024);
   }, []);
   useEffect(() => {
     const openDeepLink = (incoming: string) => {

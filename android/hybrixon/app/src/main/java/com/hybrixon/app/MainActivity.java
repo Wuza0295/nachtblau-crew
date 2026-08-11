@@ -136,10 +136,17 @@ public class MainActivity extends AppCompatActivity {
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
         settings.setMediaPlaybackRequiresUserGesture(false);
+        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+        settings.setOffscreenPreRaster(true);
         settings.setAllowFileAccess(true);
         settings.setAllowContentAccess(true);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
-        settings.setUserAgentString(settings.getUserAgentString() + " HybrixonApp/1.0.3");
+        settings.setUserAgentString(
+                settings.getUserAgentString() + " HybrixonApp/" + BuildConfig.VERSION_NAME
+        );
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            webView.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_BOUND, false);
+        }
 
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.setAcceptCookie(true);
@@ -466,11 +473,12 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onPause() {
-        // Do NOT pause the WebView during uploads — that aborts XHR mid-flight
-        // ("Netzwerkfehler beim Upload") when Android backgrounds the activity.
-        if (!uploading) {
-            webView.onPause();
-        }
+        // Keep network/cache work alive while Android backgrounds the activity.
+        // Pause audible playback only; preload and uploads may continue.
+        webView.evaluateJavascript(
+                "document.querySelectorAll('video').forEach(function(video){video.pause();});",
+                null
+        );
         CookieManager.getInstance().flush();
         super.onPause();
     }
