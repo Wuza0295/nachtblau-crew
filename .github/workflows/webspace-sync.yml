@@ -1,4 +1,4 @@
-name: Webspace Sync (nacht-blau.de)
+name: Webspace Sync (all domains)
 
 on:
   workflow_dispatch:
@@ -21,17 +21,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Inject partner banner into all local domains
+        run: python3 scripts/inject-partner-banner.py
+
       - name: Build Allxion for /allxion/
         run: pnpm webspace:build-allxion
         env:
           VITE_API_ORIGIN: ${{ secrets.VITE_API_ORIGIN }}
 
-      - name: Upload to ALL-INKL (FTPS)
+      - name: Upload all webspace domains to ALL-INKL (FTPS)
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
           FTP_USER: ${{ secrets.FTP_USER }}
           FTP_PASS: ${{ secrets.FTP_PASS }}
-          FTP_REMOTE_DIR: ${{ secrets.FTP_REMOTE_DIR }}
           FTP_TLS: "1"
         run: |
           if [ -z "$FTP_USER" ] || [ -z "$FTP_PASS" ]; then
@@ -39,5 +41,4 @@ jobs:
             exit 1
           fi
           export FTP_HOST="${FTP_HOST:-w02176b7.kasserver.com}"
-          python3 scripts/sync-one-webspace.py nacht-blau.de
-          python3 scripts/sync-one-webspace.py hybrixon.com
+          python3 scripts/sync-webspace.py

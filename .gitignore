@@ -6,6 +6,11 @@
 dist/
 build/
 *.dist
+webspace/nacht-blau.de/allxion/assets/
+webspace/nacht-blau.de/allxion/index.html
+webspace/nacht-blau.de/allxion/manifest.json
+webspace/nacht-blau.de/allxion/robots.txt
+webspace/nacht-blau.de/allxion/__manus__/
 
 # Environment variables
 .env

@@ -2,29 +2,50 @@
   <footer class="footer">
     <p><strong>Hybrixon</strong> · <?= e(ALLXION_TAGLINE) ?></p>
     <p class="muted">
-      <a href="<?= e(allxion_url('rules.php')) ?>">Regeln</a> ·
-      <a href="<?= e(allxion_url('terms.php')) ?>">Nutzungsbedingungen</a> ·
-      <a href="<?= e(allxion_url('privacy.php')) ?>">Datenschutz</a> ·
-      <a href="<?= e(allxion_url('impressum.php')) ?>">Impressum</a>
+      <a href="<?= e(allxion_url('app.php')) ?>"><?= e(t('footer.app')) ?></a> ·
+      <a href="<?= e(allxion_url('rules.php')) ?>"><?= e(t('footer.rules')) ?></a> ·
+      <a href="<?= e(allxion_url('terms.php')) ?>"><?= e(t('footer.terms')) ?></a> ·
+      <a href="<?= e(allxion_url('privacy.php')) ?>"><?= e(t('footer.privacy')) ?></a> ·
+      <a href="<?= e(allxion_url('impressum.php')) ?>"><?= e(t('footer.imprint')) ?></a>
       <?php if (!empty($currentUser)): ?>
-        · <a href="<?= e(allxion_url('messages.php')) ?>">DMs</a>
+        · <a href="<?= e(allxion_url('messages.php')) ?>"><?= e(t('footer.messages')) ?></a>
       <?php endif; ?>
     </p>
-    <p class="muted" style="margin-top:0.35rem;font-size:0.8rem;">
-      <?php if (hybrixon_is_interim()): ?>
-        Ziel-Domain: <a href="<?= e(hybrixon_canonical_origin()) ?>/"><?= e(HYBRIXON_CANONICAL_HOST) ?></a> ·
-      <?php else: ?>
-        <a href="<?= e(hybrixon_canonical_origin()) ?>/"><?= e(HYBRIXON_CANONICAL_HOST) ?></a> ·
-      <?php endif; ?>
-      Soft-18+ · kein 18++ / Porno / Gewalt
-    </p>
+    <form class="footer-lang" method="get" action="">
+      <label>
+        <span class="visually-hidden"><?= e(t('footer.language')) ?></span>
+        <select name="lang" onchange="this.form.submit()" aria-label="<?= e(t('footer.language')) ?>">
+          <?php
+            $curLang = hybrixon_active_lang($currentUser ?? null);
+            foreach (hybrixon_locales() as $code => $label):
+          ?>
+            <option value="<?= e($code) ?>" <?= $curLang === $code ? 'selected' : '' ?>><?= e($label) ?></option>
+          <?php endforeach; ?>
+        </select>
+      </label>
+      <?php foreach ($_GET as $gk => $gv): ?>
+        <?php if ($gk === 'lang' || is_array($gv)) {
+            continue;
+        } ?>
+        <input type="hidden" name="<?= e((string)$gk) ?>" value="<?= e((string)$gv) ?>">
+      <?php endforeach; ?>
+    </form>
     <?php require __DIR__ . '/partner-banner.php'; ?>
   </footer>
+    </div><!-- .shell-main -->
+  </div><!-- .shell -->
 </div>
-<?php
-  $jsPath = ALLXION_ROOT . '/assets/js/app.js';
-  $jsVer = is_file($jsPath) ? (string)filemtime($jsPath) : '1';
-?>
-<script src="<?= e(allxion_url('assets/js/app.js') . '?v=' . $jsVer) ?>" defer></script>
+<script>
+window.HYBRIXON_I18N = <?= json_encode([
+    'lang' => hybrixon_active_lang($currentUser ?? null),
+    'copied' => t('common.copied'),
+    'translate' => t('post.translate'),
+    'showOriginal' => t('post.show_original'),
+    'translating' => t('common.translating'),
+    'translateFailed' => t('common.translate_failed'),
+    'translateUrl' => allxion_url('api-translate.php'),
+], JSON_UNESCAPED_UNICODE) ?>;
+</script>
+<script src="<?= e(allxion_url('assets/js/app.js')) ?>" defer></script>
 </body>
 </html>
