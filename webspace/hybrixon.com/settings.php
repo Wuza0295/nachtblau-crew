@@ -183,6 +183,11 @@ require __DIR__ . '/includes/header.php';
         <option value="dark" <?= $th === 'dark' ? 'selected' : '' ?>>Dark Mode</option>
       </select>
     </label>
+    <label class="pref-check">
+      <input type="checkbox" name="autoplay_videos" value="1" <?= !empty($user['autoplay_videos']) ? 'checked' : '' ?>>
+      <span>Videos automatisch abspielen (stumm)</span>
+    </label>
+    <p class="hint">Ausgeschaltet: Videos werden im Hintergrund vorgeladen, starten aber erst nach deinem Tippen.</p>
     <label>Markenanzeige (obere Leiste)
       <select name="brand_style">
         <?php $bs = (string)($user['brand_style'] ?? 'logo_text'); ?>

@@ -1,10 +1,10 @@
 /* Hybrixon service worker — Web Push + background-loaded static shell */
-const STATIC_CACHE = 'hybrixon-static-v3';
+const STATIC_CACHE = 'hybrixon-static-v4';
 const STATIC_PREFIX = 'hybrixon-static-';
 const STATIC_ASSETS = [
   '/manifest.json',
   '/assets/css/style.css?v=113',
-  '/assets/js/app.js?v=121',
+  '/assets/js/app.js?v=122',
   '/assets/img/logo-avatar.png',
   '/assets/img/favicon.svg',
 ];

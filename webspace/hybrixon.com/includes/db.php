@@ -4,7 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/config.php';
 
 // Increment whenever allxion_migrate() gains schema/data migrations.
-const HYBRIXON_SCHEMA_VERSION = 2026081002;
+const HYBRIXON_SCHEMA_VERSION = 2026081101;
 
 function allxion_db(): PDO
 {
@@ -278,6 +278,7 @@ SQL);
         'auto_accept_friends' => 'INTEGER NOT NULL DEFAULT 0',
         'ui_lang' => "TEXT NOT NULL DEFAULT 'de'",
         'push_notify_enabled' => 'INTEGER NOT NULL DEFAULT 1',
+        'autoplay_videos' => 'INTEGER NOT NULL DEFAULT 0',
     ];
     foreach ($add as $name => $def) {
         if (!isset($cols[$name])) {

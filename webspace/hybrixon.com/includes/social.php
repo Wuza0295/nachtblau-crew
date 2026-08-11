@@ -242,6 +242,7 @@ function social_update_profile(array $user, array $input, ?array $avatarFile = n
         'email_notify_group_posts' => !empty($input['email_notify_group_posts']) ? 1 : 0,
     ];
     $pushNotifyEnabled = !empty($input['push_notify_enabled']) ? 1 : 0;
+    $autoplayVideos = !empty($input['autoplay_videos']) ? 1 : 0;
 
     $errors = [];
     if ($display !== '' && mb_strlen($display) > 60) {
@@ -318,7 +319,7 @@ function social_update_profile(array $user, array $input, ?array $avatarFile = n
          theme = ?, brand_style = ?, sidebar_items = ?,
          email_notify_enabled = ?, email_notify_activity = ?, email_notify_messages = ?,
          email_notify_friend_posts = ?, email_notify_group_posts = ?,
-         push_notify_enabled = ?,
+         push_notify_enabled = ?, autoplay_videos = ?,
          relationship_status = ?, avatar_path = ?, banner_path = ?, ui_lang = ?
          WHERE id = ?'
     )->execute([
@@ -344,6 +345,7 @@ function social_update_profile(array $user, array $input, ?array $avatarFile = n
         $emailPrefs['email_notify_friend_posts'],
         $emailPrefs['email_notify_group_posts'],
         $pushNotifyEnabled,
+        $autoplayVideos,
         $relationshipStatus,
         $avatarPath,
         $bannerPath,

@@ -4,7 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/helpers.php';
 
-const ALLXION_USER_SELECT = 'id, username, email, birthdate, age_verified_at, age_status, age_doc_path, age_requested_at, age_reviewed_at, age_review_note, age_provider, dm_rules_accepted_at, dm_rules_version, is_admin, banned_at, ban_reason, banned_by, display_name, bio, avatar_path, banner_path, postal_code, city, privacy_profile, privacy_posts, privacy_dms, privacy_friends, privacy_albums, privacy_stories, privacy_groups, privacy_relationship, privacy_search, relationship_status, partner_id, partner_pending_id, theme, brand_style, sidebar_items, email_notify_enabled, email_notify_activity, email_notify_messages, email_notify_friend_posts, email_notify_group_posts, auto_accept_friends, ui_lang, last_ip, last_ip_at, last_seen_at, created_at';
+const ALLXION_USER_SELECT = 'id, username, email, birthdate, age_verified_at, age_status, age_doc_path, age_requested_at, age_reviewed_at, age_review_note, age_provider, dm_rules_accepted_at, dm_rules_version, is_admin, banned_at, ban_reason, banned_by, display_name, bio, avatar_path, banner_path, postal_code, city, privacy_profile, privacy_posts, privacy_dms, privacy_friends, privacy_albums, privacy_stories, privacy_groups, privacy_relationship, privacy_search, relationship_status, partner_id, partner_pending_id, theme, brand_style, sidebar_items, email_notify_enabled, email_notify_activity, email_notify_messages, email_notify_friend_posts, email_notify_group_posts, auto_accept_friends, autoplay_videos, ui_lang, last_ip, last_ip_at, last_seen_at, created_at';
 
 function allxion_cookie_path(): string
 {

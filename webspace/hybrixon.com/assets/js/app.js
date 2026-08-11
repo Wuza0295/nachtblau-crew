@@ -213,6 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
    */
   const previewVideos = Array.from(document.querySelectorAll('video[data-video-preview][data-video-src]'));
   if (previewVideos.length) {
+    const autoplayVideos = i18n.autoplayVideos === true;
     const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection || null;
     const effectiveType = connection && connection.effectiveType ? connection.effectiveType : '';
     const previewConcurrency = connection && connection.saveData
@@ -367,6 +368,50 @@ document.addEventListener('DOMContentLoaded', () => {
           metadataObserver.observe(video);
         }
       });
+
+      if (autoplayVideos) {
+        const visibility = new Map();
+        let autoplayTarget = null;
+        let autoplayFrame = 0;
+        const syncAutoplay = () => {
+          autoplayFrame = 0;
+          const candidates = document.hidden
+            ? []
+            : Array.from(visibility.entries())
+                .filter(([, ratio]) => ratio >= 0.6)
+                .sort((a, b) => b[1] - a[1]);
+          const next = candidates.length ? candidates[0][0] : null;
+          if (autoplayTarget && autoplayTarget !== next
+            && autoplayTarget.dataset.videoAutoplay === '1') {
+            autoplayTarget.pause();
+            delete autoplayTarget.dataset.videoAutoplay;
+          }
+          autoplayTarget = next;
+          if (!next || !next.paused) return;
+          showVideoPoster(next);
+          if (next.dataset.videoLoaded !== '1' && next.dataset.videoLoading !== '1') {
+            startVideoPreview(next, true);
+          }
+          next.muted = true;
+          next.dataset.videoAutoplay = '1';
+          const playAttempt = next.play();
+          if (playAttempt && typeof playAttempt.catch === 'function') {
+            playAttempt.catch(() => {});
+          }
+        };
+        const scheduleAutoplay = () => {
+          if (autoplayFrame) return;
+          autoplayFrame = requestAnimationFrame(syncAutoplay);
+        };
+        const autoplayObserver = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            visibility.set(entry.target, entry.isIntersecting ? entry.intersectionRatio : 0);
+          });
+          scheduleAutoplay();
+        }, { threshold: [0, 0.6, 0.85] });
+        previewVideos.forEach((video) => autoplayObserver.observe(video));
+        document.addEventListener('visibilitychange', scheduleAutoplay);
+      }
 
       // Fill the first video buffers while the user is reading the page. Keep
       // this bounded so a post with many large clips never downloads in bulk.

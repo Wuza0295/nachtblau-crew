@@ -5,6 +5,7 @@ require_once __DIR__ . '/includes/stories.php';
 require_once __DIR__ . '/includes/social.php';
 
 $viewer = allxion_current_user();
+$autoplayVideos = !empty($viewer['autoplay_videos']);
 $username = trim((string)($_GET['u'] ?? ''));
 $owner = social_find_user_by_username($username);
 if (!$owner) {
@@ -51,7 +52,7 @@ $prev = $idx > 0
   </div>
   <?php if (($current['media_kind'] ?? '') === 'video'): ?>
     <div class="post-video">
-      <video src="<?= e($mediaUrl) ?>" controls autoplay playsinline></video>
+      <video src="<?= e($mediaUrl) ?>" controls <?= $autoplayVideos ? 'autoplay muted' : '' ?> playsinline></video>
     </div>
   <?php else: ?>
     <div class="post-image">
