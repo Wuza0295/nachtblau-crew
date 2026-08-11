@@ -92,6 +92,20 @@ const HYBRIXON_OFFICIAL_EMAIL = 'official@hybrixon.com';
 /** Legacy username merged into @Hybrixon (kept for redirects / reserved names). */
 const HYBRIXON_LEGACY_TEAM_USERNAME = 'HybrixonTeam';
 
+/**
+ * Current public Android release. Updating this version and its notes
+ * automatically creates one idempotent announcement from @Hybrixon.
+ */
+const HYBRIXON_ANDROID_APP_VERSION = '1.0.4';
+const HYBRIXON_ANDROID_APP_RELEASE_NOTES = [
+    'Webseite und App laden Oberfläche und Videopuffer intelligent im Hintergrund',
+    'Videos starten standardmäßig nur nach Antippen',
+    'Optionales stummes Autoplay kann in den Einstellungen aktiviert werden',
+    'Deutlich schnellerer Videostart durch optimiertes MP4-Streaming',
+    'Stabilere Uploads und bessere App-Leistung im Hintergrund',
+    'Weiter modernisierte Oberfläche für Smartphone und Desktop',
+];
+
 define('ALLXION_ROOT', dirname(__DIR__));
 define('ALLXION_DATA', ALLXION_ROOT . '/data');
 define('ALLXION_UPLOADS', ALLXION_ROOT . '/uploads');

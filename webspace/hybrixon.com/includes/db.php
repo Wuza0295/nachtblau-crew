@@ -55,6 +55,12 @@ function allxion_db(): PDO
         }
     }
     allxion_db_maintenance($pdo);
+    try {
+        require_once __DIR__ . '/app_release.php';
+        hybrixon_publish_configured_app_release($pdo);
+    } catch (Throwable) {
+        // Release announcements must never block normal page/media requests.
+    }
     return $pdo;
 }
 
