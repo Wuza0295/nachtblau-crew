@@ -18,6 +18,7 @@ import SocialHub from "./pages/social/SocialHub";
 import SocialFluss from "./pages/social/SocialFluss";
 import SocialKreise from "./pages/social/SocialKreise";
 import SocialMomente from "./pages/social/SocialMomente";
+import AllInklPartnerBanner from "./components/AllInklPartnerBanner";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
@@ -70,6 +71,7 @@ function App() {
             }}
           />
           <Router />
+          <AllInklPartnerBanner />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
