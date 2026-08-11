@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/config.php';
 
-const MEDIA_FASTSTART_CACHE_VERSION = 1;
+const MEDIA_FASTSTART_CACHE_VERSION = 2;
 const MEDIA_FASTSTART_MAX_MOOV_BYTES = 33_554_432;
 
 function media_faststart_u32(string $data, int $offset): ?int
