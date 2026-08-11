@@ -70,6 +70,20 @@ function App() {
             }}
           />
           <Router />
+          <aside
+            aria-label="Werbung"
+            className="flex justify-center overflow-hidden bg-background px-4 py-6"
+          >
+            {/* Start Partnerprogramm ALL-INKL.COM */}
+            <a href="https://all-inkl.com/PAC24FB89FC115D" rel="sponsored">
+              <img
+                src="https://all-inkl.com/banner/all-inkl_banner_468x60_black.jpg"
+                alt="ALL-INKL.COM - Webhosting Server Hosting Domain Provider"
+                className="h-auto max-w-full"
+              />
+            </a>
+            {/* Ende Partnerprogramm */}
+          </aside>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
