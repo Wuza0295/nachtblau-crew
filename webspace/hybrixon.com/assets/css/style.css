@@ -2509,10 +2509,17 @@ body.theme-light .media-grid-multi {
 }
 
 .settings-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
   padding: 1rem;
   border: 1px solid var(--line);
   border-radius: 1.1rem;
   background: linear-gradient(145deg, var(--accent-soft), transparent);
+}
+.sidebar-config-pos {
+  min-height: 2.15rem !important;
 }
 .sidebar-config {
   padding: 0.95rem;
@@ -2589,6 +2596,36 @@ body.theme-light .media-grid-multi {
     min-height: 2.18rem;
     padding-inline: 0.7rem;
     font-size: 0.77rem;
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .post:hover,
+  .story-ring:hover {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .btn,
+  .btn:hover,
+  .btn:active,
+  .post,
+  .post:hover,
+  .story-ring,
+  .story-ring:hover,
+  .post-image img,
+  .post-image:hover img,
+  .topbar-tab,
+  .topbar-tab .nav-icon,
+  .sidebar-link .sidebar-ico,
+  .brand:hover .brand-logo {
+    animation: none !important;
+    transform: none !important;
+    transition: none !important;
   }
 }
 
