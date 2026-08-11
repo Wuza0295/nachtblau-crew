@@ -1,8 +1,12 @@
 import { Link } from "wouter";
 import { EXTERNAL_LINKS, SITE } from "@/lib/site";
 import { Github, Globe, Mail, ExternalLink } from "lucide-react";
+import PartnerBanner from "./PartnerBanner";
 
-const LINK_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+const LINK_ICONS: Record<
+  string,
+  React.ComponentType<{ className?: string }>
+> = {
   [SITE.webspaceUrl]: Globe,
   [SITE.githubUrl]: Github,
   [`mailto:${SITE.contactEmail}`]: Mail,
@@ -15,7 +19,11 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-3 md:col-span-1">
             <div className="flex items-center gap-3">
-              <img src={SITE.logoUrl} alt={SITE.name} className="h-10 w-10 object-contain" />
+              <img
+                src={SITE.logoUrl}
+                alt={SITE.name}
+                className="h-10 w-10 object-contain"
+              />
               <span
                 className="font-bold text-lg gradient-text"
                 style={{ fontFamily: "Orbitron, sans-serif" }}
@@ -23,7 +31,9 @@ export default function Footer() {
                 {SITE.name}
               </span>
             </div>
-            <p className="text-sm text-muted-foreground leading-relaxed">{SITE.tagline}</p>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {SITE.tagline}
+            </p>
           </div>
 
           <div className="space-y-3">
@@ -60,7 +70,7 @@ export default function Footer() {
               NachtBlau Netzwerk
             </h4>
             <ul className="space-y-2">
-              {EXTERNAL_LINKS.map((link) => {
+              {EXTERNAL_LINKS.map(link => {
                 const Icon = LINK_ICONS[link.href] ?? ExternalLink;
                 return (
                   <li key={link.href}>
@@ -108,7 +118,7 @@ export default function Footer() {
               .
             </p>
             <div className="flex gap-3 pt-1">
-              {EXTERNAL_LINKS.map((link) => {
+              {EXTERNAL_LINKS.map(link => {
                 const Icon = LINK_ICONS[link.href] ?? ExternalLink;
                 return (
                   <a
@@ -130,8 +140,12 @@ export default function Footer() {
 
         <div className="divider-glow mt-8 mb-6" />
 
+        <PartnerBanner className="mb-6" />
+
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
-          <span>© {new Date().getFullYear()} {SITE.name}. Alle Rechte vorbehalten.</span>
+          <span>
+            © {new Date().getFullYear()} {SITE.name}. Alle Rechte vorbehalten.
+          </span>
           <div className="flex items-center gap-3">
             <a
               href={SITE.webspaceUrl}

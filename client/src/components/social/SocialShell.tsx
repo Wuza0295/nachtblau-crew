@@ -10,9 +10,15 @@ import {
   Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import PartnerBanner from "@/components/PartnerBanner";
 
 const NAV = [
-  { href: "/portal", label: "Hub", icon: Home, match: (p: string) => p === "/portal" },
+  {
+    href: "/portal",
+    label: "Hub",
+    icon: Home,
+    match: (p: string) => p === "/portal",
+  },
   {
     href: "/portal/fluss",
     label: "Fluss",
@@ -70,7 +76,7 @@ export default function SocialShell({
           </Link>
 
           <nav className="hidden md:flex items-center gap-1">
-            {NAV.map((item) => {
+            {NAV.map(item => {
               const active = item.match(location);
               const Icon = item.icon;
               return (
@@ -93,7 +99,11 @@ export default function SocialShell({
 
           <div className="flex items-center gap-2">
             <Link href="/">
-              <Button variant="ghost" size="sm" className="hidden sm:flex gap-2 rounded-full">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="hidden sm:flex gap-2 rounded-full"
+              >
                 <Compass className="h-4 w-4" />
                 Crew
               </Button>
@@ -112,11 +122,15 @@ export default function SocialShell({
         </div>
       </header>
 
-      <div className="flex-1 container pb-24 md:pb-8">{children}</div>
+      <div className="flex-1 container pb-4 md:pb-8">{children}</div>
+
+      <div className="container pb-24 md:pb-8">
+        <PartnerBanner />
+      </div>
 
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-white/10 bg-background/80 backdrop-blur-xl">
         <div className="flex justify-around py-2">
-          {NAV.map((item) => {
+          {NAV.map(item => {
             const active = item.match(location);
             const Icon = item.icon;
             return (
@@ -125,7 +139,9 @@ export default function SocialShell({
                   type="button"
                   className={cn(
                     "flex flex-col items-center gap-0.5 px-3 py-1 text-[10px] transition-colors duration-200",
-                    active ? "text-[oklch(0.75_0.18_310)]" : "text-muted-foreground"
+                    active
+                      ? "text-[oklch(0.75_0.18_310)]"
+                      : "text-muted-foreground"
                   )}
                 >
                   <Icon className="h-5 w-5" />
