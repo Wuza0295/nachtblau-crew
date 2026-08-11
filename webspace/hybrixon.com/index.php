@@ -39,6 +39,10 @@ require __DIR__ . '/includes/header.php';
 ?>
 
 <?php if ($user): ?>
+<?php
+  $composeImagesLabel = trim((string)(preg_replace('/\s*\([^)]*\)\s*$/u', '', t('compose.images')) ?? t('compose.images')));
+  $composeVideoLabel = trim((string)(preg_replace('/\s*\([^)]*\)\s*$/u', '', t('compose.video')) ?? t('compose.video')));
+?>
 <section class="panel feed-scope-panel">
   <div class="pill-row" style="margin:0;">
     <a class="pill<?= $scope === 'all' ? ' pill-ok' : '' ?>" href="<?= e(allxion_url()) ?>"><?= e(t('feed.all')) ?></a>
@@ -64,16 +68,30 @@ require __DIR__ . '/includes/header.php';
       </label>
     </div>
     <div class="feed-compose-actions">
-      <label class="feed-compose-media btn btn-sm btn-ghost">
-        <?= e(t('compose.images')) ?>
+      <label class="feed-compose-media feed-compose-action-image btn btn-sm btn-ghost" title="<?= e(t('compose.images')) ?>">
+        <span class="feed-compose-action-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8.5" cy="9" r="1.5"/><path d="m21 15-5-5L5 20"/></svg>
+        </span>
+        <span><?= e($composeImagesLabel) ?></span>
         <input type="file" name="images[]" accept="image/jpeg,image/png,image/webp" multiple hidden data-max-files="<?= (int)MEDIA_POST_IMAGES_MAX ?>" data-stage-kind="image">
       </label>
-      <label class="feed-compose-media btn btn-sm btn-ghost">
-        <?= e(t('compose.video')) ?>
+      <label class="feed-compose-media feed-compose-action-video btn btn-sm btn-ghost" title="<?= e(t('compose.video')) ?>">
+        <span class="feed-compose-action-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="m10 9 5 3-5 3V9z"/></svg>
+        </span>
+        <span><?= e($composeVideoLabel) ?></span>
         <input type="file" name="videos[]" accept="video/mp4,video/webm,video/quicktime" multiple hidden data-max-files="<?= (int)MEDIA_POST_VIDEOS_MAX ?>" data-stage-kind="video">
       </label>
-      <a class="btn btn-sm btn-ghost" href="<?= e(allxion_url('compose.php')) ?>"><?= e(t('feed.compose_more')) ?></a>
-      <button class="btn btn-sm" type="submit"><?= e(t('compose.publish')) ?></button>
+      <a class="feed-compose-action-more btn btn-sm btn-ghost" href="<?= e(allxion_url('compose.php')) ?>">
+        <span class="feed-compose-action-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10"/><path d="M18 7h2"/><circle cx="16" cy="7" r="2"/><path d="M4 17h2"/><path d="M10 17h10"/><circle cx="8" cy="17" r="2"/></svg>
+        </span>
+        <span><?= e(t('feed.compose_more')) ?></span>
+      </a>
+      <button class="feed-compose-publish btn btn-sm" type="submit">
+        <span><?= e(t('compose.publish')) ?></span>
+        <svg class="feed-compose-publish-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 14-7-4 14-3-5-7-2Z"/><path d="m12 14 7-9"/></svg>
+      </button>
     </div>
   </form>
 </section>
