@@ -10,10 +10,9 @@ export default function AllInklPartnerBanner() {
           aria-label="ALL-INKL.COM - Webhosting Server Hosting Domain Provider"
         >
           <img
-            border={0}
             src="https://all-inkl.com/banner/all-inkl_banner_468x60_black.jpg"
             alt="ALL-INKL.COM - Webhosting Server Hosting Domain Provider"
-            className="max-w-full h-auto"
+            className="max-w-full h-auto border-0"
           />
         </a>
         {/* Ende Partnerprogramm */}
