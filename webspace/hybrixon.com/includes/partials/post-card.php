@@ -50,7 +50,10 @@ $commentCount = isset($post['comment_count']) ? (int)$post['comment_count'] : co
     <div class="media-grid<?= count($media) > 1 ? ' media-grid-multi' : '' ?>">
     <?php foreach ($media as $m): ?>
       <?php if (($m['kind'] ?? '') === 'video'): ?>
-        <?php $videoUrl = allxion_url(!empty($m['id']) ? 'media.php?m=' . (int)$m['id'] : 'media.php?id=' . (int)$post['id'] . '&kind=video'); ?>
+        <?php $videoUrl = allxion_url(
+            (!empty($m['id']) ? 'media.php?m=' . (int)$m['id'] : 'media.php?id=' . (int)$post['id'] . '&kind=video')
+            . '&stream=' . MEDIA_STREAM_VERSION
+        ); ?>
         <?php $posterUrl = !empty($m['id']) && !empty($m['poster_path'])
             ? allxion_url('media.php?poster=' . (int)$m['id'])
             : null; ?>

@@ -56,6 +56,8 @@ const MEDIA_UPLOAD_CHUNK_THRESHOLD_BYTES = 12_000_000;
 const MEDIA_UPLOAD_CHUNK_BYTES = 8_000_000;
 const MEDIA_UPLOAD_CHUNK_PARALLEL = 4;
 const MEDIA_UPLOAD_CHUNK_TTL_SECONDS = 7200;
+/** Bump when the byte layout of streamed videos changes, invalidating cached ranges. */
+const MEDIA_STREAM_VERSION = 2;
 /** Phone/4K festival clips often exceed 200 MB — allow up to 500 MB per video. */
 const MEDIA_VIDEO_MAX_BYTES = 500_000_000;
 const MEDIA_VIDEO_MAX_SECONDS = 900;

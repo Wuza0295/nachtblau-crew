@@ -33,7 +33,9 @@ $activeNav = 'stories';
 $noIndex = true;
 require __DIR__ . '/includes/header.php';
 
-$mediaUrl = allxion_url('media.php?story=' . (int)$current['id']);
+$mediaUrl = allxion_url(
+    'media.php?story=' . (int)$current['id'] . '&stream=' . MEDIA_STREAM_VERSION
+);
 $next = $idx + 1 < count($items)
     ? allxion_url('story.php?u=' . rawurlencode($owner['username']) . '&i=' . ($idx + 1))
     : null;
