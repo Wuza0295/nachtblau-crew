@@ -113,10 +113,9 @@ export default function SocialShell({
         </div>
       </header>
 
-      <div className="flex-1 container pb-24 md:pb-8">{children}</div>
-
-      <div className="container pb-24 md:pb-6">
-        <AllInklPartnerBanner />
+      <div className="flex-1 container pb-24 md:pb-8">
+        {children}
+        <AllInklPartnerBanner className="mt-8" />
       </div>
 
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-white/10 bg-background/80 backdrop-blur-xl">
