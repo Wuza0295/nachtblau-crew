@@ -20,6 +20,7 @@ import SocialKreise from "./pages/social/SocialKreise";
 import SocialMomente from "./pages/social/SocialMomente";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import PartnerProgramBanner from "./components/PartnerProgramBanner";
 
 function Router() {
   return (
@@ -70,6 +71,7 @@ function App() {
             }}
           />
           <Router />
+          <PartnerProgramBanner />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
