@@ -19,6 +19,7 @@ import SocialFluss from "./pages/social/SocialFluss";
 import SocialKreise from "./pages/social/SocialKreise";
 import SocialMomente from "./pages/social/SocialMomente";
 import Navbar from "./components/Navbar";
+import PartnerBanner from "./components/PartnerBanner";
 import Footer from "./components/Footer";
 
 function Router() {
@@ -47,6 +48,7 @@ function Router() {
               <Route component={NotFound} />
             </Switch>
           </main>
+          <PartnerBanner />
           <Footer />
         </div>
       </Route>
