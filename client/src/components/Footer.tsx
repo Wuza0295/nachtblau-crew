@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { EXTERNAL_LINKS, SITE } from "@/lib/site";
 import { Github, Globe, Mail, ExternalLink } from "lucide-react";
+import AllInklPartnerBanner from "./AllInklPartnerBanner";
 
 const LINK_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   [SITE.webspaceUrl]: Globe,
@@ -127,6 +128,8 @@ export default function Footer() {
             </div>
           </div>
         </div>
+
+        <AllInklPartnerBanner className="pb-0 pt-10" />
 
         <div className="divider-glow mt-8 mb-6" />
 
