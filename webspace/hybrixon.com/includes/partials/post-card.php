@@ -17,19 +17,35 @@ if ($user) {
 require_once __DIR__ . '/../discover.php';
 require_once __DIR__ . '/../comments.php';
 $commentCount = isset($post['comment_count']) ? (int)$post['comment_count'] : comments_count((int)$post['id']);
+$authorDisplay = trim((string)($post['display_name'] ?? '')) ?: (string)$post['username'];
 ?>
 <article class="post<?= !empty($post['is_adult']) ? ' post-adult' : '' ?><?= ($post['post_type'] ?? '') === 'short' ? ' post-short' : '' ?>">
-  <div class="post-meta">
-    <div>
-      <a class="post-user" href="<?= e(user_public_url((string)$post['username'])) ?>">
-        @<?= e($post['username']) ?>
+  <header class="post-meta">
+    <div class="post-author">
+      <a class="avatar post-author-avatar" href="<?= e(user_public_url((string)$post['username'])) ?>" aria-label="@<?= e((string)$post['username']) ?>">
+        <?php if (!empty($post['avatar_path'])): ?>
+          <img src="<?= e(allxion_url('media.php?avatar=' . (int)$post['user_id'])) ?>" alt="">
+        <?php else: ?>
+          <span><?= e(mb_strtoupper(mb_substr((string)$post['username'], 0, 1))) ?></span>
+        <?php endif; ?>
       </a>
-      <span> · <?= e(time_ago($post['created_at'])) ?></span>
+      <div class="post-author-copy">
+        <a class="post-user post-author-name" href="<?= e(user_public_url((string)$post['username'])) ?>">
+          <?= e($authorDisplay) ?>
+        </a>
+        <div class="post-author-detail">
+          <span>@<?= e((string)$post['username']) ?></span>
+          <span aria-hidden="true">·</span>
+          <time datetime="<?= e((string)$post['created_at']) ?>"><?= e(time_ago($post['created_at'])) ?></time>
+        </div>
+      </div>
+    </div>
+    <div class="post-meta-badges">
       <?php if (!empty($post['updated_at'])): ?>
-        <span class="muted"> · <?= e(t('post.edited')) ?></span>
+        <span class="pill"><?= e(t('post.edited')) ?></span>
       <?php endif; ?>
       <?php if (($post['post_type'] ?? '') === 'short'): ?>
-        <span class="badge-18" style="border-color:rgba(45,212,191,.4);color:var(--accent);"><?= e(t('post.short')) ?></span>
+        <span class="badge-18 badge-short"><?= e(t('post.short')) ?></span>
       <?php endif; ?>
       <?php if (!empty($post['is_adult'])): ?>
         <span class="badge-18" title="<?= e(t('post.soft18')) ?>"><?= e(t('post.soft18')) ?></span>
@@ -38,7 +54,7 @@ $commentCount = isset($post['comment_count']) ? (int)$post['comment_count'] : co
         <span class="pill" title="<?= e(t('post.review')) ?>"><?= e(t('post.review')) ?></span>
       <?php endif; ?>
     </div>
-  </div>
+  </header>
   <?php if (trim((string)$post['body']) !== ''): ?>
     <?php // Post text stays in its original language; translation is opt-in only. ?>
     <div class="post-body" data-post-body lang="und"><?= discover_format_body((string)$post['body']) ?></div>

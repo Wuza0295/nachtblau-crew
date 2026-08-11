@@ -39,7 +39,7 @@ require __DIR__ . '/includes/header.php';
 ?>
 
 <?php if ($user): ?>
-<section class="panel" style="padding:0.85rem 1rem;">
+<section class="panel feed-scope-panel">
   <div class="pill-row" style="margin:0;">
     <a class="pill<?= $scope === 'all' ? ' pill-ok' : '' ?>" href="<?= e(allxion_url()) ?>"><?= e(t('feed.all')) ?></a>
     <a class="pill<?= $scope === 'friends' ? ' pill-ok' : '' ?>" href="<?= e(allxion_url('?scope=friends')) ?>"><?= e(t('feed.friends')) ?></a>
