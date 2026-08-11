@@ -29,7 +29,7 @@
     },
     "android": {
       "package": "com.hybrixon.app",
-      "versionCode": 5,
+      "versionCode": 6,
       "permissions": [
         "INTERNET",
         "POST_NOTIFICATIONS",

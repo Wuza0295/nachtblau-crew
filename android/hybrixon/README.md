@@ -18,7 +18,7 @@ Copy to website:
 
 ```bash
 cp app/build/outputs/apk/release/app-release.apk ../../webspace/hybrixon.com/downloads/hybrixon.apk
-cp app/build/outputs/apk/release/app-release.apk ../../webspace/hybrixon.com/downloads/hybrixon-1.0.0.apk
+cp app/build/outputs/apk/release/app-release.apk ../../webspace/hybrixon.com/downloads/hybrixon-1.0.4.apk
 ```
 
 ## keystore.properties (gitignored)

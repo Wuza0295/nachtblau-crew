@@ -7,7 +7,7 @@ second Android identity.
 ## Compatibility values
 
 - Application ID: `com.hybrixon.app`
-- New version code: `5` (current WebView release is `4`)
+- New version code: `6` (current WebView release is `5`)
 - HTTPS links: `hybrixon.com/*` and `www.hybrixon.com/*`
 - Custom link: `hybrixon://open?url=...`
 - Required release certificate SHA-256:
@@ -45,7 +45,7 @@ The certificate value must continue to match
 
 ## Upgrade and deep-link test
 
-Install WebView versionCode 4 first, then install the signed v2 APK over it
+Install WebView versionCode 5 first, then install the signed v2 APK over it
 without uninstalling:
 
 ```bash
