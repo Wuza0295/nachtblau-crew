@@ -1,0 +1,20 @@
+{
+  "name": "Hybrixon",
+  "short_name": "Hybrixon",
+  "description": "Hybrixon – Social-Portal. Soft-18+ · kein Porno, keine Gewalt.",
+  "start_url": "/",
+  "scope": "/",
+  "id": "https://hybrixon.com/",
+  "display": "standalone",
+  "background_color": "#12100e",
+  "theme_color": "#12100e",
+  "lang": "de",
+  "icons": [
+    {
+      "src": "assets/img/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

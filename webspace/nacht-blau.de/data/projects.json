@@ -1,0 +1,12 @@
+{
+  "updated": "2026-08-05",
+  "links": [
+    {
+      "id": "allxion",
+      "title": "Allxion",
+      "subtitle": "Hybrid-Social-Hub · NachtBlau Crew",
+      "url": "/allxion/",
+      "note": "Unterseite auf nacht-blau.de — Frontend via pnpm webspace:build-allxion deployen."
+    }
+  ]
+}

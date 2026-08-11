@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Datenschutzerklärung — NachtBlau GbR</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="color-scheme" content="light dark">
+  <script>
+    (function () {
+      var m = localStorage.getItem('nb-gbr-theme');
+      if (!m && window.matchMedia('(prefers-color-scheme: light)').matches) m = 'light';
+      var mode = m === 'light' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', mode);
+      var meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.content = mode === 'light' ? '#ffffff' : '#0a0e14';
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-row">
+      <a href="index.html" class="site-id">
+        <img src="assets/logo.svg" alt="" class="site-id-mark" width="32" height="32">
+        <span class="site-id-text">
+          <span class="site-id-name">NachtBlau GbR</span>
+          <span class="site-id-legal">Gesellschaft bürgerlichen Rechts</span>
+        </span>
+      </a>
+      <nav class="site-nav" aria-label="Hauptnavigation">
+        <a href="index.html">Profil</a>
+        <a href="index.html#gesellschafter">Gesellschafter</a>
+        <a href="impressum.html">Impressum</a>
+        <a href="datenschutz.html" aria-current="page">Datenschutz</a>
+        <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Darstellung wechseln">Aa</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="legal-page">
+    <div class="container">
+      <h1>Datenschutzerklärung</h1>
+      <p class="legal-updated">Stand: 10. Juni 2026</p>
+      <article class="legal-content">
+        <h2>1. Verantwortlicher</h2>
+        <p>
+          NachtBlau GbR<br>
+          <a href="mailto:info@nacht-blau.de">info@nacht-blau.de</a>
+        </p>
+        <p>Die NachtBlau GbR hat keinen festen Geschäftssitz. Privatanschriften der Gesellschafter werden nicht veröffentlicht.</p>
+
+        <h2>2. Allgemeines</h2>
+        <p>Es findet kein Tracking, kein Profiling und keine Werbung statt.</p>
+
+        <h2>3. Server-Logfiles</h2>
+        <p>Beim Aufruf dieser Webseite werden durch den Hosting-Anbieter Server-Logfiles erstellt (u.&nbsp;a. IP-Adresse, Zeitpunkt, abgerufene Datei). Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO.</p>
+
+        <h2>4. localStorage</h2>
+        <p>Optionale Speicherung der Theme-Einstellung (<code>nb-gbr-theme</code>) im Browser. Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO.</p>
+
+        <h2>5. Cookies</h2>
+        <p>Keine Analyse-, Marketing- oder Tracking-Cookies.</p>
+
+        <h2>6. Externe Dienste</h2>
+        <p>Beim Seitenaufruf werden Schriftarten von Google Fonts geladen. Dabei kann die IP-Adresse an Google übermittelt werden.</p>
+
+        <h2>7. Kontakt per E-Mail</h2>
+        <p>Bei Kontaktaufnahme werden die übermittelten Daten zur Bearbeitung der Anfrage verarbeitet und nach Abschluss gelöscht, sofern keine Aufbewahrungspflichten bestehen.</p>
+
+        <h2>8. Betroffenenrechte</h2>
+        <p>Sie haben Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit, Widerspruch und Beschwerde bei einer Aufsichtsbehörde (Art. 15–21, 77 DSGVO).</p>
+      </article>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-row">
+      <span>NachtBlau GbR</span>
+      <nav aria-label="Fußnavigation">
+        <a href="impressum.html">Impressum</a>
+        <a href="datenschutz.html">Datenschutz</a>
+        <a href="mailto:info@nacht-blau.de">Kontakt</a>
+      </nav>
+    </div>
+    <div class="container footer-copy">© 2026 NachtBlau GbR</div>
+    <div class="container partner-banner">
+      <!-- Start Partnerprogramm ALL‑INKL.COM -->
+      <a href="https://all-inkl.com/PAC24FB89FC115D" target="_blank" rel="noopener noreferrer">
+        <img
+          border="0"
+          src="https://all-inkl.com/banner/all-inkl_banner_468x60_black.jpg"
+          alt="ALL-INKL.COM - Webhosting Server Hosting Domain Provider"
+          width="468"
+          height="60"
+        />
+      </a>
+      <!-- Ende Partnerprogramm -->
+    </div>
+  </footer>
+
+  <script src="js/theme.js" type="module"></script>
+</body>
+</html>
