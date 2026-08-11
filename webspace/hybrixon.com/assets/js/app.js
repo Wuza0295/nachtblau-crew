@@ -11,6 +11,58 @@ document.addEventListener('DOMContentLoaded', () => {
     || /[?&](?:from_app|web)=1(?:&|$)/.test(location.search);
   const isAndroid = /Android/i.test(navigator.userAgent || '');
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+  const reducedMotion = typeof matchMedia === 'function'
+    && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Elevate the sticky chrome once content starts moving beneath it.
+  const topbar = document.querySelector('.topbar');
+  if (topbar) {
+    let scrollFrame = 0;
+    const syncTopbarDepth = () => {
+      scrollFrame = 0;
+      topbar.classList.toggle('topbar-scrolled', window.scrollY > 14);
+    };
+    window.addEventListener('scroll', () => {
+      if (scrollFrame) return;
+      scrollFrame = requestAnimationFrame(syncTopbarDepth);
+    }, { passive: true });
+    syncTopbarDepth();
+  }
+
+  // Progressive reveal keeps first paint functional and adds motion only when
+  // supported. Reduced-motion users always receive the static layout.
+  const revealTargets = Array.from(document.querySelectorAll(
+    '.hero, .main > .panel, .feed > .post, .story-tray-wrap, .age-gate'
+  ));
+  if (!reducedMotion && 'IntersectionObserver' in window) {
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('ui-visible');
+        revealObserver.unobserve(entry.target);
+      });
+    }, { rootMargin: '0px 0px -6% 0px', threshold: 0.04 });
+    revealTargets.forEach((element, index) => {
+      element.classList.add('ui-reveal');
+      element.style.setProperty('--ui-delay', Math.min(index % 5, 4) * 35 + 'ms');
+      revealObserver.observe(element);
+    });
+  }
+
+  // Fine-pointer devices get a subtle cursor spotlight without affecting
+  // touch performance or the semantic structure of cards.
+  const finePointer = typeof matchMedia === 'function'
+    && matchMedia('(hover: hover) and (pointer: fine)').matches;
+  if (finePointer && !reducedMotion) {
+    document.querySelectorAll('.panel, .post, .hero, .age-gate').forEach((surface) => {
+      surface.classList.add('ui-spotlight');
+      surface.addEventListener('pointermove', (event) => {
+        const rect = surface.getBoundingClientRect();
+        surface.style.setProperty('--spot-x', (event.clientX - rect.left) + 'px');
+        surface.style.setProperty('--spot-y', (event.clientY - rect.top) + 'px');
+      }, { passive: true });
+    });
+  }
 
   const downloadUrl = i18n.appDownloadUrl || '/app.php';
 
