@@ -39,5 +39,5 @@ jobs:
             exit 1
           fi
           export FTP_HOST="${FTP_HOST:-w02176b7.kasserver.com}"
-          export FTP_REMOTE_DIR="${FTP_REMOTE_DIR:-/nacht-blau.de}"
           python3 scripts/sync-one-webspace.py nacht-blau.de
+          python3 scripts/sync-one-webspace.py hybrixon.com
