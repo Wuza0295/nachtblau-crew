@@ -10,6 +10,7 @@ import {
   Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import AllInklBanner from "@/components/AllInklBanner";
 
 const NAV = [
   { href: "/portal", label: "Hub", icon: Home, match: (p: string) => p === "/portal" },
@@ -112,7 +113,10 @@ export default function SocialShell({
         </div>
       </header>
 
-      <div className="flex-1 container pb-24 md:pb-8">{children}</div>
+      <div className="flex-1 container pb-24 md:pb-8">
+        {children}
+        <AllInklBanner className="mt-10 pb-4 md:pb-0" />
+      </div>
 
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-white/10 bg-background/80 backdrop-blur-xl">
         <div className="flex justify-around py-2">

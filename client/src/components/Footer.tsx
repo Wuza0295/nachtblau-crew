@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { EXTERNAL_LINKS, SITE } from "@/lib/site";
 import { Github, Globe, Mail, ExternalLink } from "lucide-react";
+import AllInklBanner from "./AllInklBanner";
 
 const LINK_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   [SITE.webspaceUrl]: Globe,
@@ -12,6 +13,8 @@ export default function Footer() {
   return (
     <footer className="border-t border-border bg-card/50 mt-16">
       <div className="container py-12">
+        <AllInklBanner className="mb-8" />
+
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-3 md:col-span-1">
             <div className="flex items-center gap-3">
