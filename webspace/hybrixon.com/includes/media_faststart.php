@@ -208,7 +208,18 @@ function media_faststart_patch_boxes(
                 $patched++;
             }
         } elseif (isset($containers[$atom['type']])) {
-            $childStart = $content + ($atom['type'] === 'meta' ? 4 : 0);
+            $childStart = $content;
+            if ($atom['type'] === 'meta') {
+                // ISO BMFF meta is a FullBox with four version/flag bytes.
+                // QuickTime/Apple recordings also use a flag-less meta box
+                // whose first child begins immediately after the header.
+                $directChild = media_faststart_atom_header($data, $content, $atomEnd);
+                $hasDirectChild = $directChild !== null
+                    && preg_match('/^[\x20-\x7e]{4}$/D', $directChild['type']) === 1;
+                if (!$hasDirectChild) {
+                    $childStart += 4;
+                }
+            }
             if ($childStart < $atomEnd) {
                 $childPatched = media_faststart_patch_boxes(
                     $data,
