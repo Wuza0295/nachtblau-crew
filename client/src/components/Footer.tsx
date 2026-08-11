@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { EXTERNAL_LINKS, SITE } from "@/lib/site";
 import { Github, Globe, Mail, ExternalLink } from "lucide-react";
+import PartnerBanner from "@/components/PartnerBanner";
 
 const LINK_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   [SITE.webspaceUrl]: Globe,
@@ -154,6 +155,8 @@ export default function Footer() {
             <span className="text-primary/60">Powered by the Night 🌙</span>
           </div>
         </div>
+
+        <PartnerBanner className="pt-6 pb-0" />
       </div>
     </footer>
   );

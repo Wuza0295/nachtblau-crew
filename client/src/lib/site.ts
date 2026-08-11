@@ -1,1 +1,1 @@
-export { SITE, EXTERNAL_LINKS } from "@shared/site";
+export { SITE, EXTERNAL_LINKS, ALL_INKL_PARTNER } from "@shared/site";

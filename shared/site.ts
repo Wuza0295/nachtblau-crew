@@ -17,6 +17,13 @@ export const SITE = {
   gamerPowerUrl: "https://www.gamerpower.com",
 } as const;
 
+/** ALL-INKL.COM Partnerprogramm (Affiliate-Banner). */
+export const ALL_INKL_PARTNER = {
+  href: "https://all-inkl.com/PAC24FB89FC115D",
+  bannerSrc: "https://all-inkl.com/banner/all-inkl_banner_468x60_black.jpg",
+  bannerAlt: "ALL-INKL.COM - Webhosting Server Hosting Domain Provider",
+} as const;
+
 export const EXTERNAL_LINKS = [
   {
     href: SITE.webspaceUrl,
