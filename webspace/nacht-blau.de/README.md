@@ -9,6 +9,7 @@ Eigenständige Webseite der NachtBlau GbR — Hobbyprojekt ohne gewerbliche Einn
 - Startseite mit Team-Infos
 - Impressum
 - Datenschutzerklärung
+- ALL‑INKL.COM Partnerprogramm-Banner im Footer (alle HTML-Seiten)
 
 ## Lokal starten
 
