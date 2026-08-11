@@ -130,6 +130,24 @@ export default function Footer() {
 
         <div className="divider-glow mt-8 mb-6" />
 
+        {/* Start Partnerprogramm ALL‑INKL.COM */}
+        <div className="flex justify-center mb-6">
+          <a
+            href="https://all-inkl.com/PAC24FB89FC115D"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img
+              border={0}
+              src="https://all-inkl.com/banner/all-inkl_banner_468x60_black.jpg"
+              alt="ALL-INKL.COM - Webhosting Server Hosting Domain Provider"
+              width={468}
+              height={60}
+            />
+          </a>
+        </div>
+        {/* Ende Partnerprogramm */}
+
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
           <span>© {new Date().getFullYear()} {SITE.name}. Alle Rechte vorbehalten.</span>
           <div className="flex items-center gap-3">
