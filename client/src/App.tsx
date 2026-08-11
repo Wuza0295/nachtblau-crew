@@ -70,6 +70,14 @@ function App() {
             }}
           />
           <Router />
+          <div className="flex justify-center px-4 pb-6">
+            <a href="https://all-inkl.com/PAC24FB89FC115D" target="_blank" rel="noopener noreferrer">
+              <img
+                src="https://all-inkl.com/banner/all-inkl_banner_468x60_black.jpg"
+                alt="ALL-INKL.COM - Webhosting Server Hosting Domain Provider"
+              />
+            </a>
+          </div>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
