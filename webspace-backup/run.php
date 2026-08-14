@@ -4,7 +4,7 @@ declare(strict_types=1);
 /**
  * ALL-INKL-Cronjob-Ziel (HTTP).
  * KAS → Tools → Cronjobs:
- *   https://nacht-blau.de/backup/run.phpx?token=GEHEIM
+ *   https://nacht-blau.de/backup/run.php?token=GEHEIM
  * Täglich nachts reicht; Archive_Tar ist auf dem Host vorinstalliert.
  */
 header('Content-Type: text/plain; charset=utf-8');
@@ -12,7 +12,8 @@ header('Content-Type: text/plain; charset=utf-8');
 require __DIR__ . '/job.php';
 
 try {
-    $status = nb_backup_run(__DIR__);
+    $only = isset($_GET['project']) ? (string) $_GET['project'] : null;
+    $status = nb_backup_run(__DIR__, $only !== '' ? $only : null);
     echo $status['ok'] ? "Backup fertig\n" : "Backup mit Fehlern\n";
     echo 'Zeit: ' . $status['ran_at'] . "\n";
     echo 'Home: ' . $status['home'] . "\n";

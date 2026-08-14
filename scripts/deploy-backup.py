@@ -89,7 +89,7 @@ def ensure_local_config() -> str:
     config.write_text(
         "<?php\ndeclare(strict_types=1);\nreturn [\n"
         f"    'token' => {token!r},\n"
-        "    'keep' => 7,\n"
+        "    'keep' => 2,\n"
         "    'home' => '',\n"
         "    'skip_roots' => ['backup', 'logs', 'cgi-bin', 'tmp', 'mail', '.ssh', '.php'],\n"
         "    'ignore_names' => ['node_modules', '.git', '__pycache__', 'cgi-bin', 'logs', 'tmp', 'backup', 'archiv'],\n"
@@ -144,7 +144,7 @@ def main() -> None:
             ftp.close()
     print(f"✓ {uploaded} Dateien nach {REMOTE_DIR}")
     print("KAS-Cronjob (täglich empfohlen):")
-    print(f"  https://nacht-blau.de/backup/run.phpx?token={token}")
+    print(f"  https://nacht-blau.de/backup/run.php?token={token}")
     print("Status:")
     print(f"  https://nacht-blau.de/backup/index.php?token={token}")
 

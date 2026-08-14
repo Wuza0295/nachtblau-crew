@@ -24,8 +24,8 @@ describe("ALL-INKL Backup-System", () => {
   });
 
   it("bietet ein Cron-Ziel und ein FTPS-Deploy", () => {
-    expect(read("webspace-backup/run.phpx")).toContain("nb_backup_run");
+    expect(read("webspace-backup/run.php")).toContain("nb_backup_run");
     expect(read("scripts/deploy-backup.py")).toContain("/nacht-blau.de/backup");
-    expect(read("scripts/deploy-backup.py")).toContain("run.phpx?token=");
+    expect(read("scripts/deploy-backup.py")).toContain("run.php?token=");
   });
 });

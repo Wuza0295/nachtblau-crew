@@ -163,7 +163,7 @@ function nb_backup_dump_mysql(array $db, string $targetSql): void
     $mysqli->close();
 }
 
-function nb_backup_run(string $backupDir): array
+function nb_backup_run(string $backupDir, ?string $onlyProject = null): array
 {
     @set_time_limit(0);
     @ini_set('memory_limit', '512M');
@@ -181,6 +181,12 @@ function nb_backup_run(string $backupDir): array
     $stamp = gmdate('Ymd-His');
     $home = nb_backup_home($config, $backupDir);
     $projects = nb_backup_projects($home, $config['skip_roots']);
+    if ($onlyProject) {
+        $projects = array_values(array_filter($projects, static fn($p) => $p === $onlyProject));
+        if (!$projects) {
+            throw new RuntimeException('Unbekanntes Projekt: ' . $onlyProject);
+        }
+    }
     $results = [];
 
     foreach ($projects as $project) {

@@ -9,8 +9,8 @@ return [
     // Pflicht: gleicher Wert wie ?token= beim Cronjob
     'token' => 'CHANGE_ME',
 
-    // Wie viele Tagesstände je Ziel behalten werden
-    'keep' => 7,
+    // Wie viele Tagesstände je Ziel behalten werden (hybrixon.com ist ~6 GB)
+    'keep' => 2,
 
     // Account-Wurzel mit allen Domain-Ordnern. Leer = automatisch.
     'home' => '',
