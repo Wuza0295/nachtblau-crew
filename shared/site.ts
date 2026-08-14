@@ -10,6 +10,9 @@ export const SITE = {
     "https://d2xsxph8kpxj0f.cloudfront.net/310519663739653758/PbtcqHtcftAKnwDnhmoduf/nachtblau-hero-bg-HgRTyjrF5BBTepdctiJ8Mj.webp",
   webspaceUrl: "https://nacht-blau.de",
   webspaceLabel: "NachtBlau Webspace",
+  launcherUrl: "https://launcher.nachtblau-interactive.com",
+  launcherAndroidUrl: "https://launcher.nachtblau-interactive.com/android.html",
+  launcherLabel: "NachtBlau Hub",
   githubUrl: "https://github.com/Wuza0295/nachtblau-crew",
   githubOrgUrl: "https://github.com/Wuza0295",
   githubLabel: "GitHub Repository",
@@ -17,11 +20,29 @@ export const SITE = {
   gamerPowerUrl: "https://www.gamerpower.com",
 } as const;
 
+export const LAUNCHER = {
+  name: "NachtBlau Hub",
+  shortName: "NachtBlau",
+  version: "1.0.0",
+  versionCode: 1,
+  appId: "de.nachtblau.hub",
+  webUrl: SITE.launcherUrl,
+  androidUrl: SITE.launcherAndroidUrl,
+  linuxUrl: `${SITE.launcherUrl}/linux.html`,
+  tagline: "Spiele, Bücher und Lumina — als App auf dem Handy.",
+} as const;
+
 export const EXTERNAL_LINKS = [
   {
     href: SITE.webspaceUrl,
     label: SITE.webspaceLabel,
     description: "Offizielle Website der NachtBlau GbR mit Infos zum Projekt und Team.",
+    external: true,
+  },
+  {
+    href: SITE.launcherUrl,
+    label: SITE.launcherLabel,
+    description: "NachtBlau Hub: Twilight Crown, Bluepole, Lumina und Symbiose — Web, Linux und Android.",
     external: true,
   },
   {

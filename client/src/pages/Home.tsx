@@ -19,6 +19,7 @@ import {
   Github,
   Globe,
   ExternalLink,
+  Smartphone,
 } from "lucide-react";
 import { SITE } from "@/lib/site";
 
@@ -115,6 +116,16 @@ function HeroSection() {
                 >
                   <Zap className="mr-2 h-5 w-5" />
                   Social Portal
+                </Button>
+              </Link>
+              <Link href="/launcher">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-primary/40 text-primary hover:bg-primary/10 font-semibold transition-all duration-200"
+                >
+                  <Smartphone className="mr-2 h-5 w-5" />
+                  Android Launcher
                 </Button>
               </Link>
               <Link href="/forum">
@@ -434,10 +445,10 @@ function NetworkLinksSection() {
             NachtBlau Netzwerk
           </h2>
           <p className="text-muted-foreground mt-1">
-            Verknüpft mit unserem Webspace und dem GitHub-Repository
+            Webspace, Launcher und GitHub — alles im NachtBlau-Netzwerk
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-5xl mx-auto">
           <a
             href={SITE.webspaceUrl}
             target="_blank"
@@ -461,6 +472,24 @@ function NetworkLinksSection() {
               </CardContent>
             </Card>
           </a>
+          <Link href="/launcher" className="group block">
+            <Card className="card-glow bg-card border-border transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 h-full">
+              <CardContent className="p-5 flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
+                  <Smartphone className="h-6 w-6" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                    {SITE.launcherLabel}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    Android-App und Live-Hub
+                  </p>
+                </div>
+                <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+              </CardContent>
+            </Card>
+          </Link>
           <a
             href={SITE.githubUrl}
             target="_blank"

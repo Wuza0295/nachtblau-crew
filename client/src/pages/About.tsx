@@ -12,11 +12,12 @@ import {
   Gift,
   Newspaper,
   MessageSquare,
-  Users,
+  Smartphone,
 } from "lucide-react";
 
 const LINK_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   [SITE.webspaceUrl]: Globe,
+  [SITE.launcherUrl]: Smartphone,
   [SITE.githubUrl]: Github,
   [`mailto:${SITE.contactEmail}`]: Mail,
 };
@@ -52,10 +53,10 @@ export default function About() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
+            { icon: Smartphone, label: "Launcher App", href: "/launcher" },
             { icon: Gift, label: "Free Games", href: "/free-games" },
             { icon: Newspaper, label: "Gaming News", href: "/news" },
             { icon: MessageSquare, label: "Forum", href: "/forum" },
-            { icon: Users, label: "Community", href: "/forum" },
           ].map(({ icon: Icon, label, href }) => (
             <Link key={label} href={href}>
               <Card className="card-glow bg-card border-border h-full cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:border-primary/40">
@@ -79,9 +80,9 @@ export default function About() {
           </h2>
           <p className="text-muted-foreground">
             Die NachtBlau Crew App ist Teil des NachtBlau-Ökosystems. Hier findest du alle
-            wichtigen Verknüpfungen zu Webspace und GitHub.
+            wichtigen Verknüpfungen zu Webspace, Launcher und GitHub.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {EXTERNAL_LINKS.map((link) => {
               const Icon = LINK_ICONS[link.href] ?? ExternalLink;
               return (

@@ -1,9 +1,10 @@
 import { Link } from "wouter";
 import { EXTERNAL_LINKS, SITE } from "@/lib/site";
-import { Github, Globe, Mail, ExternalLink } from "lucide-react";
+import { Github, Globe, Mail, ExternalLink, Smartphone } from "lucide-react";
 
 const LINK_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   [SITE.webspaceUrl]: Globe,
+  [SITE.launcherUrl]: Smartphone,
   [SITE.githubUrl]: Github,
   [`mailto:${SITE.contactEmail}`]: Mail,
 };
@@ -35,6 +36,7 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2">
               {[
+                { href: "/launcher", label: "Launcher App" },
                 { href: "/free-games", label: "Free Games" },
                 { href: "/news", label: "Gaming News" },
                 { href: "/forum", label: "Community Forum" },

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="nb_night">#030510</color>
+    <color name="nb_primary">#3A8FD4</color>
+    <color name="nb_accent">#A8E6FF</color>
+    <color name="nb_text">#EEF6FF</color>
+    <color name="nb_muted">#6B8AAB</color>
+    <color name="ic_launcher_background">#040A14</color>
+</resources>
