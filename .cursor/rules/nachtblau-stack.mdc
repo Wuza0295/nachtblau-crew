@@ -1,0 +1,15 @@
+---
+description: Tech-Stack und Projektgrenzen der NachtBlau Crew App
+globs: client/**/*.tsx,client/**/*.ts,server/**/*.ts,shared/**/*.ts,drizzle/**/*.ts
+alwaysApply: false
+---
+
+# NachtBlau Crew Stack
+
+- React 19 + Tailwind 4 + shadcn/ui (New York) + Framer Motion
+- Express 4 + tRPC 11 + Drizzle + MySQL
+- Frontend-Seiten unter `client/src/pages/`, UI unter `client/src/components/ui/`
+- tRPC-Router in `server/routers.ts` bzw. `server/routers/`
+- Neue UI-Komponenten über shadcn MCP / CLI, nicht von Hand nachbauen
+- Aktuelle Library-Docs über Context7 holen (kein veraltetes React-18- oder Tailwind-3-Wissen erfinden)
+- Antworten auf Deutsch, außer der Nutzer verlangt etwas anderes

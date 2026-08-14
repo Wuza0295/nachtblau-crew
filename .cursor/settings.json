@@ -1,0 +1,12 @@
+{
+  "plugins": {
+    "github": { "enabled": true },
+    "playwright": { "enabled": true },
+    "shadcn": { "enabled": true },
+    "notion-workspace": { "enabled": true },
+    "figma": { "enabled": true },
+    "gmail": { "enabled": true },
+    "google-calendar": { "enabled": true },
+    "google-drive": { "enabled": true }
+  }
+}
