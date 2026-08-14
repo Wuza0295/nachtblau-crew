@@ -112,3 +112,17 @@ temp/
 # Manus version file (auto-generated, not part of source)
 client/public/__manus__/version.json
 .project-config.json
+
+# ALL-INKL FTPS local secrets + domain mirrors
+.env.webspace
+# Mirror all domains locally; commit only the public GbR site by default.
+webspace/**
+!webspace/nacht-blau.de/
+!webspace/nacht-blau.de/**
+# Never commit hashed Vite assets or zips from mirrors
+webspace/**/allxion/assets/
+webspace/**/*.zip
+webspace/**/db.php
+webspace/**/db_connect.php
+webspace/**/config/database.php
+webspace/**/.env*
