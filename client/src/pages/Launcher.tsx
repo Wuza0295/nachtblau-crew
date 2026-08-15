@@ -16,7 +16,7 @@ import {
   Wifi,
   Home,
   CheckCircle2,
-  FileCode,
+  FolderOpen,
 } from "lucide-react";
 
 const TITLES = [
@@ -66,17 +66,17 @@ export default function Launcher() {
             {LAUNCHER.name}
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Erstellung und Test laufen am Smartphone. Die Code-Assist-Datei unten in Code Assist
-            einfügen — daraus wird die APK gebaut.
+            Erstellung und Test am Smartphone: den Ordner **NachtBlau-Hub** in Code Assist
+            öffnen — daraus wird die APK gebaut.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
-            <a href={LAUNCHER.codeAssistUrl} target="_blank" rel="noopener noreferrer">
+            <a href={LAUNCHER.codeAssistZipUrl}>
               <Button
                 size="lg"
                 className="bg-primary hover:bg-primary/80 text-primary-foreground font-bold shadow-xl shadow-primary/25"
               >
-                <FileCode className="mr-2 h-5 w-5" />
-                Code-Assist-Datei
+                <FolderOpen className="mr-2 h-5 w-5" />
+                Ordner NachtBlau-Hub
               </Button>
             </a>
             <a href={LAUNCHER.androidUrl} target="_blank" rel="noopener noreferrer">
@@ -110,8 +110,9 @@ export default function Launcher() {
             Testen am Smartphone
           </h2>
           <p className="text-sm text-muted-foreground">
-            Code Assist auf dem Handy: Datei öffnen oder ZIP hochladen, APK bauen lassen, dann
-            installieren. Der Hub selbst ist ohne App sofort testbar.
+            Code Assist auf dem Handy: ZIP entpacken, den Ordner{" "}
+            <span className="text-foreground font-medium">NachtBlau-Hub</span> öffnen, APK bauen
+            lassen. Der Hub selbst ist ohne App sofort testbar.
           </p>
           <Card className="card-glow bg-primary/10 border-primary/30">
             <CardContent className="p-5 space-y-3">
@@ -119,23 +120,24 @@ export default function Launcher() {
                 className="font-semibold text-foreground"
                 style={{ fontFamily: "Orbitron, sans-serif" }}
               >
-                Code Assist — APK erstellen
+                Code Assist — Ordner öffnen
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Diese Datei enthält das komplette Android-Projekt (Prompt + alle Quellen). In
-                Code Assist einfügen oder als ZIP anhängen und bauen lassen.
+                ZIP herunterladen, entpacken. Es entsteht der Ordner{" "}
+                <code className="text-foreground">NachtBlau-Hub</code>. Diesen Ordner in Code
+                Assist öffnen und die Debug-APK bauen lassen.
               </p>
               <div className="flex flex-wrap gap-3">
-                <a href={LAUNCHER.codeAssistUrl} target="_blank" rel="noopener noreferrer">
+                <a href={LAUNCHER.codeAssistZipUrl}>
                   <Button className="bg-primary text-primary-foreground gap-2">
-                    <FileCode className="h-4 w-4" />
-                    CODEASSIST-APK.md
+                    <Download className="h-4 w-4" />
+                    NachtBlau-Hub.zip
                   </Button>
                 </a>
-                <a href={LAUNCHER.codeAssistZipUrl}>
+                <a href={LAUNCHER.codeAssistFolderUrl} target="_blank" rel="noopener noreferrer">
                   <Button variant="outline" className="border-primary/40 text-primary gap-2">
-                    <Download className="h-4 w-4" />
-                    Projekt-ZIP
+                    <FolderOpen className="h-4 w-4" />
+                    Ordner auf GitHub
                   </Button>
                 </a>
               </div>

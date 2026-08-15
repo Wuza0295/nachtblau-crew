@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.NachtBlauHub" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/nb_primary</item>
+        <item name="colorPrimaryVariant">#0C1E38</item>
+        <item name="colorSecondary">@color/nb_accent</item>
+        <item name="android:statusBarColor">@color/nb_night</item>
+        <item name="android:navigationBarColor">@color/nb_night</item>
+        <item name="android:windowBackground">@color/nb_night</item>
+        <item name="android:colorBackground">@color/nb_night</item>
+        <item name="android:windowFullscreen">false</item>
+    </style>
+</resources>

@@ -29,8 +29,9 @@ describe("NachtBlau Hub Android Launcher", () => {
     expect(LAUNCHER.apkNightlyUrl).toContain("nachtblau-hub-debug.zip");
     expect(LAUNCHER.actionsUrl).toContain("android-launcher.yml");
     expect(LAUNCHER.androidUrl).toContain("android.html");
-    expect(LAUNCHER.codeAssistUrl).toContain("CODEASSIST-APK.md");
-    expect(LAUNCHER.codeAssistZipUrl).toContain("nachtblau-hub-codeassist.zip");
+    expect(LAUNCHER.codeAssistUrl).toContain("codeassist/NachtBlau-Hub");
+    expect(LAUNCHER.codeAssistFolderUrl).toContain("codeassist/NachtBlau-Hub");
+    expect(LAUNCHER.codeAssistZipUrl).toContain("NachtBlau-Hub.zip");
   });
 
   it("lists the launcher in the NachtBlau network links", () => {
