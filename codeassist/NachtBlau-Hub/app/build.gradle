@@ -2,12 +2,6 @@ plugins {
     id 'com.android.application'
 }
 
-def keystorePropsFile = rootProject.file("keystore.properties")
-def keystoreProps = new Properties()
-if (keystorePropsFile.exists()) {
-    keystoreProps.load(new java.io.FileInputStream(keystorePropsFile))
-}
-
 android {
     namespace 'de.nachtblau.hub'
     compileSdk 34
@@ -18,42 +12,18 @@ android {
         targetSdk 34
         versionCode 1
         versionName "1.0.0"
-        buildConfigField "String", "APP_URL", '"https://launcher.nachtblau-interactive.com/android.html"'
         resValue "string", "app_name", "NachtBlau Hub"
-    }
-
-    signingConfigs {
-        release {
-            if (keystorePropsFile.exists()) {
-                storeFile rootProject.file(keystoreProps['storeFile'])
-                storePassword keystoreProps['storePassword']
-                keyAlias keystoreProps['keyAlias']
-                keyPassword keystoreProps['keyPassword']
-            }
-        }
     }
 
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            if (keystorePropsFile.exists()) {
-                signingConfig signingConfigs.release
-            }
         }
-        debug {
-            applicationIdSuffix ".debug"
-            versionNameSuffix "-debug"
-        }
-    }
-
-    buildFeatures {
-        buildConfig true
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
 }
 

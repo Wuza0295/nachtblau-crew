@@ -36,6 +36,8 @@ import java.util.Locale;
 import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String APP_URL =
+            "https://launcher.nachtblau-interactive.com/android.html";
     private static final Set<String> IN_APP_HOSTS = new HashSet<>(Arrays.asList(
             "launcher.nachtblau-interactive.com",
             "www.launcher.nachtblau-interactive.com"
@@ -144,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
                 openExternal(Uri.parse(url)));
 
         retryBtn.setOnClickListener(v -> loadStartUrl());
-        browserBtn.setOnClickListener(v -> openExternal(Uri.parse(BuildConfig.APP_URL)));
+        browserBtn.setOnClickListener(v -> openExternal(Uri.parse(APP_URL)));
 
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
@@ -171,7 +173,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void handleLaunchIntent(Intent intent) {
-        String start = BuildConfig.APP_URL;
+        String start = APP_URL;
         if (intent != null && Intent.ACTION_VIEW.equals(intent.getAction()) && intent.getData() != null) {
             Uri data = intent.getData();
             if (isInApp(data)) {
@@ -192,7 +194,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         offline.setVisibility(View.GONE);
-        webView.loadUrl(BuildConfig.APP_URL);
+        webView.loadUrl(APP_URL);
     }
 
     private void showOffline() {
