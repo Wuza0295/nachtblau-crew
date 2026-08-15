@@ -21,6 +21,16 @@ describe("NachtBlau Hub Android Launcher", () => {
     expect(LAUNCHER.versionCode).toBe(1);
   });
 
+  it("exposes phone-install URLs for APK and live Android hub", () => {
+    expect(LAUNCHER.apkUrl).toBe(
+      "https://github.com/Wuza0295/nachtblau-crew/releases/download/launcher-android-preview/NachtBlau-Hub.apk"
+    );
+    expect(LAUNCHER.apkNightlyUrl).toContain("nightly.link");
+    expect(LAUNCHER.apkNightlyUrl).toContain("nachtblau-hub-debug.zip");
+    expect(LAUNCHER.actionsUrl).toContain("android-launcher.yml");
+    expect(LAUNCHER.androidUrl).toContain("android.html");
+  });
+
   it("lists the launcher in the NachtBlau network links", () => {
     const hrefs = EXTERNAL_LINKS.map((link) => link.href);
     expect(hrefs).toContain(SITE.launcherUrl);

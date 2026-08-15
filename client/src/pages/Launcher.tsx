@@ -14,6 +14,8 @@ import {
   Rocket,
   Shield,
   Wifi,
+  Home,
+  CheckCircle2,
 } from "lucide-react";
 
 const TITLES = [
@@ -63,8 +65,8 @@ export default function Launcher() {
             {LAUNCHER.name}
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            {LAUNCHER.tagline} Die App lädt immer live vom Webspace — derselbe Stand wie auf dem
-            PC und unter Linux.
+            {LAUNCHER.tagline} Erstellung und Test laufen am Smartphone — ohne PC und ohne
+            Android Studio.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <a href={LAUNCHER.androidUrl} target="_blank" rel="noopener noreferrer">
@@ -73,33 +75,109 @@ export default function Launcher() {
                 className="bg-primary hover:bg-primary/80 text-primary-foreground font-bold shadow-xl shadow-primary/25"
               >
                 <Smartphone className="mr-2 h-5 w-5" />
-                Launcher auf Android öffnen
+                Jetzt am Handy testen
               </Button>
             </a>
-            <a href={LAUNCHER.webUrl} target="_blank" rel="noopener noreferrer">
+            <a href={LAUNCHER.apkUrl}>
               <Button
                 size="lg"
                 variant="outline"
                 className="border-primary/40 text-primary hover:bg-primary/10 font-semibold"
               >
-                <Globe className="mr-2 h-5 w-5" />
-                Im Browser spielen
+                <Download className="mr-2 h-5 w-5" />
+                APK installieren
               </Button>
             </a>
           </div>
         </div>
 
+        <section className="space-y-4">
+          <h2
+            className="text-2xl font-bold text-foreground"
+            style={{ fontFamily: "Orbitron, sans-serif" }}
+          >
+            Testen am Smartphone
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Für Cursor Code Assist auf dem Handy: Hub antippen, spielen, fertig. Die native App
+            ist derselbe Live-Stand vom Webspace.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="card-glow bg-card border-border h-full">
+              <CardContent className="p-5 space-y-3">
+                <Badge className="bg-primary/20 text-primary border-0">1</Badge>
+                <h3
+                  className="font-semibold text-foreground"
+                  style={{ fontFamily: "Orbitron, sans-serif" }}
+                >
+                  Hub öffnen
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Kein Installieren. Chrome oder Firefox auf dem Handy öffnet den Live-Launcher.
+                </p>
+                <a href={LAUNCHER.androidUrl} target="_blank" rel="noopener noreferrer">
+                  <Button className="w-full bg-primary text-primary-foreground gap-2">
+                    <Smartphone className="h-4 w-4" />
+                    android.html öffnen
+                  </Button>
+                </a>
+              </CardContent>
+            </Card>
+            <Card className="card-glow bg-card border-border h-full">
+              <CardContent className="p-5 space-y-3">
+                <Badge className="bg-primary/20 text-primary border-0">2</Badge>
+                <h3
+                  className="font-semibold text-foreground"
+                  style={{ fontFamily: "Orbitron, sans-serif" }}
+                >
+                  APK sideloaden
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  APK antippen, „unbekannte Apps“ erlauben, installieren. Danach Hub-Icon auf
+                  dem Startbildschirm.
+                </p>
+                <a href={LAUNCHER.apkUrl}>
+                  <Button variant="outline" className="w-full border-primary/40 text-primary gap-2">
+                    <Download className="h-4 w-4" />
+                    NachtBlau-Hub.apk
+                  </Button>
+                </a>
+              </CardContent>
+            </Card>
+            <Card className="card-glow bg-card border-border h-full">
+              <CardContent className="p-5 space-y-3">
+                <Badge className="bg-primary/20 text-primary border-0">3</Badge>
+                <h3
+                  className="font-semibold text-foreground"
+                  style={{ fontFamily: "Orbitron, sans-serif" }}
+                >
+                  Zum Startbildschirm
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  In Chrome: Menü → „App installieren“ bzw. „Zum Startbildschirm hinzufügen“.
+                </p>
+                <a href={LAUNCHER.androidUrl} target="_blank" rel="noopener noreferrer">
+                  <Button variant="ghost" className="w-full text-muted-foreground gap-2">
+                    <Home className="h-4 w-4" />
+                    Chrome-Shortcut
+                  </Button>
+                </a>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
             {
-              icon: Smartphone,
-              title: "Android-App",
-              desc: `Native WebView-App (${LAUNCHER.appId}). Spiele und Bücher vom Hub, Vollbild und Deep Links.`,
+              icon: CheckCircle2,
+              title: "Sofort testbar",
+              desc: "Code Assist am Smartphone öffnet denselben Live-Hub. Änderungen am Webspace sind ohne neuen Build sichtbar.",
             },
             {
               icon: Wifi,
               title: "Immer Webspace",
-              desc: "Kein Extra-Sync. Android, Linux und Browser lesen live launcher.nachtblau-interactive.com.",
+              desc: "Android, Linux und Browser lesen live launcher.nachtblau-interactive.com — kein Extra-Sync.",
             },
             {
               icon: Monitor,
@@ -153,35 +231,38 @@ export default function Launcher() {
             className="text-2xl font-bold text-foreground"
             style={{ fontFamily: "Orbitron, sans-serif" }}
           >
-            Installation
+            APK-Download
           </h2>
           <Card className="bg-card border-border">
             <CardContent className="p-6 space-y-4 text-sm text-muted-foreground leading-relaxed">
               <p>
-                <span className="font-semibold text-foreground">Schnell:</span> Öffne{" "}
-                <a
-                  href={LAUNCHER.androidUrl}
-                  className="text-primary hover:underline"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {LAUNCHER.androidUrl}
-                </a>{" "}
-                im Chrome auf dem Handy und wähle „Zum Startbildschirm hinzufügen“.
-              </p>
-              <p>
-                <span className="font-semibold text-foreground">Als App:</span> Im Repo liegt die
-                native Android-App unter <code className="text-foreground">android/nachtblau-hub/</code>.
-                Mit Android Studio oder{" "}
-                <code className="text-foreground">./gradlew assembleDebug</code> entsteht die APK
-                (`de.nachtblau.hub`). GitHub Actions baut sie bei Änderungen automatisch.
+                GitHub Actions baut die Debug-APK bei jedem Push. Am Handy: Datei antippen,
+                Installation unbekannter Apps erlauben, öffnen. Paket{" "}
+                <code className="text-foreground">{LAUNCHER.appId}</code> · Version {LAUNCHER.version}.
               </p>
               <div className="flex flex-wrap gap-3 pt-2">
-                <a href={SITE.githubUrl} target="_blank" rel="noopener noreferrer">
-                  <Button variant="outline" className="border-primary/40 text-primary gap-2">
+                <a href={LAUNCHER.apkUrl}>
+                  <Button className="bg-primary text-primary-foreground gap-2">
                     <Download className="h-4 w-4" />
-                    Quellcode auf GitHub
+                    APK herunterladen
+                  </Button>
+                </a>
+                <a href={LAUNCHER.apkNightlyUrl} target="_blank" rel="noopener noreferrer">
+                  <Button variant="outline" className="border-primary/40 text-primary gap-2">
+                    Alternative (ZIP)
                     <ExternalLink className="h-3 w-3" />
+                  </Button>
+                </a>
+                <a href={LAUNCHER.actionsUrl} target="_blank" rel="noopener noreferrer">
+                  <Button variant="ghost" className="text-muted-foreground gap-2">
+                    Build neu anstoßen
+                    <ExternalLink className="h-3 w-3" />
+                  </Button>
+                </a>
+                <a href={LAUNCHER.webUrl} target="_blank" rel="noopener noreferrer">
+                  <Button variant="ghost" className="text-muted-foreground gap-2">
+                    <Globe className="h-4 w-4" />
+                    Hub im Browser
                   </Button>
                 </a>
                 <Link href="/ueber-uns">

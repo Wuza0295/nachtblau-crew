@@ -9,10 +9,13 @@ on:
     paths:
       - "android/nachtblau-hub/**"
       - ".github/workflows/android-launcher.yml"
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -24,8 +27,28 @@ jobs:
       - name: Build debug APK
         working-directory: android/nachtblau-hub
         run: ./gradlew assembleDebug --no-daemon
-      - name: Upload APK
+      - name: Name APK for phone install
+        run: |
+          mkdir -p dist
+          cp android/nachtblau-hub/app/build/outputs/apk/debug/app-debug.apk dist/NachtBlau-Hub.apk
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: nachtblau-hub-debug
-          path: android/nachtblau-hub/app/build/outputs/apk/debug/app-debug.apk
+          path: dist/NachtBlau-Hub.apk
+      - name: Publish preview APK for phone download
+        if: github.event_name != 'pull_request'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: launcher-android-preview
+          name: NachtBlau Hub Android (Vorschau)
+          prerelease: true
+          files: dist/NachtBlau-Hub.apk
+          body: |
+            Debug-APK zum Testen am Smartphone (Code Assist).
+
+            1. APK herunterladen und installieren (unbekannte Apps erlauben).
+            2. Die App lädt live https://launcher.nachtblau-interactive.com/android.html
+            3. Ohne APK: dieselbe URL im Chrome öffnen.
+
+            Paket: `de.nachtblau.hub.debug` · Version 1.0.0-debug

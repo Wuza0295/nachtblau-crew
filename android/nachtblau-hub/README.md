@@ -6,17 +6,23 @@ https://launcher.nachtblau-interactive.com/android.html
 
 Paket: `de.nachtblau.hub`  
 App-Name: **NachtBlau Hub**  
-Icon: bestehendes Launcher-Logo (`assets/logo.svg`)
+Icon: bestehendes Launcher-Logo (`branding/logo.svg`)
 
 Spiele, Bücher und der Lumina-Join-Hub bleiben auf dem ALL-INKL-Webspace. Studio-, PayPal-, Discord- und itch.io-Links öffnen im Systembrowser.
 
-## Auf dem Handy
+## Testen am Smartphone (Code Assist)
 
-1. APK bauen (unten) und Sideloading erlauben.
-2. App installieren — sie lädt denselben Stand wie der Browser auf `/android.html`.
-3. Alternative ohne Build: [android.html](https://launcher.nachtblau-interactive.com/android.html) im Chrome öffnen → **Zum Startbildschirm hinzufügen**.
+Kein PC und kein Android Studio nötig:
 
-## Bauen (Android Studio / SDK)
+1. **Sofort:** [android.html](https://launcher.nachtblau-interactive.com/android.html) im Handy-Browser öffnen.
+2. **Als App:** [NachtBlau-Hub.apk](https://github.com/Wuza0295/nachtblau-crew/releases/download/launcher-android-preview/NachtBlau-Hub.apk) antippen → unbekannte Apps erlauben → installieren.
+3. **Ohne APK:** In Chrome „Zum Startbildschirm hinzufügen“.
+
+Die Vorschau-APK kommt von GitHub Actions (`launcher-android-preview`). Alternative ohne GitHub-Login: [nightly.link ZIP](https://nightly.link/Wuza0295/nachtblau-crew/workflows/android-launcher.yml/cursor/launcher-android-app-2a02/nachtblau-hub-debug.zip).
+
+Build am Handy neu anstoßen: GitHub → Actions → **Android Launcher** → Run workflow.
+
+## Bauen (optional, Dev-PC)
 
 ```bash
 export ANDROID_HOME=/pfad/zum/android-sdk
@@ -25,9 +31,7 @@ cd android/nachtblau-hub
 ./gradlew assembleDebug
 ```
 
-Debug-APK:
-
-`app/build/outputs/apk/debug/app-debug.apk`
+Debug-APK: `app/build/outputs/apk/debug/app-debug.apk`
 
 Release (optional, mit Keystore):
 
@@ -42,8 +46,6 @@ keyPassword=…
 ```bash
 ./gradlew assembleRelease
 ```
-
-CI: `.github/workflows/android-launcher.yml` baut die Debug-APK bei Änderungen unter `android/nachtblau-hub/`.
 
 ## Deep Links
 

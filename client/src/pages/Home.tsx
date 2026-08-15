@@ -125,7 +125,7 @@ function HeroSection() {
                   className="border-primary/40 text-primary hover:bg-primary/10 font-semibold transition-all duration-200"
                 >
                   <Smartphone className="mr-2 h-5 w-5" />
-                  Android Launcher
+                  Am Handy testen
                 </Button>
               </Link>
               <Link href="/forum">

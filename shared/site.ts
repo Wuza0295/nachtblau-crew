@@ -29,6 +29,10 @@ export const LAUNCHER = {
   webUrl: SITE.launcherUrl,
   androidUrl: SITE.launcherAndroidUrl,
   linuxUrl: `${SITE.launcherUrl}/linux.html`,
+  apkUrl: `${SITE.githubUrl}/releases/download/launcher-android-preview/NachtBlau-Hub.apk`,
+  apkNightlyUrl:
+    "https://nightly.link/Wuza0295/nachtblau-crew/workflows/android-launcher.yml/cursor/launcher-android-app-2a02/nachtblau-hub-debug.zip",
+  actionsUrl: `${SITE.githubUrl}/actions/workflows/android-launcher.yml`,
   tagline: "Spiele, Bücher und Lumina — als App auf dem Handy.",
 } as const;
 
