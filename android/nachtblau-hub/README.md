@@ -14,9 +14,9 @@ Spiele, Bücher und der Lumina-Join-Hub bleiben auf dem ALL-INKL-Webspace. Studi
 
 Kein PC und kein Android Studio nötig:
 
-1. **Sofort:** [android.html](https://launcher.nachtblau-interactive.com/android.html) im Handy-Browser öffnen.
-2. **Als App:** [NachtBlau-Hub.apk](https://github.com/Wuza0295/nachtblau-crew/releases/download/launcher-android-preview/NachtBlau-Hub.apk) antippen → unbekannte Apps erlauben → installieren.
-3. **Ohne APK:** In Chrome „Zum Startbildschirm hinzufügen“.
+1. **Code Assist:** [CODEASSIST-APK.md](./CODEASSIST-APK.md) bzw. [CODEASSIST-APK.txt](./CODEASSIST-APK.txt) in Code Assist einfügen — daraus die APK bauen. Projekt-ZIP: `../nachtblau-hub-codeassist.zip`
+2. **Sofort:** [android.html](https://launcher.nachtblau-interactive.com/android.html) im Handy-Browser öffnen.
+3. **Als App:** [NachtBlau-Hub.apk](https://github.com/Wuza0295/nachtblau-crew/releases/download/launcher-android-preview/NachtBlau-Hub.apk) antippen → unbekannte Apps erlauben → installieren.
 
 Die Vorschau-APK kommt von GitHub Actions (`launcher-android-preview`). Alternative ohne GitHub-Login: [nightly.link ZIP](https://nightly.link/Wuza0295/nachtblau-crew/workflows/android-launcher.yml/cursor/launcher-android-app-2a02/nachtblau-hub-debug.zip).
 
