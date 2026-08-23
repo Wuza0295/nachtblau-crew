@@ -142,3 +142,25 @@ webspace/**/*.zip
 webspace/**/.env
 webspace/**/.env.*
 !webspace/**/.env.example
+<<<<<<< HEAD
+=======
+
+# NachtBlau Hub — generated platform www/ mirrors (rebuilt by pnpm hub:sync)
+apps/nachtblau-hub/shared/
+apps/nachtblau-hub/linux/www/
+apps/nachtblau-hub/android/www/
+apps/nachtblau-hub/linux/node_modules/
+apps/nachtblau-hub/android/node_modules/
+# Capacitor Android build outputs (source project is committed)
+apps/nachtblau-hub/android/android/.gradle/
+apps/nachtblau-hub/android/android/app/build/
+apps/nachtblau-hub/android/android/build/
+apps/nachtblau-hub/android/android/captures/
+apps/nachtblau-hub/android/android/local.properties
+apps/nachtblau-hub/android/android/.idea/
+
+# Local launcher mirror (pulled via FTPS; may be large)
+webspace/launcher.nachtblau-interactive.com/
+webspace/nachtblau-interactive.com/
+webspace/nachtblau-crew.de/
+>>>>>>> origin/cursor/update-all-projects-ed91
