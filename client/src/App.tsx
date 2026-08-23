@@ -3,6 +3,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
+import MaintenanceBanner from "./components/MaintenanceBanner";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import FreeGames from "./pages/FreeGames";
@@ -71,6 +72,7 @@ function App() {
               },
             }}
           />
+          <MaintenanceBanner />
           <Router />
         </TooltipProvider>
       </ThemeProvider>
