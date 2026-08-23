@@ -1,6 +1,6 @@
 # NachtBlau-Projektübersicht
 
-Stand: 2026-08-23 · Branch `cursor/maintenance-mode-ed91`
+Stand: 2026-08-23 · Branch `cursor/upgrade-all-projects-ed91` · App-Version **1.0.1**
 
 Diese Datei listet **alle** Projekte im NachtBlau-Ökosystem. Die kanonische Domain-Liste für die App liegt in `shared/site.ts` (`WEBSPACE_PROJECTS`); der Webspace-Spiegel nutzt `webspace/nacht-blau.de/data/projects.json`.
 
@@ -33,10 +33,10 @@ Diese Datei listet **alle** Projekte im NachtBlau-Ökosystem. Die kanonische Dom
 | | |
 |---|---|
 | **Repo** | `Wuza0295/nachtblau-crew` |
-| **Stack** | React 19, Tailwind 4, Express 4, tRPC 11, Drizzle, Manus OAuth |
+| **Stack** | React 19.2.8, Tailwind 4.3.3, Express 4.22.2, tRPC 11.18.0, Drizzle 0.45.2, Vite 7.3.6, TypeScript 5.9.3 |
 | **Features** | Forum, News, Free Games (GamerPower), Social Portal, Auth |
 | **Dev** | `pnpm install && pnpm dev` |
-| **Tests** | `pnpm test` (25 Specs), `pnpm check` (tsc) |
+| **Tests** | `pnpm test` (28 Specs), `pnpm check` (tsc), `pnpm build` |
 
 ---
 
@@ -155,11 +155,32 @@ Synchronisierung aller Branches:
 
 ---
 
-## 9. Vollständiges Update (Checkliste)
+## 9. Dependency-Stand (2026-08-23)
 
-1. `git checkout cursor/maintenance-mode-ed91 && git pull`
+| Komponente | Version | Hinweis |
+|------------|---------|---------|
+| nachtblau-crew | 1.0.1 | Patch-Bump nach Dependency-Update |
+| React / React-DOM | 19.2.8 | Minor innerhalb v19 |
+| Express | 4.22.2 | Kein Upgrade auf v5 |
+| tRPC | 11.18.0 | Aktuell |
+| Drizzle ORM / Kit | 0.45.2 / 0.31.10 | Minor-Upgrade 0.44 → 0.45 |
+| Vite | 7.3.6 | Kein Upgrade auf v8 |
+| TypeScript | 5.9.3 | Kein Upgrade auf v7 |
+| Vitest | 2.1.9 | Kein Upgrade auf v4 |
+| jose | 6.2.10 | Patch-Upgrade 6.1 → 6.2 |
+| wouter | 3.7.1 | Gepatcht (`patches/wouter@3.7.1.patch`) |
+| Capacitor (Android) | 7.6.8 | Kein Upgrade auf v8 |
+| Electron (Linux) | 37.10.3 | Kein Upgrade auf v43 |
+
+**Nicht aktualisiert (Breaking Majors):** Express 5, TypeScript 7, Vite 8, Vitest 4, Capacitor 8, Electron 43, wouter 3.10, Recharts 3, Framer Motion 13.
+
+---
+
+## 10. Vollständiges Update (Checkliste)
+
+1. `git checkout cursor/upgrade-all-projects-ed91 && git pull`
 2. `pnpm install && pnpm update` (Root + Hub Android/Linux)
-3. `pnpm test && pnpm check`
+3. `pnpm test && pnpm check && pnpm build`
 4. `.env.webspace` anlegen → `pnpm webspace:pull && pnpm hub:push`
 5. `./scripts/update-all-projects.sh` (PR-Branches mergen)
 6. Auf Host: Minecraft-Server ist offline – Wartungsmodus aktiv
