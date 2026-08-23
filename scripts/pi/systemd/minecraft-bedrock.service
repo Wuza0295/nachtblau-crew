@@ -1,0 +1,24 @@
+[Unit]
+Description=NachtBlau Minecraft Bedrock Dedicated Server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=minecraft
+Group=minecraft
+WorkingDirectory=/opt/minecraft-bedrock
+Environment=LD_LIBRARY_PATH=/opt/minecraft-bedrock
+Environment=BOX64_LOG=0
+Environment=BOX64_DYNAREC=1
+EnvironmentFile=-/etc/nachtblau/minecraft.env
+ExecStart=/opt/minecraft-bedrock/start-bedrock.sh
+Restart=on-failure
+RestartSec=8
+TimeoutStopSec=30
+Nice=8
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

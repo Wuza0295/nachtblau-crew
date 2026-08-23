@@ -1,0 +1,22 @@
+[Unit]
+Description=NachtBlau Minecraft Java (Paper)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=minecraft
+Group=minecraft
+WorkingDirectory=/opt/minecraft-java
+EnvironmentFile=-/etc/nachtblau/minecraft.env
+ExecStart=/opt/minecraft-java/start-java.sh
+Restart=on-failure
+RestartSec=8
+TimeoutStopSec=60
+Nice=5
+SuccessExitStatus=143
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
