@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useMemo } from "react";
 
+
 export default function Home() {
   const { isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
