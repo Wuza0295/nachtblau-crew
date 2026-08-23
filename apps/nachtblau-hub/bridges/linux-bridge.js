@@ -3,6 +3,12 @@
  * Gleiche API wie site-bridge.js / android-bridge.js — gleicher UI-Stand.
  */
 (function initLinuxBridge() {
+  window.NACHTBLAU_MAINTENANCE = {
+    active: true,
+    message:
+      "Server vorübergehend nicht verfügbar – Wartungsarbeiten. Der Minecraft-/Spiele-Server ist derzeit offline.",
+  };
+
   const { ipcRenderer } = window.require ? window.require("electron") : { ipcRenderer: null };
   const UNLOCKS_KEY = "nachtblau_hub_unlocks";
 

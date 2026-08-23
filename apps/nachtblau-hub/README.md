@@ -1,5 +1,7 @@
 # NachtBlau Hub — immer Webspace
 
+> **Wartungsmodus:** Server vorübergehend nicht verfügbar – Wartungsarbeiten. Der Minecraft-/Spiele-Server ist derzeit offline. Der Hub kann weiterhin geöffnet werden, Spiele-Server und Online-Dienste sind jedoch nicht erreichbar.
+
 **Eine Quelle:** `https://launcher.nachtblau-interactive.com/`
 
 | Gerät | URL |
