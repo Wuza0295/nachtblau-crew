@@ -7,7 +7,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-UPDATE_BRANCH="${1:-cursor/update-all-projects-ed91}"
+UPDATE_BRANCH="${1:-cursor/upgrade-all-projects-ed91}"
 
 cd "$ROOT"
 git fetch origin
