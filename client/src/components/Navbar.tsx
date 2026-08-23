@@ -24,12 +24,14 @@ import {
   Globe,
   Info,
   Home,
+  Zap,
 } from "lucide-react";
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 
 const NAV_LINKS = [
   { href: "/", label: "Launcher", icon: Home, exact: true },
+  { href: "/portal", label: "Social Portal", icon: Zap, exact: false },
   { href: "/free-games", label: "Free Games", icon: Gift, exact: false },
   { href: "/news", label: "News", icon: Newspaper, exact: false },
   { href: "/forum", label: "Forum", icon: MessageSquare, exact: false },

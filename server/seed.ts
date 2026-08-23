@@ -130,9 +130,12 @@ export async function ensureWelcomeThread(): Promise<void> {
   }
 }
 
+import { ensureSocialDemoContent } from "./socialSeed";
+
 export async function runAppSeeds(): Promise<void> {
   await ensureForumCategories();
   await ensureWelcomeThread();
+  await ensureSocialDemoContent();
 }
 
 const isDirectRun = process.argv[1]?.includes("seed.ts");

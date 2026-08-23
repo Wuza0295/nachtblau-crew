@@ -20,6 +20,7 @@ import {
   Play,
   ArrowUpRight,
   Clock,
+  Zap,
 } from "lucide-react";
 import { SITE } from "@/lib/site";
 
@@ -133,6 +134,15 @@ function HeroSection() {
                 </Button>
               </Link>
             )}
+            <Link href="/portal">
+              <Button
+                size="lg"
+                className="font-bold shadow-xl transition-all duration-200 hover:scale-105 bg-gradient-to-r from-[oklch(0.65_0.22_310)] to-[oklch(0.62_0.2_25)] text-white border-0"
+              >
+                <Zap className="mr-2 h-5 w-5" />
+                Social Portal
+              </Button>
+            </Link>
             <Link href="/forum">
               <Button
                 size="lg"
