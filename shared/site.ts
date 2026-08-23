@@ -4,6 +4,9 @@ export const SITE = {
   tagline: "Dein Community Launcher für PC, Konsolen, Steam und mehr.",
   description:
     "NachtBlau Crew Launcher – Free Games, Gaming-News und Community-Forum für PC, Konsolen, Steam und mehr.",
+  maintenanceMode: true,
+  maintenanceMessage:
+    "Server vorübergehend nicht verfügbar – Wartungsarbeiten. Der Minecraft-/Spiele-Server ist derzeit offline.",
   logoUrl:
     "https://d2xsxph8kpxj0f.cloudfront.net/310519663739653758/PbtcqHtcftAKnwDnhmoduf/nachtblau-logo-Li7umgFb8XhrYaRtYVFm4Z.webp",
   heroBgUrl:
@@ -20,7 +23,10 @@ export const SITE = {
   gamerPowerUrl: "https://www.gamerpower.com",
 } as const;
 
-/** Live-Projekte auf dem ALL-INKL-Webspace (w02176b7.kasserver.com). */
+const MAINTENANCE_NOTE =
+  "Server vorübergehend nicht verfügbar – Wartungsarbeiten." as const;
+
+/** Projekte auf dem ALL-INKL-Webspace (w02176b7.kasserver.com). Derzeit im Wartungsmodus. */
 export const WEBSPACE_PROJECTS = [
   {
     id: "hybrixon",
@@ -28,8 +34,9 @@ export const WEBSPACE_PROJECTS = [
     subtitle: "Social Network · Closer. Freer.",
     url: SITE.hybrixonUrl,
     host: "hybrixon.com",
-    note: "PHP-Social mit Feed, Shorts, Stories, Gruppen, Suche, PWA und Android-APK 1.0.4.",
-    live: true,
+    note: MAINTENANCE_NOTE,
+    live: false,
+    status: "maintenance" as const,
   },
   {
     id: "nachtblau-gbr",
@@ -37,8 +44,9 @@ export const WEBSPACE_PROJECTS = [
     subtitle: "Gesellschaftsseite",
     url: SITE.webspaceUrl,
     host: "nacht-blau.de",
-    note: "GbR-Profil, Impressum, Datenschutz und Allxion unter /allxion/.",
-    live: true,
+    note: MAINTENANCE_NOTE,
+    live: false,
+    status: "maintenance" as const,
   },
   {
     id: "allxion",
@@ -46,8 +54,9 @@ export const WEBSPACE_PROJECTS = [
     subtitle: "Hybrid-Social-Hub · NachtBlau Crew",
     url: `${SITE.webspaceUrl}/allxion/`,
     host: "nacht-blau.de",
-    note: "React-App auf dem GbR-Webspace.",
-    live: true,
+    note: MAINTENANCE_NOTE,
+    live: false,
+    status: "maintenance" as const,
   },
   {
     id: "nachtblau-crew",
@@ -55,8 +64,9 @@ export const WEBSPACE_PROJECTS = [
     subtitle: "Gaming-Gilde",
     url: "https://nachtblau-crew.de",
     host: "nachtblau-crew.de",
-    note: "Öffentliche Gilden-Seite.",
-    live: true,
+    note: MAINTENANCE_NOTE,
+    live: false,
+    status: "maintenance" as const,
   },
   {
     id: "nachtblau-interactive",
@@ -64,8 +74,9 @@ export const WEBSPACE_PROJECTS = [
     subtitle: "Game Studio & Publisher",
     url: "https://nachtblau-interactive.com",
     host: "nachtblau-interactive.com",
-    note: "Studio-Seite; Hub unter launcher.nachtblau-interactive.com.",
-    live: true,
+    note: MAINTENANCE_NOTE,
+    live: false,
+    status: "maintenance" as const,
   },
   {
     id: "nachtblau-hub",
@@ -73,8 +84,9 @@ export const WEBSPACE_PROJECTS = [
     subtitle: "Launcher v26 · Web, Linux, Android",
     url: "https://launcher.nachtblau-interactive.com",
     host: "launcher.nachtblau-interactive.com",
-    note: "linux.html und android.html laden live vom Webspace.",
-    live: true,
+    note: MAINTENANCE_NOTE,
+    live: false,
+    status: "maintenance" as const,
   },
   {
     id: "autic-treasures",
@@ -82,8 +94,9 @@ export const WEBSPACE_PROJECTS = [
     subtitle: "Trading-Card-Community",
     url: "https://autic-treasures.com",
     host: "autic-treasures.com",
-    note: "Spiegel: autictreasures.nacht-blau.de.",
-    live: true,
+    note: MAINTENANCE_NOTE,
+    live: false,
+    status: "maintenance" as const,
   },
   {
     id: "black-horizon",
@@ -91,8 +104,9 @@ export const WEBSPACE_PROJECTS = [
     subtitle: "PROJECT: BLACK HORIZON",
     url: "https://blackhorizon.info",
     host: "blackhorizon.info",
-    note: "Projektseite auf demselben ALL-INKL-Account.",
-    live: true,
+    note: MAINTENANCE_NOTE,
+    live: false,
+    status: "maintenance" as const,
   },
   {
     id: "noxcast",
@@ -100,8 +114,9 @@ export const WEBSPACE_PROJECTS = [
     subtitle: "Startseite",
     url: "https://noxcast.com",
     host: "noxcast.com",
-    note: "Webspace-Domain.",
-    live: true,
+    note: MAINTENANCE_NOTE,
+    live: false,
+    status: "maintenance" as const,
   },
   {
     id: "ram-imbiss",
@@ -109,8 +124,9 @@ export const WEBSPACE_PROJECTS = [
     subtitle: "Imbisswagen",
     url: "https://ram-imbiss.at",
     host: "ram-imbiss.at",
-    note: "Webspace-Domain.",
-    live: true,
+    note: MAINTENANCE_NOTE,
+    live: false,
+    status: "maintenance" as const,
   },
   {
     id: "iron-front",
@@ -118,8 +134,34 @@ export const WEBSPACE_PROJECTS = [
     subtitle: "Panzer-Schlacht",
     url: "http://iron-front.nachtblau-interactive.com",
     host: "iron-front.nachtblau-interactive.com",
-    note: "Live per HTTP; HTTPS-Zertifikat passt nicht zur Subdomain.",
-    live: true,
+    note: MAINTENANCE_NOTE,
+    live: false,
+    status: "maintenance" as const,
+  },
+] as const;
+
+/** Minecraft-/Spiele-Server – derzeit offline (Wartung). */
+export const MINECRAFT_SERVERS = [
+  {
+    id: "java",
+    name: "Java Edition",
+    port: 25565,
+    protocol: "TCP",
+    status: "maintenance" as const,
+  },
+  {
+    id: "bedrock",
+    name: "Bedrock Edition",
+    port: 19132,
+    protocol: "UDP",
+    status: "maintenance" as const,
+  },
+  {
+    id: "geyser",
+    name: "Geyser (Crossplay)",
+    port: 19134,
+    protocol: "UDP",
+    status: "maintenance" as const,
   },
 ] as const;
 
