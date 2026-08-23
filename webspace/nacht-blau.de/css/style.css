@@ -1,0 +1,376 @@
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+  --bg: #ffffff;
+  --bg-alt: #f7f8f9;
+  --border: #d8dde3;
+  --text: #1a1f26;
+  --text-muted: #4a5560;
+  --link: #1a1f26;
+  --header-bg: #ffffff;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0a0e14;
+  --bg-alt: #0f141c;
+  --border: #2a3340;
+  --text: #e4e8ed;
+  --text-muted: #8b95a1;
+  --link: #e4e8ed;
+  --header-bg: #0a0e14;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 14px;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.55;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  width: min(720px, 92vw);
+  margin: 0 auto;
+}
+
+a { color: var(--link); }
+
+/* Header */
+.site-header {
+  border-bottom: 1px solid var(--border);
+  background: var(--header-bg);
+}
+
+.header-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1rem 0;
+  flex-wrap: wrap;
+}
+
+.site-id {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.site-id-mark {
+  display: block;
+  flex-shrink: 0;
+  border-radius: 4px;
+}
+
+.site-id-name {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.site-id-legal {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.site-nav a {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.site-nav a:hover,
+.site-nav a[aria-current="page"] {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.theme-toggle {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 0.2rem 0.45rem;
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.theme-toggle:hover { color: var(--text); }
+
+/* Document */
+.document {
+  flex: 1;
+  padding: 2.5rem 0 3rem;
+}
+
+.doc-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.doc-header h1 {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  margin-bottom: 0.35rem;
+}
+
+.doc-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.doc-block {
+  margin-bottom: 2.25rem;
+}
+
+.doc-block h2 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.doc-block h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 1.5rem 0 0.65rem;
+}
+
+.doc-block > p {
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+  max-width: 62ch;
+}
+
+.doc-meta {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0.75rem 0;
+}
+
+.doc-list {
+  margin: 0.5rem 0 0 1.25rem;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.doc-list li { margin-bottom: 0.25rem; }
+
+/* Tables */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: 0.5rem;
+}
+
+.data-table th,
+.data-table td {
+  border: 1px solid var(--border);
+  padding: 0.55rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.data-table th {
+  width: 11rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: var(--bg-alt);
+}
+
+.data-table td { color: var(--text); }
+
+.data-table a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.data-table--compact { margin-bottom: 0.25rem; }
+
+/* Legal pages */
+.legal-page {
+  flex: 1;
+  padding: 2.5rem 0 3rem;
+}
+
+.legal-page h1 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+.legal-updated {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.legal-content {
+  border: 1px solid var(--border);
+  padding: 1.25rem 1.5rem;
+}
+
+.legal-content h2 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 1.5rem 0 0.5rem;
+}
+
+.legal-content h2:first-child { margin-top: 0; }
+
+.legal-content p,
+.legal-content li {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.legal-content p { margin-bottom: 0.65rem; }
+
+.legal-content ul { margin: 0.35rem 0 0.65rem 1.2rem; }
+
+.legal-content a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Footer */
+.site-footer {
+  border-top: 1px solid var(--border);
+  padding: 1rem 0 1.25rem;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.footer-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.footer-row nav {
+  display: flex;
+  gap: 1rem;
+}
+
+.footer-row a {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.footer-row a:hover {
+  color: var(--text);
+  text-decoration: underline;
+}
+
+.footer-copy {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.project-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.project-card {
+  border: 1px solid var(--border);
+  background: var(--bg-alt);
+  padding: 1rem 1.1rem;
+  border-radius: 4px;
+}
+
+.project-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+.project-title a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.project-title a:hover {
+  text-decoration: underline;
+}
+
+.project-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 0.35rem;
+}
+
+.project-note {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+@media (max-width: 560px) {
+  .data-table th {
+    width: 8.5rem;
+    font-size: 12px;
+  }
+}
+
+/* Wartungsmodus-Banner */
+.maintenance-banner {
+  background: #78350f;
+  color: #fef3c7;
+  text-align: center;
+  padding: 0.65rem 1rem;
+  font-size: 13px;
+  border-bottom: 1px solid #b45309;
+  line-height: 1.45;
+}
+
+.maintenance-banner strong {
+  font-weight: 600;
+}
+
+.project-status {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fbbf24;
+  background: rgba(120, 53, 15, 0.35);
+  border: 1px solid #b45309;
+  border-radius: 4px;
+  padding: 0.1rem 0.4rem;
+  margin-left: 0.35rem;
+}
