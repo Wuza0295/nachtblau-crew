@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
-import { EXTERNAL_LINKS, SITE } from "@/lib/site";
+import { EXTERNAL_LINKS, SITE, WEBSPACE_PROJECTS } from "@/lib/site";
 import {
   ExternalLink,
   Github,
@@ -12,12 +12,13 @@ import {
   Gift,
   Newspaper,
   MessageSquare,
-  Smartphone,
+  Users,
+  Zap,
 } from "lucide-react";
 
 const LINK_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   [SITE.webspaceUrl]: Globe,
-  [SITE.launcherUrl]: Smartphone,
+  [SITE.hybrixonUrl]: Zap,
   [SITE.githubUrl]: Github,
   [`mailto:${SITE.contactEmail}`]: Mail,
 };
@@ -53,10 +54,10 @@ export default function About() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { icon: Smartphone, label: "Launcher App", href: "/launcher" },
             { icon: Gift, label: "Free Games", href: "/free-games" },
             { icon: Newspaper, label: "Gaming News", href: "/news" },
             { icon: MessageSquare, label: "Forum", href: "/forum" },
+            { icon: Users, label: "Community", href: "/forum" },
           ].map(({ icon: Icon, label, href }) => (
             <Link key={label} href={href}>
               <Card className="card-glow bg-card border-border h-full cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:border-primary/40">
@@ -80,9 +81,9 @@ export default function About() {
           </h2>
           <p className="text-muted-foreground">
             Die NachtBlau Crew App ist Teil des NachtBlau-Ökosystems. Hier findest du alle
-            wichtigen Verknüpfungen zu Webspace, Launcher und GitHub.
+            wichtigen Verknüpfungen zu Webspace, Hybrixon und GitHub.
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {EXTERNAL_LINKS.map((link) => {
               const Icon = LINK_ICONS[link.href] ?? ExternalLink;
               return (
@@ -114,6 +115,42 @@ export default function About() {
                 </a>
               );
             })}
+          </div>
+        </section>
+
+        <section className="space-y-4">
+          <h2
+            className="text-2xl font-bold text-foreground"
+            style={{ fontFamily: "Orbitron, sans-serif" }}
+          >
+            Webspace-Projekte
+          </h2>
+          <p className="text-muted-foreground">
+            Alle öffentlich erreichbaren Projekte auf dem ALL-INKL-Webspace, inklusive Hybrixon.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {WEBSPACE_PROJECTS.map((project) => (
+              <a
+                key={project.id}
+                href={project.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group block"
+              >
+                <Card className="card-glow bg-card border-border h-full transition-all duration-200 hover:-translate-y-1 hover:border-primary/40">
+                  <CardContent className="p-4 space-y-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                        {project.title}
+                      </span>
+                      <ExternalLink className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">{project.subtitle}</p>
+                    <p className="text-xs text-muted-foreground/80">{project.note}</p>
+                  </CardContent>
+                </Card>
+              </a>
+            ))}
           </div>
         </section>
 

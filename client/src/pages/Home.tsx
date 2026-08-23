@@ -19,9 +19,8 @@ import {
   Github,
   Globe,
   ExternalLink,
-  Smartphone,
 } from "lucide-react";
-import { SITE } from "@/lib/site";
+import { SITE, WEBSPACE_PROJECTS } from "@/lib/site";
 
 function StarField() {
   return (
@@ -116,16 +115,6 @@ function HeroSection() {
                 >
                   <Zap className="mr-2 h-5 w-5" />
                   Social Portal
-                </Button>
-              </Link>
-              <Link href="/launcher">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-primary/40 text-primary hover:bg-primary/10 font-semibold transition-all duration-200"
-                >
-                  <Smartphone className="mr-2 h-5 w-5" />
-                  Am Handy testen
                 </Button>
               </Link>
               <Link href="/forum">
@@ -445,7 +434,7 @@ function NetworkLinksSection() {
             NachtBlau Netzwerk
           </h2>
           <p className="text-muted-foreground mt-1">
-            Webspace, Launcher und GitHub — alles im NachtBlau-Netzwerk
+            Webspace inklusive Hybrixon, plus GitHub-Repository
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-5xl mx-auto">
@@ -472,24 +461,29 @@ function NetworkLinksSection() {
               </CardContent>
             </Card>
           </a>
-          <Link href="/launcher" className="group block">
+          <a
+            href={SITE.hybrixonUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group block"
+          >
             <Card className="card-glow bg-card border-border transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 h-full">
               <CardContent className="p-5 flex items-center gap-4">
                 <div className="p-3 rounded-xl bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
-                  <Smartphone className="h-6 w-6" />
+                  <Zap className="h-6 w-6" />
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                    {SITE.launcherLabel}
+                    {SITE.hybrixonLabel}
                   </h3>
                   <p className="text-sm text-muted-foreground mt-0.5">
-                    Android-App und Live-Hub
+                    Social Network auf dem Webspace · Closer. Freer.
                   </p>
                 </div>
                 <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
               </CardContent>
             </Card>
-          </Link>
+          </a>
           <a
             href={SITE.githubUrl}
             target="_blank"
@@ -513,6 +507,20 @@ function NetworkLinksSection() {
               </CardContent>
             </Card>
           </a>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-w-5xl mx-auto mt-6">
+          {WEBSPACE_PROJECTS.filter((project) => project.id !== "nachtblau-gbr").map((project) => (
+            <a
+              key={project.id}
+              href={project.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-lg border border-border bg-card/60 px-4 py-3 hover:border-primary/40 hover:text-primary transition-colors"
+            >
+              <div className="text-sm font-semibold">{project.title}</div>
+              <div className="text-xs text-muted-foreground mt-0.5">{project.subtitle}</div>
+            </a>
+          ))}
         </div>
         <div className="text-center mt-6">
           <Link href="/ueber-uns">
