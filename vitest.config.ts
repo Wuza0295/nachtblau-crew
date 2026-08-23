@@ -14,6 +14,10 @@ export default defineConfig({
   },
   test: {
     environment: "node",
+<<<<<<< HEAD
     include: ["server/**/*.test.ts", "server/**/*.spec.ts", "scripts/**/*.test.ts"],
+=======
+    include: ["server/**/*.test.ts", "server/**/*.spec.ts", "shared/**/*.test.ts"],
+>>>>>>> origin/cursor/update-all-projects-ed91
   },
 });
