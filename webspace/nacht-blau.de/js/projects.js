@@ -12,12 +12,18 @@
       data.links.forEach(function (item) {
         var card = document.createElement("article");
         card.className = "project-card";
+        var statusBadge =
+          item.status === "maintenance"
+            ? ' <span class="project-status">Wartung</span>'
+            : "";
         card.innerHTML =
           '<h3 class="project-title"><a href="' +
           escapeAttr(item.url) +
           '" rel="noopener noreferrer">' +
           escapeHtml(item.title) +
-          "</a></h3>" +
+          "</a>" +
+          statusBadge +
+          "</h3>" +
           (item.subtitle
             ? '<p class="project-subtitle">' + escapeHtml(item.subtitle) + "</p>"
             : "") +
