@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
 import { EXTERNAL_LINKS, SITE, WEBSPACE_PROJECTS } from "@/lib/site";
+import MaintenanceNotice from "@/components/MaintenanceNotice";
 import {
   ExternalLink,
   Github,
@@ -27,6 +28,7 @@ export default function About() {
   return (
     <div className="py-12">
       <div className="container max-w-4xl space-y-10">
+        <MaintenanceNotice />
         <div className="text-center space-y-4">
           <img
             src={SITE.logoUrl}
@@ -126,7 +128,7 @@ export default function About() {
             Webspace-Projekte
           </h2>
           <p className="text-muted-foreground">
-            Alle öffentlich erreichbaren Projekte auf dem ALL-INKL-Webspace, inklusive Hybrixon.
+            Alle Projekte im NachtBlau-Ökosystem – derzeit im Wartungsmodus.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {WEBSPACE_PROJECTS.map((project) => (
@@ -143,7 +145,17 @@ export default function About() {
                       <span className="font-semibold text-foreground group-hover:text-primary transition-colors">
                         {project.title}
                       </span>
-                      <ExternalLink className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary" />
+                      <div className="flex items-center gap-2">
+                        {project.status === "maintenance" && (
+                          <Badge
+                            variant="outline"
+                            className="text-xs border-amber-500/40 text-amber-400 bg-amber-950/50"
+                          >
+                            Wartung
+                          </Badge>
+                        )}
+                        <ExternalLink className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary" />
+                      </div>
                     </div>
                     <p className="text-sm text-muted-foreground">{project.subtitle}</p>
                     <p className="text-xs text-muted-foreground/80">{project.note}</p>
