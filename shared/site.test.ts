@@ -14,4 +14,14 @@ describe("WEBSPACE_PROJECTS", () => {
     expect(SITE.hybrixonUrl).toBe("https://hybrixon.com");
     expect(EXTERNAL_LINKS.some((link) => link.href === SITE.hybrixonUrl)).toBe(true);
   });
+
+  it("listet alle 11 Live-Webspace-Domains", () => {
+    const live = WEBSPACE_PROJECTS.filter((p) => p.live);
+    expect(live).toHaveLength(11);
+    const hosts = live.map((p) => p.host);
+    expect(hosts).toContain("hybrixon.com");
+    expect(hosts).toContain("nacht-blau.de");
+    expect(hosts).toContain("launcher.nachtblau-interactive.com");
+    expect(hosts).toContain("iron-front.nachtblau-interactive.com");
+  });
 });
