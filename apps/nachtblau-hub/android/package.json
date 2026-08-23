@@ -13,10 +13,10 @@
     "run": "npx cap run android"
   },
   "dependencies": {
-    "@capacitor/android": "^7.4.0",
-    "@capacitor/core": "^7.4.0"
+    "@capacitor/android": "^7.6.8",
+    "@capacitor/core": "^7.6.8"
   },
   "devDependencies": {
-    "@capacitor/cli": "^7.4.0"
+    "@capacitor/cli": "^7.6.8"
   }
 }
