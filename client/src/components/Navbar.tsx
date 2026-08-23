@@ -40,6 +40,7 @@ const NAV_LINKS = [
 
 const EXTERNAL_NAV_LINKS = [
   { href: SITE.webspaceUrl, label: "Webspace", icon: Globe },
+  { href: SITE.hybrixonUrl, label: SITE.hybrixonLabel, icon: Zap },
   { href: SITE.githubUrl, label: "GitHub", icon: Github },
 ];
 
