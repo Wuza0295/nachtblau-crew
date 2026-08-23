@@ -17,8 +17,14 @@ need_cmd() {
 
 download() {
   local url="$1" dest="$2"
+  local agent="$UA"
   log "Lade $(basename "$dest") …"
-  curl -fL --retry 5 --retry-delay 3 -A "$UA" -o "$dest" "$url"
+  case "$url" in
+    *minecraft.net*|*minecraft-services.net*)
+      agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+      ;;
+  esac
+  curl -fL --http1.1 --retry 5 --retry-all-errors --retry-delay 3 -A "$agent" -o "$dest" "$url"
 }
 
 json_get() {
@@ -87,7 +93,7 @@ PY
 }
 
 latest_bedrock_url() {
-  curl -fsS -A "$UA" "$BEDROCK_LINKS_API" | python3 -c '
+  curl -fsS --http1.1 -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36" "$BEDROCK_LINKS_API" | python3 -c '
 import json,sys
 data=json.load(sys.stdin)
 for link in (data.get("result") or {}).get("links") or []:
