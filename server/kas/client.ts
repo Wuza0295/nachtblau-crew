@@ -1,15 +1,8 @@
 import { ENV } from "../_core/env";
+import { parseKasSoapResponse } from "./soap";
 
-const KAS_AUTH_WSDL = "https://kasapi.kasserver.com/soap/wsdl/KasAuth.wsdl";
-const KAS_API_WSDL = "https://kasapi.kasserver.com/soap/wsdl/KasApi.wsdl";
-
-type KasAuthResponse = {
-  return?: string;
-};
-
-type KasApiResponse = {
-  return?: string;
-};
+const KAS_AUTH_ENDPOINT = "https://kasapi.kasserver.com/soap/KasAuth.php";
+const KAS_API_ENDPOINT = "https://kasapi.kasserver.com/soap/KasApi.php";
 
 export type KasSubdomainInfo = {
   subdomainName: string;
@@ -36,21 +29,27 @@ function escapeXml(value: string): string {
     .replace(/'/g, "&apos;");
 }
 
-async function soapCall(endpoint: string, action: string, body: string): Promise<string> {
+async function soapCall(input: {
+  endpoint: string;
+  namespace: string;
+  soapAction: string;
+  operation: string;
+  paramsXml: string;
+}): Promise<string> {
   const envelope = `<?xml version="1.0" encoding="UTF-8"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="urn:xmethodsKASSOAP">
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="${input.namespace}" soap:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
   <soap:Body>
-    <tns:${action}>
-      ${body}
-    </tns:${action}>
+    <tns:${input.operation}>
+      ${input.paramsXml}
+    </tns:${input.operation}>
   </soap:Body>
 </soap:Envelope>`;
 
-  const response = await fetch(endpoint, {
+  const response = await fetch(input.endpoint, {
     method: "POST",
     headers: {
       "Content-Type": "text/xml; charset=utf-8",
-      SOAPAction: `urn:xmethodsKASSOAP#${action}`,
+      SOAPAction: input.soapAction,
     },
     body: envelope,
     signal: AbortSignal.timeout(30000),
@@ -61,45 +60,35 @@ async function soapCall(endpoint: string, action: string, body: string): Promise
     throw new KasApiError(`KAS HTTP ${response.status}: ${text.slice(0, 200)}`);
   }
 
-  const fault = /<faultstring>([\s\S]*?)<\/faultstring>/.exec(text);
+  return text;
+}
+
+function extractAuthToken(xml: string): string {
+  const fault = /<faultstring>([\s\S]*?)<\/faultstring>/.exec(xml);
   if (fault) {
     throw new KasApiError(fault[1].trim());
   }
 
-  const result = /<return>([\s\S]*?)<\/return>/.exec(text);
+  const result = /<return[^>]*>([\s\S]*?)<\/return>/.exec(xml);
   if (!result) {
     throw new KasApiError("KAS-Antwort ohne return-Feld");
   }
 
-  return result[1].trim();
+  return decodeXmlEntities(result[1].trim());
 }
 
-function parseKasReturn<T>(raw: string): T {
-  const decoded = raw
+function decodeXmlEntities(value: string): string {
+  return value
     .replace(/&quot;/g, '"')
     .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">");
-
-  try {
-    return JSON.parse(decoded) as T;
-  } catch {
-    throw new KasApiError(`KAS JSON konnte nicht gelesen werden: ${decoded.slice(0, 200)}`);
-  }
 }
 
-function unwrapKasPayload<T>(payload: unknown): T {
-  if (payload && typeof payload === "object" && "Response" in payload) {
-    const response = (payload as { Response: unknown }).Response;
-    if (response && typeof response === "object" && "ReturnString" in response) {
-      const returnString = (response as { ReturnString: unknown }).ReturnString;
-      if (typeof returnString === "string") {
-        return parseKasReturn<T>(returnString);
-      }
-    }
-  }
-
-  return payload as T;
+function normalizeKasRows<T extends Record<string, unknown>>(result: unknown): T[] {
+  if (Array.isArray(result)) return result as T[];
+  if (result && typeof result === "object") return [result as T];
+  return [];
 }
 
 export class KasClient {
@@ -123,16 +112,20 @@ export class KasClient {
       kas_login: this.login,
       kas_auth_type: "plain",
       kas_auth_data: this.password,
+      session_lifetime: 600,
+      session_update_lifetime: "Y",
     });
 
-    const raw = await soapCall(
-      KAS_AUTH_WSDL,
-      "KasAuth",
-      `<String>${escapeXml(authPayload)}</String>`
-    );
-    const parsed = parseKasReturn<KasAuthResponse>(raw);
-    const token = parsed.return ?? (parsed as unknown as string);
-    if (!token || typeof token !== "string") {
+    const raw = await soapCall({
+      endpoint: KAS_AUTH_ENDPOINT,
+      namespace: "urn:xmethodsKasApiAuthentication",
+      soapAction: "urn:xmethodsKasApiAuthentication#KasAuth",
+      operation: "KasAuth",
+      paramsXml: `<Params xsi:type="xsd:string">${escapeXml(authPayload)}</Params>`,
+    });
+
+    const token = extractAuthToken(raw);
+    if (!token) {
       throw new KasApiError("KAS-Authentifizierung fehlgeschlagen");
     }
 
@@ -155,14 +148,15 @@ export class KasClient {
       KasRequestParams: params,
     });
 
-    const raw = await soapCall(
-      KAS_API_WSDL,
-      "KasApi",
-      `<String>${escapeXml(requestPayload)}</String>`
-    );
+    const raw = await soapCall({
+      endpoint: KAS_API_ENDPOINT,
+      namespace: "urn:xmethodsKasApi",
+      soapAction: "urn:xmethodsKasApi#KasApi",
+      operation: "KasApi",
+      paramsXml: `<Params xsi:type="xsd:string">${escapeXml(requestPayload)}</Params>`,
+    });
 
-    const parsed = parseKasReturn<unknown>(raw);
-    return unwrapKasPayload<T>(parsed);
+    return parseKasSoapResponse(raw) as T;
   }
 
   async addSubdomain(input: {
@@ -185,8 +179,13 @@ export class KasClient {
   }
 
   async getSubdomains(): Promise<KasSubdomainInfo[]> {
-    const result = await this.exec<{ subdomain_name?: string; domain_name?: string; subdomain_path?: string }[] | { subdomain_name?: string; domain_name?: string; subdomain_path?: string }>("get_subdomains");
-    const rows = Array.isArray(result) ? result : result ? [result] : [];
+    const result = await this.exec<unknown>("get_subdomains");
+    const rows = normalizeKasRows<{
+      subdomain_name?: string;
+      domain_name?: string;
+      subdomain_path?: string;
+    }>(result);
+
     return rows
       .filter((row) => row.subdomain_name && row.domain_name)
       .map((row) => ({
@@ -204,7 +203,9 @@ export function getKasClient(): KasClient {
   return kasClient;
 }
 
-export async function provisionKasSubdomain(slug: string): Promise<{ ok: true } | { ok: false; error: string }> {
+export async function provisionKasSubdomain(
+  slug: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
   if (!ENV.kasEnabled) {
     return {
       ok: false,
