@@ -1,0 +1,5 @@
+{
+  "name": "NachtBlau Crew",
+  "user": "ubuntu",
+  "install": "./scripts/cloud-agent-install.sh"
+}
