@@ -1,10 +1,15 @@
 import { Link } from "wouter";
 import { EXTERNAL_LINKS, SITE } from "@/lib/site";
+<<<<<<< HEAD
 import { Github, Globe, Mail, ExternalLink } from "lucide-react";
 import AllInklPartnerBanner from "@/components/AllInklPartnerBanner";
+=======
+import { Github, Globe, Mail, ExternalLink, Zap } from "lucide-react";
+>>>>>>> origin/cursor/update-all-projects-ed91
 
 const LINK_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   [SITE.webspaceUrl]: Globe,
+  [SITE.hybrixonUrl]: Zap,
   [SITE.githubUrl]: Github,
   [`mailto:${SITE.contactEmail}`]: Mail,
 };

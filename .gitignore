@@ -19,6 +19,7 @@ webspace/nacht-blau.de/allxion/__manus__/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.webspace
 
 # IDE and editor files
 .vscode/
@@ -118,3 +119,51 @@ temp/
 # Manus version file (auto-generated, not part of source)
 client/public/__manus__/version.json
 .project-config.json
+
+
+# Python
+__pycache__/
+*.pyc
+
+# Webspace mirrors: only commit the public GbR site by default.
+# Other domains are pulled/synced locally but may contain credentials.
+webspace/**
+!webspace/nacht-blau.de/
+!webspace/nacht-blau.de/**
+
+# Hashed Vite/Manus build chunks under /allxion/ — pull via pnpm webspace:pull
+webspace/nacht-blau.de/allxion/assets/
+
+# Never commit remote secrets even if present under webspace/
+webspace/**/config/database.php
+webspace/**/db.php
+webspace/**/db_connect.php
+webspace/**/vendor/
+webspace/**/node_modules/
+webspace/**/uploads/
+webspace/**/storage/
+webspace/**/tmp/
+webspace/**/logs/
+webspace/**/*.zip
+webspace/**/.env
+webspace/**/.env.*
+!webspace/**/.env.example
+
+# NachtBlau Hub — generated platform www/ mirrors (rebuilt by pnpm hub:sync)
+apps/nachtblau-hub/shared/
+apps/nachtblau-hub/linux/www/
+apps/nachtblau-hub/android/www/
+apps/nachtblau-hub/linux/node_modules/
+apps/nachtblau-hub/android/node_modules/
+# Capacitor Android build outputs (source project is committed)
+apps/nachtblau-hub/android/android/.gradle/
+apps/nachtblau-hub/android/android/app/build/
+apps/nachtblau-hub/android/android/build/
+apps/nachtblau-hub/android/android/captures/
+apps/nachtblau-hub/android/android/local.properties
+apps/nachtblau-hub/android/android/.idea/
+
+# Local launcher mirror (pulled via FTPS; may be large)
+webspace/launcher.nachtblau-interactive.com/
+webspace/nachtblau-interactive.com/
+webspace/nachtblau-crew.de/

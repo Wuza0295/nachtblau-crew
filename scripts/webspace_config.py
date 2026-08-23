@@ -183,11 +183,6 @@ def upload_tree(ftp, local: Path, remote_prefix: str = "") -> int:
             count += upload_tree(ftp, item, remote_name)
             ftp.cwd("..")
         else:
-            local_size = item.stat().st_size
-            remote_size = _remote_size(ftp, item.name)
-            if remote_size is not None and remote_size == local_size:
-                print(f"  = {remote_name}", flush=True)
-                continue
             print(f"  ↑ {remote_name}", flush=True)
             with item.open("rb") as fh:
                 ftp.storbinary(f"STOR {item.name}", fh, blocksize=64 * 1024)
@@ -199,7 +194,16 @@ def upload_tree(ftp, local: Path, remote_prefix: str = "") -> int:
 MAX_PULL_BYTES = int(os.environ.get("FTP_MAX_PULL_BYTES", str(8 * 1024 * 1024)))
 
 
+def _ensure_binary(ftp) -> None:
+    """SIZE/RETR need image mode; some servers stay in ASCII after LIST."""
+    try:
+        ftp.voidcmd("TYPE I")
+    except Exception:
+        pass
+
+
 def _remote_size(ftp, name: str) -> int | None:
+    _ensure_binary(ftp)
     try:
         return ftp.size(name)
     except Exception:
@@ -226,15 +230,26 @@ def download_tree(ftp, local: Path, remote_prefix: str = "") -> int:
         if size is not None and size > MAX_PULL_BYTES:
             print(f"  · skip large {remote_name} ({size} bytes)")
             continue
-        if target.is_file() and size is not None and target.stat().st_size == size:
+        if (
+            target.is_file()
+            and target.stat().st_size > 0
+            and size is not None
+            and target.stat().st_size == size
+        ):
             print(f"  = keep {remote_name}")
             count += 1
             continue
+        # Re-fetch empty/corrupt locals
+        if target.is_file() and target.stat().st_size == 0:
+            target.unlink(missing_ok=True)
 
         print(f"  ↓ {remote_name}", flush=True)
         try:
+            _ensure_binary(ftp)
             with target.open("wb") as fh:
                 ftp.retrbinary(f"RETR {name}", fh.write, blocksize=64 * 1024)
+            if target.stat().st_size == 0 and (size is None or size > 0):
+                raise IOError("0-byte download")
             count += 1
         except Exception as exc:
             print(f"  ! fail {remote_name}: {exc}", flush=True)
@@ -252,43 +267,3 @@ def mirror_index_htm(ftp, local_dir: Path) -> int:
         ftp.storbinary("STOR index.htm", fh)
     print("  ↑ index.htm (mirror of index.html)")
     return 1
-
-
-def patch_allxion_project_link(local_dir: Path, app_url: str | None = None) -> None:
-    """Ensure projects.json points at the Allxion subpage on nacht-blau.de."""
-    import json
-
-    path = local_dir / "data" / "projects.json"
-    if not path.is_file():
-        return
-    data = json.loads(path.read_text(encoding="utf-8"))
-    url = (app_url or os.environ.get("WEBSPACE_ALLXION_URL", "")).strip()
-    if not url:
-        url = "https://nacht-blau.de/allxion/"
-    normalized = url.rstrip("/") + "/"
-    for link in data.get("links", []):
-        if link.get("id") == "allxion":
-            link["url"] = normalized
-            link["note"] = "Unterseite auf nacht-blau.de"
-    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-
-
-def prepare_upload_dir(local: Path):
-    """Return (upload_root, temp_handle). Temp dir used when WEBSPACE_ALLXION_URL is set."""
-    import shutil
-    import tempfile
-
-    app_url = os.environ.get("WEBSPACE_ALLXION_URL", "").strip()
-    if not app_url:
-        app_url = "https://nacht-blau.de/allxion/"
-
-    tmp = tempfile.TemporaryDirectory()
-    dest = Path(tmp.name) / "site"
-    shutil.copytree(local, dest)
-    patch_allxion_project_link(dest, app_url)
-    allxion = dest / "allxion"
-    stub = allxion / "index.stub.html"
-    index = allxion / "index.html"
-    if stub.is_file() and not index.is_file():
-        shutil.copy2(stub, index)
-    return dest, tmp

@@ -8,7 +8,6 @@ For all domains use: pnpm webspace:sync:all
 from __future__ import annotations
 
 import argparse
-import os
 import sys
 from pathlib import Path
 
@@ -23,7 +22,6 @@ from webspace_config import (
     connect_ftp,
     cwd_makedirs,
     mirror_index_htm,
-    prepare_upload_dir,
     require_credentials,
     upload_tree,
 )
@@ -58,20 +56,15 @@ def main() -> None:
 
     print(f"Verbinde mit {FTP_HOST} als {FTP_USER} …")
     ftp = connect_ftp()
-    upload_root, tmp = prepare_upload_dir(local)
     try:
         cwd_makedirs(ftp, remote or "/")
         print(f"Synchronisiere {local} → {remote or '/'} …")
-        if os.environ.get("WEBSPACE_ALLXION_URL"):
-            print(f"  Allxion-Link: {os.environ['WEBSPACE_ALLXION_URL'].rstrip('/')}/")
-        n = upload_tree(ftp, upload_root)
-        n += mirror_index_htm(ftp, upload_root)
+        n = upload_tree(ftp, local)
+        n += mirror_index_htm(ftp, local)
         print(f"✓ {n} Dateien synchronisiert.")
         site = remote.strip("/").split("/")[-1] if remote else "nacht-blau.de"
         print(f"Prüfen: https://{site}/")
     finally:
-        if tmp is not None:
-            tmp.cleanup()
         try:
             ftp.quit()
         except Exception:

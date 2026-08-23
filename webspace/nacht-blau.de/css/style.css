@@ -300,17 +300,6 @@ a { color: var(--link); }
   color: var(--text-muted);
 }
 
-.partner-banner {
-  display: flex;
-  justify-content: center;
-  padding: 1rem 0 0.25rem;
-}
-
-.partner-banner img {
-  max-width: 100%;
-  height: auto;
-}
-
 .project-links {
   display: flex;
   flex-direction: column;
