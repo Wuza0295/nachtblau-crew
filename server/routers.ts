@@ -20,6 +20,7 @@ import {
   updateUserProfile,
 } from "./db";
 import { socialRouter } from "./routers/social";
+import { webspaceRouter } from "./routers/webspace";
 
 // ─── Free Games via GamerPower API ───────────────────────────────────────────
 const gamesRouter = router({
@@ -358,6 +359,7 @@ export const appRouter = router({
   forum: forumRouter,
   profile: profileRouter,
   social: socialRouter,
+  webspace: webspaceRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -223,3 +223,27 @@ export const socialStoryViews = mysqlTable("social_story_views", {
     .references(() => users.id),
   viewedAt: timestamp("viewedAt").defaultNow().notNull(),
 });
+
+// ─── NachtBlau Webspace (nacht-blau.de Unterprojekt) ─────────────────────────
+export const webspaceSites = mysqlTable("webspace_sites", {
+  id: int("id").autoincrement().primaryKey(),
+  ownerId: int("ownerId")
+    .notNull()
+    .references(() => users.id),
+  slug: varchar("slug", { length: 32 }).notNull().unique(),
+  title: varchar("title", { length: 128 }).notNull(),
+  tagline: varchar("tagline", { length: 256 }),
+  blocks: text("blocks").notNull(),
+  theme: mysqlEnum("theme", ["midnight", "neon", "clean"]).default("midnight").notNull(),
+  status: mysqlEnum("status", ["draft", "published", "archived"])
+    .default("draft")
+    .notNull(),
+  kasProvisioned: boolean("kasProvisioned").default(false).notNull(),
+  kasProvisionError: text("kasProvisionError"),
+  publishedAt: timestamp("publishedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+
+export type WebspaceSite = typeof webspaceSites.$inferSelect;
+export type InsertWebspaceSite = typeof webspaceSites.$inferInsert;

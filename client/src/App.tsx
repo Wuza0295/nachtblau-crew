@@ -18,16 +18,31 @@ import SocialHub from "./pages/social/SocialHub";
 import SocialFluss from "./pages/social/SocialFluss";
 import SocialKreise from "./pages/social/SocialKreise";
 import SocialMomente from "./pages/social/SocialMomente";
+import WebspaceHome from "./pages/webspace/WebspaceHome";
+import WebspaceEditor from "./pages/webspace/WebspaceEditor";
+import WebspacePublicSite from "./pages/webspace/WebspacePublicSite";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import { getWebspaceSlugFromHost, isWebspaceSubdomain } from "./lib/webspaceHost";
+
+function WebspaceSubdomainApp() {
+  return <WebspacePublicSite />;
+}
 
 function Router() {
+  if (isWebspaceSubdomain()) {
+    return <WebspaceSubdomainApp />;
+  }
+
   return (
     <Switch>
       <Route path="/portal/fluss" component={SocialFluss} />
       <Route path="/portal/kreise" component={SocialKreise} />
       <Route path="/portal/momente" component={SocialMomente} />
       <Route path="/portal" component={SocialHub} />
+      <Route path="/webspace/editor/:slug" component={WebspaceEditor} />
+      <Route path="/webspace" component={WebspaceHome} />
+      <Route path="/s/:slug" component={WebspacePublicSite} />
       <Route>
         <div className="min-h-screen flex flex-col bg-background">
           <Navbar />
