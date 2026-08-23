@@ -1,0 +1,20 @@
+[Unit]
+Description=NachtBlau Geyser Standalone (19134)
+After=network-online.target minecraft-java.service
+Wants=network-online.target
+Requires=minecraft-java.service
+
+[Service]
+Type=simple
+User=mc
+Group=mc
+WorkingDirectory=/opt/minecraft-geyser
+EnvironmentFile=-/etc/nachtblau/minecraft.env
+ExecStart=/usr/bin/java -Xms128M -Xmx${GEYSER_XMX} -jar geyser.jar
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=45
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target

@@ -101,6 +101,9 @@ jspm_packages/
 tmp/
 temp/
 
+# Pi night-install download cache
+scripts/pi-nacht-install/.cache/
+
 # Database
 *.db
 *.sqlite

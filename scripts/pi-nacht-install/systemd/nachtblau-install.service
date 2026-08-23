@@ -1,0 +1,19 @@
+[Unit]
+Description=NachtBlau Pi Nacht-Install (einmalig)
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=!/var/lib/nachtblau/install.ok
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+TimeoutStartSec=0
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+ExecStart=/opt/nachtblau-install/install.sh
+StandardOutput=append:/var/log/nachtblau-pi-install.log
+StandardError=append:/var/log/nachtblau-pi-install.log
+
+[Install]
+WantedBy=multi-user.target
