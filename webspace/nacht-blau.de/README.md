@@ -1,23 +1,49 @@
-# NachtBlau GbR
+# NachtBlau GbR (nacht-blau.de)
 
-Eigenständige Webseite der NachtBlau GbR — Hobbyprojekt ohne gewerbliche Einnahmen.
+Eigenständige GbR-Webseite auf ALL-INKL — **Allxion** liegt als Unterseite unter **`/allxion/`**.
 
-> **Hinweis:** NachtBlau **Crew** und NachtBlau **Interactive** sind separate, unabhängige Projekte.
+## URLs
 
-## Inhalt
+- GbR: https://nacht-blau.de/
+- **Allxion:** https://nacht-blau.de/allxion/
+- Projekte-Anker: https://nacht-blau.de/#projekte
 
-- Startseite mit Team-Infos
-- Impressum
-- Datenschutzerklärung
+## Sync mit ALL-INKL
 
-## Lokal starten
+1. `.env.webspace.example` → `.env.webspace` (FTP-Zugang aus ALL-INKL Members Area)
+2. Alles vom Webspace ziehen:
 
 ```bash
-python3 server.py
+pnpm webspace:connect   # FTPS-Test
+pnpm webspace:pull      # alle Domains → webspace/<domain>/
+pnpm webspace:pull nacht-blau.de
 ```
 
-Webseite: http://localhost:8080
+3. Optional zurückschreiben:
 
-## Upload auf ALL-INKL.COM
+```bash
+pnpm webspace:sync                    # alle lokalen Domains → Remote
+pnpm webspace:sync:one nacht-blau.de  # nur GbR
+```
 
-`NachtBlau GbR.zip` hochladen und entpacken. Dateien liegen direkt im Webroot.
+Die gehashten Allxion-Build-Assets (`allxion/assets/`) bleiben lokal (gitignore) und werden
+über `pnpm webspace:pull` / `pnpm platform:sync` aktualisiert — nicht ins Git-Repo gelegt.
+
+## Plattform-Sync (Linux · Android · Webspace)
+
+Ein Build für alle Clients:
+
+```bash
+cp .env.allxion.example .env.allxion   # VITE_API_ORIGIN = Manus-Backend
+export $(grep -v '^#' .env.allxion | xargs)
+pnpm platform:sync                     # build + stage nach webspace/.../allxion/
+pnpm platform:sync --push              # zusätzlich FTPS-Upload ( .env.webspace nötig )
+```
+
+| Plattform | Was synchron ist |
+|-----------|------------------|
+| **Linux** (Dev) | `pnpm dev` — gleiches Repo wie Manus Cloud |
+| **Android** | WebView/PWA → `https://nacht-blau.de/allxion/` (`manifest.json`, scope `/allxion/`) |
+| **Webspace** | Statisches Allxion unter `/allxion/`, API/OAuth über `VITE_API_ORIGIN` |
+
+Versionsstand: `shared/release.ts` (wird in `manifest.json` und `data/projects.json` übernommen).

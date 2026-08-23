@@ -300,6 +300,47 @@ a { color: var(--link); }
   color: var(--text-muted);
 }
 
+.project-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.project-card {
+  border: 1px solid var(--border);
+  background: var(--bg-alt);
+  padding: 1rem 1.1rem;
+  border-radius: 4px;
+}
+
+.project-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+.project-title a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.project-title a:hover {
+  text-decoration: underline;
+}
+
+.project-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 0.35rem;
+}
+
+.project-note {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
 @media (max-width: 560px) {
   .data-table th {
     width: 8.5rem;
