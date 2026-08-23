@@ -18,21 +18,33 @@ GEYSER_DIR="${GEYSER_DIR:-/opt/minecraft-geyser}"
 ENV_FILE="${ENV_FILE:-/etc/nachtblau/minecraft.env}"
 LOG_FILE="${LOG_FILE:-/var/log/nachtblau-pi-install.log}"
 
+need_cmd curl
+need_cmd python3
+
+if [[ -n "${DRY_RUN:-}" ]]; then
+  log "Dry-Run: prüfe nur Download-URLs"
+  latest_paper_url >/tmp/nachtblau-paper.url
+  latest_bedrock_url >/tmp/nachtblau-bedrock.url
+  log "Paper: $(cat /tmp/nachtblau-paper.url)"
+  log "Bedrock: $(cat /tmp/nachtblau-bedrock.url)"
+  log "Geyser Spigot: $GEYSER_SPIGOT_URL"
+  log "Geyser Standalone: $GEYSER_STANDALONE_URL"
+  log "Floodgate: $FLOODGATE_URL"
+  exit 0
+fi
+
+if [[ "$(id -u)" -ne 0 ]]; then
+  die "install.sh muss als root auf dem Pi laufen"
+fi
+
 mkdir -p "$STAMP_DIR" "$(dirname "$LOG_FILE")"
-if [[ -z "${DRY_RUN:-}" && -f "$STAMP_DIR/install.ok" ]]; then
+if [[ -f "$STAMP_DIR/install.ok" ]]; then
   log "Install bereits abgeschlossen ($(cat "$STAMP_DIR/install.ok")). Abbruch."
   exit 0
 fi
 
 date -Is >"$STAMP_DIR/install.running"
 trap 'if [[ ! -f "$STAMP_DIR/install.ok" ]]; then date -Is >"$STAMP_DIR/install.failed"; fi' EXIT
-
-need_cmd curl
-need_cmd python3
-
-if [[ "$(id -u)" -ne 0 && -z "${DRY_RUN:-}" ]]; then
-  die "install.sh muss als root auf dem Pi laufen"
-fi
 
 install_packages() {
   log "Pakete installieren …"
@@ -159,18 +171,6 @@ write_ok() {
   rm -f "$STAMP_DIR/install.running" "$STAMP_DIR/install.failed"
   log "Nacht-Install fertig."
 }
-
-if [[ -n "${DRY_RUN:-}" ]]; then
-  log "Dry-Run: prüfe nur Download-URLs"
-  latest_paper_url >/tmp/nachtblau-paper.url
-  latest_bedrock_url >/tmp/nachtblau-bedrock.url
-  log "Paper: $(cat /tmp/nachtblau-paper.url)"
-  log "Bedrock: $(cat /tmp/nachtblau-bedrock.url)"
-  log "Geyser Spigot: $GEYSER_SPIGOT_URL"
-  log "Geyser Standalone: $GEYSER_STANDALONE_URL"
-  log "Floodgate: $FLOODGATE_URL"
-  exit 0
-fi
 
 install_packages
 ensure_user
