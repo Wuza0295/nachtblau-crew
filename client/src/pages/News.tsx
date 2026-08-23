@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Newspaper, ExternalLink, RefreshCw, Monitor, Gamepad2, Flame, Globe } from "lucide-react";
+import MaintenanceNotice from "@/components/MaintenanceNotice";
 
 const CATEGORIES = [
   { value: "all" as const, label: "Alle", icon: Globe },
@@ -87,7 +88,8 @@ export default function News() {
 
   return (
     <div className="py-12">
-      <div className="container">
+      <div className="container space-y-6">
+        <MaintenanceNotice />
         {/* Header */}
         <div className="mb-10 space-y-2">
           <div className="flex items-center gap-3">
