@@ -21,6 +21,8 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { SITE, WEBSPACE_PROJECTS } from "@/lib/site";
+import MaintenanceNotice from "@/components/MaintenanceNotice";
+import MinecraftServerStatus from "@/components/MinecraftServerStatus";
 
 function StarField() {
   return (
@@ -537,11 +539,17 @@ function NetworkLinksSection() {
 export default function Home() {
   return (
     <div>
+      {SITE.maintenanceMode && (
+        <div className="container pt-6">
+          <MaintenanceNotice />
+        </div>
+      )}
       <HeroSection />
       <FeatureBanner />
       <FreeGamesPreview />
       <NewsPreview />
       <ForumPreview />
+      <MinecraftServerStatus />
       <NetworkLinksSection />
     </div>
   );

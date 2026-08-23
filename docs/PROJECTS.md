@@ -1,8 +1,30 @@
 # NachtBlau-Projektübersicht
 
-Stand: 2026-08-23 · Branch `cursor/update-all-projects-ed91`
+Stand: 2026-08-23 · Branch `cursor/maintenance-mode-ed91`
 
 Diese Datei listet **alle** Projekte im NachtBlau-Ökosystem. Die kanonische Domain-Liste für die App liegt in `shared/site.ts` (`WEBSPACE_PROJECTS`); der Webspace-Spiegel nutzt `webspace/nacht-blau.de/data/projects.json`.
+
+---
+
+## Wartungsmodus (aktiv)
+
+**Status:** Alle Dienste im NachtBlau-Ökosystem befinden sich derzeit im Wartungsmodus.
+
+**Grund:** Der Minecraft-/Spiele-Server existiert nicht mehr und ist offline. Alle zugehörigen Dienste wurden auf Wartung gestellt.
+
+**Konfiguration:**
+- `shared/site.ts`: `maintenanceMode: true`, `maintenanceMessage` (Deutsch)
+- `WEBSPACE_PROJECTS`: alle Einträge mit `status: "maintenance"`, `live: false`
+- `webspace/nacht-blau.de/data/projects.json`: Wartungsstatus für alle Projekte
+- React-App: globales Wartungs-Banner (`MaintenanceBanner`), Hinweise in Forum/News/Free Games
+
+**Minecraft-Server (offline):**
+
+| Server | Port | Protokoll | Status |
+|--------|------|-----------|--------|
+| Java Edition | 25565 | TCP | Wartung / offline |
+| Bedrock Edition | 19132 | UDP | Wartung / offline |
+| Geyser (Crossplay) | 19134 | UDP | Wartung / offline |
 
 ---
 
@@ -18,9 +40,9 @@ Diese Datei listet **alle** Projekte im NachtBlau-Ökosystem. Die kanonische Dom
 
 ---
 
-## 2. ALL-INKL Webspace (11 Live-Domains)
+## 2. ALL-INKL Webspace (11 Domains – Wartung)
 
-Host: `w02176b7.kasserver.com`
+Host: `w02176b7.kasserver.com` · **Alle Projekte derzeit im Wartungsmodus**
 
 | ID | Domain | PR / Branch |
 |----|--------|-------------|
@@ -94,24 +116,17 @@ pnpm hub:push      # nach Webspace deployen (.env.webspace nötig)
 
 ---
 
-## 7. Minecraft (beide Server + Geyser)
+## 7. Minecraft (beide Server + Geyser) — OFFLINE
 
-| Server | Pfad | Port | Protokoll |
-|--------|------|------|-----------|
-| Java Edition | `/opt/minecraft-java` | 25565 | TCP |
-| Bedrock Edition | `/opt/minecraft-bedrock` | 19132 | UDP |
-| Geyser (Crossplay) | Plugin/Standalone neben Java | 19134 | UDP |
+**Der Minecraft-/Spiele-Server existiert nicht mehr.** Alle Server sind offline und im Wartungsmodus deklariert.
 
-**Hinweis:** Auf der Cloud-Agent-VM sind diese Pfade nicht vorhanden. Updates, Plugins und Configs müssen auf dem Produktions-Host (Bazzite/Server) geprüft werden:
+| Server | Pfad | Port | Protokoll | Status |
+|--------|------|------|-----------|--------|
+| Java Edition | `/opt/minecraft-java` | 25565 | TCP | **Offline / Wartung** |
+| Bedrock Edition | `/opt/minecraft-bedrock` | 19132 | UDP | **Offline / Wartung** |
+| Geyser (Crossplay) | Plugin/Standalone neben Java | 19134 | UDP | **Offline / Wartung** |
 
-```bash
-# Auf dem Host mit installierten Servern:
-ls -la /opt/minecraft-java /opt/minecraft-bedrock
-# Java: server.jar + plugins/ (inkl. Geyser)
-# Bedrock: bedrock_server + behavior_packs/
-```
-
-Konfiguration und Versionsstände gehören in ein separates `minecraft/`-Verzeichnis oder Server-Dokumentation auf dem Host – nicht in dieses App-Repo, solange kein Spiegel existiert.
+**Hinweis:** Der Produktions-Host ist nicht mehr aktiv. Die Ports sind in der App (`MINECRAFT_SERVERS` in `shared/site.ts`) als Wartung markiert.
 
 ---
 
@@ -142,10 +157,10 @@ Synchronisierung aller Branches:
 
 ## 9. Vollständiges Update (Checkliste)
 
-1. `git checkout cursor/update-all-projects-ed91 && git pull`
+1. `git checkout cursor/maintenance-mode-ed91 && git pull`
 2. `pnpm install && pnpm update` (Root + Hub Android/Linux)
 3. `pnpm test && pnpm check`
 4. `.env.webspace` anlegen → `pnpm webspace:pull && pnpm hub:push`
 5. `./scripts/update-all-projects.sh` (PR-Branches mergen)
-6. Auf Host: Minecraft-Server + Geyser prüfen
+6. Auf Host: Minecraft-Server ist offline – Wartungsmodus aktiv
 7. PR gegen `main` mergen

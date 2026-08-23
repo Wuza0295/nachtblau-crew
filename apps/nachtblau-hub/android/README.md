@@ -1,5 +1,7 @@
 # NachtBlau Hub — Android App 1.1.0
 
+> **Wartungsmodus:** Server vorübergehend nicht verfügbar – Wartungsarbeiten. Der Minecraft-/Spiele-Server ist derzeit offline.
+
 Lädt **immer live** vom Webspace:
 
 https://launcher.nachtblau-interactive.com/android.html

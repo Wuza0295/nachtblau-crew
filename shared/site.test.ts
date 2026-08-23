@@ -1,5 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { EXTERNAL_LINKS, SITE, WEBSPACE_PROJECTS } from "./site";
+import { EXTERNAL_LINKS, MINECRAFT_SERVERS, SITE, WEBSPACE_PROJECTS } from "./site";
+
+describe("Wartungsmodus", () => {
+  it("ist global aktiviert", () => {
+    expect(SITE.maintenanceMode).toBe(true);
+    expect(SITE.maintenanceMessage).toContain("Wartungsarbeiten");
+  });
+
+  it("markiert alle Minecraft-Server als offline", () => {
+    expect(MINECRAFT_SERVERS).toHaveLength(3);
+    expect(MINECRAFT_SERVERS.every((s) => s.status === "maintenance")).toBe(true);
+    expect(MINECRAFT_SERVERS.map((s) => s.port)).toEqual([25565, 19132, 19134]);
+  });
+});
 
 describe("WEBSPACE_PROJECTS", () => {
   it("nimmt hybrixon.com als eigenes Webspace-Projekt mit auf", () => {
@@ -15,10 +28,11 @@ describe("WEBSPACE_PROJECTS", () => {
     expect(EXTERNAL_LINKS.some((link) => link.href === SITE.hybrixonUrl)).toBe(true);
   });
 
-  it("listet alle 11 Live-Webspace-Domains", () => {
-    const live = WEBSPACE_PROJECTS.filter((p) => p.live);
-    expect(live).toHaveLength(11);
-    const hosts = live.map((p) => p.host);
+  it("listet alle 11 Webspace-Domains im Wartungsmodus", () => {
+    expect(WEBSPACE_PROJECTS).toHaveLength(11);
+    expect(WEBSPACE_PROJECTS.every((p) => p.status === "maintenance")).toBe(true);
+    expect(WEBSPACE_PROJECTS.every((p) => !p.live)).toBe(true);
+    const hosts = WEBSPACE_PROJECTS.map((p) => p.host);
     expect(hosts).toContain("hybrixon.com");
     expect(hosts).toContain("nacht-blau.de");
     expect(hosts).toContain("launcher.nachtblau-interactive.com");
