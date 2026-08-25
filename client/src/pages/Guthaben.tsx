@@ -48,29 +48,37 @@ function DenomCard({
       onClick={() => onIssue(denom.value)}
       className={cn(
         "group relative text-left rounded-xl border border-border overflow-hidden transition-all duration-300",
-        "bg-card/50 hover:border-primary/50 hover:-translate-y-0.5 disabled:opacity-40 disabled:pointer-events-none"
+        "bg-card/60 hover:border-primary/50 hover:-translate-y-0.5 hover:shadow-[0_0_24px_oklch(0.72_0.14_65_/_0.2)]",
+        "disabled:opacity-40 disabled:pointer-events-none disabled:hover:translate-y-0 disabled:hover:shadow-none"
       )}
     >
-      <div className={cn("h-24 bg-gradient-to-br opacity-90", denom.accent)} />
-      <div className="absolute inset-x-0 top-0 h-24 flex items-center justify-center">
-        <div
+      <div
+        className={cn(
+          "relative overflow-hidden bg-gradient-to-b from-background/40 to-secondary/40",
+          denom.kind === "coin" ? "aspect-square" : "aspect-[16/10]"
+        )}
+      >
+        <img
+          src={denom.imageUrl}
+          alt={`${denom.name} – ${formatAtc(denom.value)}`}
           className={cn(
-            "flex items-center justify-center border border-white/30 bg-black/25 backdrop-blur-sm shadow-lg",
-            denom.kind === "coin" ? "h-14 w-14 rounded-full" : "h-12 w-20 rounded-md"
+            "w-full h-full transition-transform duration-500 group-hover:scale-105",
+            denom.kind === "coin" ? "object-cover object-center" : "object-cover object-center"
           )}
+          loading="lazy"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent opacity-80" />
+        <Badge
+          variant="outline"
+          className="absolute top-2 right-2 text-[10px] bg-background/70 backdrop-blur-sm border-primary/30"
         >
-          <span className="font-serif font-bold text-white text-lg drop-shadow">{denom.value}</span>
-        </div>
+          {denom.kind === "coin" ? "Münze" : "Schein"}
+        </Badge>
       </div>
       <div className="p-3 space-y-1">
-        <div className="flex items-center justify-between gap-2">
-          <p className="font-semibold text-sm">{denom.name}</p>
-          <Badge variant="outline" className="text-[10px] shrink-0">
-            {denom.kind === "coin" ? "Münze" : "Schein"}
-          </Badge>
-        </div>
+        <p className="font-semibold text-sm font-serif text-primary tracking-wide">{denom.name}</p>
         <p className="text-xs text-muted-foreground">{denom.blurb}</p>
-        <p className="text-sm font-bold text-primary pt-1">{formatAtc(denom.value)}</p>
+        <p className="text-sm font-bold text-foreground pt-0.5">{formatAtc(denom.value)}</p>
         <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
           Tippen → Coupon erzeugen
         </p>
@@ -271,7 +279,7 @@ export default function Guthaben() {
             NUR INTERNES GUTHABEN
           </Badge>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {ATC_DENOMINATIONS.map((d) => (
             <DenomCard
               key={d.value}

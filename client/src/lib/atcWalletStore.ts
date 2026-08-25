@@ -11,18 +11,75 @@ export interface AtcDenomination {
   /** Short flavor for UI */
   blurb: string;
   accent: string;
+  imageUrl: string;
 }
 
 /** Hybrid set from both concepts – practical offline denominations. */
 export const ATC_DENOMINATIONS: AtcDenomination[] = [
-  { value: 1, name: "Common Shard", kind: "coin", blurb: "Kupfermünze", accent: "from-amber-800 to-amber-600" },
-  { value: 5, name: "Silver Token", kind: "coin", blurb: "Silbermünze", accent: "from-slate-400 to-slate-200" },
-  { value: 10, name: "Gold Coin", kind: "coin", blurb: "Goldmünze", accent: "from-amber-500 to-yellow-300" },
-  { value: 25, name: "Rare Crest", kind: "coin", blurb: "Blau-Gold", accent: "from-blue-600 to-amber-400" },
-  { value: 50, name: "Booster-Note", kind: "note", blurb: "Schein · hellblau", accent: "from-sky-500 to-cyan-300" },
-  { value: 100, name: "Display-Bond", kind: "note", blurb: "Schein · teal", accent: "from-teal-500 to-emerald-300" },
-  { value: 250, name: "Holo-Bond", kind: "note", blurb: "Schein · violett", accent: "from-violet-600 to-fuchsia-400" },
-  { value: 500, name: "Treasure-Voucher", kind: "note", blurb: "Schein · rotgold", accent: "from-rose-700 to-amber-400" },
+  {
+    value: 1,
+    name: "Common Shard",
+    kind: "coin",
+    blurb: "Kupfermünze",
+    accent: "from-amber-800 to-amber-600",
+    imageUrl: "/atc/atc-1-coin.webp",
+  },
+  {
+    value: 5,
+    name: "Silver Token",
+    kind: "coin",
+    blurb: "Silbermünze",
+    accent: "from-slate-400 to-slate-200",
+    imageUrl: "/atc/atc-5-coin.webp",
+  },
+  {
+    value: 10,
+    name: "Gold Coin",
+    kind: "coin",
+    blurb: "Goldmünze",
+    accent: "from-amber-500 to-yellow-300",
+    imageUrl: "/atc/atc-10-coin.webp",
+  },
+  {
+    value: 25,
+    name: "Rare Crest",
+    kind: "coin",
+    blurb: "Blau-Gold",
+    accent: "from-blue-600 to-amber-400",
+    imageUrl: "/atc/atc-25-coin.webp",
+  },
+  {
+    value: 50,
+    name: "Booster-Note",
+    kind: "note",
+    blurb: "Schein · hellblau",
+    accent: "from-sky-500 to-cyan-300",
+    imageUrl: "/atc/atc-50-note.webp",
+  },
+  {
+    value: 100,
+    name: "Display-Bond",
+    kind: "note",
+    blurb: "Schein · teal",
+    accent: "from-teal-500 to-emerald-300",
+    imageUrl: "/atc/atc-100-note.webp",
+  },
+  {
+    value: 250,
+    name: "Holo-Bond",
+    kind: "note",
+    blurb: "Schein · violett",
+    accent: "from-violet-600 to-fuchsia-400",
+    imageUrl: "/atc/atc-250-note.webp",
+  },
+  {
+    value: 500,
+    name: "Treasure-Voucher",
+    kind: "note",
+    blurb: "Schein · rotgold",
+    accent: "from-rose-700 to-amber-400",
+    imageUrl: "/atc/atc-500-note.webp",
+  },
 ];
 
 export type AtcTxType =
