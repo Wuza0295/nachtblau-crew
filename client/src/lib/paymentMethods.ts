@@ -16,36 +16,38 @@ export const PAYMENT_METHODS: PaymentMethod[] = [
     id: "atc",
     label: "Autic Coins (ATC)",
     shortLabel: "ATC",
-    description: "Internes Guthaben – online sofort, offline per Coupon auf dem Flohmarkt.",
+    description:
+      "Kauf nur mit internem Guthaben. Der Verkäufer erhält ATC – kein echtes Geld.",
     instructions:
-      "Der Kaufbetrag wird von deinem ATC-Guthaben abgezogen. Coupons kannst du unter Guthaben erzeugen oder einlösen (NUR INTERNES GUTHABEN).",
+      "Der Betrag wird von deinem ATC abgezogen und dem Verkäufer als Guthaben gutgeschrieben. Aufladen unter Guthaben per PayPal, Überweisung oder Paysafe (NUR INTERNES GUTHABEN).",
   },
   {
     id: "paypal",
     label: "PayPal",
     shortLabel: "PayPal",
-    description: "Schnell und sicher per PayPal-Konto oder Kreditkarte über PayPal.",
-    instructions:
-      "Nach der Kaufbestätigung erhältst du die PayPal-Zahlungsaufforderung vom Verkäufer. Bitte als „Freunde & Familie“ nur nach Absprache verwenden – Standard ist „Waren und Dienstleistungen“.",
+    description: "Nur zum Aufladen von ATC unter Guthaben – nicht für Marktplatz-Käufe.",
+    instructions: "Bitte ATC unter Guthaben aufladen. Marktplatz-Käufe laufen ausschließlich über ATC.",
   },
   {
     id: "bank_transfer",
     label: "Überweisung",
     shortLabel: "Überweisung",
-    description: "Klassische SEPA-Überweisung auf das Konto des Verkäufers.",
-    instructions:
-      "Der Verkäufer teilt dir IBAN und Verwendungszweck mit. Versand erfolgt in der Regel nach Zahlungseingang.",
+    description: "Nur zum Aufladen von ATC unter Guthaben – nicht für Marktplatz-Käufe.",
+    instructions: "Bitte ATC unter Guthaben aufladen. Marktplatz-Käufe laufen ausschließlich über ATC.",
   },
   {
     id: "paysafecard",
     label: "Paysafe Card",
     shortLabel: "Paysafe",
-    description: "Prepaid mit 16-stelligem Paysafe-Card-PIN – ohne Bankkonto.",
-    instructions:
-      "Halte deinen 16-stelligen PIN bereit. Der Verkäufer nennt dir den Empfänger bzw. den Auflade-/Zahlungsweg. PIN nie ungeschützt im Klartext chatten.",
+    description: "Nur zum Aufladen von ATC unter Guthaben – nicht für Marktplatz-Käufe.",
+    instructions: "Bitte ATC unter Guthaben aufladen. Marktplatz-Käufe laufen ausschließlich über ATC.",
   },
 ];
 
+/** Marktplatz-Checkout: nur ATC-Verrechnung zwischen Käufer und Verkäufer. */
+export const CHECKOUT_PAYMENT_METHODS: PaymentMethod[] = PAYMENT_METHODS.filter(
+  (m) => m.id === "atc"
+);
 export function getPaymentMethod(id: PaymentMethodId | string | undefined | null) {
   return PAYMENT_METHODS.find((m) => m.id === id) ?? null;
 }

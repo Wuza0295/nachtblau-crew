@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import {
+  CHECKOUT_PAYMENT_METHODS,
   PAYMENT_METHODS,
   type PaymentMethodId,
   getPaymentMethod,
@@ -18,6 +19,8 @@ interface PaymentMethodPickerProps {
   onChange: (id: PaymentMethodId) => void;
   className?: string;
   compact?: boolean;
+  /** Default: nur ATC (Marktplatz-Verrechnung). */
+  checkoutOnly?: boolean;
 }
 
 export default function PaymentMethodPicker({
@@ -25,14 +28,18 @@ export default function PaymentMethodPicker({
   onChange,
   className,
   compact = false,
+  checkoutOnly = true,
 }: PaymentMethodPickerProps) {
+  const methods = checkoutOnly ? CHECKOUT_PAYMENT_METHODS : PAYMENT_METHODS;
   const selected = getPaymentMethod(value);
 
   return (
     <div className={cn("space-y-3", className)}>
-      <p className="text-sm font-medium text-foreground">Zahlungsart</p>
+      <p className="text-sm font-medium text-foreground">
+        {checkoutOnly ? "Verrechnung" : "Zahlungsart"}
+      </p>
       <div className={cn("grid gap-2", compact ? "grid-cols-1" : "sm:grid-cols-2")}>
-        {PAYMENT_METHODS.map((method) => {
+        {methods.map((method) => {
           const Icon = ICONS[method.id];
           const active = value === method.id;
           return (

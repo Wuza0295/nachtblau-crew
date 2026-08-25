@@ -139,23 +139,24 @@ export function usePurchaseListing() {
           throw new Error("Registrierung und Profil erforderlich");
         }
         if (!input.paymentMethod) {
-          throw new Error("Bitte eine Zahlungsart wählen");
+          throw new Error("Bitte Autic Coins (ATC) als Verrechnung wählen");
+        }
+        if (input.paymentMethod !== "atc") {
+          throw new Error(
+            "Marktplatz-Käufe nur per ATC. Bitte Guthaben aufladen (PayPal, Überweisung oder Paysafe)."
+          );
         }
         const method = getPaymentMethod(input.paymentMethod);
 
-        let sellerId = 0;
-        let atcDebited = 0;
-        if (input.paymentMethod === "atc") {
-          const peek = getListingById(input.listingId);
-          if (!peek?.listing) throw new Error("Angebot nicht gefunden");
-          sellerId = peek.listing.sellerId;
-          atcDebited = peek.listing.price;
-          spendAtc(
-            input.buyerId,
-            atcDebited,
-            `Kauf ${peek.listing.title || peek.card?.name || "Karte"}`
-          );
-        }
+        const peek = getListingById(input.listingId);
+        if (!peek?.listing) throw new Error("Angebot nicht gefunden");
+        const sellerId = peek.listing.sellerId;
+        const atcDebited = peek.listing.price;
+        spendAtc(
+          input.buyerId,
+          atcDebited,
+          `Kauf ${peek.listing.title || peek.card?.name || "Karte"}`
+        );
 
         let result: ReturnType<typeof purchaseListing>;
         try {
@@ -166,16 +167,15 @@ export function usePurchaseListing() {
             method?.label ?? input.paymentMethod
           );
         } catch (err) {
-          if (atcDebited > 0) {
-            receiveAtc(input.buyerId, atcDebited, "Rückbuchung nach fehlgeschlagenem Kauf");
-          }
+          receiveAtc(input.buyerId, atcDebited, "Rückbuchung nach fehlgeschlagenem Kauf");
           throw err;
         }
 
-        if (input.paymentMethod === "atc" && sellerId) {
-          receiveAtc(sellerId, result.listing.price, `Verkauf an ${input.buyerName}`);
-        }
-
+        receiveAtc(
+          sellerId,
+          result.listing.price,
+          `Verkauf an ${input.buyerName} · ATC-Verrechnung (kein Auszahlungs-Geld)`
+        );
         saveOrder({
           orderId: result.orderId,
           listingId: result.listing.id,

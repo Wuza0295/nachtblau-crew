@@ -18,8 +18,8 @@ export default function Footer() {
               </span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
-              TCG-Marktplatz mit Merkliste, Warenkorb, Autic Coins und Verkäufer-Ratings. Kaufen und
-              verkaufen – online und auf dem Flohmarkt.
+              TCG-Marktplatz ohne Platzhalter: echte Angebote, ATC-Verrechnung. Verkäufer erhalten
+              Guthaben – kein Auszahlungs-Geld. Aufladen per PayPal, Überweisung oder Paysafe.
             </p>
           </div>
 
@@ -86,10 +86,10 @@ export default function Footer() {
               Handel
             </h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>Kauf & Verkauf mit Registrierung</li>
-              <li>Autic Coins (ATC) online & offline</li>
-              <li>Merkliste, Warenkorb, Filter</li>
-              <li>Preisverlauf & Verkäufer-Ratings</li>
+              <li>Nur echte User-Angebote</li>
+              <li>Kauf & Verkauf per ATC-Guthaben</li>
+              <li>Kein Geld an Verkäufer – nur Guthaben</li>
+              <li>Aufladen: PayPal, Überweisung, Paysafe</li>
             </ul>
           </div>
         </div>

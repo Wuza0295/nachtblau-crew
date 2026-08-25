@@ -107,255 +107,8 @@ function priceHistory(base: number): { date: string; price: number }[] {
   }));
 }
 
-/** Official / catalog art from public TCG CDNs (pokemontcg.io, ygoprodeck, scryfall). */
-const SEED_CARDS: CardCatalogEntry[] = [
-  {
-    id: "card-001",
-    name: "Charizard ex",
-    setName: "Obsidian Flames",
-    game: "pokemon",
-    rarity: "Ultra Rare",
-    number: "223/197",
-    imageUrl: "https://images.pokemontcg.io/sv3/223_hires.png",
-    marketPrice: 89.99,
-    priceHistory: priceHistory(89.99),
-    avgRating: 4.8,
-    reviewCount: 124,
-  },
-  {
-    id: "card-002",
-    name: "Dark Magician",
-    setName: "Maximum Gold",
-    game: "yugioh",
-    rarity: "Secret Rare",
-    number: "MAGO-EN001",
-    imageUrl: "https://images.ygoprodeck.com/images/cards/46986414.jpg",
-    marketPrice: 34.5,
-    priceHistory: priceHistory(34.5),
-    avgRating: 4.9,
-    reviewCount: 89,
-  },
-  {
-    id: "card-003",
-    name: "Black Lotus",
-    setName: "Vintage Masters",
-    game: "mtg",
-    rarity: "Mythic",
-    number: "4",
-    imageUrl:
-      "https://cards.scryfall.io/normal/front/b/d/bd8fa327-dd41-4737-8f19-2cf5eb1f7cdd.jpg",
-    marketPrice: 12500,
-    priceHistory: priceHistory(12500),
-    avgRating: 5.0,
-    reviewCount: 42,
-  },
-  {
-    id: "card-004",
-    name: "Monkey D. Luffy",
-    setName: "Romance Dawn",
-    game: "onepiece",
-    rarity: "Leader",
-    number: "OP01-001",
-    imageUrl: "https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/one-piece/OP01/OP01-001_p1_EN.webp",
-    marketPrice: 156.0,
-    priceHistory: priceHistory(156),
-    avgRating: 4.7,
-    reviewCount: 67,
-  },
-  {
-    id: "card-005",
-    name: "Mickey Mouse – Brave Little Tailor",
-    setName: "The First Chapter",
-    game: "lorcana",
-    rarity: "Legendary",
-    number: "207/204",
-    imageUrl: "https://lorcana-api.com/images/mickey_mouse/brave_little_tailor/large.png",
-    marketPrice: 78.0,
-    priceHistory: priceHistory(78),
-    avgRating: 4.6,
-    reviewCount: 53,
-  },
-  {
-    id: "card-006",
-    name: "Umbreon VMAX",
-    setName: "Evolving Skies",
-    game: "pokemon",
-    rarity: "Secret Rare",
-    number: "215/203",
-    imageUrl: "https://images.pokemontcg.io/swsh7/215_hires.png",
-    marketPrice: 420.0,
-    priceHistory: priceHistory(420),
-    avgRating: 4.9,
-    reviewCount: 31,
-  },
-  {
-    id: "card-007",
-    name: "Pikachu VMAX",
-    setName: "Vivid Voltage",
-    game: "pokemon",
-    rarity: "Secret Rare",
-    number: "188/185",
-    imageUrl: "https://images.pokemontcg.io/swsh4/188_hires.png",
-    marketPrice: 45.0,
-    priceHistory: priceHistory(45),
-    avgRating: 4.5,
-    reviewCount: 201,
-  },
-  {
-    id: "card-008",
-    name: "Blue-Eyes White Dragon",
-    setName: "Legend of Blue Eyes",
-    game: "yugioh",
-    rarity: "Ultra Rare",
-    number: "LOB-001",
-    imageUrl: "https://images.ygoprodeck.com/images/cards/89631139.jpg",
-    marketPrice: 62.0,
-    priceHistory: priceHistory(62),
-    avgRating: 4.8,
-    reviewCount: 156,
-  },
-  {
-    id: "card-009",
-    name: "Omnath, Locus of Creation",
-    setName: "Zendikar Rising",
-    game: "mtg",
-    rarity: "Mythic",
-    number: "232/280",
-    imageUrl:
-      "https://cards.scryfall.io/normal/front/4/e/4e4fb50c-a81f-44d3-93c5-fa9a0b37f617.jpg",
-    marketPrice: 12.5,
-    priceHistory: priceHistory(12.5),
-    avgRating: 4.4,
-    reviewCount: 38,
-  },
-  {
-    id: "card-010",
-    name: "Agumon",
-    setName: "BT-01 New Evolution",
-    game: "digimon",
-    rarity: "Rare",
-    number: "BT1-010",
-    imageUrl: "https://images.digimoncard.io/images/cards/BT1-010.jpg",
-    marketPrice: 8.99,
-    priceHistory: priceHistory(8.99),
-    avgRating: 4.3,
-    reviewCount: 22,
-  },
-];
-
-const SEED_SELLERS: SellerProfile[] = [
-  {
-    id: 1,
-    name: "CardKing_DE",
-    rating: 4.9,
-    reviewCount: 342,
-    salesCount: 1280,
-    responseTime: "< 2h",
-    memberSince: "2019",
-    verified: true,
-  },
-  {
-    id: 2,
-    name: "TCG_Treasure",
-    rating: 4.7,
-    reviewCount: 189,
-    salesCount: 756,
-    responseTime: "< 4h",
-    memberSince: "2020",
-    verified: true,
-  },
-  {
-    id: 3,
-    name: "MintHunter",
-    rating: 4.8,
-    reviewCount: 97,
-    salesCount: 412,
-    responseTime: "< 1h",
-    memberSince: "2021",
-    verified: false,
-  },
-];
-
-function seedListings(): Listing[] {
-  const conditions: CardCondition[] = ["mint", "near_mint", "excellent", "good"];
-  const listings: Listing[] = [];
-  for (const card of SEED_CARDS) {
-    const count = 2 + Math.floor(Math.random() * 3);
-    for (let i = 0; i < count; i++) {
-      const seller = SEED_SELLERS[i % SEED_SELLERS.length];
-      const cond = conditions[i % conditions.length];
-      const variance = 0.85 + Math.random() * 0.35;
-      listings.push({
-        id: `lst-${card.id}-${i}`,
-        cardId: card.id,
-        title: card.name,
-        sellerId: seller.id,
-        sellerName: seller.name,
-        price: Math.round(card.marketPrice * variance * 100) / 100,
-        condition: cond,
-        language: i % 2 === 0 ? "DE" : "EN",
-        quantity: 1 + (i % 3),
-        isFoil: i % 3 === 0,
-        isGraded: i === 0 && card.marketPrice > 100,
-        grade: i === 0 && card.marketPrice > 100 ? "PSA 9" : undefined,
-        description: `${getConditionLabel(cond)} – schneller Versand aus Deutschland`,
-        imageUrl: card.imageUrl,
-        status: "active",
-        createdAt: new Date(Date.now() - i * 86400000 * 2).toISOString(),
-      });
-    }
-  }
-  return listings;
-}
-
-const SEED_REVIEWS: Review[] = [
-  {
-    id: "rev-1",
-    sellerId: 1,
-    buyerId: 10,
-    buyerName: "PokeFan42",
-    listingId: "lst-card-001-0",
-    cardName: "Charizard ex",
-    rating: 5,
-    comment: "Karte in perfektem Zustand, super verpackt. Gerne wieder!",
-    createdAt: "2026-07-10T14:30:00Z",
-  },
-  {
-    id: "rev-2",
-    sellerId: 1,
-    buyerId: 11,
-    buyerName: "DuelMaster",
-    listingId: "lst-card-002-0",
-    cardName: "Dark Magician",
-    rating: 5,
-    comment: "Blitzversand, Karte wie beschrieben. Top Verkäufer.",
-    createdAt: "2026-07-08T09:15:00Z",
-  },
-  {
-    id: "rev-3",
-    sellerId: 2,
-    buyerId: 12,
-    buyerName: "MTG_Collector",
-    listingId: "lst-card-003-0",
-    cardName: "Black Lotus",
-    rating: 4,
-    comment: "Gute Kommunikation, leichte Kantenabnutzung aber im Rahmen.",
-    createdAt: "2026-07-05T18:00:00Z",
-  },
-  {
-    id: "rev-4",
-    sellerId: 2,
-    buyerId: 13,
-    buyerName: "SportsCards_DE",
-    listingId: "lst-card-006-0",
-    cardName: "Umbreon VMAX",
-    rating: 5,
-    comment: "Authentische Karte, professionell verpackt. Sehr zufrieden.",
-    createdAt: "2026-07-01T11:45:00Z",
-  },
-];
-
-const STORAGE_KEY = "autic-marketplace-v2";
+/** Keine Demo-/Platzhalter-Angebote – Marktplatz startet leer; Nutzer stellen reale Angebote ein. */
+const STORAGE_KEY = "autic-marketplace-v3";
 
 type PersistedState = {
   cards: CardCatalogEntry[];
@@ -364,19 +117,39 @@ type PersistedState = {
   sellers: SellerProfile[];
 };
 
+function isPlaceholderListing(listing: Listing) {
+  return /^lst-card-\d{3}-/.test(listing.id);
+}
+
+function isPlaceholderCard(card: CardCatalogEntry) {
+  return /^card-\d{3}$/.test(card.id);
+}
+
 function loadPersisted(): PersistedState | null {
   if (typeof window === "undefined") return null;
   try {
-    // Drop legacy Unsplash seeds
     localStorage.removeItem("autic-marketplace-v1");
+    localStorage.removeItem("autic-marketplace-v2");
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const data = JSON.parse(raw) as PersistedState;
     if (!Array.isArray(data.cards) || !Array.isArray(data.listings)) return null;
-    data.listings = data.listings.map((l) => ({
-      ...l,
-      title: l.title || data.cards.find((c) => c.id === l.cardId)?.name || "Karte",
-    }));
+    data.listings = data.listings
+      .filter((l) => !isPlaceholderListing(l))
+      .map((l) => ({
+        ...l,
+        title: l.title || data.cards.find((c) => c.id === l.cardId)?.name || "Karte",
+      }));
+    data.cards = data.cards.filter(
+      (c) => !isPlaceholderCard(c) && data.listings.some((l) => l.cardId === c.id)
+    );
+    data.reviews = Array.isArray(data.reviews)
+      ? data.reviews.filter((r) => data.listings.some((l) => l.id === r.listingId) || !/^rev-[1-4]$/.test(r.id))
+      : [];
+    // Drop fake seed sellers (ids 1–3 without real user listings) unless they still have listings
+    data.sellers = Array.isArray(data.sellers)
+      ? data.sellers.filter((s) => data.listings.some((l) => l.sellerId === s.id))
+      : [];
     return data;
   } catch {
     return null;
@@ -397,11 +170,11 @@ function persist() {
 
 const persisted = loadPersisted();
 
-// In-memory store (hydrated from localStorage when available)
-let cards = persisted?.cards?.length ? persisted.cards : [...SEED_CARDS];
-let listings = persisted?.listings?.length ? persisted.listings : seedListings();
-let reviews = persisted?.reviews?.length ? persisted.reviews : [...SEED_REVIEWS];
-let sellers = persisted?.sellers?.length ? persisted.sellers : [...SEED_SELLERS];
+// In-memory store – leer bis echte User-Angebote existieren
+let cards: CardCatalogEntry[] = persisted?.cards ?? [];
+let listings: Listing[] = persisted?.listings ?? [];
+let reviews: Review[] = persisted?.reviews ?? [];
+let sellers: SellerProfile[] = persisted?.sellers ?? [];
 
 export interface SearchFilters {
   query?: string;

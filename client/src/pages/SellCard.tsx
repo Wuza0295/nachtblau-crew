@@ -157,19 +157,21 @@ export default function SellCard() {
         <CardHeader>
           <CardTitle className="text-2xl">Neues Angebot</CardTitle>
           <CardDescription>
-            Titel, Zustand und Foto festlegen – dein Angebot erscheint sofort auf dem Marktplatz.
+            Echtes Angebot mit Foto einstellen. Verkaufserlös kommt als Autic Coins (ATC) auf dein
+            Guthaben – kein echtes Geld.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-5">
+            {(catalog?.length ?? 0) > 0 && (
             <div className="space-y-2">
-              <Label>Aus Katalog übernehmen (optional)</Label>
+              <Label>Aus vorhandenen Produkten übernehmen (optional)</Label>
               <Select value={catalogId || "none"} onValueChange={applyCatalog}>
                 <SelectTrigger className="bg-secondary/50 border-border">
-                  <SelectValue placeholder="Katalogkarte" />
+                  <SelectValue placeholder="Produkt wählen" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">— Eigenes Angebot —</SelectItem>
+                  <SelectItem value="none">— Neues Angebot —</SelectItem>
                   {catalog?.map((c) => (
                     <SelectItem key={c.id} value={c.id}>
                       {c.name} ({c.setName})
@@ -178,6 +180,7 @@ export default function SellCard() {
                 </SelectContent>
               </Select>
             </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="title">Titel *</Label>

@@ -39,7 +39,7 @@ export default function About() {
             {
               icon: Tag,
               title: "Verkaufen",
-              desc: "Eigene Angebote einstellen – mit Profil und Verkäufer-Bewertungen.",
+              desc: "Eigene Angebote einstellen – Erlös als Autic Coins aufs Guthaben.",
               href: "/verkaufen",
             },
             {

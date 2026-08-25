@@ -28,7 +28,7 @@ export default function CartPage() {
   void version;
   const items = getCart();
   const purchaseMutation = usePurchaseListing();
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId | "">("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId | "">("atc");
 
   const ensureBuyer = () => {
     if (!isAuthenticated) {
@@ -48,7 +48,7 @@ export default function CartPage() {
     if (!ensureBuyer()) return;
     if (items.length === 0) return;
     if (!paymentMethod) {
-      toast.message("Bitte eine Zahlungsart wählen");
+      toast.message("Bitte ATC-Verrechnung wählen");
       return;
     }
 

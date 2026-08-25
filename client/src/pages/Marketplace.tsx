@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
-import { useSearch } from "wouter";
+import { Link, useSearch } from "wouter";
 import CardTile from "@/components/marketplace/CardTile";
 import ListingRow from "@/components/marketplace/ListingRow";
 import GameSidebar from "@/components/marketplace/GameSidebar";
@@ -10,7 +10,7 @@ import type { CardCondition, TcgGame } from "@/lib/marketplaceStore";
 import { GAME_LABELS } from "@/lib/marketplaceConstants";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { LayoutGrid, List, Shield } from "lucide-react";
+import { LayoutGrid, List, Shield, Tag } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 function useQueryParam(key: string): string | null {
@@ -110,7 +110,7 @@ export default function Marketplace() {
                 <Shield className="h-3.5 w-3.5" />
                 Käuferschutz
               </p>
-              <p>Registrierung Pflicht · Verkäufer-Ratings · Zustandsfilter wie Cardmarket</p>
+              <p>Registrierung Pflicht · Kauf nur per ATC · Verkäufer erhält Guthaben</p>
             </div>
           </div>
         </div>
@@ -170,9 +170,18 @@ export default function Marketplace() {
               </div>
             )
           ) : data?.results.length === 0 ? (
-            <div className="text-center py-16 text-muted-foreground border border-dashed border-border rounded-xl">
-              <p className="text-lg">Keine Angebote gefunden</p>
-              <p className="text-sm mt-2">Filter anpassen oder anderen TCG wählen</p>
+            <div className="text-center py-16 text-muted-foreground border border-dashed border-border rounded-xl space-y-3">
+              <p className="text-lg text-foreground">Noch keine echten Angebote</p>
+              <p className="text-sm max-w-md mx-auto">
+                Keine Platzhalter – der Marktplatz füllt sich nur mit Angeboten angemeldeter Nutzer.
+                Verkaufserlös wird als ATC-Guthaben gutgeschrieben.
+              </p>
+              <Link href="/verkaufen">
+                <Button className="mt-2">
+                  <Tag className="h-4 w-4 mr-2" />
+                  Angebot einstellen
+                </Button>
+              </Link>
             </div>
           ) : view === "list" ? (
             <div className="space-y-2">

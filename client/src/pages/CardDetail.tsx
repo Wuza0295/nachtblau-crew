@@ -71,7 +71,7 @@ export default function CardDetail() {
   };
 
   const [buyDialog, setBuyDialog] = useState<string | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId | "">("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId | "">("atc");
   const [reviewDialog, setReviewDialog] = useState<{ sellerId: number; listingId: string } | null>(
     null
   );
@@ -350,7 +350,7 @@ export default function CardDetail() {
         onOpenChange={(open) => {
           if (!open) {
             setBuyDialog(null);
-            setPaymentMethod("");
+            setPaymentMethod("atc");
           }
         }}
       >
@@ -369,17 +369,18 @@ export default function CardDetail() {
             value={paymentMethod}
             onChange={setPaymentMethod}
             compact
+            checkoutOnly
             className="py-1"
           />
           <div className="flex items-center gap-2 text-sm text-muted-foreground py-1">
             <Shield className="h-4 w-4 text-primary" />
-            Käuferschutz durch Verkäufer-Bewertungen
+            Verkäufer erhält ATC-Guthaben – kein echtes Geld
           </div>
           <Button
             className="w-full bg-primary hover:bg-primary/80"
             onClick={() => {
               if (!paymentMethod) {
-                toast.message("Bitte eine Zahlungsart wählen");
+                toast.message("Bitte ATC-Verrechnung wählen");
                 return;
               }
               buyDialog &&
@@ -394,7 +395,7 @@ export default function CardDetail() {
                     onSuccess: (result) => {
                       toast.success(result.message);
                       setBuyDialog(null);
-                      setPaymentMethod("");
+                      setPaymentMethod("atc");
                       setReviewDialog({
                         sellerId: result.listing.sellerId,
                         listingId: result.listing.id,

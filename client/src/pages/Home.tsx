@@ -61,8 +61,8 @@ export default function Home() {
           </h1>
 
           <p className="text-base md:text-lg text-foreground/85 max-w-md leading-relaxed">
-            Kaufen, verkaufen und mit Autic Coins handeln – Filter, Merkliste, Warenkorb und
-            Verkäufer-Ratings.
+            Kaufen, verkaufen und mit Autic Coins verrechnen – nur echte Angebote von
+            angemeldeten Nutzern, Erlös als Guthaben.
           </p>
 
           <div className="flex flex-wrap gap-3">
@@ -178,8 +178,8 @@ export default function Home() {
         <div className="container">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold">Beliebte Produkte</h2>
-              <p className="text-muted-foreground text-sm mt-1">Beste Angebote gerade jetzt</p>
+              <h2 className="text-2xl font-bold">Aktuelle Angebote</h2>
+              <p className="text-muted-foreground text-sm mt-1">Nur echte Angebote von Nutzern</p>
             </div>
             <Link href="/marktplatz">
               <Button variant="ghost" className="text-primary gap-1">
@@ -188,22 +188,36 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
-            {featured?.results.map(({ card, listing, listingCount }) => (
-              <CardTile
-                key={card.id}
-                cardId={card.id}
-                name={card.name}
-                setName={card.setName}
-                game={card.game}
-                imageUrl={card.imageUrl}
-                price={listing.price}
-                listingCount={listingCount}
-                avgRating={card.avgRating}
-                isFoil={listing.isFoil}
-              />
-            ))}
-          </div>
+          {(featured?.results.length ?? 0) === 0 ? (
+            <div className="rounded-xl border border-dashed border-border p-10 text-center space-y-3">
+              <p className="text-muted-foreground text-sm">
+                Noch keine Angebote – sei der Erste und stelle eines ein.
+              </p>
+              <Link href="/verkaufen">
+                <Button>
+                  <ShoppingBag className="mr-2 h-4 w-4" />
+                  Angebot einstellen
+                </Button>
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
+              {featured?.results.map(({ card, listing, listingCount }) => (
+                <CardTile
+                  key={card.id}
+                  cardId={card.id}
+                  name={card.name}
+                  setName={card.setName}
+                  game={card.game}
+                  imageUrl={card.imageUrl}
+                  price={listing.price}
+                  listingCount={listingCount}
+                  avgRating={card.avgRating}
+                  isFoil={listing.isFoil}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -236,8 +250,9 @@ export default function Home() {
           <Shield className="h-8 w-8 text-primary mx-auto" />
           <h2 className="text-2xl font-bold">Sicher handeln</h2>
           <p className="text-muted-foreground text-sm leading-relaxed">
-            Registrierung und Handelsprofil vor dem Kauf. Zahlung per PayPal, Überweisung, Paysafe
-            oder Autic Coins.
+            Registrierung und Handelsprofil vor dem Kauf. Marktplatz-Käufe nur per Autic Coins –
+            Verkäufer erhalten Guthaben, kein echtes Geld. ATC aufladen per PayPal, Überweisung oder
+            Paysafe.
           </p>
           <Link href="/ueber-uns">
             <Button variant="outline" className="mt-2">
