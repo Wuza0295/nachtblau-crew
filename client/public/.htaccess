@@ -1,5 +1,5 @@
 Options -MultiViews
-DirectoryIndex index.html index.htm
+DirectoryIndex index.php index.html index.htm
 RewriteEngine On
 RewriteBase /
 

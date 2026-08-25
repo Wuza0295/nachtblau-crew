@@ -56,7 +56,7 @@ export default function Home() {
           <img
             src="/autic-treasures-logo.v3.png"
             alt="Autic Treasures"
-            className="h-48 sm:h-60 md:h-72 w-auto object-contain drop-shadow-[0_12px_40px_oklch(0.72_0.14_65_/_0.55)]"
+            className="h-56 sm:h-72 md:h-80 w-auto object-contain drop-shadow-[0_12px_40px_oklch(0.72_0.14_65_/_0.55)]"
           />
 
           <p className="text-base md:text-lg text-foreground/90 max-w-md leading-relaxed">

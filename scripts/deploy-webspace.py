@@ -36,7 +36,7 @@ FTP_REMOTE_DIR = os.environ.get("FTP_REMOTE_DIR", "/autictreasures.nacht-blau.de
 USE_TLS = os.environ.get("FTP_TLS", "1") != "0"
 
 HTACCESS = """Options -MultiViews
-DirectoryIndex index.html index.htm
+DirectoryIndex index.php index.html index.htm
 RewriteEngine On
 RewriteBase /
 RewriteCond %{REQUEST_FILENAME} !-f
