@@ -16,6 +16,7 @@ import Login from "./pages/Login";
 import Cart from "./pages/Cart";
 import Wants from "./pages/Wants";
 import Guthaben from "./pages/Guthaben";
+import SellerCompliance from "./pages/SellerCompliance";
 import ProfileRedirect from "./pages/ProfileRedirect";
 import About from "./pages/About";
 import FreeGames from "./pages/FreeGames";
@@ -54,6 +55,7 @@ function Router() {
               <Route path="/warenkorb" component={Cart} />
               <Route path="/merkliste" component={Wants} />
               <Route path="/guthaben" component={Guthaben} />
+              <Route path="/verkaeufer-freigabe" component={SellerCompliance} />
               <Route path="/free-games" component={FreeGames} />
               <Route path="/news" component={News} />
               <Route path="/forum" component={Forum} />

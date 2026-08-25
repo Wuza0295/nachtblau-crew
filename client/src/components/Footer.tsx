@@ -54,6 +54,14 @@ export default function Footer() {
               </li>
               <li>
                 <Link
+                  href="/verkaeufer-freigabe"
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Verkäufer-Freigabe
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/registrieren"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >

@@ -16,9 +16,19 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useCreateListing, useMarketplaceCards, type TcgGame } from "@/lib/useMarketplace";
 import { useTradingProfile, profileSetupPath } from "@/lib/useTradingProfile";
+import { useSellerCompliance } from "@/lib/useSellerCompliance";
+import { sellerCompliancePath } from "@/lib/sellerComplianceStore";
 import { fileToCompressedDataUrl } from "@/lib/imageUpload";
 import { toast } from "sonner";
-import { ArrowLeft, ImagePlus, CheckCircle, UserRound, LogIn } from "lucide-react";
+import {
+  ArrowLeft,
+  ImagePlus,
+  CheckCircle,
+  UserRound,
+  LogIn,
+  Scale,
+  KeyRound,
+} from "lucide-react";
 
 const GAMES: { value: TcgGame; label: string }[] = [
   { value: "pokemon", label: "Pokémon" },
@@ -34,6 +44,7 @@ export default function SellCard() {
   const { isAuthenticated, user } = useAuth();
   const [, navigate] = useLocation();
   const { profile, isComplete } = useTradingProfile(user?.id);
+  const { canSell, checkPin, gaps } = useSellerCompliance(user?.id, user?.email ?? "");
   const { data: catalog } = useMarketplaceCards();
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -49,6 +60,7 @@ export default function SellCard() {
   const [isFoil, setIsFoil] = useState(false);
   const [description, setDescription] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [sellPin, setSellPin] = useState("");
 
   const createMutation = useCreateListing();
 
@@ -58,7 +70,8 @@ export default function SellCard() {
         <LogIn className="h-12 w-12 mx-auto text-primary" />
         <h1 className="text-xl font-bold">Anmelden zum Verkaufen</h1>
         <p className="text-muted-foreground text-sm">
-          Jeder registrierte Nutzer kann Angebote einstellen. Bitte anmelden oder Konto erstellen.
+          Verkauf nur nach Anmeldung und gesetzlicher Verkäufer-Freigabe (Volljährigkeit, Ident, bei
+          Gewerbe DSA Art. 30).
         </p>
         <div className="flex flex-wrap justify-center gap-2">
           <Button onClick={() => navigate("/anmelden?next=/verkaufen")}>Anmelden</Button>
@@ -74,11 +87,31 @@ export default function SellCard() {
     return (
       <div className="container py-20 text-center space-y-4 max-w-lg">
         <UserRound className="h-12 w-12 mx-auto text-primary" />
-        <h1 className="text-xl font-bold">Zuerst Händlerprofil anlegen</h1>
+        <h1 className="text-xl font-bold">Zuerst Handelsprofil anlegen</h1>
         <p className="text-muted-foreground text-sm">
-          Anzeigename und Standort erscheinen bei deinen Angeboten – wie bei Cardmarket.
+          Anzeigename und Standort erscheinen bei deinen Angeboten.
         </p>
         <Button onClick={() => navigate(profileSetupPath("/verkaufen"))}>Profil erstellen</Button>
+      </div>
+    );
+  }
+
+  if (!canSell) {
+    return (
+      <div className="container py-20 text-center space-y-4 max-w-lg">
+        <Scale className="h-12 w-12 mx-auto text-primary" />
+        <h1 className="text-xl font-bold">Verkäufer-Freigabe erforderlich</h1>
+        <p className="text-muted-foreground text-sm leading-relaxed">
+          Laut Plattformrecht (DSA/DDG) und Geschäftsfähigkeit dürfen Angebote erst nach
+          Identifizierung, Altersprüfung und – bei Unternehmern – vollständigen Händlerangaben
+          freigeschaltet werden. Zusätzlich ist eine PIN Pflicht.
+        </p>
+        {gaps.length > 0 && (
+          <p className="text-xs text-amber-300/90">Noch offen: {gaps.join(", ")}</p>
+        )}
+        <Button onClick={() => navigate(sellerCompliancePath("/verkaufen"))}>
+          Freigabe starten
+        </Button>
       </div>
     );
   }
@@ -112,9 +145,14 @@ export default function SellCard() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !profile) return;
+    const pinOk = await checkPin(sellPin);
+    if (!pinOk) {
+      toast.error("PIN ungültig – Angebot nicht freigegeben");
+      return;
+    }
     createMutation.mutate(
       {
         cardId: catalogId || undefined,
@@ -136,7 +174,8 @@ export default function SellCard() {
       },
       {
         onSuccess: (listing) => {
-          toast.success("Angebot eingestellt");
+          toast.success("Angebot eingestellt (PIN bestätigt)");
+          setSellPin("");
           navigate(`/karte/${listing.cardId}`);
         },
         onError: (err) => toast.error(err.message),
@@ -157,29 +196,29 @@ export default function SellCard() {
         <CardHeader>
           <CardTitle className="text-2xl">Neues Angebot</CardTitle>
           <CardDescription>
-            Echtes Angebot mit Foto einstellen. Verkaufserlös kommt als Autic Coins (ATC) auf dein
-            Guthaben – kein echtes Geld.
+            Freigegebener Verkäufer · Erlös nur als ATC-Guthaben. Veröffentlichung erfordert deine
+            PIN.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-5">
             {(catalog?.length ?? 0) > 0 && (
-            <div className="space-y-2">
-              <Label>Aus vorhandenen Produkten übernehmen (optional)</Label>
-              <Select value={catalogId || "none"} onValueChange={applyCatalog}>
-                <SelectTrigger className="bg-secondary/50 border-border">
-                  <SelectValue placeholder="Produkt wählen" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">— Neues Angebot —</SelectItem>
-                  {catalog?.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.name} ({c.setName})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+              <div className="space-y-2">
+                <Label>Aus vorhandenen Produkten übernehmen (optional)</Label>
+                <Select value={catalogId || "none"} onValueChange={applyCatalog}>
+                  <SelectTrigger className="bg-secondary/50 border-border">
+                    <SelectValue placeholder="Produkt wählen" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">— Neues Angebot —</SelectItem>
+                    {catalog?.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name} ({c.setName})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             )}
 
             <div className="space-y-2">
@@ -255,7 +294,7 @@ export default function SellCard() {
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="price">Preis € *</Label>
+                <Label htmlFor="price">Preis (ATC/€) *</Label>
                 <Input
                   id="price"
                   type="number"
@@ -325,12 +364,29 @@ export default function SellCard() {
               />
             </div>
 
+            <div className="space-y-2 rounded-xl border border-primary/30 bg-primary/5 p-3">
+              <Label htmlFor="pin" className="flex items-center gap-2">
+                <KeyRound className="h-4 w-4 text-primary" />
+                PIN zur Freigabe (6 Ziffern) *
+              </Label>
+              <Input
+                id="pin"
+                type="password"
+                inputMode="numeric"
+                maxLength={6}
+                value={sellPin}
+                onChange={(e) => setSellPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                required
+                className="bg-secondary/50 border-border font-mono tracking-widest max-w-[12rem]"
+              />
+            </div>
+
             <Button type="submit" className="w-full font-bold" size="lg" disabled={uploading}>
               <CheckCircle className="mr-2 h-4 w-4" />
               Angebot veröffentlichen
             </Button>
             <p className="text-xs text-center text-muted-foreground">
-              Käufer können per PayPal, Überweisung oder Paysafe Card zahlen.
+              Kauf nur per ATC · Verkäufer erhält Guthaben, kein Auszahlungs-Geld.
             </p>
           </form>
         </CardContent>

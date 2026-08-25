@@ -17,6 +17,7 @@ import {
 import type { PaymentMethodId } from "./paymentMethods";
 import { getPaymentMethod } from "./paymentMethods";
 import { paymentLabel, saveOrder } from "./orderStore";
+import { canSell } from "./sellerComplianceStore";
 import { receiveAtc, spendAtc } from "./atcWalletStore";
 
 let version = 0;
@@ -105,6 +106,11 @@ export function useCreateListing() {
       }
     ) => {
       try {
+        if (!input.sellerId || !canSell(input.sellerId)) {
+          throw new Error(
+            "Verkauf gesperrt: Bitte Verkäufer-Freigabe (Ident, Alter, PIN / DSA) abschließen."
+          );
+        }
         const listing = createListing({
           ...input,
           sellerId: input.sellerId ?? 0,

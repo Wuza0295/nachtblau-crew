@@ -5,7 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import StarRating from "@/components/marketplace/StarRating";
 import { useMarketplaceSeller } from "@/lib/useMarketplace";
 import { getCardById } from "@/lib/marketplaceStore";
-import { ArrowLeft, Shield, Clock, Package, MessageSquare, MapPin } from "lucide-react";
+import { publicTraderInfo } from "@/lib/sellerComplianceStore";
+import { ArrowLeft, Shield, Clock, Package, MessageSquare, MapPin, Scale } from "lucide-react";
 
 const CONDITION_LABELS: Record<string, string> = {
   mint: "Mint (M)",
@@ -44,6 +45,7 @@ export default function SellerProfile() {
   }
 
   const { seller, reviews, activeListings } = data;
+  const trader = publicTraderInfo(sellerId);
 
   return (
     <div className="container py-8 space-y-8">
@@ -71,12 +73,42 @@ export default function SellerProfile() {
                 Verifiziert
               </Badge>
             )}
+            {trader?.kind === "trader" && (
+              <Badge variant="outline" className="border-primary/40 text-primary">
+                <Scale className="h-3 w-3 mr-1" />
+                Unternehmer
+              </Badge>
+            )}
+            {trader?.kind === "private" && (
+              <Badge variant="outline">Privatverkauf</Badge>
+            )}
           </div>
           {(seller.country || seller.city) && (
             <p className="text-sm text-muted-foreground flex items-center gap-1">
               <MapPin className="h-4 w-4" />
               {[seller.city, seller.country].filter(Boolean).join(", ")}
             </p>
+          )}
+          {trader && trader.kind === "trader" && (
+            <div className="mt-3 rounded-lg border border-border bg-secondary/20 p-3 text-xs text-muted-foreground space-y-1">
+              <p className="font-semibold text-foreground text-sm">Händlerangaben (Art. 30 DSA)</p>
+              <p>
+                {trader.legalFullName} · {trader.street}, {trader.zip} {trader.city} ({trader.country})
+              </p>
+              <p>
+                Tel. {trader.phone} · {trader.email}
+              </p>
+              {(trader.tradeRegister || trader.tradeRegisterNumber) && (
+                <p>
+                  Register: {[trader.tradeRegister, trader.tradeRegisterNumber]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </p>
+              )}
+              {trader.selfCertification && (
+                <p className="text-emerald-400/90">Selbstbescheinigung Unionsrecht: ja</p>
+              )}
+            </div>
           )}
           <StarRating rating={seller.rating} showValue size="md" />
           <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
