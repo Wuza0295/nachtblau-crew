@@ -130,7 +130,8 @@ def main() -> None:
             n += 1
             print("  ↑ index.htm (mirror of index.html)")
         print(f"✓ {n} Dateien hochgeladen.")
-        print("Öffne: http://autictreasures.nacht-blau.de/")
+        remote = (FTP_REMOTE_DIR or "/").strip("/")
+        print(f"Öffne: https://{remote}/" if remote else "Upload nach FTP-Root abgeschlossen.")
     finally:
         try:
             ftp.quit()
