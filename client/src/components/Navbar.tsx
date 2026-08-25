@@ -85,9 +85,7 @@ export default function Navbar() {
             <img
               src="/autic-treasures-logo-nav.png"
               alt="Autic Treasures"
-              width={44}
-              height={44}
-              className="h-10 w-10 sm:h-11 sm:w-11 object-contain drop-shadow-[0_0_12px_oklch(0.72_0.14_65_/_0.35)] transition-transform duration-300 group-hover:scale-105"
+              className="h-10 w-auto sm:h-11 object-contain drop-shadow-[0_0_12px_oklch(0.72_0.14_65_/_0.35)] transition-transform duration-300 group-hover:scale-105"
             />
             <div className="hidden sm:block leading-none">
               <span className="font-serif font-bold text-[1.05rem] text-primary tracking-[0.06em]">

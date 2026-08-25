@@ -11,7 +11,7 @@ export default function Footer() {
               <img
                 src="/autic-treasures-logo-nav.png"
                 alt="Autic Treasures"
-                className="h-9 w-9 object-contain"
+                className="h-9 w-auto object-contain"
               />
               <span className="font-serif font-bold text-base text-primary tracking-wide">
                 Autic Treasures
