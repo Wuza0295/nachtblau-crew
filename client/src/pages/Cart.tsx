@@ -157,8 +157,12 @@ export default function CartPage() {
 
               <div className="flex items-start gap-2 text-xs text-muted-foreground">
                 <Shield className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                Zahlung läuft zwischen dir und dem Verkäufer (PayPal, Überweisung oder Paysafe Card).
-                Kauf nur mit registriertem Konto und vollständigem Profil.
+                Zahlung: ATC (intern), PayPal, Überweisung oder Paysafe Card. Kauf nur mit
+                registriertem Konto und Profil. ATC unter{" "}
+                <Link href="/guthaben" className="text-primary underline-offset-2 hover:underline">
+                  Guthaben
+                </Link>
+                .
               </div>
               <div className="flex flex-wrap gap-2">
                 <Button className="font-bold" onClick={checkout} disabled={!paymentMethod}>

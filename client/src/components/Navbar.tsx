@@ -24,11 +24,20 @@ import {
   Globe,
   Info,
   Zap,
+  Coins,
+  Search,
+  ShoppingCart,
+  Tag,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { trpc } from "@/lib/trpc";
+import { formatAtc, getAtcBalance, getAtcVersion, subscribeAtc } from "@/lib/atcWalletStore";
 
 const NAV_LINKS = [
+  { href: "/marktplatz", label: "Marktplatz", icon: Search },
+  { href: "/verkaufen", label: "Verkaufen", icon: Tag },
+  { href: "/guthaben", label: "Guthaben", icon: Coins },
+  { href: "/warenkorb", label: "Warenkorb", icon: ShoppingCart },
   { href: "/portal", label: "Social Portal", icon: Zap },
   { href: "/free-games", label: "Free Games", icon: Gift },
   { href: "/news", label: "News", icon: Newspaper },
@@ -46,6 +55,9 @@ export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const [location] = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const atcV = useSyncExternalStore(subscribeAtc, getAtcVersion, getAtcVersion);
+  void atcV;
+  const atcBalance = user?.id ? getAtcBalance(user.id) : 0;
   const logoutMutation = trpc.auth.logout.useMutation({
     onSuccess: () => {
       logout();
@@ -125,6 +137,17 @@ export default function Navbar() {
 
           <div className="flex items-center gap-2">
             {isAuthenticated && user ? (
+              <>
+                <Link href="/guthaben" className="hidden sm:block">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5 border-primary/40 text-primary font-semibold"
+                  >
+                    <Coins className="h-3.5 w-3.5" />
+                    {formatAtc(atcBalance)}
+                  </Button>
+                </Link>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -152,6 +175,12 @@ export default function Navbar() {
                       Mein Profil
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/guthaben" className="cursor-pointer">
+                      <Coins className="mr-2 h-4 w-4" />
+                      Guthaben ({formatAtc(atcBalance)})
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={() => logoutMutation.mutate()}
@@ -162,6 +191,7 @@ export default function Navbar() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              </>
             ) : (
               <Button
                 size="sm"

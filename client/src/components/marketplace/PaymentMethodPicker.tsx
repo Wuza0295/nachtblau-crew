@@ -4,9 +4,10 @@ import {
   type PaymentMethodId,
   getPaymentMethod,
 } from "@/lib/paymentMethods";
-import { Building2, CreditCard, Wallet } from "lucide-react";
+import { Building2, Coins, CreditCard, Wallet } from "lucide-react";
 
 const ICONS: Record<PaymentMethodId, typeof Wallet> = {
+  atc: Coins,
   paypal: Wallet,
   bank_transfer: Building2,
   paysafecard: CreditCard,
@@ -16,7 +17,6 @@ interface PaymentMethodPickerProps {
   value: PaymentMethodId | "";
   onChange: (id: PaymentMethodId) => void;
   className?: string;
-  /** compact for dialogs */
   compact?: boolean;
 }
 
@@ -31,7 +31,7 @@ export default function PaymentMethodPicker({
   return (
     <div className={cn("space-y-3", className)}>
       <p className="text-sm font-medium text-foreground">Zahlungsart</p>
-      <div className={cn("grid gap-2", compact ? "grid-cols-1" : "sm:grid-cols-3")}>
+      <div className={cn("grid gap-2", compact ? "grid-cols-1" : "sm:grid-cols-2")}>
         {PAYMENT_METHODS.map((method) => {
           const Icon = ICONS[method.id];
           const active = value === method.id;

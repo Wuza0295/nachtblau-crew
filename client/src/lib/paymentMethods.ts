@@ -1,6 +1,6 @@
 /** Supported checkout payment methods (UI + order metadata). */
 
-export type PaymentMethodId = "paypal" | "bank_transfer" | "paysafecard";
+export type PaymentMethodId = "paypal" | "bank_transfer" | "paysafecard" | "atc";
 
 export interface PaymentMethod {
   id: PaymentMethodId;
@@ -12,6 +12,14 @@ export interface PaymentMethod {
 }
 
 export const PAYMENT_METHODS: PaymentMethod[] = [
+  {
+    id: "atc",
+    label: "Autic Coins (ATC)",
+    shortLabel: "ATC",
+    description: "Internes Guthaben – online sofort, offline per Coupon auf dem Flohmarkt.",
+    instructions:
+      "Der Kaufbetrag wird von deinem ATC-Guthaben abgezogen. Coupons kannst du unter Guthaben erzeugen oder einlösen (NUR INTERNES GUTHABEN).",
+  },
   {
     id: "paypal",
     label: "PayPal",

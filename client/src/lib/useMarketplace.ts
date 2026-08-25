@@ -7,6 +7,7 @@ import {
   getListingsForCard,
   getMarketplaceStats,
   getSellerProfile,
+  getListingById,
   purchaseListing,
   searchMarketplace,
   type CardCondition,
@@ -16,6 +17,7 @@ import {
 import type { PaymentMethodId } from "./paymentMethods";
 import { getPaymentMethod } from "./paymentMethods";
 import { paymentLabel, saveOrder } from "./orderStore";
+import { receiveAtc, spendAtc } from "./atcWalletStore";
 
 let version = 0;
 const listeners = new Set<() => void>();
@@ -140,12 +142,40 @@ export function usePurchaseListing() {
           throw new Error("Bitte eine Zahlungsart wählen");
         }
         const method = getPaymentMethod(input.paymentMethod);
-        const result = purchaseListing(
-          input.listingId,
-          input.buyerId,
-          input.buyerName,
-          method?.label ?? input.paymentMethod
-        );
+
+        let sellerId = 0;
+        let atcDebited = 0;
+        if (input.paymentMethod === "atc") {
+          const peek = getListingById(input.listingId);
+          if (!peek?.listing) throw new Error("Angebot nicht gefunden");
+          sellerId = peek.listing.sellerId;
+          atcDebited = peek.listing.price;
+          spendAtc(
+            input.buyerId,
+            atcDebited,
+            `Kauf ${peek.listing.title || peek.card?.name || "Karte"}`
+          );
+        }
+
+        let result: ReturnType<typeof purchaseListing>;
+        try {
+          result = purchaseListing(
+            input.listingId,
+            input.buyerId,
+            input.buyerName,
+            method?.label ?? input.paymentMethod
+          );
+        } catch (err) {
+          if (atcDebited > 0) {
+            receiveAtc(input.buyerId, atcDebited, "Rückbuchung nach fehlgeschlagenem Kauf");
+          }
+          throw err;
+        }
+
+        if (input.paymentMethod === "atc" && sellerId) {
+          receiveAtc(sellerId, result.listing.price, `Verkauf an ${input.buyerName}`);
+        }
+
         saveOrder({
           orderId: result.orderId,
           listingId: result.listing.id,

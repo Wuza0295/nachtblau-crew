@@ -16,6 +16,7 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Cart from "./pages/Cart";
 import Wants from "./pages/Wants";
+import Guthaben from "./pages/Guthaben";
 import ProfileRedirect from "./pages/ProfileRedirect";
 import About from "./pages/About";
 import FreeGames from "./pages/FreeGames";
@@ -53,6 +54,7 @@ function Router() {
               <Route path="/anmelden" component={Login} />
               <Route path="/warenkorb" component={Cart} />
               <Route path="/merkliste" component={Wants} />
+              <Route path="/guthaben" component={Guthaben} />
               <Route path="/free-games" component={FreeGames} />
               <Route path="/news" component={News} />
               <Route path="/forum" component={Forum} />
