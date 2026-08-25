@@ -50,7 +50,7 @@ def load_webspace_env() -> None:
 
 load_webspace_env()
 
-FTP_HOST = os.environ.get("FTP_HOST", "w02176b7.kasserver.com")
+FTP_HOST = os.environ.get("FTP_HOST") or "w02176b7.kasserver.com"
 FTP_USER = os.environ.get("FTP_USER", "")
 FTP_PASS = os.environ.get("FTP_PASS", "")
 FTP_REMOTE_DIR = os.environ.get("FTP_REMOTE_DIR", "/nacht-blau.de").rstrip("/")

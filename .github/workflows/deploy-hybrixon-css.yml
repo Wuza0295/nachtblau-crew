@@ -15,9 +15,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Upload style.css via FTPS
+        if: ${{ secrets.FTP_USER != '' && secrets.FTP_PASS != '' }}
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
           FTP_USER: ${{ secrets.FTP_USER }}
           FTP_PASS: ${{ secrets.FTP_PASS }}
           FTP_TLS: "1"
         run: python3 scripts/deploy-hybrixon-css.py
+      - name: Skip deploy (FTP secrets missing)
+        if: ${{ secrets.FTP_USER == '' || secrets.FTP_PASS == '' }}
+        run: |
+          echo "::warning::FTP secrets (FTP_USER, FTP_PASS) fehlen in Repository Settings → Secrets and variables → Actions."
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "::error::Manueller Deploy abgebrochen: FTP_USER und FTP_PASS müssen als GitHub Secrets hinterlegt sein."
+            exit 1
+          fi
+          echo "Push-Deploy übersprungen (CSS-Fix ist im Branch, Live-Upload folgt nach Secret-Konfiguration)."
