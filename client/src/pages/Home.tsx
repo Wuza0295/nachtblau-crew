@@ -42,35 +42,29 @@ export default function Home() {
 
   return (
     <div>
-      <section className="relative min-h-[88vh] flex items-end overflow-hidden">
+      <section className="relative min-h-[88vh] flex items-center justify-center overflow-hidden">
         <img
           src="/autic-treasures-hero.jpg"
-          alt="Autic Treasures – Trading Card Community"
+          alt=""
           className="absolute inset-0 w-full h-full object-cover object-center scale-105 animate-ken-burns"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/55 to-background/25" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-transparent to-background/80" />
 
-        <div className="container relative z-10 pb-16 pt-32 space-y-6 max-w-2xl animate-rise">
+        <div className="container relative z-10 flex flex-col items-center text-center px-4 pb-10 pt-28 space-y-5 animate-rise">
+          <h1 className="sr-only">Autic Treasures</h1>
           <img
             src="/autic-treasures-logo.png"
             alt="Autic Treasures"
-            className="h-20 w-20 sm:h-24 sm:w-24 object-contain drop-shadow-[0_8px_32px_oklch(0.72_0.14_65_/_0.45)]"
+            className="h-44 w-44 sm:h-56 sm:w-56 md:h-64 md:w-64 object-contain drop-shadow-[0_12px_40px_oklch(0.72_0.14_65_/_0.55)]"
           />
-          <p className="font-serif text-primary text-sm tracking-[0.28em] uppercase">
-            Trading Card Marketplace
-          </p>
 
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black leading-[1.05]">
-            <span className="font-serif text-primary tracking-wide">AUTIC TREASURES</span>
-          </h1>
-
-          <p className="text-base md:text-lg text-foreground/85 max-w-md leading-relaxed">
+          <p className="text-base md:text-lg text-foreground/90 max-w-md leading-relaxed">
             Kaufen, verkaufen und mit Autic Coins verrechnen – nur echte Angebote von
             angemeldeten Nutzern, Erlös als Guthaben.
           </p>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap justify-center gap-3 pt-1">
             <Link href="/marktplatz">
               <Button
                 size="lg"
