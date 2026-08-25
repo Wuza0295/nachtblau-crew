@@ -7,16 +7,31 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ATC_DENOMINATIONS,
+  ATC_EUR_RATE,
+  ATC_PAYPAL_EMAIL,
+  TOP_UP_METHODS,
+  atcToEuro,
+  cancelTopUpRequest,
+  confirmTopUpCode,
+  createTopUpRequest,
   formatAtc,
+  formatAtcWithEuro,
+  formatEuroAmount,
   getActiveIssuedCoupons,
   getAtcBalance,
   getAtcTransactions,
   getAtcVersion,
+  getPendingTopUpRequests,
+  getTopUpByCode,
+  getTopUpMethod,
+  getUserTopUpRequests,
   issueCoupon,
   redeemCoupon,
   subscribeAtc,
-  topUpAtc,
+  topUpInstructions,
   type AtcDenomination,
+  type AtcTopUpRequest,
+  type TopUpMethodId,
 } from "@/lib/atcWalletStore";
 import { toast } from "sonner";
 import {
@@ -29,6 +44,9 @@ import {
   Wallet,
   Copy,
   LogIn,
+  Landmark,
+  BadgeCheck,
+  Mail,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -61,10 +79,7 @@ function DenomCard({
         <img
           src={denom.imageUrl}
           alt={`${denom.name} – ${formatAtc(denom.value)}`}
-          className={cn(
-            "w-full h-full transition-transform duration-500 group-hover:scale-105",
-            denom.kind === "coin" ? "object-cover object-center" : "object-cover object-center"
-          )}
+          className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent opacity-80" />
@@ -79,6 +94,7 @@ function DenomCard({
         <p className="font-semibold text-sm font-serif text-primary tracking-wide">{denom.name}</p>
         <p className="text-xs text-muted-foreground">{denom.blurb}</p>
         <p className="text-sm font-bold text-foreground pt-0.5">{formatAtc(denom.value)}</p>
+        <p className="text-xs text-primary/80">{formatEuroAmount(atcToEuro(denom.value))}</p>
         <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
           Tippen → Coupon erzeugen
         </p>
@@ -87,20 +103,55 @@ function DenomCard({
   );
 }
 
+function StatusBadge({ status }: { status: AtcTopUpRequest["status"] }) {
+  if (status === "pending") {
+    return (
+      <Badge variant="outline" className="border-amber-400/50 text-amber-300">
+        Offen
+      </Badge>
+    );
+  }
+  if (status === "confirmed") {
+    return (
+      <Badge variant="outline" className="border-emerald-400/50 text-emerald-300">
+        Bestätigt
+      </Badge>
+    );
+  }
+  return (
+    <Badge variant="outline" className="border-muted-foreground/40 text-muted-foreground">
+      Storniert
+    </Badge>
+  );
+}
+
 export default function Guthaben() {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, isAdmin } = useAuth();
   const [, navigate] = useLocation();
   const v = useSyncExternalStore(subscribeAtc, getAtcVersion, getAtcVersion);
   void v;
 
   const userId = user?.id;
   const balance = userId ? getAtcBalance(userId) : 0;
+  const balanceEur = atcToEuro(balance);
   const txs = useMemo(() => (userId ? getAtcTransactions(userId) : []), [userId, v]);
   const coupons = useMemo(() => (userId ? getActiveIssuedCoupons(userId) : []), [userId, v]);
+  const myTopUps = useMemo(() => (userId ? getUserTopUpRequests(userId) : []), [userId, v]);
+  const pendingTopUps = useMemo(() => (isAdmin ? getPendingTopUpRequests() : []), [isAdmin, v]);
 
   const [topupAmount, setTopupAmount] = useState("50");
+  const [topupMethod, setTopupMethod] = useState<TopUpMethodId>("paypal");
   const [redeemCode, setRedeemCode] = useState("");
   const [lastCouponCode, setLastCouponCode] = useState<string | null>(null);
+  const [lastPayCode, setLastPayCode] = useState<AtcTopUpRequest | null>(null);
+  const [adminCode, setAdminCode] = useState("");
+  const [adminPreview, setAdminPreview] = useState<AtcTopUpRequest | null>(null);
+
+  const previewEur = useMemo(() => {
+    const amount = parseFloat(topupAmount.replace(",", "."));
+    if (!(amount > 0)) return null;
+    return atcToEuro(amount);
+  }, [topupAmount]);
 
   if (!isAuthenticated || !userId) {
     return (
@@ -123,17 +174,18 @@ export default function Guthaben() {
     );
   }
 
-  const handleTopup = () => {
+  const handleCreateTopUp = () => {
     const amount = parseFloat(topupAmount.replace(",", "."));
     if (!(amount > 0)) {
       toast.error("Bitte einen gültigen Betrag eingeben");
       return;
     }
     try {
-      topUpAtc(userId, amount, "Demo-Aufladung (extern später: PayPal/Überweisung)");
-      toast.success(`${formatAtc(amount)} gutgeschrieben`);
+      const req = createTopUpRequest(userId, amount, topupMethod);
+      setLastPayCode(req);
+      toast.success(`Code ${req.code} erzeugt – bitte zahlen und Code mitteilen`);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Aufladung fehlgeschlagen");
+      toast.error(e instanceof Error ? e.message : "Code fehlgeschlagen");
     }
   };
 
@@ -151,7 +203,7 @@ export default function Guthaben() {
     try {
       const coupon = redeemCoupon(userId, redeemCode);
       setRedeemCode("");
-      toast.success(`${formatAtc(coupon.value)} eingelöst`);
+      toast.success(`${formatAtcWithEuro(coupon.value)} eingelöst`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Einlösung fehlgeschlagen");
     }
@@ -166,6 +218,29 @@ export default function Guthaben() {
     }
   };
 
+  const handleAdminPreview = () => {
+    const req = getTopUpByCode(adminCode);
+    if (!req) {
+      setAdminPreview(null);
+      toast.error("Code nicht gefunden");
+      return;
+    }
+    setAdminPreview(req);
+  };
+
+  const handleAdminConfirm = () => {
+    try {
+      const req = confirmTopUpCode(userId, adminCode);
+      setAdminCode("");
+      setAdminPreview(null);
+      toast.success(
+        `${formatAtc(req.amountAtc)} gutgeschrieben · ${formatEuroAmount(req.amountEur)} → ${ATC_PAYPAL_EMAIL}`
+      );
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Bestätigung fehlgeschlagen");
+    }
+  };
+
   return (
     <div className="container py-8 space-y-8 max-w-5xl">
       <div className="space-y-2 animate-rise">
@@ -177,8 +252,9 @@ export default function Guthaben() {
           Autics Balance (ATC)
         </h1>
         <p className="text-muted-foreground max-w-2xl text-sm leading-relaxed">
-          Eine Währung, zwei Formen: digitales Konto online + physische Coupons (Münzen/Scheine) für
-          den Flohmarkt. Kein gesetzliches Zahlungsmittel — <strong>NUR INTERNES GUTHABEN</strong>.
+          Kurs: <strong>1 ATC = {formatEuroAmount(ATC_EUR_RATE)}</strong>. Aufladen per PayPal,
+          Überweisung oder Paysafe – Code dem Team mitteilen. Kein gesetzliches Zahlungsmittel —{" "}
+          <strong>NUR INTERNES GUTHABEN</strong>.
         </p>
       </div>
 
@@ -188,6 +264,10 @@ export default function Guthaben() {
             <p className="text-sm text-muted-foreground">Aktuelles Guthaben</p>
             <p className="text-4xl sm:text-5xl font-black text-primary tracking-tight mt-1">
               {formatAtc(balance)}
+            </p>
+            <p className="text-lg text-foreground/80 mt-1">≈ {formatEuroAmount(balanceEur)}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Umrechnung 1∶{ATC_EUR_RATE} (ATC∶EUR)
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -209,31 +289,104 @@ export default function Guthaben() {
               Aufladen
             </CardTitle>
             <CardDescription>
-              Demo: ATC direkt gutschreiben. Später an PayPal / Überweisung / Paysafe koppeln.
+              Code erzeugen, bezahlen, Code dem Team mitteilen. Nach Bestätigung: ATC aufs Konto,
+              EUR-Verbucht auf PayPal <span className="font-mono">{ATC_PAYPAL_EMAIL}</span>.
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-wrap gap-2 items-end">
-            <div className="flex-1 min-w-[8rem] space-y-1">
-              <label className="text-xs text-muted-foreground">Betrag (ATC)</label>
-              <Input
-                type="number"
-                min="1"
-                step="1"
-                value={topupAmount}
-                onChange={(e) => setTopupAmount(e.target.value)}
-                className="bg-secondary/50 border-border"
-              />
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap gap-2 items-end">
+              <div className="flex-1 min-w-[8rem] space-y-1">
+                <label className="text-xs text-muted-foreground">Betrag (ATC)</label>
+                <Input
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={topupAmount}
+                  onChange={(e) => setTopupAmount(e.target.value)}
+                  className="bg-secondary/50 border-border"
+                />
+              </div>
+              <div className="flex gap-1 flex-wrap">
+                {[25, 50, 100, 250].map((n) => (
+                  <Button
+                    key={n}
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setTopupAmount(String(n))}
+                  >
+                    {n}
+                  </Button>
+                ))}
+              </div>
             </div>
-            <div className="flex gap-1 flex-wrap">
-              {[25, 50, 100, 250].map((n) => (
-                <Button key={n} type="button" size="sm" variant="outline" onClick={() => setTopupAmount(String(n))}>
-                  {n}
-                </Button>
-              ))}
+
+            {previewEur != null && (
+              <div className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm">
+                <span className="text-muted-foreground">Umrechnung: </span>
+                <span className="font-semibold text-primary">
+                  {formatAtc(parseFloat(topupAmount.replace(",", ".")) || 0)} ≈{" "}
+                  {formatEuroAmount(previewEur)}
+                </span>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground">Zahlungsweg</p>
+              <div className="grid sm:grid-cols-3 gap-2">
+                {TOP_UP_METHODS.map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => setTopupMethod(m.id)}
+                    className={cn(
+                      "rounded-lg border px-3 py-2 text-left text-sm transition-colors",
+                      topupMethod === m.id
+                        ? "border-primary bg-primary/15 text-foreground"
+                        : "border-border bg-secondary/30 text-muted-foreground hover:border-primary/40"
+                    )}
+                  >
+                    <span className="font-semibold block">{m.label}</span>
+                    <span className="text-[10px] leading-snug block mt-0.5 opacity-80">
+                      {m.shortLabel}
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {getTopUpMethod(topupMethod)?.payHint}
+              </p>
             </div>
-            <Button onClick={handleTopup} className="font-semibold">
-              Gutschreiben
+
+            <Button onClick={handleCreateTopUp} className="font-semibold w-full sm:w-auto">
+              Auflade-Code erzeugen
             </Button>
+
+            {lastPayCode && lastPayCode.userId === userId && (
+              <div className="rounded-xl border border-primary/40 bg-primary/10 p-4 space-y-3">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Dein Code (dem Team mitteilen)</p>
+                    <p className="font-mono font-bold text-xl text-primary">{lastPayCode.code}</p>
+                    <p className="text-sm mt-1">
+                      {formatAtcWithEuro(lastPayCode.amountAtc)} ·{" "}
+                      {getTopUpMethod(lastPayCode.method)?.label}
+                    </p>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => copyCode(lastPayCode.code)}>
+                    <Copy className="h-4 w-4 mr-1" />
+                    Kopieren
+                  </Button>
+                </div>
+                <p className="text-sm text-foreground/90 leading-relaxed">
+                  {topUpInstructions(lastPayCode)}
+                </p>
+                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <Mail className="h-3.5 w-3.5" />
+                  PayPal-Empfänger: {ATC_PAYPAL_EMAIL}
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -244,7 +397,7 @@ export default function Guthaben() {
               Coupon einlösen
             </CardTitle>
             <CardDescription>
-              Flohmarkt-Schein/Münze scannen bzw. Code eingeben → ATC aufs Konto.
+              Flohmarkt-Schein/Münze scannen bzw. Code eingeben → ATC aufs Konto (mit Euro-Anzeige).
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2 items-end">
@@ -264,6 +417,129 @@ export default function Guthaben() {
         </Card>
       </div>
 
+      {isAdmin && (
+        <Card className="border-primary/40 bg-primary/5">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <BadgeCheck className="h-5 w-5 text-primary" />
+              Team: Auflade-Code bestätigen
+            </CardTitle>
+            <CardDescription>
+              Nutzer teilt euch den Code mit. Nach Zahlungseingang Code eingeben → ATC gutschreiben.
+              EUR-Betrag für PayPal <span className="font-mono">{ATC_PAYPAL_EMAIL}</span>.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap gap-2 items-end">
+              <div className="flex-1 min-w-[12rem] space-y-1">
+                <label className="text-xs text-muted-foreground">Zahlungs-Code</label>
+                <Input
+                  value={adminCode}
+                  onChange={(e) => {
+                    setAdminCode(e.target.value.toUpperCase());
+                    setAdminPreview(null);
+                  }}
+                  placeholder="PAY-XXXXXXXXXX"
+                  className="bg-secondary/50 border-border font-mono"
+                />
+              </div>
+              <Button type="button" variant="outline" onClick={handleAdminPreview}>
+                Prüfen
+              </Button>
+              <Button type="button" className="font-semibold" onClick={handleAdminConfirm}>
+                Bestätigen & gutschreiben
+              </Button>
+            </div>
+
+            {adminPreview && (
+              <div className="rounded-lg border border-border bg-card/60 p-3 text-sm space-y-1">
+                <div className="flex flex-wrap gap-2 items-center">
+                  <span className="font-mono font-bold">{adminPreview.code}</span>
+                  <StatusBadge status={adminPreview.status} />
+                </div>
+                <p>
+                  Nutzer-ID {adminPreview.userId} · {formatAtcWithEuro(adminPreview.amountAtc)} ·{" "}
+                  {getTopUpMethod(adminPreview.method)?.label}
+                </p>
+                <p className="text-muted-foreground flex items-center gap-1.5">
+                  <Landmark className="h-3.5 w-3.5" />
+                  Auszahlung/Verbuchung: {formatEuroAmount(adminPreview.amountEur)} →{" "}
+                  {adminPreview.paypalEmail}
+                </p>
+              </div>
+            )}
+
+            {pendingTopUps.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs uppercase tracking-wider text-muted-foreground">Offene Codes</p>
+                <div className="rounded-xl border border-border divide-y divide-border overflow-hidden">
+                  {pendingTopUps.slice(0, 8).map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      className="w-full text-left flex justify-between gap-3 p-3 text-sm bg-card/40 hover:bg-card/70"
+                      onClick={() => {
+                        setAdminCode(t.code);
+                        setAdminPreview(t);
+                      }}
+                    >
+                      <span className="font-mono font-semibold">{t.code}</span>
+                      <span className="text-muted-foreground">
+                        UID {t.userId} · {formatAtcWithEuro(t.amountAtc)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {myTopUps.some((t) => t.status === "pending") && (
+        <section className="space-y-3">
+          <h2 className="text-lg font-bold">Offene Aufladungen</h2>
+          <div className="rounded-xl border border-border divide-y divide-border overflow-hidden">
+            {myTopUps
+              .filter((t) => t.status === "pending")
+              .map((t) => (
+                <div key={t.id} className="p-3 bg-card/40 space-y-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p className="font-mono font-semibold">{t.code}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatAtcWithEuro(t.amountAtc)} · {getTopUpMethod(t.method)?.label}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <StatusBadge status={t.status} />
+                      <Button size="sm" variant="ghost" onClick={() => copyCode(t.code)}>
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          try {
+                            cancelTopUpRequest(userId, t.code);
+                            toast.message("Code storniert");
+                            if (lastPayCode?.code === t.code) setLastPayCode(null);
+                          } catch (e) {
+                            toast.error(e instanceof Error ? e.message : "Storno fehlgeschlagen");
+                          }
+                        }}
+                      >
+                        Stornieren
+                      </Button>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{topUpInstructions(t)}</p>
+                </div>
+              ))}
+          </div>
+        </section>
+      )}
+
       <section className="space-y-4">
         <div className="flex items-end justify-between gap-3 flex-wrap">
           <div>
@@ -272,7 +548,7 @@ export default function Guthaben() {
               Flohmarkt-Coupons erzeugen
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
-              ATC vom Konto in physischen Träger wandeln (Druck / Laminat / Münze). Code mitnehmen.
+              ATC vom Konto in physischen Träger wandeln. Werte auch in Euro angezeigt.
             </p>
           </div>
           <Badge variant="outline" className="text-amber-300 border-amber-400/40">
@@ -315,7 +591,7 @@ export default function Guthaben() {
                 <div>
                   <p className="font-mono text-sm font-semibold">{c.code}</p>
                   <p className="text-xs text-muted-foreground">
-                    {c.denominationName} · {formatAtc(c.value)} · {c.disclaimer}
+                    {c.denominationName} · {formatAtcWithEuro(c.value)} · {c.disclaimer}
                   </p>
                 </div>
                 <Button size="sm" variant="ghost" onClick={() => copyCode(c.code)}>
@@ -342,9 +618,16 @@ export default function Guthaben() {
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className={t.amount >= 0 ? "text-emerald-400 font-semibold" : "text-rose-400 font-semibold"}>
+                  <p
+                    className={
+                      t.amount >= 0 ? "text-emerald-400 font-semibold" : "text-rose-400 font-semibold"
+                    }
+                  >
                     {t.amount >= 0 ? "+" : ""}
                     {formatAtc(t.amount)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    ≈ {formatEuroAmount(atcToEuro(Math.abs(t.amount)))}
                   </p>
                   <p className="text-xs text-muted-foreground">Stand {formatAtc(t.balanceAfter)}</p>
                 </div>
@@ -357,8 +640,10 @@ export default function Guthaben() {
       <div className="flex items-start gap-2 text-xs text-muted-foreground rounded-lg border border-border p-3 bg-secondary/20">
         <Shield className="h-4 w-4 text-primary shrink-0 mt-0.5" />
         <p>
-          ATC ist internes Plattform-/Event-Guthaben von Autic Treasures. Coupons sind Träger für
-          denselben Wert – online und offline. Keine Weitergabe ohne Scan/Einlösung empfohlen.
+          ATC ist internes Plattform-/Event-Guthaben (1 ATC ≈ {formatEuroAmount(ATC_EUR_RATE)}).
+          Auflade-Codes bestätigen wir nach Zahlungseingang – PayPal-Zieladresse{" "}
+          <span className="font-mono">{ATC_PAYPAL_EMAIL}</span>. Coupons sind Träger für denselben
+          Wert online und offline.
         </p>
       </div>
     </div>

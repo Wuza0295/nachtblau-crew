@@ -14,6 +14,43 @@ export interface AtcDenomination {
   imageUrl: string;
 }
 
+/** 1 ATC = 1,00 € (interner Kurs, kein gesetzliches Zahlungsmittel). */
+export const ATC_EUR_RATE = 1;
+
+/** Empfänger für Aufladungen / Auszahlungsbestätigung */
+export const ATC_PAYPAL_EMAIL = "hello@nacht-blau.de";
+
+export type TopUpMethodId = "paypal" | "bank_transfer" | "paysafecard";
+
+export interface TopUpMethodInfo {
+  id: TopUpMethodId;
+  label: string;
+  shortLabel: string;
+  /** Kurz: was der Nutzer tun soll */
+  payHint: string;
+}
+
+export const TOP_UP_METHODS: TopUpMethodInfo[] = [
+  {
+    id: "paypal",
+    label: "PayPal",
+    shortLabel: "PayPal",
+    payHint: `Betrag an ${ATC_PAYPAL_EMAIL} senden · Verwendungszweck = Code`,
+  },
+  {
+    id: "bank_transfer",
+    label: "Überweisung",
+    shortLabel: "Überweisung",
+    payHint: `SEPA an ${ATC_PAYPAL_EMAIL} (Kontodaten) · Verwendungszweck = Code`,
+  },
+  {
+    id: "paysafecard",
+    label: "Paysafe Card",
+    shortLabel: "Paysafe",
+    payHint: `16-stelligen PIN + Code an ${ATC_PAYPAL_EMAIL} schicken`,
+  },
+];
+
 /** Hybrid set from both concepts – practical offline denominations. */
 export const ATC_DENOMINATIONS: AtcDenomination[] = [
   {
@@ -116,13 +153,32 @@ export interface AtcCoupon {
   disclaimer: "NUR INTERNES GUTHABEN";
 }
 
+export type TopUpRequestStatus = "pending" | "confirmed" | "cancelled";
+
+/** Nutzer erzeugt Code → zahlt → Team gibt Code ein → ATC gutgeschrieben, EUR auf PayPal. */
+export interface AtcTopUpRequest {
+  id: string;
+  code: string;
+  userId: number;
+  amountAtc: number;
+  amountEur: number;
+  method: TopUpMethodId;
+  status: TopUpRequestStatus;
+  createdAt: string;
+  confirmedAt?: string;
+  confirmedBy?: number;
+  paypalEmail: typeof ATC_PAYPAL_EMAIL;
+}
+
 type WalletState = {
   balances: Record<string, number>;
   txs: AtcTransaction[];
   coupons: AtcCoupon[];
+  topUps: AtcTopUpRequest[];
 };
 
-const KEY = "autic-atc-wallet-v1";
+const KEY = "autic-atc-wallet-v2";
+const LEGACY_KEY = "autic-atc-wallet-v1";
 const listeners = new Set<() => void>();
 let version = 0;
 
@@ -140,19 +196,27 @@ export function getAtcVersion() {
   return version;
 }
 
+function emptyState(): WalletState {
+  return { balances: {}, txs: [], coupons: [], topUps: [] };
+}
+
 function read(): WalletState {
-  if (typeof window === "undefined") return { balances: {}, txs: [], coupons: [] };
+  if (typeof window === "undefined") return emptyState();
   try {
-    const raw = localStorage.getItem(KEY);
-    if (!raw) return { balances: {}, txs: [], coupons: [] };
-    const data = JSON.parse(raw) as WalletState;
+    let raw = localStorage.getItem(KEY);
+    if (!raw) {
+      raw = localStorage.getItem(LEGACY_KEY);
+    }
+    if (!raw) return emptyState();
+    const data = JSON.parse(raw) as Partial<WalletState>;
     return {
       balances: data.balances ?? {},
       txs: Array.isArray(data.txs) ? data.txs : [],
       coupons: Array.isArray(data.coupons) ? data.coupons : [],
+      topUps: Array.isArray(data.topUps) ? data.topUps : [],
     };
   } catch {
-    return { balances: {}, txs: [], coupons: [] };
+    return emptyState();
   }
 }
 
@@ -165,11 +229,36 @@ function uidKey(userId: number) {
   return String(userId);
 }
 
+export function atcToEuro(amountAtc: number) {
+  return Math.round(amountAtc * ATC_EUR_RATE * 100) / 100;
+}
+
+export function euroToAtc(amountEur: number) {
+  if (ATC_EUR_RATE <= 0) return 0;
+  return Math.round((amountEur / ATC_EUR_RATE) * 100) / 100;
+}
+
+export function formatEuroAmount(amountEur: number) {
+  return amountEur.toLocaleString("de-DE", {
+    style: "currency",
+    currency: "EUR",
+  });
+}
+
 export function formatAtc(amount: number) {
   return `${amount.toLocaleString("de-DE", {
     minimumFractionDigits: amount % 1 === 0 ? 0 : 2,
     maximumFractionDigits: 2,
   })} ATC`;
+}
+
+/** z. B. „50 ATC ≈ 50,00 €“ */
+export function formatAtcWithEuro(amountAtc: number) {
+  return `${formatAtc(amountAtc)} ≈ ${formatEuroAmount(atcToEuro(amountAtc))}`;
+}
+
+export function getTopUpMethod(id: TopUpMethodId | string | undefined | null) {
+  return TOP_UP_METHODS.find((m) => m.id === id) ?? null;
 }
 
 export function getAtcBalance(userId: number | undefined | null): number {
@@ -189,6 +278,19 @@ export function getActiveIssuedCoupons(userId: number): AtcCoupon[] {
   return read().coupons.filter((c) => c.issuedBy === userId && c.status === "active");
 }
 
+export function getUserTopUpRequests(userId: number): AtcTopUpRequest[] {
+  return read().topUps.filter((t) => t.userId === userId);
+}
+
+export function getPendingTopUpRequests(): AtcTopUpRequest[] {
+  return read().topUps.filter((t) => t.status === "pending");
+}
+
+export function getTopUpByCode(rawCode: string): AtcTopUpRequest | null {
+  const code = rawCode.trim().toUpperCase();
+  return read().topUps.find((t) => t.code === code) ?? null;
+}
+
 function pushTx(
   state: WalletState,
   input: Omit<AtcTransaction, "id" | "createdAt" | "balanceAfter"> & { balanceAfter: number }
@@ -201,7 +303,7 @@ function pushTx(
   state.txs = state.txs.slice(0, 200);
 }
 
-/** Demo/top-up: add ATC (paid externally later). */
+/** Direct credit (admin / legacy). Prefer createTopUpRequest + confirmTopUpCode. */
 export function topUpAtc(userId: number, amount: number, note = "Aufladung") {
   if (!(amount > 0)) throw new Error("Betrag muss positiv sein");
   const state = read();
@@ -258,6 +360,92 @@ export function receiveAtc(userId: number, amount: number, note: string) {
 function makeCouponCode(value: number) {
   const body = nanoid(10).toUpperCase().replace(/[^A-Z0-9]/g, "X");
   return `ATC-${value}-${body.slice(0, 8)}`;
+}
+
+function makeTopUpCode() {
+  const body = nanoid(12).toUpperCase().replace(/[^A-Z0-9]/g, "X");
+  return `PAY-${body.slice(0, 10)}`;
+}
+
+/** Nutzer: Auflade-Code erzeugen und Team mitteilen (nach Zahlung). */
+export function createTopUpRequest(
+  userId: number,
+  amountAtc: number,
+  method: TopUpMethodId
+): AtcTopUpRequest {
+  if (!(amountAtc > 0)) throw new Error("Betrag muss positiv sein");
+  if (!TOP_UP_METHODS.some((m) => m.id === method)) {
+    throw new Error("Ungültige Zahlungsmethode");
+  }
+  const amount = Math.round(amountAtc * 100) / 100;
+  const state = read();
+  const req: AtcTopUpRequest = {
+    id: `pay-${nanoid(8)}`,
+    code: makeTopUpCode(),
+    userId,
+    amountAtc: amount,
+    amountEur: atcToEuro(amount),
+    method,
+    status: "pending",
+    createdAt: new Date().toISOString(),
+    paypalEmail: ATC_PAYPAL_EMAIL,
+  };
+  state.topUps.unshift(req);
+  state.topUps = state.topUps.slice(0, 300);
+  write(state);
+  return req;
+}
+
+export function cancelTopUpRequest(userId: number, code: string) {
+  const state = read();
+  const req = state.topUps.find((t) => t.code === code.trim().toUpperCase());
+  if (!req) throw new Error("Code nicht gefunden");
+  if (req.userId !== userId) throw new Error("Nicht dein Code");
+  if (req.status !== "pending") throw new Error("Code ist nicht mehr offen");
+  req.status = "cancelled";
+  write(state);
+  return req;
+}
+
+/**
+ * Team/Admin: Code vom Nutzer eingeben → ATC gutschreiben.
+ * EUR-Betrag ist für Auszahlung/Verbuchung auf PayPal hello@nacht-blau.de vorgesehen.
+ */
+export function confirmTopUpCode(adminUserId: number, rawCode: string): AtcTopUpRequest {
+  const code = rawCode.trim().toUpperCase();
+  if (code.length < 6) throw new Error("Ungültiger Code");
+  const state = read();
+  const req = state.topUps.find((t) => t.code === code);
+  if (!req) throw new Error("Code nicht gefunden");
+  if (req.status === "confirmed") throw new Error("Code bereits bestätigt");
+  if (req.status === "cancelled") throw new Error("Code wurde storniert");
+
+  req.status = "confirmed";
+  req.confirmedAt = new Date().toISOString();
+  req.confirmedBy = adminUserId;
+
+  const key = uidKey(req.userId);
+  const next = Math.round(((state.balances[key] ?? 0) + req.amountAtc) * 100) / 100;
+  state.balances[key] = next;
+
+  const methodLabel = getTopUpMethod(req.method)?.label ?? req.method;
+  pushTx(state, {
+    userId: req.userId,
+    type: "topup",
+    amount: req.amountAtc,
+    balanceAfter: next,
+    note: `Aufladung ${req.code} · ${methodLabel} · ${formatEuroAmount(req.amountEur)} → ${ATC_PAYPAL_EMAIL}`,
+    meta: {
+      topUpId: req.id,
+      code: req.code,
+      method: req.method,
+      amountEur: req.amountEur,
+      paypalEmail: ATC_PAYPAL_EMAIL,
+      confirmedBy: adminUserId,
+    },
+  });
+  write(state);
+  return req;
 }
 
 /** Convert digital ATC → physical coupon for flea market. */
@@ -325,4 +513,18 @@ export function redeemCoupon(userId: number, rawCode: string): AtcCoupon {
 
 export function findDenomination(value: number) {
   return ATC_DENOMINATIONS.find((d) => d.value === value) ?? null;
+}
+
+export function topUpInstructions(req: AtcTopUpRequest): string {
+  const eur = formatEuroAmount(req.amountEur);
+  switch (req.method) {
+    case "paypal":
+      return `Sende ${eur} per PayPal an ${ATC_PAYPAL_EMAIL}. Verwendungszweck / Notiz: ${req.code}. Danach den Code dem Team mitteilen.`;
+    case "bank_transfer":
+      return `Überweise ${eur} (Kontodaten unter ${ATC_PAYPAL_EMAIL}). Verwendungszweck: ${req.code}. Danach den Code dem Team mitteilen.`;
+    case "paysafecard":
+      return `Schicke deinen 16-stelligen Paysafe-PIN und den Code ${req.code} an ${ATC_PAYPAL_EMAIL} (Wert ${eur}). Nie öffentlich posten.`;
+    default:
+      return `Zahle ${eur} und teile den Code ${req.code} dem Team mit.`;
+  }
 }

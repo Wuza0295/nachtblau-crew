@@ -28,7 +28,14 @@ import { useTradingProfile, profileSetupPath } from "@/lib/useTradingProfile";
 import { GAME_OPTIONS } from "@/lib/marketplaceConstants";
 import { cartCount, getCartVersion, subscribeCart } from "@/lib/cartStore";
 import { getWants, getWantsVersion, subscribeWants } from "@/lib/wantsStore";
-import { formatAtc, getAtcBalance, getAtcVersion, subscribeAtc } from "@/lib/atcWalletStore";
+import {
+  atcToEuro,
+  formatAtc,
+  formatEuroAmount,
+  getAtcBalance,
+  getAtcVersion,
+  subscribeAtc,
+} from "@/lib/atcWalletStore";
 import { cn } from "@/lib/utils";
 
 export default function Navbar() {
@@ -131,6 +138,9 @@ export default function Navbar() {
                   >
                     <Coins className="h-3.5 w-3.5" />
                     {formatAtc(atcBalance)}
+                    <span className="text-muted-foreground font-normal hidden xl:inline">
+                      · {formatEuroAmount(atcToEuro(atcBalance))}
+                    </span>
                   </Button>
                 </Link>
                 <DropdownMenu>
