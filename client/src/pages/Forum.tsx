@@ -49,7 +49,7 @@ export default function Forum() {
               </h1>
             </div>
             <p className="text-muted-foreground">
-              Diskutiere mit der NachtBlau Crew über Gaming, Spiele und mehr.
+              Community-Forum – derzeit nicht Teil des Autic-Treasures-Marktplatzes.
             </p>
           </div>
 

@@ -1,189 +1,81 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { EXTERNAL_LINKS, SITE, WEBSPACE_PROJECTS } from "@/lib/site";
-import MaintenanceNotice from "@/components/MaintenanceNotice";
-import {
-  ExternalLink,
-  Github,
-  Globe,
-  Mail,
-  Gamepad2,
-  Gift,
-  Newspaper,
-  MessageSquare,
-  Users,
-  Zap,
-} from "lucide-react";
-
-const LINK_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  [SITE.webspaceUrl]: Globe,
-  [SITE.hybrixonUrl]: Zap,
-  [SITE.githubUrl]: Github,
-  [`mailto:${SITE.contactEmail}`]: Mail,
-};
+import { Coins, Search, ShoppingBag, Tag, Heart } from "lucide-react";
 
 export default function About() {
   return (
     <div className="py-12">
-      <div className="container max-w-4xl space-y-10">
-        <MaintenanceNotice />
+      <div className="container max-w-3xl space-y-10">
         <div className="text-center space-y-4">
           <img
-            src={SITE.logoUrl}
-            alt={SITE.name}
-            className="h-24 w-24 mx-auto object-contain animate-float"
+            src="/autic-treasures-logo.png"
+            alt="Autic Treasures"
+            className="h-24 w-24 mx-auto object-cover rounded-xl"
           />
           <Badge
             variant="outline"
             className="border-primary/40 text-primary bg-primary/10 uppercase tracking-widest"
-            style={{ fontFamily: "Orbitron, sans-serif" }}
           >
-            Gaming Community
+            Trading Card Marketplace
           </Badge>
-          <h1
-            className="text-4xl font-black gradient-text"
-            style={{ fontFamily: "Orbitron, sans-serif" }}
-          >
-            {SITE.name}
+          <h1 className="text-4xl font-serif font-bold text-primary tracking-wide">
+            Autic Treasures
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            {SITE.tagline} Entdecke kostenlose Spiele, aktuelle Gaming-News und tausche dich
-            im Community-Forum aus.
+            Autic Treasures ist ein eigenständiger TCG-Marktplatz – kaufen, verkaufen und mit Autic
+            Coins handeln. Online und auf dem Flohmarkt.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[
-            { icon: Gift, label: "Free Games", href: "/free-games" },
-            { icon: Newspaper, label: "Gaming News", href: "/news" },
-            { icon: MessageSquare, label: "Forum", href: "/forum" },
-            { icon: Users, label: "Community", href: "/forum" },
-          ].map(({ icon: Icon, label, href }) => (
-            <Link key={label} href={href}>
-              <Card className="card-glow bg-card border-border h-full cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:border-primary/40">
-                <CardContent className="p-5 flex flex-col items-center gap-3 text-center">
-                  <div className="p-3 rounded-full bg-primary/15 text-primary">
-                    <Icon className="h-6 w-6" />
-                  </div>
-                  <span className="font-semibold text-foreground">{label}</span>
-                </CardContent>
-              </Card>
+            {
+              icon: Search,
+              title: "Marktplatz",
+              desc: "Filter nach Spiel, Zustand, Sprache und Foil – sortiert nach bestem Angebot.",
+              href: "/marktplatz",
+            },
+            {
+              icon: Tag,
+              title: "Verkaufen",
+              desc: "Eigene Angebote einstellen – mit Profil und Verkäufer-Bewertungen.",
+              href: "/verkaufen",
+            },
+            {
+              icon: Coins,
+              title: "Autic Coins",
+              desc: "Internes Guthaben (ATC) für Checkout und Flohmarkt-Coupons.",
+              href: "/guthaben",
+            },
+            {
+              icon: Heart,
+              title: "Merkliste & Warenkorb",
+              desc: "Karten merken, Angebote sammeln und bequem bezahlen.",
+              href: "/merkliste",
+            },
+          ].map(({ icon: Icon, title, desc, href }) => (
+            <Link key={title} href={href}>
+              <div className="h-full p-5 rounded-lg border border-border bg-card/40 hover:border-primary/40 transition-colors space-y-2">
+                <div className="inline-flex p-2.5 rounded-lg bg-primary/15 text-primary">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <h3 className="font-bold text-foreground">{title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+              </div>
             </Link>
           ))}
         </div>
 
-        <section className="space-y-4">
-          <h2
-            className="text-2xl font-bold text-foreground"
-            style={{ fontFamily: "Orbitron, sans-serif" }}
-          >
-            NachtBlau Netzwerk
-          </h2>
-          <p className="text-muted-foreground">
-            Die NachtBlau Crew App ist Teil des NachtBlau-Ökosystems. Hier findest du alle
-            wichtigen Verknüpfungen zu Webspace, Hybrixon und GitHub.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {EXTERNAL_LINKS.map((link) => {
-              const Icon = LINK_ICONS[link.href] ?? ExternalLink;
-              return (
-                <a
-                  key={link.href}
-                  href={link.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group block"
-                >
-                  <Card className="card-glow bg-card border-border h-full transition-all duration-200 hover:-translate-y-1 hover:border-primary/40">
-                    <CardContent className="p-5 space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
-                          <Icon className="h-5 w-5" />
-                        </div>
-                        <span className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                          {link.label}
-                        </span>
-                      </div>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {link.description}
-                      </p>
-                      <span className="inline-flex items-center gap-1 text-xs text-primary">
-                        Öffnen <ExternalLink className="h-3 w-3" />
-                      </span>
-                    </CardContent>
-                  </Card>
-                </a>
-              );
-            })}
-          </div>
-        </section>
-
-        <section className="space-y-4">
-          <h2
-            className="text-2xl font-bold text-foreground"
-            style={{ fontFamily: "Orbitron, sans-serif" }}
-          >
-            Webspace-Projekte
-          </h2>
-          <p className="text-muted-foreground">
-            Alle Projekte im NachtBlau-Ökosystem – derzeit im Wartungsmodus.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {WEBSPACE_PROJECTS.map((project) => (
-              <a
-                key={project.id}
-                href={project.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group block"
-              >
-                <Card className="card-glow bg-card border-border h-full transition-all duration-200 hover:-translate-y-1 hover:border-primary/40">
-                  <CardContent className="p-4 space-y-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                        {project.title}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        {project.status === "maintenance" && (
-                          <Badge
-                            variant="outline"
-                            className="text-xs border-amber-500/40 text-amber-400 bg-amber-950/50"
-                          >
-                            Wartung
-                          </Badge>
-                        )}
-                        <ExternalLink className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary" />
-                      </div>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{project.subtitle}</p>
-                    <p className="text-xs text-muted-foreground/80">{project.note}</p>
-                  </CardContent>
-                </Card>
-              </a>
-            ))}
-          </div>
-        </section>
-
-        <Card className="bg-primary/5 border-primary/20">
-          <CardContent className="p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <Gamepad2 className="h-8 w-8 text-primary" />
-              <div>
-                <p className="font-semibold text-foreground">Bereit loszulegen?</p>
-                <p className="text-sm text-muted-foreground">
-                  Entdecke Free Games, News und das Forum.
-                </p>
-              </div>
-            </div>
-            <Link href="/">
-              <Button className="bg-primary hover:bg-primary/80 text-primary-foreground">
-                Zur Startseite
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+        <div className="text-center space-y-3 pt-4">
+          <Link href="/registrieren">
+            <Button className="bg-primary hover:bg-primary/85 text-primary-foreground font-semibold">
+              <ShoppingBag className="mr-2 h-4 w-4" />
+              Jetzt registrieren
+            </Button>
+          </Link>
+          <p className="text-xs text-muted-foreground">autic-treasures.com</p>
+        </div>
       </div>
     </div>
   );
