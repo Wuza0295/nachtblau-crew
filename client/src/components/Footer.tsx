@@ -9,7 +9,7 @@ export default function Footer() {
           <div className="space-y-3 sm:col-span-2 lg:col-span-1">
             <div className="flex items-center gap-2.5">
               <img
-                src="/autic-treasures-logo-nav.png"
+                src="/autic-treasures-logo-nav.v3.png"
                 alt="Autic Treasures"
                 className="h-9 w-auto object-contain"
               />

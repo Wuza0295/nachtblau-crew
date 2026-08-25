@@ -44,7 +44,7 @@ export default function Home() {
     <div>
       <section className="relative min-h-[88vh] flex items-center justify-center overflow-hidden">
         <img
-          src="/autic-treasures-hero.jpg"
+          src="/autic-treasures-hero.v3.jpg"
           alt=""
           className="absolute inset-0 w-full h-full object-cover object-center scale-105 animate-ken-burns"
         />
@@ -54,7 +54,7 @@ export default function Home() {
         <div className="container relative z-10 flex flex-col items-center text-center px-4 pb-10 pt-28 space-y-5 animate-rise">
           <h1 className="sr-only">Autic Treasures</h1>
           <img
-            src="/autic-treasures-logo.png"
+            src="/autic-treasures-logo.v3.png"
             alt="Autic Treasures"
             className="h-48 sm:h-60 md:h-72 w-auto object-contain drop-shadow-[0_12px_40px_oklch(0.72_0.14_65_/_0.55)]"
           />

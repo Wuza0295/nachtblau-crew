@@ -36,11 +36,20 @@ FTP_REMOTE_DIR = os.environ.get("FTP_REMOTE_DIR", "/autictreasures.nacht-blau.de
 USE_TLS = os.environ.get("FTP_TLS", "1") != "0"
 
 HTACCESS = """Options -MultiViews
+DirectoryIndex index.html index.htm
 RewriteEngine On
 RewriteBase /
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^ index.html [L]
+
+<IfModule mod_headers.c>
+  <FilesMatch "\\.(html|htm)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+  </FilesMatch>
+</IfModule>
 """
 
 

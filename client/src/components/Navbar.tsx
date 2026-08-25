@@ -83,7 +83,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-14 sm:h-16">
           <Link href="/" className="flex items-center gap-2.5 group shrink-0">
             <img
-              src="/autic-treasures-logo-nav.png"
+              src="/autic-treasures-logo-nav.v3.png"
               alt="Autic Treasures"
               className="h-10 w-auto sm:h-11 object-contain drop-shadow-[0_0_12px_oklch(0.72_0.14_65_/_0.35)] transition-transform duration-300 group-hover:scale-105"
             />

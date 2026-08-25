@@ -9,7 +9,7 @@ export default function About() {
       <div className="container max-w-3xl space-y-10">
         <div className="text-center space-y-4">
           <img
-            src="/autic-treasures-logo.png"
+            src="/autic-treasures-logo.v3.png"
             alt="Autic Treasures"
             className="h-28 w-28 mx-auto object-contain drop-shadow-[0_0_24px_oklch(0.72_0.14_65_/_0.35)]"
           />
