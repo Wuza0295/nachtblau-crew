@@ -9,9 +9,9 @@ export default function Footer() {
           <div className="space-y-3 sm:col-span-2 lg:col-span-1">
             <div className="flex items-center gap-2.5">
               <img
-                src="/autic-treasures-logo.png"
+                src="/autic-treasures-logo-nav.png"
                 alt="Autic Treasures"
-                className="h-9 w-9 object-contain rounded-md"
+                className="h-9 w-9 object-contain"
               />
               <span className="font-serif font-bold text-base text-primary tracking-wide">
                 Autic Treasures

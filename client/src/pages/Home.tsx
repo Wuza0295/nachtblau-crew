@@ -52,6 +52,11 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-transparent to-transparent" />
 
         <div className="container relative z-10 pb-16 pt-32 space-y-6 max-w-2xl animate-rise">
+          <img
+            src="/autic-treasures-logo.png"
+            alt="Autic Treasures"
+            className="h-20 w-20 sm:h-24 sm:w-24 object-contain drop-shadow-[0_8px_32px_oklch(0.72_0.14_65_/_0.45)]"
+          />
           <p className="font-serif text-primary text-sm tracking-[0.28em] uppercase">
             Trading Card Marketplace
           </p>

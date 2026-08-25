@@ -1,0 +1,39 @@
+name: Deploy Autic Treasures (ALL-INKL)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "client/**"
+      - "shared/**"
+      - "scripts/deploy-webspace.py"
+      - ".github/workflows/deploy-autic.yml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Deploy to autic-treasures.com
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASS: ${{ secrets.FTP_PASS }}
+          FTP_REMOTE_DIR: /autic-treasures.com
+          FTP_TLS: "1"
+        run: python3 scripts/deploy-webspace.py
+      - name: Deploy to autictreasures.nacht-blau.de
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASS: ${{ secrets.FTP_PASS }}
+          FTP_REMOTE_DIR: /autictreasures.nacht-blau.de
+          FTP_TLS: "1"
+        run: python3 scripts/deploy-webspace.py

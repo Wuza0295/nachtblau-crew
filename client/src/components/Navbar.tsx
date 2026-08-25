@@ -81,17 +81,19 @@ export default function Navbar() {
     <header className="glass-nav sticky top-0 z-50">
       <nav className="container">
         <div className="flex items-center justify-between h-14 sm:h-16">
-          <Link href="/" className="flex items-center gap-2.5 group">
+          <Link href="/" className="flex items-center gap-2.5 group shrink-0">
             <img
-              src="/autic-treasures-logo.png"
-              alt="Autic Treasures Logo"
-              className="h-9 w-9 object-contain rounded-md transition-transform duration-300 group-hover:scale-105"
+              src="/autic-treasures-logo-nav.png"
+              alt="Autic Treasures"
+              width={44}
+              height={44}
+              className="h-10 w-10 sm:h-11 sm:w-11 object-contain drop-shadow-[0_0_12px_oklch(0.72_0.14_65_/_0.35)] transition-transform duration-300 group-hover:scale-105"
             />
-            <div className="hidden sm:block">
-              <span className="font-serif font-bold text-base leading-none text-primary tracking-wide">
+            <div className="hidden sm:block leading-none">
+              <span className="font-serif font-bold text-[1.05rem] text-primary tracking-[0.06em]">
                 AUTIC
               </span>
-              <div className="text-[9px] text-primary/80 leading-none mt-0.5 tracking-[0.18em] uppercase">
+              <div className="text-[9px] text-primary/75 mt-0.5 tracking-[0.22em] uppercase font-serif">
                 Treasures
               </div>
             </div>

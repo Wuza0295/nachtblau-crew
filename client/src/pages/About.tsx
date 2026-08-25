@@ -11,7 +11,7 @@ export default function About() {
           <img
             src="/autic-treasures-logo.png"
             alt="Autic Treasures"
-            className="h-24 w-24 mx-auto object-contain rounded-xl"
+            className="h-28 w-28 mx-auto object-contain drop-shadow-[0_0_24px_oklch(0.72_0.14_65_/_0.35)]"
           />
           <Badge
             variant="outline"
