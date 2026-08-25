@@ -18,8 +18,8 @@ export default function Footer() {
               </span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
-              TCG-Marktplatz ohne Platzhalter: echte Angebote, ATC-Verrechnung. Verkäufer erhalten
-              Guthaben – kein Auszahlungs-Geld. Aufladen per PayPal, Überweisung oder Paysafe.
+              TCG-Marktplatz ohne Platzhalter: echte Angebote, ATC-Verrechnung. Aufladen und
+              Auszahlung ab 50 € per PayPal/Überweisung. Flohmarkt über Coupons.
             </p>
           </div>
 
@@ -96,7 +96,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>Nur echte User-Angebote</li>
               <li>Kauf & Verkauf per ATC-Guthaben</li>
-              <li>Kein Geld an Verkäufer – nur Guthaben</li>
+              <li>Auszahlung ab 50 € (PayPal/Überweisung)</li>
               <li>Aufladen: PayPal, Überweisung, Paysafe</li>
             </ul>
           </div>

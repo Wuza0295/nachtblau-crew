@@ -374,7 +374,7 @@ export default function CardDetail() {
           />
           <div className="flex items-center gap-2 text-sm text-muted-foreground py-1">
             <Shield className="h-4 w-4 text-primary" />
-            Verkäufer erhält ATC-Guthaben – kein echtes Geld
+            Verkäufer erhält ATC-Guthaben · Auszahlung ab 50 €
           </div>
           <Button
             className="w-full bg-primary hover:bg-primary/80"

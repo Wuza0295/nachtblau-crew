@@ -180,7 +180,7 @@ export function usePurchaseListing() {
         receiveAtc(
           sellerId,
           result.listing.price,
-          `Verkauf an ${input.buyerName} · ATC-Verrechnung (kein Auszahlungs-Geld)`
+          `Verkauf an ${input.buyerName} · ATC-Verrechnung`
         );
         saveOrder({
           orderId: result.orderId,

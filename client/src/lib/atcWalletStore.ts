@@ -124,7 +124,36 @@ export type AtcTxType =
   | "spend"
   | "withdraw_coupon"
   | "redeem_coupon"
-  | "receive";
+  | "receive"
+  | "payout"
+  | "payout_refund";
+
+/** Mindestbetrag für Auszahlung in € (bei 1∶1 = ATC). */
+export const ATC_PAYOUT_MIN_EUR = 50;
+
+export type PayoutMethodId = "paypal" | "bank_transfer";
+
+export interface PayoutMethodInfo {
+  id: PayoutMethodId;
+  label: string;
+  destinationLabel: string;
+  destinationPlaceholder: string;
+}
+
+export const PAYOUT_METHODS: PayoutMethodInfo[] = [
+  {
+    id: "paypal",
+    label: "PayPal",
+    destinationLabel: "PayPal-E-Mail",
+    destinationPlaceholder: "name@example.com",
+  },
+  {
+    id: "bank_transfer",
+    label: "Überweisung",
+    destinationLabel: "IBAN (+ optional Name)",
+    destinationPlaceholder: "DE89 3704 0044 0532 0130 00",
+  },
+];
 
 export interface AtcTransaction {
   id: string;
@@ -170,11 +199,31 @@ export interface AtcTopUpRequest {
   paypalEmail: typeof ATC_PAYPAL_EMAIL;
 }
 
+export type PayoutRequestStatus = "pending" | "paid" | "cancelled" | "rejected";
+
+/** Nutzer beantragt Auszahlung → ATC wird reserviert → Team zahlt aus und bestätigt. */
+export interface AtcPayoutRequest {
+  id: string;
+  code: string;
+  userId: number;
+  amountAtc: number;
+  amountEur: number;
+  method: PayoutMethodId;
+  /** PayPal-E-Mail oder IBAN/Kontoangabe des Nutzers */
+  destination: string;
+  status: PayoutRequestStatus;
+  createdAt: string;
+  processedAt?: string;
+  processedBy?: number;
+  note?: string;
+}
+
 type WalletState = {
   balances: Record<string, number>;
   txs: AtcTransaction[];
   coupons: AtcCoupon[];
   topUps: AtcTopUpRequest[];
+  payouts: AtcPayoutRequest[];
 };
 
 const KEY = "autic-atc-wallet-v2";
@@ -197,7 +246,7 @@ export function getAtcVersion() {
 }
 
 function emptyState(): WalletState {
-  return { balances: {}, txs: [], coupons: [], topUps: [] };
+  return { balances: {}, txs: [], coupons: [], topUps: [], payouts: [] };
 }
 
 function read(): WalletState {
@@ -214,6 +263,7 @@ function read(): WalletState {
       txs: Array.isArray(data.txs) ? data.txs : [],
       coupons: Array.isArray(data.coupons) ? data.coupons : [],
       topUps: Array.isArray(data.topUps) ? data.topUps : [],
+      payouts: Array.isArray(data.payouts) ? data.payouts : [],
     };
   } catch {
     return emptyState();
@@ -259,6 +309,10 @@ export function formatAtcWithEuro(amountAtc: number) {
 
 export function getTopUpMethod(id: TopUpMethodId | string | undefined | null) {
   return TOP_UP_METHODS.find((m) => m.id === id) ?? null;
+}
+
+export function getPayoutMethod(id: PayoutMethodId | string | undefined | null) {
+  return PAYOUT_METHODS.find((m) => m.id === id) ?? null;
 }
 
 export function getAtcBalance(userId: number | undefined | null): number {
@@ -527,4 +581,178 @@ export function topUpInstructions(req: AtcTopUpRequest): string {
     default:
       return `Zahle ${eur} und teile den Code ${req.code} dem Team mit.`;
   }
+}
+
+function makePayoutCode() {
+  const body = nanoid(12).toUpperCase().replace(/[^A-Z0-9]/g, "X");
+  return `OUT-${body.slice(0, 10)}`;
+}
+
+export function getUserPayoutRequests(userId: number): AtcPayoutRequest[] {
+  return read().payouts.filter((p) => p.userId === userId);
+}
+
+export function getPendingPayoutRequests(): AtcPayoutRequest[] {
+  return read().payouts.filter((p) => p.status === "pending");
+}
+
+export function getPayoutByCode(rawCode: string): AtcPayoutRequest | null {
+  const code = rawCode.trim().toUpperCase();
+  return read().payouts.find((p) => p.code === code) ?? null;
+}
+
+/**
+ * Nutzer beantragt Auszahlung ab ATC_PAYOUT_MIN_EUR.
+ * ATC wird sofort reserviert (abgezogen), bis Team zahlt oder Antrag storniert/abgelehnt wird.
+ */
+export function createPayoutRequest(
+  userId: number,
+  amountAtc: number,
+  method: PayoutMethodId,
+  destination: string
+): AtcPayoutRequest {
+  if (!PAYOUT_METHODS.some((m) => m.id === method)) {
+    throw new Error("Ungültige Auszahlungsmethode");
+  }
+  const amount = Math.round(amountAtc * 100) / 100;
+  if (!(amount > 0)) throw new Error("Betrag muss positiv sein");
+  const amountEur = atcToEuro(amount);
+  if (amountEur < ATC_PAYOUT_MIN_EUR) {
+    throw new Error(
+      `Auszahlung erst ab ${formatEuroAmount(ATC_PAYOUT_MIN_EUR)} (aktuell ${formatAtcWithEuro(amount)})`
+    );
+  }
+  const dest = destination.trim();
+  if (dest.length < 5) {
+    throw new Error(
+      method === "paypal" ? "Bitte gültige PayPal-E-Mail angeben" : "Bitte IBAN / Kontodaten angeben"
+    );
+  }
+  if (method === "paypal" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(dest)) {
+    throw new Error("Bitte eine gültige PayPal-E-Mail angeben");
+  }
+
+  const state = read();
+  const key = uidKey(userId);
+  const current = state.balances[key] ?? 0;
+  if (current < amount) throw new Error("Nicht genug ATC-Guthaben");
+
+  const next = Math.round((current - amount) * 100) / 100;
+  state.balances[key] = next;
+
+  const req: AtcPayoutRequest = {
+    id: `out-${nanoid(8)}`,
+    code: makePayoutCode(),
+    userId,
+    amountAtc: amount,
+    amountEur,
+    method,
+    destination: dest,
+    status: "pending",
+    createdAt: new Date().toISOString(),
+  };
+  state.payouts.unshift(req);
+  state.payouts = state.payouts.slice(0, 300);
+
+  const methodLabel = getPayoutMethod(method)?.label ?? method;
+  pushTx(state, {
+    userId,
+    type: "payout",
+    amount: -amount,
+    balanceAfter: next,
+    note: `Auszahlung beantragt ${req.code} · ${methodLabel} · ${formatEuroAmount(amountEur)}`,
+    meta: {
+      payoutId: req.id,
+      code: req.code,
+      method,
+      amountEur,
+      destination: dest,
+    },
+  });
+  write(state);
+  return req;
+}
+
+export function cancelPayoutRequest(userId: number, code: string) {
+  const state = read();
+  const req = state.payouts.find((p) => p.code === code.trim().toUpperCase());
+  if (!req) throw new Error("Antrag nicht gefunden");
+  if (req.userId !== userId) throw new Error("Nicht dein Antrag");
+  if (req.status !== "pending") throw new Error("Antrag ist nicht mehr offen");
+
+  req.status = "cancelled";
+  req.processedAt = new Date().toISOString();
+
+  const key = uidKey(userId);
+  const next = Math.round(((state.balances[key] ?? 0) + req.amountAtc) * 100) / 100;
+  state.balances[key] = next;
+  pushTx(state, {
+    userId,
+    type: "payout_refund",
+    amount: req.amountAtc,
+    balanceAfter: next,
+    note: `Auszahlung storniert ${req.code} · Rückbuchung`,
+    meta: { payoutId: req.id, code: req.code },
+  });
+  write(state);
+  return req;
+}
+
+/** Team: Auszahlung ausgeführt (PayPal/Überweisung an Nutzer). */
+export function confirmPayoutRequest(adminUserId: number, rawCode: string): AtcPayoutRequest {
+  const code = rawCode.trim().toUpperCase();
+  if (code.length < 6) throw new Error("Ungültiger Code");
+  const state = read();
+  const req = state.payouts.find((p) => p.code === code);
+  if (!req) throw new Error("Antrag nicht gefunden");
+  if (req.status === "paid") throw new Error("Bereits als ausgezahlt markiert");
+  if (req.status !== "pending") throw new Error("Antrag ist nicht offen");
+
+  req.status = "paid";
+  req.processedAt = new Date().toISOString();
+  req.processedBy = adminUserId;
+  write(state);
+  return req;
+}
+
+/** Team: Antrag ablehnen → ATC zurück. */
+export function rejectPayoutRequest(
+  adminUserId: number,
+  rawCode: string,
+  reason = "Abgelehnt"
+): AtcPayoutRequest {
+  const code = rawCode.trim().toUpperCase();
+  const state = read();
+  const req = state.payouts.find((p) => p.code === code);
+  if (!req) throw new Error("Antrag nicht gefunden");
+  if (req.status !== "pending") throw new Error("Antrag ist nicht offen");
+
+  req.status = "rejected";
+  req.processedAt = new Date().toISOString();
+  req.processedBy = adminUserId;
+  req.note = reason;
+
+  const key = uidKey(req.userId);
+  const next = Math.round(((state.balances[key] ?? 0) + req.amountAtc) * 100) / 100;
+  state.balances[key] = next;
+  pushTx(state, {
+    userId: req.userId,
+    type: "payout_refund",
+    amount: req.amountAtc,
+    balanceAfter: next,
+    note: `Auszahlung abgelehnt ${req.code} · ${reason}`,
+    meta: {
+      payoutId: req.id,
+      code: req.code,
+      rejectedBy: adminUserId,
+    },
+  });
+  write(state);
+  return req;
+}
+
+export function payoutInstructions(req: AtcPayoutRequest): string {
+  const eur = formatEuroAmount(req.amountEur);
+  const method = getPayoutMethod(req.method)?.label ?? req.method;
+  return `Antrag ${req.code}: ${eur} per ${method} an „${req.destination}“. Team prüft und zahlt aus – Mindestbetrag ${formatEuroAmount(ATC_PAYOUT_MIN_EUR)}.`;
 }

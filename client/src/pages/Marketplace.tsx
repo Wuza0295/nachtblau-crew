@@ -110,7 +110,7 @@ export default function Marketplace() {
                 <Shield className="h-3.5 w-3.5" />
                 Käuferschutz
               </p>
-              <p>Registrierung Pflicht · Kauf nur per ATC · Verkäufer erhält Guthaben</p>
+              <p>Registrierung Pflicht · Kauf nur per ATC · Auszahlung ab 50 €</p>
             </div>
           </div>
         </div>
@@ -174,7 +174,7 @@ export default function Marketplace() {
               <p className="text-lg text-foreground">Noch keine echten Angebote</p>
               <p className="text-sm max-w-md mx-auto">
                 Keine Platzhalter – der Marktplatz füllt sich nur mit Angeboten angemeldeter Nutzer.
-                Verkaufserlös wird als ATC-Guthaben gutgeschrieben.
+                Verkaufserlös als ATC · Auszahlung ab 50 € per PayPal/Überweisung.
               </p>
               <Link href="/verkaufen">
                 <Button className="mt-2">

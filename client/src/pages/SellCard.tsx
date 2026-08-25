@@ -206,7 +206,7 @@ export default function SellCard() {
         <CardHeader>
           <CardTitle className="text-2xl">Neues Angebot</CardTitle>
           <CardDescription>
-            Freigegebener Verkäufer · Erlös nur als ATC-Guthaben. Veröffentlichung erfordert deine
+            Freigegebener Verkäufer · Erlös als ATC (Auszahlung ab 50 €). Veröffentlichung erfordert deine
             PIN.
           </CardDescription>
         </CardHeader>
@@ -423,7 +423,7 @@ export default function SellCard() {
               Angebot veröffentlichen
             </Button>
             <p className="text-xs text-center text-muted-foreground">
-              Kauf nur per ATC · Verkäufer erhält Guthaben, kein Auszahlungs-Geld.
+              Kauf nur per ATC · Verkäufer erhält Guthaben · Auszahlung ab 50 € möglich.
             </p>
           </form>
         </CardContent>

@@ -250,8 +250,8 @@ export default function Home() {
           <h2 className="text-2xl font-bold">Sicher handeln</h2>
           <p className="text-muted-foreground text-sm leading-relaxed">
             Registrierung und Handelsprofil vor dem Kauf. Marktplatz-Käufe nur per Autic Coins –
-            Verkäufer erhalten Guthaben, kein echtes Geld. ATC aufladen per PayPal, Überweisung oder
-            Paysafe.
+            Verkäufer erhalten ATC. Auszahlung ab 50 € per PayPal oder Überweisung. Aufladen per
+            PayPal, Überweisung oder Paysafe.
           </p>
           <Link href="/ueber-uns">
             <Button variant="outline" className="mt-2">
