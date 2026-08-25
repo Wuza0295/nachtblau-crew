@@ -17,8 +17,15 @@ import { useTradingProfile, profileSetupPath } from "@/lib/useTradingProfile";
 import { formatEuro } from "@/lib/marketplaceConstants";
 import type { PaymentMethodId } from "@/lib/paymentMethods";
 import PaymentMethodPicker from "@/components/marketplace/PaymentMethodPicker";
+import {
+  formatAtc,
+  formatEuroAmount,
+  getAtcBalance,
+  getAtcVersion,
+  subscribeAtc,
+} from "@/lib/atcWalletStore";
 import { toast } from "sonner";
-import { ShoppingCart, Trash2, Shield, CheckCircle } from "lucide-react";
+import { ShoppingCart, Trash2, Shield, CheckCircle, Coins } from "lucide-react";
 
 export default function CartPage() {
   const { isAuthenticated, user } = useAuth();
@@ -26,7 +33,12 @@ export default function CartPage() {
   const [, navigate] = useLocation();
   const version = useSyncExternalStore(subscribeCart, getCartVersion, getCartVersion);
   void version;
+  const atcV = useSyncExternalStore(subscribeAtc, getAtcVersion, getAtcVersion);
+  void atcV;
   const items = getCart();
+  const total = cartTotal();
+  const balance = user?.id ? getAtcBalance(user.id) : 0;
+  const canAfford = balance >= total && total > 0;
   const purchaseMutation = usePurchaseListing();
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId | "">("atc");
 
@@ -49,6 +61,15 @@ export default function CartPage() {
     if (items.length === 0) return;
     if (!paymentMethod) {
       toast.message("Bitte ATC-Verrechnung wählen");
+      return;
+    }
+    if (!canAfford) {
+      toast.error(
+        balance <= 0
+          ? "Kein ATC-Guthaben. Bitte aufladen – ohne Aufladung keine Käufe."
+          : "Nicht genug ATC. Bitte unter Guthaben aufladen."
+      );
+      navigate("/guthaben");
       return;
     }
 
@@ -79,6 +100,9 @@ export default function CartPage() {
             if (ok + fail === snapshot.length) {
               if (ok) toast.success(`${ok} Kauf${ok === 1 ? "" : "e"} abgeschlossen`);
               toast.error(err.message || `${fail} Angebote nicht verfügbar`);
+              if (/ATC|Guthaben|aufladen/i.test(err.message)) {
+                navigate("/guthaben");
+              }
             }
           },
         }
@@ -94,7 +118,7 @@ export default function CartPage() {
           Warenkorb
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          {cartCount()} Artikel · Zahlungsart wählen, dann Kauf bestätigen
+          {cartCount()} Artikel · Käufe nur mit ATC-Guthaben
         </p>
       </div>
 
@@ -150,24 +174,58 @@ export default function CartPage() {
             <CardContent className="space-y-4">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Summe</span>
-                <span className="text-xl font-bold text-primary">{formatEuro(cartTotal())}</span>
+                <span className="text-xl font-bold text-primary">{formatEuro(total)}</span>
+              </div>
+
+              <div
+                className={`rounded-lg border p-3 text-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 ${
+                  canAfford
+                    ? "border-primary/30 bg-primary/5"
+                    : "border-destructive/40 bg-destructive/5"
+                }`}
+              >
+                <div className="flex items-start gap-2">
+                  <Coins className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-medium">
+                      Dein ATC: {formatAtc(balance)} ≈ {formatEuroAmount(balance)}
+                    </p>
+                    {!canAfford && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {balance <= 0
+                          ? "Ladung ist ausgegeben bzw. leer – bitte aufladen. Ohne ATC keine Käufe."
+                          : `Es fehlen ${formatAtc(Math.round((total - balance) * 100) / 100)}. Ohne ausreichendes Guthaben kein Kauf.`}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                {!canAfford && (
+                  <Link href="/guthaben">
+                    <Button size="sm" variant="default">
+                      Jetzt aufladen
+                    </Button>
+                  </Link>
+                )}
               </div>
 
               <PaymentMethodPicker value={paymentMethod} onChange={setPaymentMethod} />
 
               <div className="flex items-start gap-2 text-xs text-muted-foreground">
                 <Shield className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                Zahlung: ATC (intern), PayPal, Überweisung oder Paysafe Card. Kauf nur mit
-                registriertem Konto und Profil. ATC unter{" "}
+                Käufe nur mit ATC. Ist die Ladung leer, unter{" "}
                 <Link href="/guthaben" className="text-primary underline-offset-2 hover:underline">
                   Guthaben
-                </Link>
-                .
+                </Link>{" "}
+                erneut aufladen – ohne Guthaben keine Käufe.
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button className="font-bold" onClick={checkout} disabled={!paymentMethod}>
+                <Button
+                  className="font-bold"
+                  onClick={checkout}
+                  disabled={!paymentMethod || !canAfford}
+                >
                   <CheckCircle className="mr-2 h-4 w-4" />
-                  Kauf bestätigen
+                  {canAfford ? "Kauf bestätigen" : "Zuerst aufladen"}
                 </Button>
                 <Button variant="outline" onClick={() => clearCart()}>
                   Leeren

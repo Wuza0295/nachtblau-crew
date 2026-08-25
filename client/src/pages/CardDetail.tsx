@@ -28,6 +28,13 @@ import { getSellerProfile } from "@/lib/marketplaceStore";
 import type { PaymentMethodId } from "@/lib/paymentMethods";
 import { addToCart } from "@/lib/cartStore";
 import {
+  formatAtc,
+  formatEuroAmount,
+  getAtcBalance,
+  getAtcVersion,
+  subscribeAtc,
+} from "@/lib/atcWalletStore";
+import {
   getWantsVersion,
   isWanted,
   subscribeWants,
@@ -44,6 +51,7 @@ import {
   MessageSquare,
   Heart,
   BadgeCheck,
+  Coins,
 } from "lucide-react";
 
 export default function CardDetail() {
@@ -54,6 +62,9 @@ export default function CardDetail() {
   const { profile, isComplete } = useTradingProfile(user?.id);
   const wantsV = useSyncExternalStore(subscribeWants, getWantsVersion, getWantsVersion);
   void wantsV;
+  const atcV = useSyncExternalStore(subscribeAtc, getAtcVersion, getAtcVersion);
+  void atcV;
+  const atcBalance = user?.id ? getAtcBalance(user.id) : 0;
   const wanted = isWanted(cardId);
 
   const ensureCanTrade = () => {
@@ -372,44 +383,102 @@ export default function CardDetail() {
             checkoutOnly
             className="py-1"
           />
-          <div className="flex items-center gap-2 text-sm text-muted-foreground py-1">
-            <Shield className="h-4 w-4 text-primary" />
-            Verkäufer erhält ATC-Guthaben · Auszahlung ab 50 €
-          </div>
-          <Button
-            className="w-full bg-primary hover:bg-primary/80"
-            onClick={() => {
-              if (!paymentMethod) {
-                toast.message("Bitte ATC-Verrechnung wählen");
-                return;
-              }
-              buyDialog &&
-                purchaseMutation.mutate(
-                  {
-                    listingId: buyDialog,
-                    buyerId: user?.id,
-                    buyerName: profile?.displayName ?? user?.name ?? undefined,
-                    paymentMethod,
-                  },
-                  {
-                    onSuccess: (result) => {
-                      toast.success(result.message);
+          {(() => {
+            const listingPrice = listings.find((l) => l.id === buyDialog)?.price ?? 0;
+            const canAffordListing = atcBalance >= listingPrice && listingPrice > 0;
+            return (
+              <>
+                <div
+                  className={`rounded-lg border p-3 text-sm flex flex-col gap-2 ${
+                    canAffordListing
+                      ? "border-primary/30 bg-primary/5"
+                      : "border-destructive/40 bg-destructive/5"
+                  }`}
+                >
+                  <div className="flex items-start gap-2">
+                    <Coins className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium">
+                        Dein ATC: {formatAtc(atcBalance)} ≈ {formatEuroAmount(atcBalance)}
+                      </p>
+                      {!canAffordListing && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {atcBalance <= 0
+                            ? "Kein Guthaben – bitte aufladen. Ohne ATC keine Käufe."
+                            : `Preis ${formatEuro(listingPrice)} – Guthaben reicht nicht. Bitte aufladen.`}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  {!canAffordListing && (
+                    <Link href="/guthaben">
+                      <Button size="sm" className="w-full sm:w-auto">
+                        Jetzt aufladen
+                      </Button>
+                    </Link>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground py-1">
+                  <Shield className="h-4 w-4 text-primary shrink-0" />
+                  Verkäufer erhält ATC · ohne ausreichendes Guthaben kein Kauf
+                </div>
+                <Button
+                  className="w-full bg-primary hover:bg-primary/80"
+                  onClick={() => {
+                    if (!paymentMethod) {
+                      toast.message("Bitte ATC-Verrechnung wählen");
+                      return;
+                    }
+                    if (!canAffordListing) {
+                      toast.error(
+                        atcBalance <= 0
+                          ? "Kein ATC-Guthaben. Bitte aufladen – ohne Aufladung keine Käufe."
+                          : "Nicht genug ATC. Bitte unter Guthaben aufladen."
+                      );
                       setBuyDialog(null);
-                      setPaymentMethod("atc");
-                      setReviewDialog({
-                        sellerId: result.listing.sellerId,
-                        listingId: result.listing.id,
-                      });
-                    },
-                    onError: (err) => toast.error(err.message),
-                  }
-                );
-            }}
-            disabled={purchaseMutation.isPending || !paymentMethod}
-          >
-            <CheckCircle className="mr-2 h-4 w-4" />
-            {purchaseMutation.isPending ? "Wird verarbeitet…" : "Kauf abschließen"}
-          </Button>
+                      navigate("/guthaben");
+                      return;
+                    }
+                    buyDialog &&
+                      purchaseMutation.mutate(
+                        {
+                          listingId: buyDialog,
+                          buyerId: user?.id,
+                          buyerName: profile?.displayName ?? user?.name ?? undefined,
+                          paymentMethod,
+                        },
+                        {
+                          onSuccess: (result) => {
+                            toast.success(result.message);
+                            setBuyDialog(null);
+                            setPaymentMethod("atc");
+                            setReviewDialog({
+                              sellerId: result.listing.sellerId,
+                              listingId: result.listing.id,
+                            });
+                          },
+                          onError: (err) => {
+                            toast.error(err.message);
+                            if (/ATC|Guthaben|aufladen/i.test(err.message)) {
+                              setBuyDialog(null);
+                              navigate("/guthaben");
+                            }
+                          },
+                        }
+                      );
+                  }}
+                  disabled={purchaseMutation.isPending || !paymentMethod || !canAffordListing}
+                >
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  {purchaseMutation.isPending
+                    ? "Wird verarbeitet…"
+                    : canAffordListing
+                      ? "Kauf abschließen"
+                      : "Zuerst aufladen"}
+                </Button>
+              </>
+            );
+          })()}
         </DialogContent>
       </Dialog>
 

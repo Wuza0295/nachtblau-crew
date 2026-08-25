@@ -18,7 +18,7 @@ import type { PaymentMethodId } from "./paymentMethods";
 import { getPaymentMethod } from "./paymentMethods";
 import { paymentLabel, saveOrder } from "./orderStore";
 import { canSell } from "./sellerComplianceStore";
-import { receiveAtc, spendAtc } from "./atcWalletStore";
+import { getAtcBalance, receiveAtc, spendAtc } from "./atcWalletStore";
 
 let version = 0;
 const listeners = new Set<() => void>();
@@ -158,6 +158,14 @@ export function usePurchaseListing() {
         if (!peek?.listing) throw new Error("Angebot nicht gefunden");
         const sellerId = peek.listing.sellerId;
         const atcDebited = peek.listing.price;
+        const balance = getAtcBalance(input.buyerId);
+        if (balance < atcDebited) {
+          throw new Error(
+            balance <= 0
+              ? "Kein ATC-Guthaben. Bitte unter Guthaben aufladen – ohne Aufladung keine Käufe."
+              : `Nicht genug ATC. Bitte unter Guthaben aufladen – ohne ausreichendes Guthaben keine Käufe.`
+          );
+        }
         spendAtc(
           input.buyerId,
           atcDebited,

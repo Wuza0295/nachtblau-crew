@@ -380,7 +380,13 @@ export function spendAtc(userId: number, amount: number, note: string) {
   const state = read();
   const key = uidKey(userId);
   const current = state.balances[key] ?? 0;
-  if (current < amount) throw new Error("Nicht genug ATC-Guthaben");
+  if (current < amount) {
+    throw new Error(
+      current <= 0
+        ? "Kein ATC-Guthaben. Bitte unter Guthaben aufladen – ohne Aufladung keine Käufe."
+        : `Nicht genug ATC (${formatAtc(current)} verfügbar, ${formatAtc(amount)} nötig). Bitte aufladen – ohne Guthaben keine Käufe.`
+    );
+  }
   const next = Math.round((current - amount) * 100) / 100;
   state.balances[key] = next;
   pushTx(state, {

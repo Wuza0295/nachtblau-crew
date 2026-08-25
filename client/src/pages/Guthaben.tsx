@@ -358,8 +358,9 @@ export default function Guthaben() {
           Autics Balance (ATC)
         </h1>
         <p className="text-muted-foreground max-w-2xl text-sm leading-relaxed">
-          Kurs: <strong>1 ATC = {formatEuroAmount(ATC_EUR_RATE)}</strong>. Aufladen per PayPal,
-          Überweisung oder Paysafe. Auszahlung ab{" "}
+          Kurs: <strong>1 ATC = {formatEuroAmount(ATC_EUR_RATE)}</strong>. Marktplatz-Käufe nur mit
+          ATC – ist die Ladung ausgegeben, musst du hier erneut aufladen; ohne Guthaben keine Käufe.
+          Aufladen per PayPal, Überweisung oder Paysafe. Auszahlung ab{" "}
           <strong>{formatEuroAmount(ATC_PAYOUT_MIN_EUR)}</strong> per PayPal oder Überweisung.
           ATC ist internes Plattform-Guthaben (kein gesetzliches Zahlungsmittel).
         </p>

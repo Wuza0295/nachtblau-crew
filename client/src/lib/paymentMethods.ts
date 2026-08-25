@@ -17,9 +17,9 @@ export const PAYMENT_METHODS: PaymentMethod[] = [
     label: "Autic Coins (ATC)",
     shortLabel: "ATC",
     description:
-      "Kauf nur mit internem Guthaben. Der Verkäufer erhält ATC; Auszahlung ab 50 € per PayPal/Überweisung.",
+      "Kauf nur mit ATC-Guthaben. Ist die Ladung leer, muss erst aufgeladen werden – ohne ATC keine Käufe. Verkäufer erhält ATC; Auszahlung ab 50 €.",
     instructions:
-      "Der Betrag wird von deinem ATC abgezogen und dem Verkäufer als Guthaben gutgeschrieben. Aufladen und Auszahlung unter Guthaben.",
+      "Betrag wird vom ATC abgezogen und dem Verkäufer gutgeschrieben. Ohne ausreichendes Guthaben ist kein Kauf möglich – bitte unter Guthaben aufladen.",
   },
   {
     id: "paypal",
