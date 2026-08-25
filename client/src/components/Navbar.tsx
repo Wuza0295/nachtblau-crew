@@ -85,7 +85,7 @@ export default function Navbar() {
             <img
               src="/autic-treasures-logo.png"
               alt="Autic Treasures Logo"
-              className="h-9 w-9 object-cover rounded-md transition-transform duration-300 group-hover:scale-105"
+              className="h-9 w-9 object-contain rounded-md transition-transform duration-300 group-hover:scale-105"
             />
             <div className="hidden sm:block">
               <span className="font-serif font-bold text-base leading-none text-primary tracking-wide">

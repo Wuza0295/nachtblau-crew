@@ -18,6 +18,7 @@ import { useCreateListing, useMarketplaceCards, type TcgGame } from "@/lib/useMa
 import { useTradingProfile, profileSetupPath } from "@/lib/useTradingProfile";
 import { useSellerCompliance } from "@/lib/useSellerCompliance";
 import { sellerCompliancePath } from "@/lib/sellerComplianceStore";
+import { officialArtForGame, type OfficialTcgArt } from "@/lib/officialTcgArt";
 import { fileToCompressedDataUrl } from "@/lib/imageUpload";
 import { toast } from "sonner";
 import {
@@ -29,7 +30,7 @@ import {
   Scale,
   KeyRound,
 } from "lucide-react";
-
+import { useMemo } from "react";
 const GAMES: { value: TcgGame; label: string }[] = [
   { value: "pokemon", label: "Pokémon" },
   { value: "yugioh", label: "Yu-Gi-Oh!" },
@@ -62,6 +63,7 @@ export default function SellCard() {
   const [uploading, setUploading] = useState(false);
   const [sellPin, setSellPin] = useState("");
 
+  const officialArt = useMemo(() => officialArtForGame(game), [game]);
   const createMutation = useCreateListing();
 
   if (!isAuthenticated) {
@@ -115,6 +117,14 @@ export default function SellCard() {
       </div>
     );
   }
+
+  const applyOfficialArt = (art: OfficialTcgArt) => {
+    setTitle(art.name);
+    setSetName(art.setName);
+    setGame(art.game);
+    setImageUrl(art.imageUrl);
+    toast.success(`Original-Artwork von ${art.source}`);
+  };
 
   const applyCatalog = (id: string) => {
     setCatalogId(id);
@@ -261,12 +271,39 @@ export default function SellCard() {
 
             <div className="space-y-2">
               <Label>Kartenbild *</Label>
-              <div className="flex gap-3 items-start">
+              <p className="text-xs text-muted-foreground">
+                Bevorzugt Original-TCG-Artwork (Publisher-CDN) oder eigenes Foto deiner Karte.
+              </p>
+              <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+                {officialArt.map((art) => (
+                  <button
+                    key={art.id}
+                    type="button"
+                    onClick={() => applyOfficialArt(art)}
+                    className={`relative rounded-lg overflow-hidden border transition-all ${
+                      imageUrl === art.imageUrl
+                        ? "border-primary ring-1 ring-primary/50"
+                        : "border-border hover:border-primary/40"
+                    }`}
+                    title={`${art.name} · ${art.source}`}
+                  >
+                    <img
+                      src={art.imageUrl}
+                      alt={art.name}
+                      className="w-full aspect-[3/4] object-cover bg-secondary/40"
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                    />
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-3 items-start pt-1">
                 {imageUrl ? (
                   <img
                     src={imageUrl}
                     alt=""
                     className="w-20 h-28 object-cover rounded border border-border"
+                    referrerPolicy="no-referrer"
                   />
                 ) : (
                   <div className="w-20 h-28 rounded border border-dashed border-border flex items-center justify-center bg-secondary/30">
@@ -283,7 +320,7 @@ export default function SellCard() {
                     disabled={uploading}
                   />
                   <Input
-                    placeholder="oder Bild-URL"
+                    placeholder="oder Original-Bild-URL (pokemontcg / scryfall / ygoprodeck …)"
                     value={imageUrl.startsWith("data:") ? "" : imageUrl}
                     onChange={(e) => setImageUrl(e.target.value)}
                     className="bg-secondary/50 border-border text-sm"
