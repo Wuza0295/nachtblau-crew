@@ -21,7 +21,7 @@ flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/fl
 if [[ "${SILK_AUTO_GAMING:-0}" == "1" ]]; then
   /usr/bin/silk-install --setup-gaming || true
 elif command -v kdialog >/dev/null; then
-  if kdialog --yesno "Windows-/Gaming-Apps einrichten?\n(Steam, Heroic, Bottles für .exe, …)"; then
+  if kdialog --yesno "Gaming-Apps einrichten (wie unter Windows/Mac)?\n\nSteam, Epic/GOG (Heroic), itch.io, Discord, OBS, Minecraft, osu!, RetroArch, Moonlight, GeForce Now, Bottles, …"; then
     /usr/bin/silk-install --setup-gaming || true
   fi
 fi

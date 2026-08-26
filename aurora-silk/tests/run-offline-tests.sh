@@ -109,6 +109,20 @@ alias_lookup() {
 [[ "$(alias_lookup FIREFOX)" == "org.mozilla.firefox" ]] && ok "alias_lookup FIREFOX" || bad "alias_lookup FIREFOX"
 [[ "$(alias_lookup 'Google Chrome')" == "com.google.Chrome" ]] && ok "alias_lookup Google Chrome" || bad "alias_lookup Google Chrome"
 
+echo "== Gaming Flatpaks =="
+RFP="$ROOT/system_files/usr/share/silk/recommended-flatpaks.txt"
+if [[ -f "$RFP" ]]; then
+  ok "exists recommended-flatpaks.txt"
+else
+  bad "missing recommended-flatpaks.txt"
+fi
+for id in com.valvesoftware.Steam com.heroicgameslauncher.hgl io.itch.itch com.discordapp.Discord com.obsproject.Studio org.prismlauncher.PrismLauncher sh.ppy.osu com.moonlight_stream.Moonlight; do
+  grep -qxF "$id" "$RFP" && ok "flatpak $id" || bad "flatpak $id"
+done
+[[ "$(alias_lookup itch)" == "io.itch.itch" ]] && ok "alias itch" || bad "alias itch"
+[[ "$(alias_lookup osu)" == "sh.ppy.osu" ]] && ok "alias osu" || bad "alias osu"
+[[ "$(alias_lookup 'geforce now')" == "io.github.hmlendea.geforcenow-electron" ]] && ok "alias geforce now" || bad "alias geforce now"
+
 echo "== MIME / Desktop-Wahl =="
 grep -q 'MimeType=application/x-ms-dos-executable' "$ROOT/system_files/usr/share/applications/silk-open-exe.desktop" \
   && ok "exe mime" || bad "exe mime"

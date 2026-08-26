@@ -28,21 +28,8 @@ dnf5 -y install \
 dnf5 -y install wine-core wine-dxgi winetricks 2>/dev/null || \
   dnf5 -y install wine winetricks 2>/dev/null || true
 
-# Empfohlene Flatpaks (werden beim ersten Login / silk-setup installiert)
-cat >/usr/share/silk/recommended-flatpaks.txt <<'EOF'
-com.valvesoftware.Steam
-com.heroicgameslauncher.hgl
-net.lutris.Lutris
-com.usebottles.bottles
-net.davidotek.pupgui2
-org.freedesktop.Platform.VulkanLayer.MangoHud
-org.freedesktop.Platform.VulkanLayer.gamescope
-com.discordapp.Discord
-org.mozilla.firefox
-org.kde.gwenview
-org.kde.okular
-org.gnome.Loupe
-EOF
+# Empfohlene Flatpaks liegen in system_files/usr/share/silk/recommended-flatpaks.txt
+# (Steam, Heroic, itch, Discord, OBS, Minecraft, osu!, … – Win/Mac-Äquivalente)
 
 # AMD Kernel-Parameter Hinweis für bootc/rpm-ostree (Dokumentation + Helper)
 cat >/usr/share/silk/kernel-args-amd.txt <<'EOF'

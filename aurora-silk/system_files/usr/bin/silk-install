@@ -92,8 +92,8 @@ setup_gaming() {
   while IFS= read -r app; do
     [[ -z "$app" || "$app" =~ ^# ]] && continue
     install_flatpak "$app" || echo "Warnung: $app fehlgeschlagen"
-  done < /usr/share/silk/recommended-flatpaks.txt
-  echo "Fertig. Steam/Heroic ggf. einmal starten."
+  done < <(grep -vE '^\s*(#|$)' /usr/share/silk/recommended-flatpaks.txt)
+  echo "Fertig. Steam, Heroic, Discord & Co. ggf. einmal starten."
 }
 
 basename_stem() {

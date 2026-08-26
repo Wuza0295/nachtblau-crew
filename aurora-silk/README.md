@@ -39,7 +39,7 @@ Bekannte Zuordnungen liegen in `usr/share/silk/app-aliases.json` (z. B. Safari
 
 - Image: `ghcr.io/ublue-os/aurora:stable` (AMD/Open, KDE)
 - AMD/Lightweight: Sysctl, NVMe-Kyber, Mesa/RADV
-- Gaming: GameMode, MangoHud, Gamescope + Flatpaks
+- Gaming (Win/Mac-Äquivalente): Steam, Steam Link, Heroic (Epic/GOG), itch.io, Discord, OBS, Minecraft (Prism), osu!, RetroArch, Dolphin, PPSSPP, Moonlight, Chiaki, GeForce Now, Bottles/Lutris + GameMode/MangoHud
 
 ## Build / Rebase
 
