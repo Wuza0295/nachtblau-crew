@@ -1,0 +1,25 @@
+# Silk – Alltag für Windows-/Mac-Wechsler (ohne Gaming)
+# Wird von: silk-install --setup-essentials
+
+# --- Office & Dokumente ---
+org.libreoffice.LibreOffice
+org.mozilla.Thunderbird
+org.kde.okular
+org.kde.gwenview
+
+# --- Browser / Medien ---
+org.mozilla.firefox
+org.videolan.VLC
+
+# --- Passwörter & Cloud ---
+com.bitwarden.desktop
+com.dropbox.Client
+io.github.zarestia_dev.rclone-manager
+
+# --- Kommunikation (Win/Mac-üblich) ---
+us.zoom.Zoom
+com.github.IsmaelMartinez.teams_for_linux
+com.slack.Slack
+
+# --- Backup ---
+org.gnome.World.PikaBackup

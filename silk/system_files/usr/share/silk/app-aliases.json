@@ -88,8 +88,20 @@
   "mail": "org.mozilla.Thunderbird",
   "outlook": "org.mozilla.Thunderbird",
   "thunderbird": "org.mozilla.Thunderbird",
+  "onedrive": "io.github.zarestia_dev.rclone-manager",
+  "one drive": "io.github.zarestia_dev.rclone-manager",
+  "rclone": "io.github.zarestia_dev.rclone-manager",
+  "google drive": "io.github.zarestia_dev.rclone-manager",
+  "icloud": "io.github.zarestia_dev.rclone-manager",
   "dropbox": "com.dropbox.Client",
-  "onedrive": "com.microsoft.OneDrive",
+  "pika": "org.gnome.World.PikaBackup",
+  "pika backup": "org.gnome.World.PikaBackup",
+  "backup": "org.gnome.World.PikaBackup",
+  "7zip": "org.kde.ark",
+  "7-zip": "org.kde.ark",
+  "winrar": "org.kde.ark",
+  "winzip": "org.kde.ark",
   "skype": "com.skype.Client",
-  "vlc media player": "org.videolan.VLC"
+  "vlc media player": "org.videolan.VLC",
+  "thunderbird": "org.mozilla.Thunderbird"
 }

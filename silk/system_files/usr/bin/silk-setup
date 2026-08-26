@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# silk-setup – Erstkonfiguration: Herkunft (Mac/Windows) + Gaming
+# silk-setup – Erstkonfiguration: Stil, Alltag, Gaming, Willkommen
 set -euo pipefail
 
 MARKER="${XDG_CONFIG_HOME:-$HOME/.config}/silk/.setup-done"
+WELCOME_FLAG="${XDG_CONFIG_HOME:-$HOME/.config}/silk/.welcome-shown"
 mkdir -p "$(dirname "$MARKER")"
 
 if [[ -f "$MARKER" && "${1:-}" != "--force" ]]; then
@@ -11,20 +12,37 @@ fi
 
 notify-send "Silk" "Willkommen – richte Desktop für Wechsler ein…" 2>/dev/null || true
 
-# 1) Optik: Mac vs Windows 11 vs Windows 10
+# 1) Optik
 /usr/bin/silk-desktop --ask || /usr/bin/silk-apply-layout mac || true
 
 # Flatpak-Remotes
 flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo || true
 
-# 2) Gaming / Compat-Stack
+# 2) Alltag (Standard: ja empfehlen)
+if [[ "${SILK_AUTO_ESSENTIALS:-0}" == "1" ]]; then
+  /usr/bin/silk-install --setup-essentials || true
+elif command -v kdialog >/dev/null; then
+  if kdialog --yesno "Alltags-Apps installieren?\n\nLibreOffice, Firefox, VLC, Thunderbird, Bitwarden, Dropbox, Cloud-Sync (Rclone), Zoom/Teams, Backup, …\n\nEmpfohlen für Windows-/Mac-Wechsler."; then
+    /usr/bin/silk-install --setup-essentials || true
+  fi
+else
+  /usr/bin/silk-install --setup-essentials || true
+fi
+
+# 3) Gaming optional
 if [[ "${SILK_AUTO_GAMING:-0}" == "1" ]]; then
   /usr/bin/silk-install --setup-gaming || true
 elif command -v kdialog >/dev/null; then
-  if kdialog --yesno "Gaming-Apps einrichten (wie unter Windows/Mac)?\n\nSteam, Epic/GOG (Heroic), itch.io, Discord, OBS, Minecraft, osu!, RetroArch, Moonlight, GeForce Now, Bottles, …"; then
+  if kdialog --yesno "Gaming-Apps einrichten (wie unter Windows/Mac)?\n\nSteam, Epic/GOG (Heroic), itch.io, Discord, OBS, Minecraft, osu!, …"; then
     /usr/bin/silk-install --setup-gaming || true
   fi
 fi
 
+# 4) Willkommen / Checkliste
+if [[ ! -f "$WELCOME_FLAG" ]]; then
+  /usr/bin/silk-welcome || true
+  touch "$WELCOME_FLAG"
+fi
+
 touch "$MARKER"
-notify-send "Silk" "Fertig. .exe/.dmg/.app/.apk öffnen sich über silk-install. Stil ändern: silk-desktop" 2>/dev/null || true
+notify-send "Silk" "Fertig. Hilfe: silk-welcome · Stil: silk-desktop · Apps: silk-install" 2>/dev/null || true

@@ -13,6 +13,7 @@ silk-install – Programme wie gewohnt öffnen, Silk findet Linux-Gegenstücke
 Usage:
   silk-install <datei|app-name> [--force-compat]
   silk-install --search <query>
+  silk-install --setup-essentials
   silk-install --setup-gaming
 
 Unterstützte Dateien:
@@ -87,13 +88,25 @@ install_flatpak() {
   flatpak install -y --user flathub "$appid"
 }
 
-setup_gaming() {
-  echo "Gaming-Flatpaks einrichten…"
+setup_list() {
+  local list="$1"
+  local label="$2"
+  echo "${label}…"
+  [[ -f "$list" ]] || { echo "Liste fehlt: $list" >&2; return 1; }
   while IFS= read -r app; do
     [[ -z "$app" || "$app" =~ ^# ]] && continue
     install_flatpak "$app" || echo "Warnung: $app fehlgeschlagen"
-  done < <(grep -vE '^\s*(#|$)' /usr/share/silk/recommended-flatpaks.txt)
-  echo "Fertig. Steam, Heroic, Discord & Co. ggf. einmal starten."
+  done < <(grep -vE '^\s*(#|$)' "$list")
+  echo "Fertig: ${label}"
+}
+
+setup_essentials() {
+  setup_list /usr/share/silk/recommended-essentials.txt "Alltags-Apps (Office, Mail, VLC, Cloud, …)"
+}
+
+setup_gaming() {
+  setup_list /usr/share/silk/recommended-flatpaks.txt "Gaming-Flatpaks"
+  echo "Steam, Heroic, Discord & Co. ggf. einmal starten."
 }
 
 basename_stem() {
@@ -247,6 +260,7 @@ main() {
   case "${arg}" in
     ""|-h|--help) usage; exit 0 ;;
     --setup-gaming) setup_gaming; exit 0 ;;
+    --setup-essentials) setup_essentials; exit 0 ;;
     --search)
       shift
       search_flathub "${1:-}"

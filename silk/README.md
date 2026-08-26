@@ -34,13 +34,21 @@ Beim ersten Login fragt Silk, woher du kommst:
 | `.dmg` / `.pkg` / `.app` | Flatpak-Gegenstück (Mac-Binaries laufen **nicht**) |
 
 ```bash
-silk-install DiscordSetup.exe
-silk-install Firefox.app
-silk-install GoogleChrome.dmg
+silk-install --setup-essentials   # Office, Mail, VLC, Cloud, Zoom/Teams, Backup
 silk-install --setup-gaming
-silk-install --search notion
+silk-install DiscordSetup.exe
+silk-welcome                      # Wechsler-Checkliste
 ```
 
+Beim ersten Login: Desktop-Stil → Alltagspaket → optional Gaming → Willkommen.
+
+## Was Wechsler zum Start bekommen
+
+- **Alltag:** LibreOffice, Firefox, VLC, Thunderbird, Bitwarden, Dropbox, Rclone (OneDrive/Google Drive/iCloud), Zoom/Teams/Slack, Pika Backup
+- **Datenträger:** NTFS + exFAT, SMB-Client
+- **Fonts:** Liberation + Noto (+ MS-Core wo verfügbar)
+- **Defaults:** PDF/Office/Medien öffnen mit vertrauten Apps
+- **Hilfe:** `silk-welcome` (auch Autostart einmalig)
 ## Basis & Updates
 
 - **Base-Image:** `ghcr.io/ublue-os/aurora:stable` (floating Tag, kein Digest-Pin)

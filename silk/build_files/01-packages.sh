@@ -28,7 +28,38 @@ dnf5 -y install \
   shared-mime-info \
   flatpak \
   gnome-keyring \
-  seahorse
+  seahorse \
+  p7zip \
+  p7zip-plugins \
+  ntfs-3g \
+  exfatprogs \
+  fuse-exfat \
+  udisks2 \
+  samba-client \
+  cifs-utils \
+  cups \
+  cups-filters \
+  system-config-printer \
+  liberation-fonts-all \
+  google-noto-sans-fonts \
+  google-noto-serif-fonts \
+  google-noto-emoji-fonts \
+  google-noto-sans-mono-fonts \
+  dejavu-sans-fonts \
+  zip \
+  file-roller \
+  ark \
+  spectacle \
+  gwenview \
+  okular \
+  kate \
+  kcalc \
+  dolphin
+
+# Microsoft Core Fonts (Liberation deckt viel ab; mscorefonts optional via RPM Fusion)
+dnf5 -y install curl cabextract 2>/dev/null || true
+dnf5 -y install mscore-fonts 2>/dev/null || \
+  dnf5 -y install msttcore-fonts-installer 2>/dev/null || true
 
 # Globales Menü / Fenstersteuerung für Mac-ähnliches Layout
 dnf5 -y install \

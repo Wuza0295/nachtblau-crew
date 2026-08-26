@@ -29,11 +29,15 @@ for f in \
   system_files/usr/bin/silk-apply-layout \
   system_files/usr/bin/silk-desktop \
   system_files/usr/bin/silk-setup \
+  system_files/usr/bin/silk-welcome \
   system_files/usr/share/silk/app-aliases.json \
+  system_files/usr/share/silk/recommended-essentials.txt \
+  system_files/usr/share/silk/welcome.html \
   system_files/usr/share/silk/plasma-mac-layout.js \
   system_files/usr/share/silk/plasma-windows11-layout.js \
   system_files/usr/share/silk/plasma-windows10-layout.js \
   system_files/usr/share/applications/silk-open-mac.desktop \
+  system_files/usr/share/applications/silk-welcome.desktop \
   system_files/etc/sysctl.d/99-silk-amd.conf \
   system_files/etc/udev/rules.d/99-silk-amd.rules \
   README.md
@@ -44,6 +48,14 @@ do
     bad "missing $f"
   fi
 done
+
+echo "== Wechsler-Starter =="
+grep -q 'ntfs-3g' "$ROOT/build_files/01-packages.sh" && ok "ntfs-3g package" || bad "ntfs-3g"
+grep -q 'exfatprogs' "$ROOT/build_files/01-packages.sh" && ok "exfatprogs package" || bad "exfat"
+grep -q 'setup-essentials' "$ROOT/system_files/usr/bin/silk-install" && ok "setup-essentials" || bad "setup-essentials"
+grep -q 'application/pdf' "$ROOT/system_files/usr/share/applications/mimeapps.list" && ok "pdf mime default" || bad "pdf mime"
+grep -q 'LibreOffice' "$ROOT/system_files/usr/share/silk/recommended-essentials.txt" && ok "essentials LibreOffice" || bad "essentials LO"
+grep -q 'silk-desktop' "$ROOT/system_files/usr/share/silk/welcome.html" && ok "welcome.html content" || bad "welcome.html"
 
 echo "== Branding / Image-Name =="
 if grep -q '^IMAGE_NAME=silk$' "$ROOT/silk.env"; then
