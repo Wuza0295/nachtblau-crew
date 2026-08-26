@@ -10,7 +10,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 HTML = ROOT / "docs" / "silk-produktuebersicht.html"
 OUT = Path("/opt/cursor/artifacts/silk-zusammenfassung.pdf")
-FALLBACK = ROOT / "silk-zusammenfassung.pdf"
+FALLBACK = ROOT / "docs" / "Silk-Zusammenfassung.pdf"
+FALLBACK_LEGACY = ROOT / "silk-zusammenfassung.pdf"
 
 
 def find_weasyprint() -> str:
@@ -37,9 +38,11 @@ def generate() -> Path:
         raise RuntimeError("PDF-Generierung fehlgeschlagen oder Datei zu klein")
 
     shutil.copy2(OUT, FALLBACK)
+    shutil.copy2(OUT, FALLBACK_LEGACY)
     kb = OUT.stat().st_size // 1024
     print(f"PDF erstellt: {OUT} ({kb} KB)")
-    print(f"Kopie:          {FALLBACK}")
+    print(f"Lokal im Repo:  {FALLBACK}")
+    print(f"               {FALLBACK_LEGACY}")
     return OUT
 
 
