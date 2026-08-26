@@ -14,6 +14,7 @@ notify-send "Silk" "Einrichtung für Windows-/Mac-Wechsler…" 2>/dev/null || tr
 
 # 1) Optik
 /usr/bin/silk-desktop --ask || /usr/bin/silk-apply-layout mac || true
+/usr/bin/silk-apply-wallpaper || true
 
 flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo || true
 

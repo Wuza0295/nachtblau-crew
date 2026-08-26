@@ -89,4 +89,5 @@ esac
 
 mkdir -p "$(dirname "$STYLE_FILE")"
 echo "$STYLE" > "$STYLE_FILE"
+/usr/bin/silk-apply-wallpaper || true
 echo "Silk Layout angewendet: $STYLE"

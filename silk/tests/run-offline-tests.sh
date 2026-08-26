@@ -33,6 +33,11 @@ for f in \
   system_files/usr/bin/silk-ensure-boxes \
   system_files/usr/bin/silk-sync-config \
   system_files/usr/bin/silk-update \
+  system_files/usr/bin/silk-apply-wallpaper \
+  system_files/usr/share/silk/wallpapers/silk-desktop.png \
+  system_files/usr/share/silk/wallpapers/silk-lock.png \
+  system_files/usr/share/silk/plasma-apply-wallpaper.js \
+  system_files/etc/skel/.config/kscreenlockerrc \
   system_files/usr/share/silk/app-aliases.json \
   system_files/usr/share/silk/recommended-essentials.txt \
   system_files/usr/share/silk/welcome.html \
@@ -72,6 +77,9 @@ grep -q 'SILK_SKIP_ESSENTIALS' "$ROOT/system_files/usr/bin/silk-setup" && ok "au
 grep -q 'silk-sync-config' "$ROOT/system_files/usr/bin/silk-update" && ok "silk-update sync" || bad "silk-update"
 grep -q 'Verteilung & Updates' "$ROOT/README.md" && ok "README distribution" || bad "README distribution"
 grep -q 'SILK_CONFIG_URL' "$ROOT/system_files/usr/bin/silk-sync-config" && ok "git config url" || bad "config url"
+[[ -f "$ROOT/system_files/usr/share/silk/wallpapers/silk-desktop.png" ]] && ok "wallpaper png" || bad "wallpaper"
+[[ -f "$ROOT/system_files/usr/share/silk/wallpapers/silk-lock.png" ]] && ok "lock screen png" || bad "lock png"
+grep -q 'silk-apply-wallpaper' "$ROOT/system_files/usr/bin/silk-apply-layout" && ok "layout applies wallpaper" || bad "wallpaper layout"
 
 echo "== Branding / Image-Name =="
 if grep -q '^IMAGE_NAME=silk$' "$ROOT/silk.env"; then
