@@ -2,10 +2,26 @@
 # silk-install – einheitlicher Installer für Wechsler (Win/Mac/Linux-Pakete)
 set -euo pipefail
 
-ALIASES="/usr/share/silk/app-aliases.json"
+ALIASES=""
 FLATHUB_API="https://flathub.org/api/v2"
 APPS_DIR="${XDG_BIN_HOME:-$HOME/.local/bin}"
 APPIMAGE_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/silk/appimages"
+SILK_USER_CONFIG="${XDG_DATA_HOME:-$HOME/.local/share}/silk"
+
+silk_config() {
+  local name="$1"
+  if [[ -f "${SILK_USER_CONFIG}/${name}" ]]; then
+    echo "${SILK_USER_CONFIG}/${name}"
+  else
+    echo "/usr/share/silk/${name}"
+  fi
+}
+
+init_config_paths() {
+  ALIASES="$(silk_config app-aliases.json)"
+}
+
+init_config_paths
 
 usage() {
   cat <<'EOF'
@@ -99,8 +115,7 @@ setup_list() {
 }
 
 setup_essentials() {
-  setup_list /usr/share/silk/recommended-essentials.txt "Alltags-Apps"
-  # Paket-Helfer für AppImage/Flatpak-Management
+  setup_list "$(silk_config recommended-essentials.txt)" "Alltags-Apps"
   install_flatpak it.mijorus.gearlever || true
   install_flatpak io.github.flattool.Warehouse || true
   install_flatpak com.github.tchx84.Flatseal || true
@@ -108,7 +123,7 @@ setup_essentials() {
 }
 
 setup_gaming() {
-  setup_list /usr/share/silk/recommended-flatpaks.txt "Gaming-Flatpaks"
+  setup_list "$(silk_config recommended-flatpaks.txt)" "Gaming-Flatpaks"
 }
 
 basename_stem() {

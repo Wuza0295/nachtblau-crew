@@ -56,6 +56,41 @@ Beim ersten Login: Stil wählen → **Alltags-Apps automatisch** → optional Ga
 - **Fonts:** Liberation + Noto (+ MS-Core wo verfügbar)
 - **Defaults:** PDF/Office/Medien + Installer-MIME
 - **Hilfe:** `silk-welcome`
+
+## Verteilung & Updates (wichtig)
+
+**Git ≠ System-Update für Nutzer.** Das Repo ist die **Quelle**; Nutzer installieren ein **fertiges OS-Image**, kein `git clone` auf dem Desktop.
+
+| Rolle | Was |
+|-------|-----|
+| **Entwickler** | Änderungen in Git → Push → GitHub Actions baut Image |
+| **Registry** | `ghcr.io/<user>/silk:latest` (signiert mit Cosign) |
+| **Erstinstallation** | ISO (optional) oder `bootc switch` von Aurora/Bazzite |
+| **Nutzer-Update System** | `sudo bootc upgrade` (+ Reboot) |
+| **Nutzer-Update Apps** | `flatpak update` oder `silk-update` |
+| **Listen ohne Rebuild** | `silk-sync-config` zieht Aliases/Essentials vom Git-`main` |
+
+### Drei Update-Ebenen
+
+1. **Aurora-Base** – Universal Blue; Silk-CI baut **täglich** neu mit frischem `aurora:stable`
+2. **Silk-Image** – Skripte, Themes, Pakete im Container → kommt mit `bootc upgrade`
+3. **Apps & Listen** – Flatpaks + `recommended-*.txt` / `app-aliases.json` via Git-Raw-URL
+
+```bash
+silk-update              # Git-Listen + Flatpaks
+silk-update --full       # + bootc upgrade (Neustart)
+silk-sync-config         # nur Listen vom Repo
+```
+
+Repo-URL für Listen: `SILK_CONFIG_URL` (Standard: dieses GitHub-Repo `main/silk/system_files/usr/share/silk`).
+
+### Angebot an Nutzer (empfohlen)
+
+1. Eigenes Repo (oder Fork) mit `silk/` + Actions + `SIGNING_SECRET`
+2. Öffentliches Package: `ghcr.io/wuza0295/silk:latest`
+3. Kurze Install-Anleitung im README + optional ISO aus `just build-iso`
+4. Kein „git pull“ auf dem laufenden System – nur `bootc switch` / `bootc upgrade`
+
 ## Basis & Updates
 
 - **Base-Image:** `ghcr.io/ublue-os/aurora:stable` (floating Tag, kein Digest-Pin)
