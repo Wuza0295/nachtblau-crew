@@ -1,0 +1,9 @@
+# Monorepo: Actions für Root-Workflows (u. a. aurora-silk-build.yml).
+# Container-Base aurora:stable bleibt floating – Updates kommen per täglichem Rebuild.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5

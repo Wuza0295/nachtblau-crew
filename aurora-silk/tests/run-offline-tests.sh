@@ -46,10 +46,48 @@ do
 done
 
 echo "== Containerfile Basis =="
-if grep -q 'FROM ghcr.io/ublue-os/aurora:stable' "$ROOT/Containerfile"; then
-  ok "Aurora stable base"
+if grep -qE '^FROM ghcr.io/ublue-os/aurora:stable$' "$ROOT/Containerfile"; then
+  ok "Aurora stable base (floating tag)"
 else
   bad "Containerfile base image"
+fi
+# Kein Digest-Pin wie aurora@sha256:… – würde Upstream-Tracking einfrieren
+if grep -qE 'FROM ghcr.io/ublue-os/aurora@sha256:' "$ROOT/Containerfile"; then
+  bad "Containerfile must not pin aurora digest"
+else
+  ok "no aurora digest pin"
+fi
+if grep -qiE '^FROM[[:space:]].*bazzite' "$ROOT/Containerfile"; then
+  bad "Containerfile must not FROM bazzite (single Aurora base)"
+else
+  ok "single Aurora base (no bazzite FROM)"
+fi
+
+echo "== Update-Dokumentation =="
+for needle in 'Updates einspielen' 'bootc upgrade' 'ujust update' 'rpm-ostree upgrade' 'Bazzite'; do
+  if grep -qF "$needle" "$ROOT/README.md"; then
+    ok "README mentions $needle"
+  else
+    bad "README missing: $needle"
+  fi
+done
+if grep -qF 'Favorit: Aurora Silk' "$ROOT/README.md" || grep -qF 'Favorit: Aurora Silk / Silk' "$ROOT/README.md"; then
+  ok "README naming recommendation"
+else
+  bad "README naming recommendation"
+fi
+
+echo "== CI Pull-Strategie =="
+if grep -q -- '--pull=always' "$ROOT/Justfile"; then
+  ok "Justfile --pull=always"
+else
+  bad "Justfile missing --pull=always"
+fi
+WF_ROOT="$(cd "$ROOT/.." && pwd)/.github/workflows/aurora-silk-build.yml"
+if [[ -f "$WF_ROOT" ]] && grep -q 'cron:' "$WF_ROOT" && grep -q 'podman pull ghcr.io/ublue-os/aurora:stable' "$WF_ROOT"; then
+  ok "root workflow cron + base pull"
+else
+  bad "root workflow cron/base pull"
 fi
 
 echo "== app-aliases.json =="

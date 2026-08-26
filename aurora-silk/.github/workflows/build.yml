@@ -66,7 +66,11 @@ jobs:
           echo "IMAGE_REGISTRY=${IMAGE_REGISTRY,,}" >> ${GITHUB_ENV}
           echo "IMAGE_NAME=${IMAGE_NAME,,}" >> ${GITHUB_ENV}
 
-      # This actually builds the container image
+      # Floating aurora:stable – vor dem Build explizit ziehen (täglich via cron).
+      - name: Pull Aurora stable base
+        run: podman pull ghcr.io/ublue-os/aurora:stable
+
+      # This actually builds the container image (--pull=always im Justfile)
       - name: Build Image
         id: build-image
         run: |

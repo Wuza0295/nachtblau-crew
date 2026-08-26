@@ -5,6 +5,10 @@ COPY system_files /system_files
 
 # Aurora (KDE Plasma) – AMD/Open-Stack, ohne NVIDIA-Variante
 # Gaming-Tools und Mac-inspiriertes Look-and-Feel werden in build.sh ergänzt.
+#
+# Base-Tag absichtlich floating (:stable), kein Digest-Pin.
+# Täglicher CI-Rebuild + --pull=always liefert laufend Upstream-Updates.
+# Nicht gleichzeitig FROM bazzite – Silk bleibt ein Aurora-Base.
 FROM ghcr.io/ublue-os/aurora:stable
 
 ### [IM]MUTABLE /opt
