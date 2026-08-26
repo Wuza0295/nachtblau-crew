@@ -62,6 +62,9 @@ cd Silk-Website && ./start.sh
 | `assets/logo.svg` | Logo (dunkler Hintergrund) |
 | `assets/logo-light.svg` | Logo (heller Hintergrund) |
 | `assets/logo-icon.svg` | App-Icon / Favicon |
+| `assets/logo-icon-512.png` | Icon 512×512 (PNG) |
+| `silk-logo-pack.zip` | Alle Logos als ZIP |
+| `logo.html` | Download-Seite |
 | `index.html` | Landing Page |
 | `style.css` | Design |
 | `start.sh` | Lokaler Webserver |
