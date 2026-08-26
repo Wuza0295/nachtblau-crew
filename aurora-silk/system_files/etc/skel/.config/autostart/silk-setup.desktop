@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Aurora Silk Setup
-Exec=silk-setup
-Icon=preferences-system
-X-KDE-autostart-phase=1
-X-GNOME-Autostart-enabled=true
-NoDisplay=true

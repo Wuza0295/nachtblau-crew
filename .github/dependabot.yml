@@ -1,4 +1,4 @@
-# Monorepo: Actions für Root-Workflows (u. a. aurora-silk-build.yml).
+# Monorepo: Actions für Root-Workflows (u. a. silk-build.yml).
 # Container-Base aurora:stable bleibt floating – Updates kommen per täglichem Rebuild.
 version: 2
 updates:

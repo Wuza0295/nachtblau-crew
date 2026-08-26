@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Silk
+Comment=Mac-inspiriertes Look-and-Feel für Silk
+X-KDE-PluginInfo-Name=org.silk.desktop
+X-KDE-PluginInfo-Author=Silk
+X-KDE-PluginInfo-License=GPL
+X-KDE-ServiceTypes=Plasma/LookAndFeel
+Type=Service
