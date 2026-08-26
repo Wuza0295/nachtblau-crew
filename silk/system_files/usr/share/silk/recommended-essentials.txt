@@ -21,5 +21,8 @@ us.zoom.Zoom
 com.github.IsmaelMartinez.teams_for_linux
 com.slack.Slack
 
-# --- Backup ---
+# --- Backup & Paket-Helfer ---
 org.gnome.World.PikaBackup
+it.mijorus.gearlever
+io.github.flattool.Warehouse
+com.github.tchx84.Flatseal

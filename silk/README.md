@@ -29,26 +29,33 @@ Beim ersten Login fragt Silk, woher du kommst:
 
 | Datei | Verhalten |
 |-------|-----------|
-| `.exe` / `.msi` | Flatpak-Gegenstück suchen → sonst Bottles/Wine |
+| `.exe` / `.msi` | Flatpak → sonst Wine/Bottles |
 | `.apk` | Flatpak → sonst Waydroid |
-| `.dmg` / `.pkg` / `.app` | Flatpak-Gegenstück (Mac-Binaries laufen **nicht**) |
+| `.dmg` / `.pkg` / `.app` | Flatpak-Gegenstück |
+| `.AppImage` | Flatpak → sonst Gear Lever / `~/Applications` |
+| `.flatpak` / `.flatpakref` | `flatpak install` |
+| `.deb` | Flatpak → sonst Ubuntu-Distrobox |
+| `.rpm` | Flatpak → rpm-ostree oder Fedora-Box |
+| `.snap` | Flatpak → sonst Snap in Ubuntu-Box |
 
 ```bash
-silk-install --setup-essentials   # Office, Mail, VLC, Cloud, Zoom/Teams, Backup
-silk-install --setup-gaming
-silk-install DiscordSetup.exe
-silk-welcome                      # Wechsler-Checkliste
+silk-install --setup-essentials
+silk-install --ensure-boxes
+silk-install etwas.AppImage
+silk-install paket.deb
+silk-welcome
 ```
 
-Beim ersten Login: Desktop-Stil → Alltagspaket → optional Gaming → Willkommen.
+Beim ersten Login: Stil wählen → **Alltags-Apps automatisch** → optional Gaming → Willkommen. Doppelklick auf Installer-Dateien reicht.
 
 ## Was Wechsler zum Start bekommen
 
-- **Alltag:** LibreOffice, Firefox, VLC, Thunderbird, Bitwarden, Dropbox, Rclone (OneDrive/Google Drive/iCloud), Zoom/Teams/Slack, Pika Backup
+- **Alltag:** LibreOffice, Firefox, VLC, Thunderbird, Bitwarden, Dropbox, Rclone, Zoom/Teams/Slack, Pika Backup, Gear Lever, Warehouse, Flatseal
+- **Pakete:** AppImage, Flatpak, deb, rpm, snap (Flatpak zuerst, sonst Distrobox)
 - **Datenträger:** NTFS + exFAT, SMB-Client
 - **Fonts:** Liberation + Noto (+ MS-Core wo verfügbar)
-- **Defaults:** PDF/Office/Medien öffnen mit vertrauten Apps
-- **Hilfe:** `silk-welcome` (auch Autostart einmalig)
+- **Defaults:** PDF/Office/Medien + Installer-MIME
+- **Hilfe:** `silk-welcome`
 ## Basis & Updates
 
 - **Base-Image:** `ghcr.io/ublue-os/aurora:stable` (floating Tag, kein Digest-Pin)

@@ -4,10 +4,20 @@ application/x-msi=silk-open-exe.desktop
 application/x-msdownload=silk-open-exe.desktop
 application/vnd.android.package-archive=silk-open-apk.desktop
 application/x-apple-diskimage=silk-open-mac.desktop
-application/x-iso9660-app=silk-open-mac.desktop
 application/x-macbinary=silk-open-mac.desktop
 
-# Dokumente (Office / PDF) – Flatpak-IDs greifen nach Installation; KDE-Fallbacks darunter
+# Linux-Pakete / portable
+application/vnd.appimage=silk-open-appimage.desktop
+application/x-executable=silk-open-appimage.desktop
+application/vnd.debian.binary-package=silk-open-package.desktop
+application/x-deb=silk-open-package.desktop
+application/x-rpm=silk-open-package.desktop
+application/x-redhat-package-manager=silk-open-package.desktop
+application/vnd.snap=silk-open-package.desktop
+application/vnd.flatpak=silk-open-package.desktop
+application/vnd.flatpak.ref=silk-open-package.desktop
+
+# Dokumente
 application/pdf=org.kde.okular.desktop;okular.desktop;
 application/vnd.openxmlformats-officedocument.wordprocessingml.document=org.libreoffice.LibreOffice.desktop;libreoffice-writer.desktop;
 application/vnd.openxmlformats-officedocument.spreadsheetml.sheet=org.libreoffice.LibreOffice.desktop;libreoffice-calc.desktop;

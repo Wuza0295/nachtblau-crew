@@ -54,7 +54,16 @@ dnf5 -y install \
   okular \
   kate \
   kcalc \
-  dolphin
+  dolphin \
+  fuse3 \
+  fuse \
+  squashfs-tools \
+  xdg-desktop-portal \
+  xdg-desktop-portal-kde
+
+# libfuse2 oft für ältere AppImages (Name je nach Fedora-Release)
+dnf5 -y install fuse-libs 2>/dev/null || true
+dnf5 -y install libfuse2 2>/dev/null || true
 
 # Microsoft Core Fonts (Liberation deckt viel ab; mscorefonts optional via RPM Fusion)
 dnf5 -y install curl cabextract 2>/dev/null || true

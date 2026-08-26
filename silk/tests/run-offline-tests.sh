@@ -30,6 +30,7 @@ for f in \
   system_files/usr/bin/silk-desktop \
   system_files/usr/bin/silk-setup \
   system_files/usr/bin/silk-welcome \
+  system_files/usr/bin/silk-ensure-boxes \
   system_files/usr/share/silk/app-aliases.json \
   system_files/usr/share/silk/recommended-essentials.txt \
   system_files/usr/share/silk/welcome.html \
@@ -37,6 +38,8 @@ for f in \
   system_files/usr/share/silk/plasma-windows11-layout.js \
   system_files/usr/share/silk/plasma-windows10-layout.js \
   system_files/usr/share/applications/silk-open-mac.desktop \
+  system_files/usr/share/applications/silk-open-appimage.desktop \
+  system_files/usr/share/applications/silk-open-package.desktop \
   system_files/usr/share/applications/silk-welcome.desktop \
   system_files/etc/sysctl.d/99-silk-amd.conf \
   system_files/etc/udev/rules.d/99-silk-amd.rules \
@@ -53,9 +56,17 @@ echo "== Wechsler-Starter =="
 grep -q 'ntfs-3g' "$ROOT/build_files/01-packages.sh" && ok "ntfs-3g package" || bad "ntfs-3g"
 grep -q 'exfatprogs' "$ROOT/build_files/01-packages.sh" && ok "exfatprogs package" || bad "exfat"
 grep -q 'setup-essentials' "$ROOT/system_files/usr/bin/silk-install" && ok "setup-essentials" || bad "setup-essentials"
+grep -q 'handle_appimage' "$ROOT/system_files/usr/bin/silk-install" && ok "handle_appimage" || bad "appimage"
+grep -q 'handle_deb' "$ROOT/system_files/usr/bin/silk-install" && ok "handle_deb" || bad "deb"
+grep -q 'handle_snap' "$ROOT/system_files/usr/bin/silk-install" && ok "handle_snap" || bad "snap"
+grep -q 'handle_flatpak_file' "$ROOT/system_files/usr/bin/silk-install" && ok "handle_flatpak_file" || bad "flatpak file"
 grep -q 'application/pdf' "$ROOT/system_files/usr/share/applications/mimeapps.list" && ok "pdf mime default" || bad "pdf mime"
+grep -q 'vnd.appimage' "$ROOT/system_files/usr/share/applications/mimeapps.list" && ok "appimage mime" || bad "appimage mime"
+grep -q 'x-deb' "$ROOT/system_files/usr/share/applications/mimeapps.list" && ok "deb mime" || bad "deb mime"
 grep -q 'LibreOffice' "$ROOT/system_files/usr/share/silk/recommended-essentials.txt" && ok "essentials LibreOffice" || bad "essentials LO"
-grep -q 'silk-desktop' "$ROOT/system_files/usr/share/silk/welcome.html" && ok "welcome.html content" || bad "welcome.html"
+grep -q 'gearlever' "$ROOT/system_files/usr/share/silk/recommended-essentials.txt" && ok "essentials Gear Lever" || bad "gearlever"
+grep -q 'AppImage' "$ROOT/system_files/usr/share/silk/welcome.html" && ok "welcome AppImage" || bad "welcome AppImage"
+grep -q 'SILK_SKIP_ESSENTIALS' "$ROOT/system_files/usr/bin/silk-setup" && ok "auto essentials setup" || bad "auto essentials"
 
 echo "== Branding / Image-Name =="
 if grep -q '^IMAGE_NAME=silk$' "$ROOT/silk.env"; then
