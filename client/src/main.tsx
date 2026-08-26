@@ -8,6 +8,38 @@ import App from "./App";
 import { getLoginUrl } from "./const";
 import "./index.css";
 
+/** Erzwingt einmaligen Reload, wenn Browser noch alte SPA/Assets cached. */
+const APP_ASSET_VERSION = "autic-hero-v3";
+try {
+  if (typeof window !== "undefined") {
+    const key = "autic-asset-version";
+    const prev = window.localStorage.getItem(key);
+    if (prev !== APP_ASSET_VERSION) {
+      window.localStorage.setItem(key, APP_ASSET_VERSION);
+      if (prev) {
+        // Alte Service Worker + Caches verwerfen, dann hart neu laden
+        const ready = (async () => {
+          if ("serviceWorker" in navigator) {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map((r) => r.unregister()));
+          }
+          if ("caches" in window) {
+            const keys = await caches.keys();
+            await Promise.all(keys.map((k) => caches.delete(k)));
+          }
+        })();
+        void ready.finally(() => {
+          const url = new URL(window.location.href);
+          url.searchParams.set("v", APP_ASSET_VERSION);
+          window.location.replace(url.toString());
+        });
+      }
+    }
+  }
+} catch {
+  // ignore
+}
+
 const queryClient = new QueryClient();
 
 const redirectToLoginIfUnauthorized = (error: unknown) => {

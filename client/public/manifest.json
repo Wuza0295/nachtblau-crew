@@ -1,17 +1,24 @@
 {
-  "name": "NachtBlau Crew",
-  "short_name": "NachtBlau",
-  "description": "Gaming Community für PC, Konsolen, Steam und mehr.",
+  "name": "Autic Treasures",
+  "short_name": "Autic",
+  "description": "TCG-Marktplatz – kaufen, verkaufen und mit Autic Coins verrechnen.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0e1a",
-  "theme_color": "#0a0e1a",
+  "background_color": "#1a1410",
+  "theme_color": "#1a1410",
   "lang": "de",
   "icons": [
     {
-      "src": "https://d2xsxph8kpxj0f.cloudfront.net/310519663739653758/PbtcqHtcftAKnwDnhmoduf/nachtblau-logo-Li7umgFb8XhrYaRtYVFm4Z.webp",
+      "src": "/autic-treasures-logo.v3.png",
       "sizes": "512x512",
-      "type": "image/webp"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.v3.png",
+      "sizes": "64x64",
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }

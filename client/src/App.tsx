@@ -5,15 +5,26 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
+import Marketplace from "./pages/Marketplace";
+import CardDetail from "./pages/CardDetail";
+import SellCard from "./pages/SellCard";
+import SellerProfile from "./pages/SellerProfile";
+import Profile from "./pages/Profile";
+import SetupProfile from "./pages/SetupProfile";
+import Register from "./pages/Register";
+import Login from "./pages/Login";
+import Cart from "./pages/Cart";
+import Wants from "./pages/Wants";
+import Guthaben from "./pages/Guthaben";
+import SellerCompliance from "./pages/SellerCompliance";
+import ProfileRedirect from "./pages/ProfileRedirect";
+import About from "./pages/About";
 import FreeGames from "./pages/FreeGames";
 import News from "./pages/News";
 import Forum from "./pages/Forum";
 import ForumCategory from "./pages/ForumCategory";
 import ForumThread from "./pages/ForumThread";
 import NewThread from "./pages/NewThread";
-import Profile from "./pages/Profile";
-import ProfileRedirect from "./pages/ProfileRedirect";
-import About from "./pages/About";
 import SocialHub from "./pages/social/SocialHub";
 import SocialFluss from "./pages/social/SocialFluss";
 import SocialKreise from "./pages/social/SocialKreise";
@@ -34,6 +45,17 @@ function Router() {
           <main className="flex-1">
             <Switch>
               <Route path="/" component={Home} />
+              <Route path="/marktplatz" component={Marketplace} />
+              <Route path="/karte/:id" component={CardDetail} />
+              <Route path="/verkaufen" component={SellCard} />
+              <Route path="/verkaeufer/:id" component={SellerProfile} />
+              <Route path="/profil-erstellen" component={SetupProfile} />
+              <Route path="/registrieren" component={Register} />
+              <Route path="/anmelden" component={Login} />
+              <Route path="/warenkorb" component={Cart} />
+              <Route path="/merkliste" component={Wants} />
+              <Route path="/guthaben" component={Guthaben} />
+              <Route path="/verkaeufer-freigabe" component={SellerCompliance} />
               <Route path="/free-games" component={FreeGames} />
               <Route path="/news" component={News} />
               <Route path="/forum" component={Forum} />

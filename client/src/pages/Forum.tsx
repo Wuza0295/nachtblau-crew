@@ -15,6 +15,7 @@ import {
   Plus,
   ChevronRight,
 } from "lucide-react";
+import MaintenanceNotice from "@/components/MaintenanceNotice";
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   MessageSquare,
@@ -31,7 +32,8 @@ export default function Forum() {
 
   return (
     <div className="py-12">
-      <div className="container">
+      <div className="container space-y-6">
+        <MaintenanceNotice />
         {/* Header */}
         <div className="flex items-start justify-between mb-10">
           <div className="space-y-2">
@@ -47,7 +49,7 @@ export default function Forum() {
               </h1>
             </div>
             <p className="text-muted-foreground">
-              Diskutiere mit der NachtBlau Crew über Gaming, Spiele und mehr.
+              Community-Forum – derzeit nicht Teil des Autic-Treasures-Marktplatzes.
             </p>
           </div>
 

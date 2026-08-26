@@ -1,0 +1,433 @@
+import { useRef, useState } from "react";
+import { Link, useLocation } from "wouter";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { useCreateListing, useMarketplaceCards, type TcgGame } from "@/lib/useMarketplace";
+import { useTradingProfile, profileSetupPath } from "@/lib/useTradingProfile";
+import { useSellerCompliance } from "@/lib/useSellerCompliance";
+import { sellerCompliancePath } from "@/lib/sellerComplianceStore";
+import { officialArtForGame, type OfficialTcgArt } from "@/lib/officialTcgArt";
+import { fileToCompressedDataUrl } from "@/lib/imageUpload";
+import { toast } from "sonner";
+import {
+  ArrowLeft,
+  ImagePlus,
+  CheckCircle,
+  UserRound,
+  LogIn,
+  Scale,
+  KeyRound,
+} from "lucide-react";
+import { useMemo } from "react";
+const GAMES: { value: TcgGame; label: string }[] = [
+  { value: "pokemon", label: "Pokémon" },
+  { value: "yugioh", label: "Yu-Gi-Oh!" },
+  { value: "mtg", label: "Magic: The Gathering" },
+  { value: "onepiece", label: "One Piece" },
+  { value: "lorcana", label: "Disney Lorcana" },
+  { value: "sports", label: "Sportkarten" },
+  { value: "digimon", label: "Digimon" },
+];
+
+export default function SellCard() {
+  const { isAuthenticated, user } = useAuth();
+  const [, navigate] = useLocation();
+  const { profile, isComplete } = useTradingProfile(user?.id);
+  const { canSell, checkPin, gaps } = useSellerCompliance(user?.id, user?.email ?? "");
+  const { data: catalog } = useMarketplaceCards();
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const [title, setTitle] = useState("");
+  const [setName, setSetName] = useState("");
+  const [game, setGame] = useState<TcgGame>("pokemon");
+  const [catalogId, setCatalogId] = useState<string>("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [price, setPrice] = useState("");
+  const [condition, setCondition] = useState("near_mint");
+  const [language, setLanguage] = useState("DE");
+  const [quantity, setQuantity] = useState("1");
+  const [isFoil, setIsFoil] = useState(false);
+  const [description, setDescription] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [sellPin, setSellPin] = useState("");
+
+  const officialArt = useMemo(() => officialArtForGame(game), [game]);
+  const createMutation = useCreateListing();
+
+  if (!isAuthenticated) {
+    return (
+      <div className="container py-20 text-center space-y-4 max-w-lg">
+        <LogIn className="h-12 w-12 mx-auto text-primary" />
+        <h1 className="text-xl font-bold">Anmelden zum Verkaufen</h1>
+        <p className="text-muted-foreground text-sm">
+          Verkauf nur nach Anmeldung und gesetzlicher Verkäufer-Freigabe (Volljährigkeit, Ident, bei
+          Gewerbe DSA Art. 30).
+        </p>
+        <div className="flex flex-wrap justify-center gap-2">
+          <Button onClick={() => navigate("/anmelden?next=/verkaufen")}>Anmelden</Button>
+          <Button variant="outline" onClick={() => navigate("/registrieren?next=/verkaufen")}>
+            Registrieren
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isComplete || !profile) {
+    return (
+      <div className="container py-20 text-center space-y-4 max-w-lg">
+        <UserRound className="h-12 w-12 mx-auto text-primary" />
+        <h1 className="text-xl font-bold">Zuerst Handelsprofil anlegen</h1>
+        <p className="text-muted-foreground text-sm">
+          Anzeigename und Standort erscheinen bei deinen Angeboten.
+        </p>
+        <Button onClick={() => navigate(profileSetupPath("/verkaufen"))}>Profil erstellen</Button>
+      </div>
+    );
+  }
+
+  if (!canSell) {
+    return (
+      <div className="container py-20 text-center space-y-4 max-w-lg">
+        <Scale className="h-12 w-12 mx-auto text-primary" />
+        <h1 className="text-xl font-bold">Verkäufer-Freigabe erforderlich</h1>
+        <p className="text-muted-foreground text-sm leading-relaxed">
+          Laut Plattformrecht (DSA/DDG) und Geschäftsfähigkeit dürfen Angebote erst nach
+          Identifizierung, Altersprüfung und – bei Unternehmern – vollständigen Händlerangaben
+          freigeschaltet werden. Zusätzlich ist eine PIN Pflicht.
+        </p>
+        {gaps.length > 0 && (
+          <p className="text-xs text-amber-300/90">Noch offen: {gaps.join(", ")}</p>
+        )}
+        <Button onClick={() => navigate(sellerCompliancePath("/verkaufen"))}>
+          Freigabe starten
+        </Button>
+      </div>
+    );
+  }
+
+  const applyOfficialArt = (art: OfficialTcgArt) => {
+    setTitle(art.name);
+    setSetName(art.setName);
+    setGame(art.game);
+    setImageUrl(art.imageUrl);
+    toast.success(`Original-Artwork von ${art.source}`);
+  };
+
+  const applyCatalog = (id: string) => {
+    setCatalogId(id);
+    if (!id || id === "none") {
+      setCatalogId("");
+      return;
+    }
+    const card = catalog?.find((c) => c.id === id);
+    if (!card) return;
+    setTitle(card.name);
+    setSetName(card.setName);
+    setGame(card.game);
+    if (!imageUrl) setImageUrl(card.imageUrl);
+    if (!price) setPrice(String(card.marketPrice));
+  };
+
+  const handleImage = async (file: File | null) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const url = await fileToCompressedDataUrl(file);
+      setImageUrl(url);
+      toast.success("Bild hochgeladen");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Upload fehlgeschlagen");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !profile) return;
+    const pinOk = await checkPin(sellPin);
+    if (!pinOk) {
+      toast.error("PIN ungültig – Angebot nicht freigegeben");
+      return;
+    }
+    createMutation.mutate(
+      {
+        cardId: catalogId || undefined,
+        title,
+        setName: setName || undefined,
+        game,
+        imageUrl,
+        price: parseFloat(price),
+        condition: condition as "mint" | "near_mint" | "excellent" | "good" | "played",
+        language,
+        quantity: parseInt(quantity, 10) || 1,
+        isFoil,
+        description,
+        sellerId: user.id,
+        sellerName: profile.displayName,
+        sellerAvatar: profile.avatarUrl,
+        sellerCountry: profile.country,
+        sellerCity: profile.city,
+      },
+      {
+        onSuccess: (listing) => {
+          toast.success("Angebot eingestellt (PIN bestätigt)");
+          setSellPin("");
+          navigate(`/karte/${listing.cardId}`);
+        },
+        onError: (err) => toast.error(err.message),
+      }
+    );
+  };
+
+  return (
+    <div className="container py-8 max-w-2xl">
+      <Link href="/marktplatz">
+        <Button variant="ghost" size="sm" className="mb-4 text-muted-foreground -ml-2">
+          <ArrowLeft className="h-4 w-4 mr-1" />
+          Marktplatz
+        </Button>
+      </Link>
+
+      <Card className="bg-card border-border animate-rise">
+        <CardHeader>
+          <CardTitle className="text-2xl">Neues Angebot</CardTitle>
+          <CardDescription>
+            Freigegebener Verkäufer · Erlös als ATC (Auszahlung ab 50 €). Veröffentlichung erfordert deine
+            PIN.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {(catalog?.length ?? 0) > 0 && (
+              <div className="space-y-2">
+                <Label>Aus vorhandenen Produkten übernehmen (optional)</Label>
+                <Select value={catalogId || "none"} onValueChange={applyCatalog}>
+                  <SelectTrigger className="bg-secondary/50 border-border">
+                    <SelectValue placeholder="Produkt wählen" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">— Neues Angebot —</SelectItem>
+                    {catalog?.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name} ({c.setName})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="title">Titel *</Label>
+              <Input
+                id="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                className="bg-secondary/50 border-border"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>TCG *</Label>
+                <Select value={game} onValueChange={(v) => setGame(v as TcgGame)}>
+                  <SelectTrigger className="bg-secondary/50 border-border">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {GAMES.map((g) => (
+                      <SelectItem key={g.value} value={g.value}>
+                        {g.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="set">Set</Label>
+                <Input
+                  id="set"
+                  value={setName}
+                  onChange={(e) => setSetName(e.target.value)}
+                  className="bg-secondary/50 border-border"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Kartenbild *</Label>
+              <p className="text-xs text-muted-foreground">
+                Bevorzugt Original-TCG-Artwork (Publisher-CDN) oder eigenes Foto deiner Karte.
+              </p>
+              <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+                {officialArt.map((art) => (
+                  <button
+                    key={art.id}
+                    type="button"
+                    onClick={() => applyOfficialArt(art)}
+                    className={`relative rounded-lg overflow-hidden border transition-all ${
+                      imageUrl === art.imageUrl
+                        ? "border-primary ring-1 ring-primary/50"
+                        : "border-border hover:border-primary/40"
+                    }`}
+                    title={`${art.name} · ${art.source}`}
+                  >
+                    <img
+                      src={art.imageUrl}
+                      alt={art.name}
+                      className="w-full aspect-[3/4] object-cover bg-secondary/40"
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                    />
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-3 items-start pt-1">
+                {imageUrl ? (
+                  <img
+                    src={imageUrl}
+                    alt=""
+                    className="w-20 h-28 object-cover rounded border border-border"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="w-20 h-28 rounded border border-dashed border-border flex items-center justify-center bg-secondary/30">
+                    <ImagePlus className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                )}
+                <div className="flex-1 space-y-2">
+                  <Input
+                    ref={fileRef}
+                    type="file"
+                    accept="image/*"
+                    className="bg-secondary/50 border-border"
+                    onChange={(e) => handleImage(e.target.files?.[0] ?? null)}
+                    disabled={uploading}
+                  />
+                  <Input
+                    placeholder="oder Original-Bild-URL (pokemontcg / scryfall / ygoprodeck …)"
+                    value={imageUrl.startsWith("data:") ? "" : imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                    className="bg-secondary/50 border-border text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="price">Preis (ATC/€) *</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  required
+                  className="bg-secondary/50 border-border"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Zustand</Label>
+                <Select value={condition} onValueChange={setCondition}>
+                  <SelectTrigger className="bg-secondary/50 border-border">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="mint">Mint (M)</SelectItem>
+                    <SelectItem value="near_mint">Near Mint (NM)</SelectItem>
+                    <SelectItem value="excellent">Excellent (EX)</SelectItem>
+                    <SelectItem value="good">Good (GD)</SelectItem>
+                    <SelectItem value="played">Played (PL)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Sprache</Label>
+                <Select value={language} onValueChange={setLanguage}>
+                  <SelectTrigger className="bg-secondary/50 border-border">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="DE">DE</SelectItem>
+                    <SelectItem value="EN">EN</SelectItem>
+                    <SelectItem value="JP">JP</SelectItem>
+                    <SelectItem value="FR">FR</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="qty">Menge</Label>
+                <Input
+                  id="qty"
+                  type="number"
+                  min="1"
+                  value={quantity}
+                  onChange={(e) => setQuantity(e.target.value)}
+                  className="bg-secondary/50 border-border"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
+              <Label htmlFor="foil">Foil / Holo</Label>
+              <Switch id="foil" checked={isFoil} onCheckedChange={setIsFoil} />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="desc">Beschreibung</Label>
+              <Textarea
+                id="desc"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="bg-secondary/50 border-border"
+                rows={3}
+              />
+            </div>
+
+            <div className="space-y-2 rounded-xl border border-primary/30 bg-primary/5 p-3">
+              <Label htmlFor="pin" className="flex items-center gap-2">
+                <KeyRound className="h-4 w-4 text-primary" />
+                PIN zur Freigabe (6 Ziffern) *
+              </Label>
+              <Input
+                id="pin"
+                type="password"
+                inputMode="numeric"
+                maxLength={6}
+                value={sellPin}
+                onChange={(e) => setSellPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                required
+                className="bg-secondary/50 border-border font-mono tracking-widest max-w-[12rem]"
+              />
+            </div>
+
+            <Button type="submit" className="w-full font-bold" size="lg" disabled={uploading}>
+              <CheckCircle className="mr-2 h-4 w-4" />
+              Angebot veröffentlichen
+            </Button>
+            <p className="text-xs text-center text-muted-foreground">
+              Kauf nur per ATC · Verkäufer erhält Guthaben · Auszahlung ab 50 € möglich.
+            </p>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
