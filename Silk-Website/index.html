@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Silk – Linux für Umsteiger von Windows und macOS. Custom Bootc-Image auf Universal Blue Aurora." />
+  <title>Silk – Linux für Umsteiger</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="hero">
+  <nav class="nav">
+    <span class="logo">Silk</span>
+    <a href="#installieren">Installieren</a>
+    <a href="#features">Features</a>
+    <a href="https://github.com/Wuza0295/nachtblau-crew">GitHub</a>
+  </nav>
+  <div class="hero-inner">
+    <p class="badge">Custom Bootc Image · Nachtblau Crew</p>
+    <h1>Silk</h1>
+    <p class="tagline">Linux für Umsteiger von Windows und macOS – mit wählbarer Mac- oder Windows-inspirierter Optik.</p>
+    <div class="hero-actions">
+      <a class="btn primary" href="#installieren">Jetzt installieren</a>
+      <a class="btn secondary" href="quickstart.html">Quickstart</a>
+    </div>
+  </div>
+</header>
+
+<section class="disclaimer">
+  <strong>Hinweis:</strong> Silk ist kein macOS und kein Windows. Silk ist kein offizielles Produkt von
+  Apple, Microsoft, Fedora oder Universal Blue. Optik ist <em>inspiriert</em> von Open-Source-Themes.
+  Marken gehören ihren jeweiligen Inhabern. Software ohne Garantie („AS IS“).
+</section>
+
+<section id="features" class="section">
+  <h2>Was Silk kann</h2>
+  <div class="grid">
+    <article class="card">
+      <h3>🖥 Desktop-Stil</h3>
+      <p>Mac (Menüleiste + Dock), Windows 11 oder Windows 10 – beim Erstlogin wählbar.</p>
+    </article>
+    <article class="card">
+      <h3>📦 Smart-Installer</h3>
+      <p><code>.exe</code>, <code>.apk</code>, <code>.dmg</code>, <code>.app</code>, <code>.deb</code>, AppImage – Flatpak zuerst, sonst Wine/Waydroid.</p>
+    </article>
+    <article class="card">
+      <h3>🎮 Gaming</h3>
+      <p>Steam, Heroic, Discord, OBS, Minecraft, MangoHud – optional beim Setup.</p>
+    </article>
+    <article class="card">
+      <h3>⚡ GPU</h3>
+      <p>AMD, Intel und NVIDIA (nvidia-open Image für Turing/16xx+).</p>
+    </article>
+    <article class="card">
+      <h3>🔄 Updates</h3>
+      <p><code>silk-update</code> für Apps, <code>bootc upgrade</code> für das System.</p>
+    </article>
+    <article class="card">
+      <h3>🌍 Wechsler</h3>
+      <p>NTFS/exFAT, SMB, Hilfe via <code>silk-welcome</code>, 20 Mac/Win-Hintergründe.</p>
+    </article>
+  </div>
+</section>
+
+<section id="installieren" class="section dark">
+  <h2>Installation</h2>
+  <p class="lead">Du startest von Universal Blue Aurora (oder anderem Bootc-System) und wechselst per <code>bootc switch</code>.</p>
+
+  <h3>AMD / Intel</h3>
+  <pre><code>sudo bootc switch --enforce-container-sigpolicy ghcr.io/wuza0295/silk:latest
+sudo systemctl reboot</code></pre>
+
+  <h3>NVIDIA (Turing / GTX 16xx+, RTX)</h3>
+  <pre><code>sudo bootc switch --enforce-container-sigpolicy ghcr.io/wuza0295/silk-nvidia-open:latest
+sudo systemctl reboot</code></pre>
+
+  <p>Nach dem Neustart: <code>silk-setup</code> führt durch Stil, Apps und Willkommen.</p>
+  <p><a class="link" href="quickstart.html">→ Ausführliche Quickstart-Anleitung</a></p>
+</section>
+
+<section class="section">
+  <h2>Erste Schritte nach der Installation</h2>
+  <pre><code>silk-welcome              # Kurzhilfe
+silk-install datei.exe    # Programme installieren
+silk-desktop mac          # Mac-Optik
+silk-wallpaper list mac   # Hintergründe
+silk-update               # Updates</code></pre>
+</section>
+
+<section class="section muted">
+  <h2>Technische Basis</h2>
+  <p>Silk ist ein unabhängiges Custom-Image, gebaut auf <a href="https://getaurora.dev/">Universal Blue Aurora</a> (KDE Plasma, Fedora Atomic). Quellcode: <a href="https://github.com/Wuza0295/nachtblau-crew">GitHub</a> · Lizenz Silk-Layer: Apache-2.0 · <a href="https://github.com/Wuza0295/nachtblau-crew/blob/cursor/aurora-silk-os-2818/silk/NOTICE">Third-Party NOTICE</a></p>
+</section>
+
+<footer class="footer">
+  <div class="footer-grid">
+    <div>
+      <strong>Silk</strong><br />
+      Nachtblau Crew · Community-Projekt
+    </div>
+    <div>
+      <a href="#impressum">Impressum</a><br />
+      <a href="#datenschutz">Datenschutz</a>
+    </div>
+    <div>
+      <a href="https://github.com/Wuza0295/nachtblau-crew">GitHub</a><br />
+      <a href="https://github.com/Wuza0295/nachtblau-crew/blob/cursor/aurora-silk-os-2818/silk/LEGAL.md">Rechtliche Hinweise</a>
+    </div>
+  </div>
+  <p class="copy">© Nachtblau Crew · Silk is built on Universal Blue Aurora</p>
+</footer>
+
+<section id="impressum" class="legal">
+  <h2>Impressum</h2>
+  <p><em>Bitte vor Launch ausfüllen (§ 5 TMG):</em></p>
+  <p>
+    [Name / Firma]<br />
+    [Straße, PLZ Ort]<br />
+    [E-Mail]<br />
+    [Optional: USt-IdNr., Verantwortlicher i.S.d. § 18 Abs. 2 MStV]
+  </p>
+</section>
+
+<section id="datenschutz" class="legal">
+  <h2>Datenschutz</h2>
+  <p><em>Bitte vor Launch anpassen:</em></p>
+  <ul>
+    <li>Diese statische Seite speichert keine personenbezogenen Daten.</li>
+    <li>Beim Download des Container-Images von GitHub Container Registry (ghcr.io) gelten die Datenschutzbestimmungen von GitHub/Microsoft.</li>
+    <li>Kein Tracking-Cookie, solange kein Analytics eingebunden ist.</li>
+  </ul>
+</section>
+
+</body>
+</html>
