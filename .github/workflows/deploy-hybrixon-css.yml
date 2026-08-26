@@ -1,0 +1,33 @@
+name: Deploy Hybrixon CSS (ALL-INKL)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [cursor/hybrixon-topbar-fix-696c]
+    paths:
+      - "webspace/hybrixon.com/assets/css/style.css"
+      - "scripts/deploy-hybrixon-css.py"
+      - ".github/workflows/deploy-hybrixon-css.yml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy style.css via FTPS (or skip if secrets missing)
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASS: ${{ secrets.FTP_PASS }}
+          FTP_TLS: "1"
+        run: |
+          if [ -z "$FTP_USER" ] || [ -z "$FTP_PASS" ]; then
+            echo "::warning::FTP secrets (FTP_USER, FTP_PASS) fehlen in Repository Settings → Secrets and variables → Actions."
+            if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+              echo "::error::Manueller Deploy abgebrochen: FTP_USER und FTP_PASS müssen als GitHub Secrets hinterlegt sein."
+              exit 1
+            fi
+            echo "Push-Deploy übersprungen (CSS-Fix ist im Branch, Live-Upload folgt nach Secret-Konfiguration)."
+            exit 0
+          fi
+          python3 scripts/deploy-hybrixon-css.py
