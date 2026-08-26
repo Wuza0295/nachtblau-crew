@@ -11,22 +11,49 @@ Quickstart: [quickstart.html](https://raw.githack.com/Wuza0295/nachtblau-crew/cu
 > Dauerhafte URL nach Merge + GitHub Pages: `https://wuza0295.github.io/nachtblau-crew/`  
 > (GitHub Pages einmal unter Repo → Settings → Pages aktivieren)
 
-## Lokal starten (auf deinem Mac/PC)
+## Lokal starten
 
-`127.0.0.1:8765` funktioniert **nur**, wenn der Server läuft:
+`127.0.0.1:8765` funktioniert **nur**, wenn der Server auf **demselben Rechner** läuft.
+
+### Bazzite (empfohlen)
+
+Im Terminal (Konsole):
 
 ```bash
-git clone https://github.com/Wuza0295/nachtblau-crew.git
-cd nachtblau-crew
+# Einmalig: Repo holen
+git clone https://github.com/Wuza0295/nachtblau-crew.git ~/nachtblau-crew
+cd ~/nachtblau-crew
 git checkout cursor/silk-website-local-2818
+
+# Website starten (öffnet Browser automatisch)
 cd Silk-Website
 chmod +x start.sh
 ./start.sh
 ```
 
-**Erst danach** im Browser: http://127.0.0.1:8765
+Browser manuell: **http://127.0.0.1:8765**
+
+Ohne `git` (nur Download):
+
+```bash
+curl -L -o /tmp/silk-web.tar.gz \
+  https://github.com/Wuza0295/nachtblau-crew/archive/refs/heads/cursor/silk-website-local-2818.tar.gz
+tar -xzf /tmp/silk-web.tar.gz -C /tmp
+cd /tmp/nachtblau-crew-cursor-silk-website-local-2818/Silk-Website
+chmod +x start.sh
+./start.sh
+```
 
 Anderer Port: `./start.sh 8080`
+
+### Mac / Windows (WSL)
+
+```bash
+git clone https://github.com/Wuza0295/nachtblau-crew.git
+cd nachtblau-crew
+git checkout cursor/silk-website-local-2818
+cd Silk-Website && ./start.sh
+```
 
 ## Dateien
 
