@@ -3,3 +3,6 @@ application/x-ms-dos-executable=silk-open-exe.desktop
 application/x-msi=silk-open-exe.desktop
 application/x-msdownload=silk-open-exe.desktop
 application/vnd.android.package-archive=silk-open-apk.desktop
+application/x-apple-diskimage=silk-open-mac.desktop
+application/x-iso9660-app=silk-open-mac.desktop
+application/x-macbinary=silk-open-mac.desktop

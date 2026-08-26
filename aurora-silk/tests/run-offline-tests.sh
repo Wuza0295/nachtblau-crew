@@ -27,9 +27,13 @@ for f in \
   system_files/usr/bin/silk-run-exe \
   system_files/usr/bin/silk-run-apk \
   system_files/usr/bin/silk-apply-layout \
+  system_files/usr/bin/silk-desktop \
   system_files/usr/bin/silk-setup \
   system_files/usr/share/silk/app-aliases.json \
   system_files/usr/share/silk/plasma-mac-layout.js \
+  system_files/usr/share/silk/plasma-windows11-layout.js \
+  system_files/usr/share/silk/plasma-windows10-layout.js \
+  system_files/usr/share/applications/silk-open-mac.desktop \
   system_files/etc/sysctl.d/99-silk-amd.conf \
   system_files/etc/udev/rules.d/99-silk-amd.rules \
   README.md
@@ -54,50 +58,68 @@ if jq -e '.steam == "com.valvesoftware.Steam"' "$ROOT/system_files/usr/share/sil
 else
   bad "steam alias / jq"
 fi
+if jq -e '.safari == "org.mozilla.firefox"' "$ROOT/system_files/usr/share/silk/app-aliases.json" >/dev/null; then
+  ok "safari→firefox alias"
+else
+  bad "safari alias"
+fi
+if jq -e '.explorer == "org.kde.dolphin"' "$ROOT/system_files/usr/share/silk/app-aliases.json" >/dev/null; then
+  ok "explorer→dolphin alias"
+else
+  bad "explorer alias"
+fi
 
 echo "== silk-install Hilfslogik =="
-# shellcheck disable=SC1091
 guess_query_from_file() {
-  local stem b
-  b="$(basename "$1")"
-  stem="${b%.*}"
-  echo "$stem" | sed -E 's/[-_]?(setup|installer|x64|x86|win64|windows|portable)$//I; s/[0-9]+(\.[0-9]+){1,3}//g; s/[-_.]+/ /g; s/^ +| +$//g'
+  local stem b path="$1"
+  b="$(basename "$path")"
+  if [[ "${b,,}" == *.app ]]; then
+    stem="${b:0:-4}"
+  else
+    stem="${b%.*}"
+  fi
+  echo "$stem" | sed -E \
+    -e 's/\.app$//I' \
+    -e 's/[-_ ]?(setup|installer|install|x64|x86|win64|windows|portable|dmg|pkg|universal|arm64|intel)$//I' \
+    -e 's/[0-9]+(\.[0-9]+){1,3}//g' \
+    -e 's/[-_.]+/ /g' \
+    -e 's/^ +| +$//g'
 }
 
 q="$(guess_query_from_file "/tmp/DiscordSetup.exe")"
-if [[ "$q" == *"Discord"* ]] || [[ "$q" == *"discord"* ]] || [[ "$q" =~ [Dd]iscord ]]; then
-  ok "guess DiscordSetup.exe → [$q]"
-else
-  # sed may strip differently; accept non-empty
-  if [[ -n "$q" ]]; then ok "guess non-empty [$q]"; else bad "guess empty"; fi
-fi
+[[ "$q" =~ [Dd]iscord ]] && ok "guess DiscordSetup.exe → [$q]" || bad "guess exe [$q]"
+
+q="$(guess_query_from_file "/tmp/Firefox.app")"
+[[ "$q" =~ [Ff]irefox ]] && ok "guess Firefox.app → [$q]" || bad "guess app [$q]"
+
+q="$(guess_query_from_file "/tmp/GoogleChrome.dmg")"
+[[ -n "$q" ]] && ok "guess GoogleChrome.dmg → [$q]" || bad "guess dmg empty"
 
 alias_lookup() {
   local key="$1"
-  jq -r --arg k "${key,,}" '
+  key="$(echo "$key" | tr '[:upper:]' '[:lower:]' | sed -E 's/[[:space:]]+/ /g; s/^ +| +$//g')"
+  jq -r --arg k "$key" '
     to_entries[]
     | select((.key | ascii_downcase) == $k)
     | .value
   ' "$ROOT/system_files/usr/share/silk/app-aliases.json" | head -1
 }
 
-if [[ "$(alias_lookup steam)" == "com.valvesoftware.Steam" ]]; then
-  ok "alias_lookup steam"
-else
-  bad "alias_lookup steam"
-fi
+[[ "$(alias_lookup steam)" == "com.valvesoftware.Steam" ]] && ok "alias_lookup steam" || bad "alias_lookup steam"
+[[ "$(alias_lookup FIREFOX)" == "org.mozilla.firefox" ]] && ok "alias_lookup FIREFOX" || bad "alias_lookup FIREFOX"
+[[ "$(alias_lookup 'Google Chrome')" == "com.google.Chrome" ]] && ok "alias_lookup Google Chrome" || bad "alias_lookup Google Chrome"
 
-if [[ "$(alias_lookup FIREFOX)" == "org.mozilla.firefox" ]]; then
-  ok "alias_lookup FIREFOX"
-else
-  bad "alias_lookup FIREFOX"
-fi
-
-echo "== MIME Desktop-Dateien =="
+echo "== MIME / Desktop-Wahl =="
 grep -q 'MimeType=application/x-ms-dos-executable' "$ROOT/system_files/usr/share/applications/silk-open-exe.desktop" \
   && ok "exe mime" || bad "exe mime"
 grep -q 'MimeType=application/vnd.android.package-archive' "$ROOT/system_files/usr/share/applications/silk-open-apk.desktop" \
   && ok "apk mime" || bad "apk mime"
+grep -q 'application/x-apple-diskimage' "$ROOT/system_files/usr/share/applications/silk-open-mac.desktop" \
+  && ok "mac mime" || bad "mac mime"
+grep -q 'windows11' "$ROOT/system_files/usr/bin/silk-desktop" \
+  && ok "silk-desktop windows11" || bad "silk-desktop"
+grep -q 'handle_mac' "$ROOT/system_files/usr/bin/silk-install" \
+  && ok "silk-install handle_mac" || bad "handle_mac"
 
 echo
 echo "Ergebnis: $PASS bestanden, $FAIL fehlgeschlagen"

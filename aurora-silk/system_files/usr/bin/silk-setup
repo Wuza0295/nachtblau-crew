@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# silk-setup – Erstkonfiguration nach Login
+# silk-setup – Erstkonfiguration: Herkunft (Mac/Windows) + Gaming
 set -euo pipefail
 
 MARKER="${XDG_CONFIG_HOME:-$HOME/.config}/silk/.setup-done"
@@ -9,21 +9,22 @@ if [[ -f "$MARKER" && "${1:-}" != "--force" ]]; then
   exit 0
 fi
 
-notify-send "Aurora Silk" "Richte Desktop und Gaming-Stack ein…" 2>/dev/null || true
+notify-send "Aurora Silk" "Willkommen – richte Desktop für Wechsler ein…" 2>/dev/null || true
 
-/usr/bin/silk-apply-layout || true
+# 1) Optik: Mac vs Windows 11 vs Windows 10
+/usr/bin/silk-desktop --ask || /usr/bin/silk-apply-layout mac || true
 
 # Flatpak-Remotes
 flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo || true
 
-# Optionales Gaming-Setup nur wenn User zustimmt oder SILK_AUTO_GAMING=1
+# 2) Gaming / Compat-Stack
 if [[ "${SILK_AUTO_GAMING:-0}" == "1" ]]; then
   /usr/bin/silk-install --setup-gaming || true
 elif command -v kdialog >/dev/null; then
-  if kdialog --yesno "Gaming-Apps (Steam, Heroic, Bottles, …) jetzt von Flathub installieren?"; then
+  if kdialog --yesno "Windows-/Gaming-Apps einrichten?\n(Steam, Heroic, Bottles für .exe, …)"; then
     /usr/bin/silk-install --setup-gaming || true
   fi
 fi
 
 touch "$MARKER"
-notify-send "Aurora Silk" "Setup abgeschlossen. .exe/.apk öffnen sich über silk-install." 2>/dev/null || true
+notify-send "Aurora Silk" "Fertig. .exe/.dmg/.app/.apk öffnen sich über silk-install. Stil ändern: silk-desktop" 2>/dev/null || true

@@ -1,0 +1,11 @@
+{
+  "KPlugin": {
+    "Authors": [{ "Name": "Aurora Silk" }],
+    "Description": "Mac-inspiriertes Aurora Silk Desktop",
+    "Id": "org.silk.mac",
+    "License": "GPLv3",
+    "Name": "Aurora Silk Mac",
+    "ServiceTypes": ["Plasma/LookAndFeel"],
+    "Version": "1.0"
+  }
+}

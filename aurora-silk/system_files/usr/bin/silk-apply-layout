@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
-# silk-apply-layout – setzt Mac-inspiriertes Plasma-Layout (Top-Bar + Dock)
+# silk-apply-layout – Plasma-Layout + Themes (mac | windows11 | windows10)
 set -euo pipefail
 
-# Themes anwenden falls vorhanden
-plasma-apply-lookandfeel -a org.silk.desktop 2>/dev/null || true
+STYLE="${1:-}"
+STYLE_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/silk/desktop-style"
 
-# WhiteSur Theme / Icons / Cursor – beste verfügbare Variante wählen
+if [[ -z "$STYLE" && -f "$STYLE_FILE" ]]; then
+  STYLE="$(tr -d '[:space:]' < "$STYLE_FILE")"
+fi
+STYLE="${STYLE:-mac}"
+
 apply_first() {
   local cmd="$1"; shift
   local c
@@ -17,27 +21,72 @@ apply_first() {
   return 0
 }
 
-apply_first plasma-apply-colorscheme WhiteSurLight WhiteSurDark WhiteSur
-apply_first plasma-apply-desktoptheme WhiteSur-light WhiteSur-dark WhiteSur
-apply_first plasma-apply-cursortheme WhiteSur-cursors WhiteSur
+set_icons() {
+  local t
+  for t in "$@"; do
+    if [[ -d "/usr/share/icons/$t" ]]; then
+      /usr/libexec/silk/set-icon-theme "$t" 2>/dev/null || \
+        kwriteconfig6 --file kdeglobals --group Icons --key Theme "$t" 2>/dev/null || \
+        kwriteconfig5 --file kdeglobals --group Icons --key Theme "$t" 2>/dev/null || true
+      return 0
+    fi
+  done
+}
 
-# Icons via kwriteconfig
-for theme in WhiteSur WhiteSur-light WhiteSur-dark; do
-  if [[ -d "/usr/share/icons/$theme" ]]; then
-    /usr/libexec/silk/set-icon-theme "$theme" 2>/dev/null || \
-      kwriteconfig6 --file kdeglobals --group Icons --key Theme "$theme" 2>/dev/null || \
-      kwriteconfig5 --file kdeglobals --group Icons --key Theme "$theme" 2>/dev/null || true
-    break
+run_plasma_script() {
+  local js="$1"
+  [[ -f "$js" ]] || return 0
+  if command -v qdbus6 >/dev/null 2>&1; then
+    qdbus6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "$(cat "$js")" 2>/dev/null || true
+  else
+    qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "$(cat "$js")" 2>/dev/null || true
   fi
-done
+}
 
-# Panel-Layout: Top-Panel + Bottom-Dock (Script aus Share)
-if [[ -x /usr/libexec/silk/plasma-mac-layout.js ]] || [[ -f /usr/share/silk/plasma-mac-layout.js ]]; then
-  qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript \
-    "$(cat /usr/share/silk/plasma-mac-layout.js)" 2>/dev/null || true
-fi
+apply_mac() {
+  plasma-apply-lookandfeel -a org.silk.mac 2>/dev/null || \
+    plasma-apply-lookandfeel -a org.silk.desktop 2>/dev/null || true
+  apply_first plasma-apply-colorscheme WhiteSurLight WhiteSurDark WhiteSur
+  apply_first plasma-apply-desktoptheme WhiteSur-light WhiteSur-dark WhiteSur
+  apply_first plasma-apply-cursortheme WhiteSur-cursors WhiteSur
+  set_icons WhiteSur WhiteSur-light WhiteSur-dark
+  run_plasma_script /usr/share/silk/plasma-mac-layout.js
+  kwriteconfig6 --file kwinrc --group ModifierOnlyShortcuts --key Meta \
+    "org.kde.plasmashell,/PlasmaShell,org.kde.PlasmaShell,activateLauncherMenu" 2>/dev/null || true
+}
 
-# Globale Shortcuts: Meta öffnet Application Launcher (falls gesetzt)
-kwriteconfig6 --file kwinrc --group ModifierOnlyShortcuts --key Meta "org.kde.plasmashell,/PlasmaShell,org.kde.PlasmaShell,activateLauncherMenu" 2>/dev/null || true
+apply_windows11() {
+  plasma-apply-lookandfeel -a org.silk.windows11 2>/dev/null || true
+  apply_first plasma-apply-colorscheme FluentWin11Light FluentLight Win11OS-light BreezeLight
+  apply_first plasma-apply-desktoptheme Fluent-light Win11OS-light Breeze
+  apply_first plasma-apply-cursortheme Fluent-cursors Bibata-Modern-Classic
+  set_icons Fluent Fluent-light Win11-icons
+  run_plasma_script /usr/share/silk/plasma-windows11-layout.js
+  kwriteconfig6 --file kwinrc --group ModifierOnlyShortcuts --key Meta \
+    "org.kde.plasmashell,/PlasmaShell,org.kde.PlasmaShell,activateLauncherMenu" 2>/dev/null || true
+}
 
-echo "Aurora Silk Layout angewendet."
+apply_windows10() {
+  plasma-apply-lookandfeel -a org.silk.windows10 2>/dev/null || true
+  apply_first plasma-apply-colorscheme FluentWin10Light FluentLight BreezeLight
+  apply_first plasma-apply-desktoptheme Fluent-light Breeze
+  apply_first plasma-apply-cursortheme Fluent-cursors
+  set_icons Fluent Fluent-light
+  run_plasma_script /usr/share/silk/plasma-windows10-layout.js
+  kwriteconfig6 --file kwinrc --group ModifierOnlyShortcuts --key Meta \
+    "org.kde.plasmashell,/PlasmaShell,org.kde.PlasmaShell,activateLauncherMenu" 2>/dev/null || true
+}
+
+case "$STYLE" in
+  mac) apply_mac ;;
+  windows11|win11) apply_windows11; STYLE=windows11 ;;
+  windows10|win10|windows) apply_windows10; STYLE=windows10 ;;
+  *)
+    echo "Unbekannter Stil: $STYLE" >&2
+    exit 1
+    ;;
+esac
+
+mkdir -p "$(dirname "$STYLE_FILE")"
+echo "$STYLE" > "$STYLE_FILE"
+echo "Aurora Silk Layout angewendet: $STYLE"
