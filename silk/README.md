@@ -55,7 +55,7 @@ Beim ersten Login: Stil wählen → **Alltags-Apps automatisch** → optional Ga
 - **Datenträger:** NTFS + exFAT, SMB-Client
 - **Fonts:** Liberation + Noto (+ MS-Core wo verfügbar)
 - **Defaults:** PDF/Office/Medien + Installer-MIME
-- **Hintergrund:** Mac/Win-Fusion-Wallpaper + Sperrbild (`silk-apply-wallpaper`)
+- **Hintergrund:** 10 Desktop- + 10 Sperrbild-Varianten (Mac/Win-Fusion), `silk-wallpaper list/set/random`
 - **Hilfe:** `silk-welcome`
 
 ## Verteilung & Updates (wichtig)

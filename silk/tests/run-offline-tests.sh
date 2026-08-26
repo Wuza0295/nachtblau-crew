@@ -34,8 +34,8 @@ for f in \
   system_files/usr/bin/silk-sync-config \
   system_files/usr/bin/silk-update \
   system_files/usr/bin/silk-apply-wallpaper \
-  system_files/usr/share/silk/wallpapers/silk-desktop.png \
-  system_files/usr/share/silk/wallpapers/silk-lock.png \
+  system_files/usr/bin/silk-wallpaper \
+  system_files/usr/share/silk/wallpapers/manifest.json \
   system_files/usr/share/silk/plasma-apply-wallpaper.js \
   system_files/etc/skel/.config/kscreenlockerrc \
   system_files/usr/share/silk/app-aliases.json \
@@ -77,8 +77,13 @@ grep -q 'SILK_SKIP_ESSENTIALS' "$ROOT/system_files/usr/bin/silk-setup" && ok "au
 grep -q 'silk-sync-config' "$ROOT/system_files/usr/bin/silk-update" && ok "silk-update sync" || bad "silk-update"
 grep -q 'Verteilung & Updates' "$ROOT/README.md" && ok "README distribution" || bad "README distribution"
 grep -q 'SILK_CONFIG_URL' "$ROOT/system_files/usr/bin/silk-sync-config" && ok "git config url" || bad "config url"
-[[ -f "$ROOT/system_files/usr/share/silk/wallpapers/silk-desktop.png" ]] && ok "wallpaper png" || bad "wallpaper"
-[[ -f "$ROOT/system_files/usr/share/silk/wallpapers/silk-lock.png" ]] && ok "lock screen png" || bad "lock png"
+[[ -f "$ROOT/system_files/usr/share/silk/wallpapers/silk-desktop.png" ]] && ok "wallpaper default" || bad "wallpaper default"
+desktop_count="$(find "$ROOT/system_files/usr/share/silk/wallpapers" -name 'silk-desktop-*.png' 2>/dev/null | wc -l)"
+lock_count="$(find "$ROOT/system_files/usr/share/silk/wallpapers" -name 'silk-lock-*.png' 2>/dev/null | wc -l)"
+[[ "$desktop_count" -ge 10 ]] && ok "10+ desktop wallpapers ($desktop_count)" || bad "desktop count $desktop_count"
+[[ "$lock_count" -ge 10 ]] && ok "10+ lock screens ($lock_count)" || bad "lock count $lock_count"
+grep -q 'manifest.json' "$ROOT/system_files/usr/share/silk/wallpapers/manifest.json" 2>/dev/null || [[ -f "$ROOT/system_files/usr/share/silk/wallpapers/manifest.json" ]] && ok "wallpaper manifest" || bad "manifest"
+grep -q 'silk-wallpaper' "$ROOT/system_files/usr/bin/silk-wallpaper" && ok "silk-wallpaper cmd" || bad "silk-wallpaper"
 grep -q 'silk-apply-wallpaper' "$ROOT/system_files/usr/bin/silk-apply-layout" && ok "layout applies wallpaper" || bad "wallpaper layout"
 
 echo "== Branding / Image-Name =="

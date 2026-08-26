@@ -1,0 +1,126 @@
+{
+  "desktop": [
+    {
+      "id": "01",
+      "file": "silk-desktop-01.png",
+      "name": "Aurora Mac",
+      "desc": "Sanfte Aurora-Wellen, Mac-inspiriert"
+    },
+    {
+      "id": "02",
+      "file": "silk-desktop-02.png",
+      "name": "Fluent Win11",
+      "desc": "Zentrales Bloom-Licht, Windows 11"
+    },
+    {
+      "id": "03",
+      "file": "silk-desktop-03.png",
+      "name": "Mac Dark",
+      "desc": "Dunkler Mac-Nachtmodus"
+    },
+    {
+      "id": "04",
+      "file": "silk-desktop-04.png",
+      "name": "Win10 Classic",
+      "desc": "Klassisches Windows-Blau"
+    },
+    {
+      "id": "05",
+      "file": "silk-desktop-05.png",
+      "name": "Silk Teal",
+      "desc": "Seiden-Teal mit Silber"
+    },
+    {
+      "id": "06",
+      "file": "silk-desktop-06.png",
+      "name": "Sunset Mac",
+      "desc": "Mac-Sonnenuntergang"
+    },
+    {
+      "id": "07",
+      "file": "silk-desktop-07.png",
+      "name": "Fluent Dark",
+      "desc": "Dunkles Fluent Design"
+    },
+    {
+      "id": "08",
+      "file": "silk-desktop-08.png",
+      "name": "Silk Midnight",
+      "desc": "Mitternacht mit Goldakzent"
+    },
+    {
+      "id": "09",
+      "file": "silk-desktop-09.png",
+      "name": "Big Sur Green",
+      "desc": "Mac Big-Sur-Grün-Blau"
+    },
+    {
+      "id": "10",
+      "file": "silk-desktop-10.png",
+      "name": "Win Purple",
+      "desc": "Windows-Lila-Nacht"
+    }
+  ],
+  "lock": [
+    {
+      "id": "01",
+      "file": "silk-lock-01.png",
+      "name": "Aurora Mac",
+      "desc": "Sanfte Aurora-Wellen, Mac-inspiriert"
+    },
+    {
+      "id": "02",
+      "file": "silk-lock-02.png",
+      "name": "Fluent Win11",
+      "desc": "Zentrales Bloom-Licht, Windows 11"
+    },
+    {
+      "id": "03",
+      "file": "silk-lock-03.png",
+      "name": "Mac Dark",
+      "desc": "Dunkler Mac-Nachtmodus"
+    },
+    {
+      "id": "04",
+      "file": "silk-lock-04.png",
+      "name": "Win10 Classic",
+      "desc": "Klassisches Windows-Blau"
+    },
+    {
+      "id": "05",
+      "file": "silk-lock-05.png",
+      "name": "Silk Teal",
+      "desc": "Seiden-Teal mit Silber"
+    },
+    {
+      "id": "06",
+      "file": "silk-lock-06.png",
+      "name": "Sunset Mac",
+      "desc": "Mac-Sonnenuntergang"
+    },
+    {
+      "id": "07",
+      "file": "silk-lock-07.png",
+      "name": "Fluent Dark",
+      "desc": "Dunkles Fluent Design"
+    },
+    {
+      "id": "08",
+      "file": "silk-lock-08.png",
+      "name": "Silk Midnight",
+      "desc": "Mitternacht mit Goldakzent"
+    },
+    {
+      "id": "09",
+      "file": "silk-lock-09.png",
+      "name": "Big Sur Green",
+      "desc": "Mac Big-Sur-Grün-Blau"
+    },
+    {
+      "id": "10",
+      "file": "silk-lock-10.png",
+      "name": "Win Purple",
+      "desc": "Windows-Lila-Nacht"
+    }
+  ]
+}

@@ -1,26 +1,40 @@
 #!/usr/bin/env bash
-# silk-apply-wallpaper – Desktop + Sperrbildschirm (Mac/Win-Fusion)
+# silk-apply-wallpaper – Desktop + Sperrbildschirm anwenden
 set -euo pipefail
 
-DESKTOP="/usr/share/silk/wallpapers/silk-desktop.png"
-LOCK="/usr/share/silk/wallpapers/silk-lock.png"
+WALL_DIR="/usr/share/silk/wallpapers"
+CFG="${XDG_CONFIG_HOME:-$HOME/.config}/silk/wallpaper.conf"
 JS="/usr/share/silk/plasma-apply-wallpaper.js"
+
+# User-Auswahl oder Standard
+DESKTOP="${SILK_WALLPAPER_DESKTOP:-${WALL_DIR}/silk-desktop.png}"
+LOCK="${SILK_WALLPAPER_LOCK:-${WALL_DIR}/silk-lock.png}"
+if [[ -f "$CFG" ]]; then
+  # shellcheck disable=SC1090
+  source "$CFG"
+  DESKTOP="${DESKTOP:-${WALL_DIR}/silk-desktop.png}"
+  LOCK="${LOCK:-${WALL_DIR}/silk-lock.png}"
+fi
+
+[[ -f "$DESKTOP" ]] || DESKTOP="${WALL_DIR}/silk-desktop-01.png"
+[[ -f "$LOCK" ]] || LOCK="${WALL_DIR}/silk-lock-01.png"
 
 apply_plasma_wallpaper() {
   [[ -f "$JS" ]] || return 0
-  local script
-  script="$(cat "$JS")"
+  local tmp js
+  tmp="$(mktemp)"
+  sed "s|file:///usr/share/silk/wallpapers/silk-desktop.png|file://${DESKTOP}|g" "$JS" > "$tmp"
+  js="$(cat "$tmp")"
+  rm -f "$tmp"
   if command -v qdbus6 >/dev/null 2>&1; then
-    qdbus6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "$script" 2>/dev/null || true
+    qdbus6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "$js" 2>/dev/null || true
   elif command -v qdbus >/dev/null 2>&1; then
-    qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "$script" 2>/dev/null || true
+    qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "$js" 2>/dev/null || true
   fi
 }
 
 apply_lock_screen() {
   [[ -f "$LOCK" ]] || return 0
-  local cfg="${XDG_CONFIG_HOME:-$HOME/.config}/kscreenlockerrc"
-  mkdir -p "$(dirname "$cfg")"
   if command -v kwriteconfig6 >/dev/null 2>&1; then
     kwriteconfig6 --file kscreenlockerrc --group Greeter --group Wallpaper --group org.kde.image --group General --key Image "file://${LOCK}"
     kwriteconfig6 --file kscreenlockerrc --group Greeter --group Wallpaper --group org.kde.image --group General --key FillMode 2
@@ -30,7 +44,6 @@ apply_lock_screen() {
   fi
 }
 
-# Optional: lookandfeel metadata paths for fresh installs
 for lf in /usr/share/plasma/look-and-feel/org.silk.*; do
   [[ -d "$lf/contents" ]] || continue
   mkdir -p "$lf/contents/images"
@@ -39,4 +52,4 @@ done
 
 apply_plasma_wallpaper
 apply_lock_screen
-echo "Silk Wallpaper & Sperrbildschirm angewendet."
+echo "Wallpaper: $(basename "$DESKTOP") · Lock: $(basename "$LOCK")"
