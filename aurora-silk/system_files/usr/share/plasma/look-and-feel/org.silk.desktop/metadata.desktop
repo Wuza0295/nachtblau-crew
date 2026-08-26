@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Aurora Silk
+Comment=Mac-inspiriertes Look-and-Feel für Aurora
+X-KDE-PluginInfo-Name=org.silk.desktop
+X-KDE-PluginInfo-Author=Aurora Silk
+X-KDE-PluginInfo-License=GPL
+X-KDE-ServiceTypes=Plasma/LookAndFeel
+Type=Service

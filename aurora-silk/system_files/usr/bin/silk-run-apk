@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# silk-run-apk – installiert/startet APK in Waydroid
+set -euo pipefail
+
+FILE="${1:-}"
+[[ -n "$FILE" && -f "$FILE" ]] || { echo "Usage: silk-run-apk <file.apk>" >&2; exit 1; }
+FILE="$(realpath "$FILE")"
+
+if ! command -v waydroid >/dev/null 2>&1; then
+  kdialog --error "Waydroid ist nicht installiert.\nAndroid-Apps brauchen Waydroid." 2>/dev/null \
+    || echo "Waydroid fehlt." >&2
+  exit 1
+fi
+
+# Session starten falls nötig
+if ! waydroid status 2>/dev/null | grep -qi "RUNNING"; then
+  echo "Starte Waydroid-Session…"
+  waydroid session start &
+  sleep 3
+fi
+
+echo "Installiere APK…"
+waydroid app install "$FILE"
+kdialog --msgbox "APK installiert.\nÖffne Waydroid, um die App zu starten." 2>/dev/null || true

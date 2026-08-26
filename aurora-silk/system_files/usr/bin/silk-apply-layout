@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# silk-apply-layout – setzt Mac-inspiriertes Plasma-Layout (Top-Bar + Dock)
+set -euo pipefail
+
+# Themes anwenden falls vorhanden
+plasma-apply-lookandfeel -a org.silk.desktop 2>/dev/null || true
+
+# WhiteSur Theme / Icons / Cursor – beste verfügbare Variante wählen
+apply_first() {
+  local cmd="$1"; shift
+  local c
+  for c in "$@"; do
+    if $cmd "$c" 2>/dev/null; then
+      return 0
+    fi
+  done
+  return 0
+}
+
+apply_first plasma-apply-colorscheme WhiteSurLight WhiteSurDark WhiteSur
+apply_first plasma-apply-desktoptheme WhiteSur-light WhiteSur-dark WhiteSur
+apply_first plasma-apply-cursortheme WhiteSur-cursors WhiteSur
+
+# Icons via kwriteconfig
+for theme in WhiteSur WhiteSur-light WhiteSur-dark; do
+  if [[ -d "/usr/share/icons/$theme" ]]; then
+    /usr/libexec/silk/set-icon-theme "$theme" 2>/dev/null || \
+      kwriteconfig6 --file kdeglobals --group Icons --key Theme "$theme" 2>/dev/null || \
+      kwriteconfig5 --file kdeglobals --group Icons --key Theme "$theme" 2>/dev/null || true
+    break
+  fi
+done
+
+# Panel-Layout: Top-Panel + Bottom-Dock (Script aus Share)
+if [[ -x /usr/libexec/silk/plasma-mac-layout.js ]] || [[ -f /usr/share/silk/plasma-mac-layout.js ]]; then
+  qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript \
+    "$(cat /usr/share/silk/plasma-mac-layout.js)" 2>/dev/null || true
+fi
+
+# Globale Shortcuts: Meta öffnet Application Launcher (falls gesetzt)
+kwriteconfig6 --file kwinrc --group ModifierOnlyShortcuts --key Meta "org.kde.plasmashell,/PlasmaShell,org.kde.PlasmaShell,activateLauncherMenu" 2>/dev/null || true
+
+echo "Aurora Silk Layout angewendet."

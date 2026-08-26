@@ -1,0 +1,22 @@
+# Allow build scripts to be referenced without being copied into the final image
+FROM scratch AS ctx
+COPY build_files /
+COPY system_files /system_files
+
+# Aurora (KDE Plasma) – AMD/Open-Stack, ohne NVIDIA-Variante
+# Gaming-Tools und Mac-inspiriertes Look-and-Feel werden in build.sh ergänzt.
+FROM ghcr.io/ublue-os/aurora:stable
+
+### [IM]MUTABLE /opt
+## Uncomment if packages need a durable /opt (e.g. google-chrome).
+# RUN rm /opt && mkdir /opt
+
+### MODIFICATIONS
+RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
+    --mount=type=cache,dst=/var/cache \
+    --mount=type=cache,dst=/var/log \
+    --mount=type=tmpfs,dst=/tmp \
+    /ctx/build.sh
+
+### LINTING
+RUN bootc container lint

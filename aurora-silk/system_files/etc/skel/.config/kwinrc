@@ -1,0 +1,13 @@
+# KWin / Compositor Defaults für flüssiges Gaming + Desktop
+[Compositing]
+LatencyPolicy=Low
+WindowsBlockCompositing=true
+
+[Effect-blur]
+BlurStrength=4
+
+[Windows]
+BorderlessMaximizedWindows=true
+
+[ModifierOnlyShortcuts]
+Meta=org.kde.plasmashell,/PlasmaShell,org.kde.PlasmaShell,activateLauncherMenu

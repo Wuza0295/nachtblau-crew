@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+mkdir -p /var/lib/silk
+# Platz für künftige Hardware-Erkennung / AMD kargs Hinweise
+if [[ -r /sys/class/drm/card0/device/vendor ]]; then
+  vendor="$(cat /sys/class/drm/card0/device/vendor 2>/dev/null || true)"
+  # 0x1002 = AMD
+  if [[ "$vendor" == "0x1002" ]]; then
+    echo "amd" > /var/lib/silk/gpu
+  fi
+fi
+touch /var/lib/silk/firstboot-done

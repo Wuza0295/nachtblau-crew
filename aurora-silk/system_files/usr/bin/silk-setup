@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# silk-setup – Erstkonfiguration nach Login
+set -euo pipefail
+
+MARKER="${XDG_CONFIG_HOME:-$HOME/.config}/silk/.setup-done"
+mkdir -p "$(dirname "$MARKER")"
+
+if [[ -f "$MARKER" && "${1:-}" != "--force" ]]; then
+  exit 0
+fi
+
+notify-send "Aurora Silk" "Richte Desktop und Gaming-Stack ein…" 2>/dev/null || true
+
+/usr/bin/silk-apply-layout || true
+
+# Flatpak-Remotes
+flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo || true
+
+# Optionales Gaming-Setup nur wenn User zustimmt oder SILK_AUTO_GAMING=1
+if [[ "${SILK_AUTO_GAMING:-0}" == "1" ]]; then
+  /usr/bin/silk-install --setup-gaming || true
+elif command -v kdialog >/dev/null; then
+  if kdialog --yesno "Gaming-Apps (Steam, Heroic, Bottles, …) jetzt von Flathub installieren?"; then
+    /usr/bin/silk-install --setup-gaming || true
+  fi
+fi
+
+touch "$MARKER"
+notify-send "Aurora Silk" "Setup abgeschlossen. .exe/.apk öffnen sich über silk-install." 2>/dev/null || true
