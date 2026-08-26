@@ -59,6 +59,9 @@ cd Silk-Website && ./start.sh
 
 | Datei | Inhalt |
 |-------|--------|
+| `assets/logo.svg` | Logo (dunkler Hintergrund) |
+| `assets/logo-light.svg` | Logo (heller Hintergrund) |
+| `assets/logo-icon.svg` | App-Icon / Favicon |
 | `index.html` | Landing Page |
 | `style.css` | Design |
 | `start.sh` | Lokaler Webserver |

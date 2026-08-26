@@ -4,9 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Silk – Quickstart</title>
+  <link rel="icon" href="assets/logo-icon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="style.css" />
   <style>
     .doc { max-width: 720px; margin: 0 auto; padding: 32px 24px 64px; }
+    .doc-header { margin-bottom: 8px; }
+    .doc-header .logo { display: inline-block; text-decoration: none; }
+    .doc-header .logo img { display: block; height: 32px; width: auto; }
     .doc h1 { font-size: 1.75rem; margin-bottom: 8px; }
     .doc h2 { font-size: 1.2rem; margin: 28px 0 10px; color: #1e40af; }
     .doc p, .doc li { color: #334155; margin-bottom: 8px; }
@@ -16,6 +20,11 @@
 </head>
 <body>
   <div class="doc">
+    <header class="doc-header">
+      <a href="index.html" class="logo">
+        <img src="assets/logo-light.svg" alt="Silk" width="120" height="28" />
+      </a>
+    </header>
     <a class="back" href="index.html">← Zurück zur Startseite</a>
     <h1>Silk – Installation in 5 Minuten</h1>
     <p><strong>Voraussetzung:</strong> PC mit UEFI, Internet. Start von Universal Blue Aurora oder anderem Bootc-System.</p>
