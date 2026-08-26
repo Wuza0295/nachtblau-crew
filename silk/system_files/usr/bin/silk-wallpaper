@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# silk-wallpaper – Hintergrund & Sperrbild auswählen (10+ Varianten)
+# silk-wallpaper – Hintergrund & Sperrbild auswählen (20 Mac/Win-Varianten)
 set -euo pipefail
 
 WALL_DIR="/usr/share/silk/wallpapers"
@@ -8,27 +8,33 @@ CFG="${XDG_CONFIG_HOME:-$HOME/.config}/silk/wallpaper.conf"
 
 usage() {
   cat <<'EOF'
-silk-wallpaper – Silk Hintergründe (Mac/Win-Fusion)
+silk-wallpaper – Silk Hintergründe (Mac 01–10, Windows 11–20)
 
-  silk-wallpaper list
-  silk-wallpaper set <01-10|name>     # Desktop + passendes Lock
+  silk-wallpaper list [mac|win]
+  silk-wallpaper set <01-20>          # Desktop + passendes Lock
+  silk-wallpaper set mac <01-10>      # Mac-Variante
+  silk-wallpaper set win <11-20>      # Windows-Variante
   silk-wallpaper set desktop <id>
   silk-wallpaper set lock <id>
-  silk-wallpaper random
+  silk-wallpaper random [mac|win]
   silk-wallpaper current
 EOF
 }
 
 list_wallpapers() {
+  local filter="${1:-}"
   if [[ -f "$MANIFEST" ]] && command -v jq >/dev/null; then
-    echo "Desktop:"
-    jq -r '.desktop[] | "  \(.id)  \(.name) – \(.desc)"' "$MANIFEST"
-    echo "Sperrbild:"
-    jq -r '.lock[] | "  \(.id)  \(.name)"' "$MANIFEST"
+    echo "Desktop (Mac 01–10, Windows 11–20):"
+    if [[ "$filter" == "mac" ]]; then
+      jq -r '.desktop[] | select(.family=="mac") | "  \(.id)  \(.name) – \(.desc)"' "$MANIFEST"
+    elif [[ "$filter" == "win" ]]; then
+      jq -r '.desktop[] | select(.family=="win") | "  \(.id)  \(.name) – \(.desc)"' "$MANIFEST"
+    else
+      jq -r '.desktop[] | "  \(.id)  [\(.family)] \(.name) – \(.desc)"' "$MANIFEST"
+    fi
+    echo "Sperrbild: gleiche ID wie Desktop"
   else
-    ls -1 "$WALL_DIR"/silk-desktop-*.png 2>/dev/null | sed 's|.*/silk-desktop-||;s/.png//' | while read -r id; do
-      echo "  $id"
-    done
+    ls -1 "$WALL_DIR"/silk-desktop-*.png 2>/dev/null | sed 's|.*/silk-desktop-||;s/.png//'
   fi
 }
 
@@ -86,11 +92,20 @@ set_pair() {
 }
 
 random_pick() {
+  local filter="${1:-}"
   local ids=()
-  for f in "$WALL_DIR"/silk-desktop-*.png; do
-    [[ -f "$f" ]] || continue
-    ids+=("$(basename "$f" .png | sed 's/silk-desktop-//')")
-  done
+  if [[ -f "$MANIFEST" ]] && command -v jq >/dev/null; then
+    case "$filter" in
+      mac) mapfile -t ids < <(jq -r '.desktop[] | select(.family=="mac") | .id' "$MANIFEST") ;;
+      win) mapfile -t ids < <(jq -r '.desktop[] | select(.family=="win") | .id' "$MANIFEST") ;;
+      *) mapfile -t ids < <(jq -r '.desktop[].id' "$MANIFEST") ;;
+    esac
+  else
+    for f in "$WALL_DIR"/silk-desktop-*.png; do
+      [[ -f "$f" ]] || continue
+      ids+=("$(basename "$f" .png | sed 's/silk-desktop-//')")
+    done
+  fi
   local pick="${ids[RANDOM % ${#ids[@]}]}"
   set_pair "$pick"
 }
@@ -106,12 +121,14 @@ current() {
 main() {
   local cmd="${1:-}"
   case "$cmd" in
-    list|-l) list_wallpapers ;;
+    list|-l) list_wallpapers "${2:-}" ;;
     current) current ;;
-    random) random_pick ;;
+    random) random_pick "${2:-}" ;;
     set)
       shift
       case "${1:-}" in
+        mac) set_pair "${2:-01}" ;;
+        win) set_pair "${2:-11}" ;;
         desktop) apply_desktop "$(pick_file desktop "${2:-01}")" ;;
         lock) apply_lock_only "$(pick_file lock "${2:-01}")" ;;
         "") set_pair "01" ;;
