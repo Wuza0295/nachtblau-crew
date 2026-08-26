@@ -110,9 +110,27 @@ sudo bootc upgrade && sudo systemctl reboot
 
 Silk trackt **nur** Aurora als Base (nie `FROM` Bazzite). Gaming-Flatpaks/Tools können Bazzite-*ähnlich* sein; wer maximale Gaming-Integration will, nimmt ggf. direkt [Bazzite](https://bazzite.gg/).
 
+## GPU-Unterstützung (AMD / Intel / NVIDIA)
+
+| GPU | Silk-Image | Basis |
+|-----|------------|-------|
+| **AMD** | `ghcr.io/<user>/silk:latest` | `aurora:stable` (Mesa/RADV) |
+| **Intel** (iGPU/Arc) | `ghcr.io/<user>/silk:latest` | `aurora:stable` (Mesa/i915/Xe) |
+| **NVIDIA** (Turing/16xx+) | `ghcr.io/<user>/silk-nvidia-open:latest` | `aurora-nvidia-open:stable` |
+
+```bash
+silk-gpu status          # erkannte GPU + empfohlenes Image
+silk-gpu hints           # Kernel-Args & Image-Hinweise
+sudo bootc switch --enforce-container-sigpolicy ghcr.io/<user>/silk-nvidia-open:latest
+```
+
+**Hinweis:** Ältere NVIDIA-GPUs (Pascal/Maxwell, GTX 9xx/10xx) werden von `nvidia-open` nicht unterstützt – dort ggf. [Bazzite](https://bazzite.gg/) mit Legacy-Treibern.
+
 ## Was im Image steckt
 
 - AMD/Lightweight: Sysctl, NVMe-Kyber, Mesa/RADV
+- Intel: `intel-gpu-firmware`, `intel-media-driver`, i915/Xe Udev
+- NVIDIA: `silk-nvidia-open` Image (aurora-nvidia-open Basis), `silk-gpu hints`
 - Gaming: Steam, Steam Link, Heroic, itch.io, Discord, OBS, Minecraft (Prism), osu!, RetroArch, Dolphin, PPSSPP, Moonlight, Chiaki, GeForce Now, Bottles/Lutris + GameMode/MangoHud
 
 ## Build / Rebase
@@ -126,7 +144,12 @@ sudo bootc switch ghcr.io/<user>/silk:latest
 sudo systemctl reboot
 ```
 
-Lokal: `cd silk && just build silk latest`
+Lokal:
+
+```bash
+cd silk && just build silk latest
+just build silk-nvidia-open latest ghcr.io/ublue-os/aurora-nvidia-open:stable
+```
 
 ## Grenzen
 

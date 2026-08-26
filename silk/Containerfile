@@ -2,14 +2,16 @@
 FROM scratch AS ctx
 COPY build_files /
 COPY system_files /system_files
+COPY silk.env /system_files/usr/share/silk/silk.env
 
-# Aurora (KDE Plasma) – AMD/Open-Stack, ohne NVIDIA-Variante
+# Aurora (KDE Plasma) – Open-Stack für AMD/Intel; NVIDIA via Build-Arg (aurora-nvidia-open)
 # Gaming-Tools und Mac-inspiriertes Look-and-Feel werden in build.sh ergänzt.
 #
 # Base-Tag absichtlich floating (:stable), kein Digest-Pin.
 # Täglicher CI-Rebuild + --pull=always liefert laufend Upstream-Updates.
 # Nicht gleichzeitig FROM bazzite – Silk bleibt ein Aurora-Base.
-FROM ghcr.io/ublue-os/aurora:stable
+ARG SILK_BASE_IMAGE=ghcr.io/ublue-os/aurora:stable
+FROM ${SILK_BASE_IMAGE}
 
 ### [IM]MUTABLE /opt
 ## Uncomment if packages need a durable /opt (e.g. google-chrome).

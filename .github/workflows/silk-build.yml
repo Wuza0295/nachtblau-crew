@@ -18,7 +18,7 @@ env:
   IMAGE_REGISTRY: "ghcr.io/${{ github.repository_owner }}"
 
 concurrency:
-  group: silk-${{ github.workflow }}-${{ github.ref || github.run_id }}
+  group: silk-${{ github.workflow }}-${{ github.ref || github.run_id }}-${{ matrix.image_name }}
   cancel-in-progress: true
 
 defaults:
@@ -38,9 +38,17 @@ jobs:
         run: bash tests/run-offline-tests.sh
 
   build_push:
-    name: Build and push image
+    name: Build ${{ matrix.image_name }}
     needs: offline_tests
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image_name: silk
+            base_image: ghcr.io/ublue-os/aurora:stable
+          - image_name: silk-nvidia-open
+            base_image: ghcr.io/ublue-os/aurora-nvidia-open:stable
     permissions:
       contents: read
       packages: write
@@ -57,11 +65,6 @@ jobs:
       - name: Check Just Syntax
         run: just check
 
-      - name: Image Name
-        run: |
-          IMAGE_NAME=$(just image_name)
-          echo "IMAGE_NAME=${IMAGE_NAME}" >> $GITHUB_ENV
-
       - name: Default Tag
         run: |
           DEFAULT_TAG=$(just generate-default-tag)
@@ -71,15 +74,13 @@ jobs:
         working-directory: .
         run: |
           echo "IMAGE_REGISTRY=${IMAGE_REGISTRY,,}" >> ${GITHUB_ENV}
-          echo "IMAGE_NAME=${IMAGE_NAME,,}" >> ${GITHUB_ENV}
+          echo "IMAGE_NAME=${{ matrix.image_name }}" >> ${GITHUB_ENV}
 
-      # Floating aurora:stable – vor dem Build explizit ziehen, damit Cron-Runs
-      # immer den aktuellen Upstream-Digest bekommen (Justfile: --pull=always).
-      - name: Pull Aurora stable base
-        run: podman pull ghcr.io/ublue-os/aurora:stable
+      - name: Pull Aurora base (${{ matrix.base_image }})
+        run: podman pull ${{ matrix.base_image }}
 
       - name: Build Image
-        run: just build ${IMAGE_NAME} ${DEFAULT_TAG}
+        run: just build ${IMAGE_NAME} ${DEFAULT_TAG} ${{ matrix.base_image }}
 
       - name: Rechunk with rpm-ostree
         continue-on-error: true

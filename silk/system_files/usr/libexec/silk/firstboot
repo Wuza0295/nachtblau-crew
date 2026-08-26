@@ -1,12 +1,38 @@
 #!/usr/bin/env bash
 set -euo pipefail
 mkdir -p /var/lib/silk
-# Platz für künftige Hardware-Erkennung / AMD kargs Hinweise
-if [[ -r /sys/class/drm/card0/device/vendor ]]; then
-  vendor="$(cat /sys/class/drm/card0/device/vendor 2>/dev/null || true)"
-  # 0x1002 = AMD
-  if [[ "$vendor" == "0x1002" ]]; then
-    echo "amd" > /var/lib/silk/gpu
-  fi
+
+# GPU-Erkennung: diskrete GPU bevorzugen (NVIDIA > AMD > Intel)
+vendor_from_pci() {
+  case "$1" in
+    0x1002) echo amd ;;
+    0x8086) echo intel ;;
+    0x10de) echo nvidia ;;
+    *) echo unknown ;;
+  esac
+}
+
+declare -a found=()
+for p in /sys/class/drm/card[0-9]/device/vendor; do
+  [[ -r "$p" ]] || continue
+  v="$(cat "$p" 2>/dev/null || true)"
+  name="$(vendor_from_pci "$v")"
+  [[ "$name" == unknown ]] && continue
+  found+=("$name")
+done
+
+primary=unknown
+if ((${#found[@]} > 0)); then
+  for g in nvidia amd intel; do
+    for v in "${found[@]}"; do
+      if [[ "$v" == "$g" ]]; then
+        primary="$g"
+        break 2
+      fi
+    done
+  done
+  [[ "$primary" == unknown ]] && primary="${found[0]}"
 fi
+
+echo "$primary" > /var/lib/silk/gpu
 touch /var/lib/silk/firstboot-done

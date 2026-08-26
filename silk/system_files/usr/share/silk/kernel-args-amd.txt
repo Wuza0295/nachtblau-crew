@@ -1,0 +1,4 @@
+# AMD – empfohlene Kernel-Args (als root, einmalig):
+#   rpm-ostree kargs --append=amd_pstate=active
+#   rpm-ostree kargs --append=amdgpu.ppfeaturemask=0xffffffff
+# Silk setzt Sysctl/Udev-Defaults; Kargs bleiben user-gesteuert.

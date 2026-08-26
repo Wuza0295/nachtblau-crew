@@ -35,6 +35,7 @@ for f in \
   system_files/usr/bin/silk-update \
   system_files/usr/bin/silk-apply-wallpaper \
   system_files/usr/bin/silk-wallpaper \
+  system_files/usr/bin/silk-gpu \
   system_files/usr/share/silk/wallpapers/manifest.json \
   system_files/usr/share/silk/plasma-apply-wallpaper.js \
   system_files/etc/skel/.config/kscreenlockerrc \
@@ -48,8 +49,14 @@ for f in \
   system_files/usr/share/applications/silk-open-appimage.desktop \
   system_files/usr/share/applications/silk-open-package.desktop \
   system_files/usr/share/applications/silk-welcome.desktop \
-  system_files/etc/sysctl.d/99-silk-amd.conf \
-  system_files/etc/udev/rules.d/99-silk-amd.rules \
+  system_files/etc/sysctl.d/99-silk-performance.conf \
+  system_files/etc/udev/rules.d/99-silk-storage.rules \
+  system_files/etc/udev/rules.d/99-silk-gpu-amd.rules \
+  system_files/etc/udev/rules.d/99-silk-gpu-intel.rules \
+  system_files/etc/udev/rules.d/99-silk-gpu-nvidia.rules \
+  system_files/usr/share/silk/kernel-args-amd.txt \
+  system_files/usr/share/silk/kernel-args-intel.txt \
+  system_files/usr/share/silk/kernel-args-nvidia.txt \
   README.md
 do
   if [[ -f "$ROOT/$f" ]]; then
@@ -86,6 +93,16 @@ grep -q 'manifest.json' "$ROOT/system_files/usr/share/silk/wallpapers/manifest.j
 grep -q 'silk-wallpaper' "$ROOT/system_files/usr/bin/silk-wallpaper" && ok "silk-wallpaper cmd" || bad "silk-wallpaper"
 grep -q 'silk-apply-wallpaper' "$ROOT/system_files/usr/bin/silk-apply-layout" && ok "layout applies wallpaper" || bad "wallpaper layout"
 
+echo "== GPU (AMD/Intel/NVIDIA) =="
+grep -q '03-gaming.sh' "$ROOT/build_files/build.sh" && ok "build uses 03-gaming.sh" || bad "03-gaming.sh"
+grep -q 'intel-gpu-firmware' "$ROOT/build_files/03-gaming.sh" && ok "intel packages" || bad "intel packages"
+grep -q 'nvidia-gpu-firmware' "$ROOT/build_files/03-gaming.sh" && ok "nvidia firmware" || bad "nvidia firmware"
+grep -q '0x10de' "$ROOT/system_files/usr/libexec/silk/firstboot" && ok "firstboot nvidia detect" || bad "firstboot nvidia"
+grep -q 'silk-nvidia-open' "$ROOT/system_files/usr/share/silk/kernel-args-nvidia.txt" && ok "nvidia image docs" || bad "nvidia image docs"
+grep -q 'silk-gpu status' "$ROOT/system_files/usr/bin/silk-gpu" && ok "silk-gpu cmd" || bad "silk-gpu"
+grep -q 'SILK_BASE_IMAGE' "$ROOT/Containerfile" && ok "Containerfile base arg" || bad "Containerfile base arg"
+grep -q 'silk-nvidia-open' "$ROOT/silk.env" && ok "nvidia image name" || bad "nvidia image name"
+
 echo "== Branding / Image-Name =="
 if grep -q '^IMAGE_NAME=silk$' "$ROOT/silk.env"; then
   ok "IMAGE_NAME=silk (kein aurora- Prefix)"
@@ -99,10 +116,10 @@ else
 fi
 
 echo "== Containerfile Basis =="
-if grep -qE '^FROM ghcr.io/ublue-os/aurora:stable$' "$ROOT/Containerfile"; then
-  ok "Upstream-Base aurora:stable (floating tag)"
+if grep -qE 'ARG SILK_BASE_IMAGE=ghcr.io/ublue-os/aurora:stable' "$ROOT/Containerfile"; then
+  ok "Upstream-Base aurora:stable default (ARG)"
 else
-  bad "Containerfile base image"
+  bad "Containerfile base image default"
 fi
 # Kein Digest-Pin wie aurora@sha256:… – würde Upstream-Tracking einfrieren
 if grep -qE 'FROM ghcr.io/ublue-os/aurora@sha256:' "$ROOT/Containerfile"; then
@@ -137,8 +154,8 @@ else
   bad "Justfile missing --pull=always"
 fi
 WF_ROOT="$(cd "$ROOT/.." && pwd)/.github/workflows/silk-build.yml"
-if [[ -f "$WF_ROOT" ]] && grep -q 'cron:' "$WF_ROOT" && grep -q 'podman pull ghcr.io/ublue-os/aurora:stable' "$WF_ROOT"; then
-  ok "root workflow cron + base pull"
+if [[ -f "$WF_ROOT" ]] && grep -q 'cron:' "$WF_ROOT" && grep -q 'aurora:stable' "$WF_ROOT" && grep -q 'aurora-nvidia-open:stable' "$WF_ROOT"; then
+  ok "root workflow cron + amd/intel + nvidia base pull"
 else
   bad "root workflow cron/base pull"
 fi

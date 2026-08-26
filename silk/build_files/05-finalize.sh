@@ -3,8 +3,6 @@ set -ouex pipefail
 
 chmod 755 /usr/bin/silk-* 2>/dev/null || true
 chmod 755 /usr/libexec/silk/* 2>/dev/null || true
-
-# First-boot / Layout-Apply
 systemctl enable silk-firstboot.service 2>/dev/null || true
 
 # Podman socket für Distrobox/Dev

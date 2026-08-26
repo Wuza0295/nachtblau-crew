@@ -1,4 +1,2 @@
 # NVMe: kyber für niedrige Latenz; SATA bleibt unberührt
 ACTION=="add|change", KERNEL=="nvme[0-9]n[0-9]", ATTR{queue/scheduler}="kyber"
-# AMD GPU Runtime-PM freundlich
-ACTION=="add", SUBSYSTEM=="pci", DRIVER=="amdgpu", ATTR{power/control}="auto"

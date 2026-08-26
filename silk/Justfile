@@ -93,12 +93,13 @@ sudoif command *args:
 #
 
 # Build the image using the specified parameters
-build $target_image=image_name $tag=default_tag:
+# $base: Upstream-Base (aurora:stable oder aurora-nvidia-open:stable)
+build $target_image=image_name $tag=default_tag $base="ghcr.io/ublue-os/aurora:stable":
     #!/usr/bin/env bash
 
     set -euox pipefail
 
-    BUILD_ARGS=()
+    BUILD_ARGS=(--build-arg "SILK_BASE_IMAGE=${base}")
     LABELS=()
     if [[ -z "$(git status -s)" ]]; then
         GIT_SHA=$(git rev-parse --short HEAD)
