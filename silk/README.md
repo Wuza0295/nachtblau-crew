@@ -12,6 +12,8 @@ Für **Wechsler von macOS und Windows**: Optik wählbar, Programme möglichst �
 Produktname: **Silk** / Image: `silk`  
 Nicht „Aurora …“ – Aurora ist bereits das Universal-Blue-Desktop. Upstream erwähnen wir nur technisch (`FROM …/aurora:stable`).
 
+**Schnellstart:** [`QUICKSTART.md`](QUICKSTART.md) · **Website-Vorlage:** [`docs/website/index.html`](docs/website/index.html)
+
 ## Desktop-Stil
 
 Beim ersten Login fragt Silk, woher du kommst:

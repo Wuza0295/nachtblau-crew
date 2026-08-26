@@ -40,12 +40,11 @@ Ihr dürft es **marketing-tauglich** als eigenes Produkt bewerben (mit Disclaime
 - [ ] **CI grün** – beide Images (`silk`, `silk-nvidia-open`) bauen & pushen
 - [ ] **SIGNING_SECRET** in GitHub Actions (Cosign) – Images signiert
 - [ ] **GHCR public** – `ghcr.io/wuza0295/silk:latest` für alle pullbar
-- [ ] **Install-Anleitung (1 Seite)** – bootc switch + Reboot, NVIDIA-Variante
+- [ ] **Install-Anleitung (1 Seite)** – bootc switch + Reboot, NVIDIA-Variante → [`QUICKSTART.md`](QUICKSTART.md)
 - [ ] **Landing Page** – getsilk.* oder Unterseite mit:
   - Was ist Silk / was nicht (kein macOS/Windows, kein offizielles Aurora)
   - Download/Install (bootc-Befehl)
-  - Impressum + Datenschutz (DE)
-  - Haftungsausschluss + Marken-Disclaimer (→ [`LEGAL.md`](LEGAL.md))
+  - Impressum + Datenschutz (DE) → Vorlage [`docs/website/index.html`](docs/website/index.html) (Impressum ausfüllen!)
 - [ ] **Smoke-Test auf echter Hardware** – AMD/Intel-PC + optional NVIDIA
 - [ ] **`cosign.key` aus Repo entfernen** – nur in GitHub Secrets
 
