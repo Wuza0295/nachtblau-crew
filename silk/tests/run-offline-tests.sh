@@ -36,6 +36,7 @@ for f in \
   system_files/usr/bin/silk-apply-wallpaper \
   system_files/usr/bin/silk-wallpaper \
   system_files/usr/bin/silk-gpu \
+  system_files/usr/bin/silk-hardware \
   system_files/usr/share/silk/wallpapers/manifest.json \
   system_files/usr/share/silk/plasma-apply-wallpaper.js \
   system_files/etc/skel/.config/kscreenlockerrc \
@@ -57,6 +58,10 @@ for f in \
   system_files/usr/share/silk/kernel-args-amd.txt \
   system_files/usr/share/silk/kernel-args-intel.txt \
   system_files/usr/share/silk/kernel-args-nvidia.txt \
+  system_files/usr/share/silk/hardware-pc.txt \
+  system_files/usr/share/silk/hardware-intel-mac.txt \
+  system_files/usr/share/silk/hardware-apple-silicon.txt \
+  system_files/usr/share/silk/hardware-mac-migration.txt \
   README.md
 do
   if [[ -f "$ROOT/$f" ]]; then
@@ -102,6 +107,14 @@ grep -q 'silk-nvidia-open' "$ROOT/system_files/usr/share/silk/kernel-args-nvidia
 grep -q 'silk-gpu status' "$ROOT/system_files/usr/bin/silk-gpu" && ok "silk-gpu cmd" || bad "silk-gpu"
 grep -q 'SILK_BASE_IMAGE' "$ROOT/Containerfile" && ok "Containerfile base arg" || bad "Containerfile base arg"
 grep -q 'silk-nvidia-open' "$ROOT/silk.env" && ok "nvidia image name" || bad "nvidia image name"
+
+echo "== Mac / MacBook Hardware =="
+grep -q 'apple-silicon' "$ROOT/system_files/usr/bin/silk-hardware" && ok "silk-hardware apple-silicon" || bad "silk-hardware apple-silicon"
+grep -q 'intel-mac' "$ROOT/system_files/usr/bin/silk-hardware" && ok "silk-hardware intel-mac" || bad "silk-hardware intel-mac"
+grep -q 'detect_hardware' "$ROOT/system_files/usr/libexec/silk/firstboot" && ok "firstboot hardware detect" || bad "firstboot hardware"
+grep -q 'Fedora Asahi' "$ROOT/system_files/usr/share/silk/hardware-apple-silicon.txt" && ok "asahi doc" || bad "asahi doc"
+grep -q 'Mac / MacBook' "$ROOT/README.md" && ok "README mac hardware" || bad "README mac hardware"
+bash "$ROOT/system_files/usr/bin/silk-hardware" status >/dev/null && ok "silk-hardware status runs" || bad "silk-hardware status"
 
 echo "== Branding / Image-Name =="
 if grep -q '^IMAGE_NAME=silk$' "$ROOT/silk.env"; then

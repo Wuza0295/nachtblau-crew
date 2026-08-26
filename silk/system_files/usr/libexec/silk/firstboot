@@ -35,4 +35,28 @@ if ((${#found[@]} > 0)); then
 fi
 
 echo "$primary" > /var/lib/silk/gpu
+
+# Plattform: PC / Intel-Mac / Apple Silicon
+detect_hardware() {
+  local arch vendor product dt
+  arch="$(uname -m)"
+  vendor="$(tr -d '\0' < /sys/class/dmi/id/sys_vendor 2>/dev/null || true)"
+  product="$(tr -d '\0' < /sys/class/dmi/id/product_name 2>/dev/null || true)"
+  dt="$(tr -d '\0' < /sys/firmware/devicetree/base/model 2>/dev/null || true)"
+  if [[ "$vendor" == *Apple* ]] || [[ "$product" == Mac* ]] || [[ "$dt" == *Mac* ]]; then
+    if [[ "$arch" == "aarch64" || "$arch" == "arm64" ]]; then
+      echo apple-silicon
+      return
+    fi
+    if [[ "$arch" == "x86_64" ]]; then
+      echo intel-mac
+      return
+    fi
+    echo unknown
+    return
+  fi
+  echo pc
+}
+detect_hardware > /var/lib/silk/hardware
+
 touch /var/lib/silk/firstboot-done

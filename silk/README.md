@@ -126,6 +126,22 @@ sudo bootc switch --enforce-container-sigpolicy ghcr.io/<user>/silk-nvidia-open:
 
 **Hinweis:** Ältere NVIDIA-GPUs (Pascal/Maxwell, GTX 9xx/10xx) werden von `nvidia-open` nicht unterstützt – dort ggf. [Bazzite](https://bazzite.gg/) mit Legacy-Treibern.
 
+## Mac / MacBook (Hardware vs. Software)
+
+| Szenario | Silk? | Hinweis |
+|----------|-------|---------|
+| **Wechsel von macOS auf PC** | ✅ | Mac-Optik, `.dmg`/`.app`-Installer, App-Aliase |
+| **Silk auf Intel-MacBook** | ❌ | x86_64, aber T2/WLAN/Firmware – nicht supported |
+| **Silk auf Apple Silicon (M1+)** | ❌ | Braucht [Fedora Asahi Remix](https://fedora-asahi-remix.org/); `silk-asahi` geplant |
+
+```bash
+silk-hardware status     # PC / intel-mac / apple-silicon erkennen
+silk-hardware hints      # Kompatibilität & Alternativen
+silk-install meine.app   # Mac-Datei → Linux-Ersatz (auf Silk-PC)
+```
+
+Silk ist ein **PC-/Laptop-Image** (Aurora), kein MacBook-Installationsmedium. Für Linux **auf dem Mac** selbst: Asahi Remix, nicht Silk.
+
 ## Was im Image steckt
 
 - AMD/Lightweight: Sysctl, NVMe-Kyber, Mesa/RADV
@@ -153,7 +169,8 @@ just build silk-nvidia-open latest ghcr.io/ublue-os/aurora-nvidia-open:stable
 
 ## Grenzen
 
-- Mac-Apps starten nicht nativ; Silk sucht Linux-Ersatz.
+- Mac-Apps starten nicht nativ; Silk sucht Linux-Ersatz (`.dmg`/`.app` via `silk-install`).
+- Silk läuft nicht auf MacBook-Hardware (Intel-Mac / Apple Silicon) – `silk-hardware hints`.
 - Nicht jedes `.exe` läuft (Anti-Cheat, Treiber, DRM).
 - Optik ist angelehnt, kein 1:1-Klon.
 
