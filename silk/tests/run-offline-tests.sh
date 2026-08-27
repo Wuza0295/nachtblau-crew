@@ -271,7 +271,9 @@ grep -q 'Fedora_64' "$ROOT/scripts/test-silk-virtualbox.sh" && bad "Fedora_64 st
 grep -q 'VM_NAME=.*Silk"' "$ROOT/scripts/test-silk-virtualbox.sh" || grep -q 'SILK_VM_NAME:-Silk}' "$ROOT/scripts/test-silk-virtualbox.sh" \
   && ok "default VM name Silk" || bad "default VM name Silk"
 grep -q 'PRETTY_NAME="Silk"' "$ROOT/build_files/05-finalize.sh" && ok "os-release PRETTY_NAME Silk" || bad "os-release Silk"
-grep -q 'silk-media-latest' "$ROOT/docs/VIRTUALBOX.md" && ok "VIRTUALBOX release tag" || bad "VIRTUALBOX release tag"
+grep -q 'go-virtualbox.sh' "$ROOT/scripts/go-virtualbox.sh" && ok "go-virtualbox entry" || bad "go-virtualbox entry"
+grep -q 'go_virtualbox' "$ROOT/scripts/test-silk-virtualbox.sh" && ok "go_virtualbox command" || bad "go_virtualbox command"
+grep -q 'releases/download' "$ROOT/scripts/test-silk-virtualbox.sh" && ok "curl release download fallback" || bad "curl download fallback"
 grep -q 'Fedora_64\|Aurora ISO\|download.*aurora' "$ROOT/docs/VIRTUALBOX.md" && bad "VIRTUALBOX still Aurora/Fedora path" || ok "VIRTUALBOX no Aurora ISO path"
 SITE="$(cd "$ROOT/.." && pwd)/Silk-Website/index.html"
 if [[ -f "$SITE" ]]; then

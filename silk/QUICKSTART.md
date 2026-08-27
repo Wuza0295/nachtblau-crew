@@ -7,17 +7,27 @@ Kein macOS, kein Windows, kein offizielles Aurora-/Apple-/Microsoft-Produkt.
 
 ---
 
+## VirtualBox – **ein Befehl**
+
+Voraussetzung: VirtualBox installiert, `vboxdrv` läuft.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/aurora-silk-os-2818/silk/scripts/go-virtualbox.sh | bash
+```
+
+Oder aus dem Repo:
+
+```bash
+./test-silk-virtualbox.sh
+```
+
+Das Skript lädt die Silk-ISO (~6 GB), baut die VM **Silk** (Linux 64-bit, nicht Fedora), startet VirtualBox. In der VM: Silk installieren → `silk-setup`.
+
+Erneut starten: `./silk/scripts/test-silk-virtualbox.sh start`
+
 ## Variante A – Installer-ISO (VirtualBox / USB) ✅ empfohlen
 
-1. ISO laden: https://github.com/Wuza0295/nachtblau-crew/releases/tag/silk-media-latest  
-   (ggf. `*.part*` mit `bash reassemble.sh` zusammenfügen → **`Silk-Installer-x86_64.iso`**)
-2. VirtualBox: EFI an, ≥4 GB RAM, ISO booten → **Silk installieren**  
-   (oder USB erstellen und auf Hardware booten)
-3. Nach dem Login: `silk-setup`
-
-Anleitung: [docs/VIRTUALBOX.md](docs/VIRTUALBOX.md)
-
-Fertige VM-Disk: `Silk-VM-x86_64.qcow2` im gleichen Release.
+Release (manuell): https://github.com/Wuza0295/nachtblau-crew/releases/tag/silk-media-latest
 
 ---
 

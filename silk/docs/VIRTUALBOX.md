@@ -33,7 +33,15 @@ sudo systemctl reboot
 sudo /sbin/vboxconfig
 ```
 
-## Mit Silk-ISO
+## VirtualBox – ein Befehl
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/aurora-silk-os-2818/silk/scripts/go-virtualbox.sh | bash
+```
+
+Lädt ISO, legt VM **Silk** an, startet VirtualBox. Kein Aurora.
+
+## Mit Silk-ISO (manuell)
 
 ```bash
 # ISO aus Release laden (Beispiel)
