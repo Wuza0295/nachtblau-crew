@@ -60,3 +60,13 @@ GitHub → Packages → `silk` / `silk-nvidia-open` / `silk-asahi` → **Public*
 `.github/workflows/silk-build.yml` baut:
 - `silk` + `silk-nvidia-open` auf `ubuntu-24.04`
 - `silk-asahi` auf `ubuntu-24.04-arm`
+
+## VirtualBox (PC-Test)
+
+Siehe [docs/VIRTUALBOX.md](docs/VIRTUALBOX.md) bzw.:
+
+```bash
+./scripts/test-silk-virtualbox.sh all
+# in der VM nach Aurora-Install:
+sudo bootc switch ghcr.io/wuza0295/silk:latest && sudo systemctl reboot
+```
