@@ -75,8 +75,8 @@
     {
       "id": "10",
       "family": "mac",
-      "name": "Mac Aurora Night",
-      "desc": "Nacht-Aurora Big Sur",
+      "name": "Mac Northern Night",
+      "desc": "Nacht-Himmel Big Sur",
       "style": "mac_mesh",
       "file": "silk-desktop-10.png"
     },
@@ -237,8 +237,8 @@
     {
       "id": "10",
       "family": "mac",
-      "name": "Mac Aurora Night",
-      "desc": "Nacht-Aurora Big Sur",
+      "name": "Mac Northern Night",
+      "desc": "Nacht-Himmel Big Sur",
       "style": "mac_mesh",
       "file": "silk-lock-10.png"
     },

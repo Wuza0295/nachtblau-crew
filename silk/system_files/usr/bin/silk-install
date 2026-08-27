@@ -41,7 +41,7 @@ Strategie (immer zuerst Flatpak-Gegenstück, dann natives Format):
   .AppImage     → Flatpak, sonst Gear Lever / lokal integrieren
   .flatpakref / .flatpak / .flatpakrepo → flatpak install
   .deb          → Flatpak, sonst Ubuntu-Distrobox (apt)
-  .rpm          → Flatpak, sonst rpm-ostree / Fedora-Box
+  .rpm          → Flatpak, sonst rpm-ostree / Linux-Box
   .snap         → Flatpak, sonst Ubuntu-Box mit snap
 
 Kein Apple-/Microsoft-Store – Flathub + Compat-Layer.
@@ -277,10 +277,10 @@ handle_rpm() {
   query="$(guess_query_from_file "$file")"
   echo "RPM-Paket: $file"
   if [[ "$force" != "1" ]]; then
-    offer_flatpak_or "$query" "Flatpak empfohlen. Flatpak statt RPM?"$'\n'"Nein = layered rpm-ostree / Fedora-Box" && return 0
+    offer_flatpak_or "$query" "Flatpak empfohlen. Flatpak statt RPM?"$'\n'"Nein = layered rpm-ostree / Linux-Box" && return 0
   fi
   if command -v rpm-ostree >/dev/null 2>&1; then
-    if dialog_yesno "RPM systemweit per rpm-ostree layeren?\n(Neustart nötig)\nNein = Fedora Distrobox"; then
+    if dialog_yesno "RPM systemweit per rpm-ostree layeren?\n(Neustart nötig)\nNein = Linux-Box (Container)"; then
       rpm-ostree install "$file" || true
       dialog_msg "Layer angelegt – bitte neu starten."
       return 0
@@ -288,7 +288,7 @@ handle_rpm() {
   fi
   ensure_boxes
   distrobox enter silk-fedora -- sudo dnf install -y "$file"
-  dialog_msg "RPM in Fedora-Box installiert."
+  dialog_msg "RPM in Linux-Box installiert."
 }
 
 handle_snap() {

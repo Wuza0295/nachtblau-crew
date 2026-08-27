@@ -196,8 +196,7 @@ jobs:
           DIGEST: ${{ steps.push-image.outputs.digest }}
         run: |
           if [[ -z "${COSIGN_PRIVATE_KEY}" ]]; then
-            echo "Kein SIGNING_SECRET – Signatur übersprungen."
-            echo "Test-Switch: sudo bootc switch ${IMAGE_REGISTRY}/${IMAGE_NAME}:latest"
-            exit 0
+            echo "FEHLER: SIGNING_SECRET fehlt – unsigned Images werden nicht veröffentlicht."
+            exit 1
           fi
           cosign sign -y --new-bundle-format=false --use-signing-config=false --key env://COSIGN_PRIVATE_KEY ${IMAGE_REGISTRY}/${IMAGE_NAME}@${DIGEST}

@@ -95,12 +95,11 @@ cmd_switch() {
   echo "Wechsle zu: $SILK_ASAHI_IMAGE"
   read -r -p "Fortfahren? [j/N] " ans
   [[ "${ans,,}" == j || "${ans,,}" == y ]] || exit 0
-  # Ohne Signatur zuerst ohne Enforce versuchen
   if sudo bootc switch --enforce-container-sigpolicy "$SILK_ASAHI_IMAGE"; then
-    echo "OK (signiert)."
+    echo "OK."
   else
-    echo "Signatur-Enforce fehlgeschlagen – versuche ohne Enforce …"
-    sudo bootc switch "$SILK_ASAHI_IMAGE"
+    echo "bootc switch fehlgeschlagen – Image signiert? ghcr.io/wuza0295/silk-asahi:latest" >&2
+    exit 1
   fi
   echo "Reboot: sudo systemctl reboot && silk-asahi setup"
 }

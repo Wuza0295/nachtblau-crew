@@ -8,8 +8,10 @@ minsize = "20 GiB"
 [customizations.installer.kickstart]
 contents = """
 %post --erroronfail
-# Sicherstellen, dass das installierte System auf Silk zeigt
-bootc switch --mutate-in-place --transport registry ghcr.io/wuza0295/silk:latest || true
+bootc switch --mutate-in-place --transport registry \
+  --enforce-container-sigpolicy \
+  ghcr.io/wuza0295/silk:latest
+/usr/libexec/silk/brand-os-release || true
 %end
 """
 

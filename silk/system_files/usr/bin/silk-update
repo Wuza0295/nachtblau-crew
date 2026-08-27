@@ -34,7 +34,7 @@ update_flatpaks() {
 
 update_system() {
   if command -v bootc >/dev/null 2>&1; then
-    echo "System-Image (Silk + Aurora-Base)…"
+    echo "System-Image (Silk)…"
     sudo bootc upgrade
     echo "→ Bitte neu starten: sudo systemctl reboot"
     return 0
@@ -68,7 +68,7 @@ main() {
       sync_config
       update_flatpaks
       echo
-      echo "System-Image aktualisieren (Silk + Aurora):"
+      echo "System-Image aktualisieren (Silk):"
       echo "  silk-update --full"
       echo "  oder: sudo bootc upgrade && sudo systemctl reboot"
       notify_done "Apps & Listen aktualisiert."

@@ -36,7 +36,8 @@ sudo /sbin/vboxconfig
 ## VirtualBox – ein Befehl
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/aurora-silk-os-2818/silk/scripts/go-virtualbox.sh | bash
+curl -fsSL -O https://github.com/Wuza0295/nachtblau-crew/raw/cursor/aurora-silk-os-2818/silk/scripts/go-virtualbox.sh
+bash go-virtualbox.sh
 ```
 
 Lädt ISO, legt VM **Silk** an, startet VirtualBox. Kein Aurora.

@@ -68,7 +68,9 @@
   <p class="lead"><strong>Silk ist das Betriebssystem.</strong> Lade das Silk-Installer-ISO – kein Aurora nötig.</p>
 
   <h3>VirtualBox – ein Befehl</h3>
-  <pre><code>curl -fsSL https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/aurora-silk-os-2818/silk/scripts/go-virtualbox.sh | bash</code></pre>
+  <pre><code>mkdir -p ~/Silk-VMs && cd ~/Silk-VMs
+curl -fsSL -O https://github.com/Wuza0295/nachtblau-crew/raw/cursor/aurora-silk-os-2818/silk/scripts/go-virtualbox.sh
+bash go-virtualbox.sh</code></pre>
   <p>Lädt Silk-ISO, startet VM <strong>Silk</strong> in VirtualBox. Kein Aurora.</p>
 
   <h3>1. ISO laden (VirtualBox / USB)</h3>
@@ -103,7 +105,7 @@ silk-update               # Updates</code></pre>
 
 <section class="section muted">
   <h2>Technische Basis</h2>
-  <p>Silk ist ein unabhängiges Custom-OS. Die Build-Basis ist Universal Blue Aurora (für dich unsichtbar). Quellcode: <a href="https://github.com/Wuza0295/nachtblau-crew">GitHub</a> · Lizenz Silk-Layer: Apache-2.0 · <a href="https://github.com/Wuza0295/nachtblau-crew/blob/cursor/aurora-silk-os-2818/silk/NOTICE">Third-Party NOTICE</a></p>
+  <p>Silk ist ein unabhängiges Custom-OS. Quellcode: <a href="https://github.com/Wuza0295/nachtblau-crew">GitHub</a> · Lizenz Silk-Layer: Apache-2.0 · <a href="https://github.com/Wuza0295/nachtblau-crew/blob/cursor/aurora-silk-os-2818/silk/NOTICE">Third-Party NOTICE</a> · <a href="https://github.com/Wuza0295/nachtblau-crew/blob/cursor/aurora-silk-os-2818/silk/SECURITY.md">Sicherheit & Datenschutz</a></p>
 </section>
 
 <footer class="footer">
@@ -137,12 +139,14 @@ silk-update               # Updates</code></pre>
 
 <section id="datenschutz" class="legal">
   <h2>Datenschutz</h2>
-  <p><em>Bitte vor Launch anpassen:</em></p>
+  <p><strong>Kein Tracking</strong> auf dieser Website. Keine Analytics-Cookies.</p>
   <ul>
-    <li>Diese statische Seite speichert keine personenbezogenen Daten.</li>
-    <li>Beim Download des Container-Images von GitHub Container Registry (ghcr.io) gelten die Datenschutzbestimmungen von GitHub/Microsoft.</li>
-    <li>Kein Tracking-Cookie, solange kein Analytics eingebunden ist.</li>
+    <li>Statische Seite – keine Speicherung personenbezogener Daten durch uns.</li>
+    <li>Silk-ISO-Download über <a href="https://github.com/Wuza0295/nachtblau-crew/releases/tag/silk-media-latest">GitHub Releases</a> – es gelten die Datenschutzbestimmungen von GitHub/Microsoft.</li>
+    <li>Silk als OS: Updates über ghcr.io (GitHub), Apps optional über Flathub. Keine Nachtblau-Crew-Telemetrie.</li>
+    <li>Remote-Konfiguration in Silk nur mit explizitem <code>SILK_CONFIG_URL</code> (standardmäßig aus).</li>
   </ul>
+  <p>Details: <a href="https://github.com/Wuza0295/nachtblau-crew/blob/cursor/aurora-silk-os-2818/silk/SECURITY.md">SECURITY.md</a></p>
 </section>
 
 </body>

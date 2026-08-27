@@ -60,3 +60,6 @@ detect_hardware() {
 detect_hardware > /var/lib/silk/hardware
 
 touch /var/lib/silk/firstboot-done
+
+# Nach bootc switch / Updates: os-release erneut auf Silk setzen
+/usr/libexec/silk/brand-os-release 2>/dev/null || true

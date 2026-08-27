@@ -151,8 +151,8 @@ apply_silk_vm_profile() {
     --vram 128 \
     --nic1 nat \
     --audio-driver none \
-    --clipboard-mode bidirectional \
-    --draganddrop bidirectional \
+    --clipboard-mode hosttoguest \
+    --draganddrop disabled \
     --ioapic on \
     --acpi on \
     --pae on \

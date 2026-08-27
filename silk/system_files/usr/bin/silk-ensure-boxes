@@ -7,6 +7,9 @@ need_podman() {
     echo "distrobox fehlt." >&2
     exit 1
   fi
+  # Podman-Socket nur bei Bedarf (Distrobox), nicht dauerhaft im Image
+  systemctl --user enable --now podman.socket 2>/dev/null || \
+    sudo systemctl enable --now podman.socket 2>/dev/null || true
 }
 
 ensure_box() {
