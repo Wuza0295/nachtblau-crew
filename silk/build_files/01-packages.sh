@@ -3,7 +3,10 @@
 
 set -ouex pipefail
 
-dnf5 -y install \
+# Aurora bringt viel schon mit; --skip-unavailable + vorhandene Pkgs ok.
+# power-profiles-daemon weglassen: konfliktiert mit tuned-ppd (Aurora).
+# fuse-exfat weglassen: in F44 nicht mehr als Paket; exfatprogs reicht.
+dnf5 -y install --skip-unavailable --setopt=install_weak_deps=False \
   git \
   curl \
   wget \
@@ -18,7 +21,6 @@ dnf5 -y install \
   htop \
   btop \
   lm_sensors \
-  power-profiles-daemon \
   plasma-browser-integration \
   kde-cli-tools \
   kdialog \
@@ -33,7 +35,6 @@ dnf5 -y install \
   p7zip-plugins \
   ntfs-3g \
   exfatprogs \
-  fuse-exfat \
   udisks2 \
   samba-client \
   cifs-utils \
