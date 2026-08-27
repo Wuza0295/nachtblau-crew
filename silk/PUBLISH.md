@@ -66,7 +66,8 @@ GitHub → Packages → `silk` / `silk-nvidia-open` / `silk-asahi` → **Public*
 **Kein Aurora-Download.** Install-Medium ist Silk:
 
 - Release: https://github.com/Wuza0295/nachtblau-crew/releases/tag/silk-media-latest  
-- `Silk-Installer-x86_64.iso` / `Silk-VM-x86_64.qcow2`  
+- `Silk-Installer-x86_64.iso.part*` / `Silk-VM-x86_64.qcow2.part*` (+ `reassemble.sh`)  
+  (GitHub-Limit 2 GiB → gesplittet; `bash reassemble.sh` ergibt die Volldateien)
 - Anleitung: [docs/VIRTUALBOX.md](docs/VIRTUALBOX.md)
 
 ```bash

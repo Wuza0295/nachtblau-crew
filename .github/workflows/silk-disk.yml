@@ -146,6 +146,8 @@ jobs:
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-24.04
     steps:
+      - uses: actions/checkout@v4
+
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
@@ -155,24 +157,28 @@ jobs:
       - name: List assets
         run: ls -lhR release-assets
 
+      # GitHub Release-API: max. 2 GiB pro Asset → splitten
+      - name: Split oversized assets (<2 GiB)
+        run: |
+          chmod +x silk/scripts/prepare-release-assets.sh
+          silk/scripts/prepare-release-assets.sh release-assets
+          ls -lhR release-assets
+
       - name: Create or update Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: silk-media-latest
           name: Silk Install Media
+          draft: false
           body: |
             **Silk** – eigenständiges Install-Medium für VirtualBox / USB.
 
-            - `Silk-Installer-x86_64.iso` → booten & Silk installieren
-            - `Silk-VM-x86_64.qcow2` → fertige VM-Disk
+            GitHub erlaubt max. ~2 GiB pro Datei → ISO/QCOW sind ggf. **gesplittet** (`*.part00` …).
+            Zusammenfügen: `bash reassemble.sh` oder `cat Silk-Installer-x86_64.iso.part* > Silk-Installer-x86_64.iso`
 
             Kein Aurora-Download nötig. Image: `ghcr.io/wuza0295/silk:latest`
-          files: |
-            release-assets/Silk-Installer-x86_64.iso
-            release-assets/Silk-Installer-x86_64.iso.sha256
-            release-assets/Silk-VM-x86_64.qcow2
-            release-assets/Silk-VM-x86_64.qcow2.sha256
-          fail_on_unmatched_files: false
+          files: release-assets/*
+          fail_on_unmatched_files: true
           make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

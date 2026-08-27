@@ -8,8 +8,17 @@ Silk ist das Produkt. Aurora ist nur die technische Basis (wie Fedora bei Bazzit
 1. **Silk-Installer-ISO** (oder QCOW2) aus dem Release  
 2. VirtualBox mit funktionierendem `vboxdrv`
 
-Download (sobald CI fertig):  
+Download:  
 https://github.com/Wuza0295/nachtblau-crew/releases/tag/silk-media-latest
+
+GitHub erlaubt max. ~2 GiB pro Datei → ISO/QCOW sind **gesplittet** (`*.part00` …).
+
+```bash
+cd ~/Downloads
+# alle Silk-Installer*.part* + sha256 + reassemble.sh vom Release laden, dann:
+bash reassemble.sh
+# → Silk-Installer-x86_64.iso
+```
 
 - `Silk-Installer-x86_64.iso` → Installation wie jedes OS  
 - `Silk-VM-x86_64.qcow2` → fertige Disk (VirtualBox/Boxes)

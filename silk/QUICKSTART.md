@@ -10,7 +10,7 @@ Kein macOS, kein Windows, kein offizielles Aurora-/Apple-/Microsoft-Produkt.
 ## Variante A – Installer-ISO (VirtualBox / USB) ✅ empfohlen
 
 1. ISO laden: https://github.com/Wuza0295/nachtblau-crew/releases/tag/silk-media-latest  
-   Datei: **`Silk-Installer-x86_64.iso`**
+   (ggf. `*.part*` mit `bash reassemble.sh` zusammenfügen → **`Silk-Installer-x86_64.iso`**)
 2. VirtualBox: EFI an, ≥4 GB RAM, ISO booten → **Silk installieren**  
    (oder USB erstellen und auf Hardware booten)
 3. Nach dem Login: `silk-setup`

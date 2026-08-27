@@ -52,10 +52,18 @@ download_silk_iso() {
   fi
   info "Lade Silk-Installer-ISO vom GitHub-Release ${RELEASE_TAG} …"
   if have gh; then
-    gh release download "$RELEASE_TAG" -R "$RELEASE_REPO" -p 'Silk-Installer*.iso' -D "$ISO_DIR" || true
-    # normalize name
+    # Ganzes ISO oder Split-Teile (GitHub-Limit 2 GiB)
+    gh release download "$RELEASE_TAG" -R "$RELEASE_REPO" \
+      -p 'Silk-Installer*' -p 'reassemble.sh' -D "$ISO_DIR" || true
+    if [[ ! -f "$ISO_PATH" ]] && compgen -G "${ISO_DIR}/Silk-Installer-x86_64.iso.part*" >/dev/null; then
+      info "Setze ISO aus Split-Teilen zusammen …"
+      cat "${ISO_DIR}/Silk-Installer-x86_64.iso.part"* > "$ISO_PATH"
+      if [[ -f "${ISO_DIR}/Silk-Installer-x86_64.iso.sha256" ]]; then
+        (cd "$ISO_DIR" && sha256sum -c Silk-Installer-x86_64.iso.sha256)
+      fi
+    fi
     local found
-    found="$(find "$ISO_DIR" -maxdepth 1 -name 'Silk-Installer*.iso' | head -1 || true)"
+    found="$(find "$ISO_DIR" -maxdepth 1 -name 'Silk-Installer*.iso' ! -name '*.part*' | head -1 || true)"
     if [[ -n "$found" && "$found" != "$ISO_PATH" ]]; then
       mv -f "$found" "$ISO_PATH"
     fi
@@ -66,10 +74,9 @@ Kein Silk-ISO gefunden.
 
 1) Release öffnen:
    https://github.com/${RELEASE_REPO}/releases/tag/${RELEASE_TAG}
-2) Silk-Installer-x86_64.iso nach ${ISO_PATH} speichern
+2) Alle Silk-Installer*.part* (+ sha256) laden, dann:
+   cat Silk-Installer-x86_64.iso.part* > ${ISO_PATH}
 3) erneut: $0 vm
-
-Oder wenn CI noch baut: Actions → „Build Silk install media“ abwarten.
 EOF
     die "Silk-ISO fehlt (kein Aurora – nur Silk-Installer)."
   fi
