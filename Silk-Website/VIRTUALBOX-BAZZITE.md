@@ -60,3 +60,19 @@ ujust setup-virtualization   # wenn vorhanden
 ## Lizenz
 
 Das Extension Pack unterliegt der Oracle **PUEL** (Personal Use and Educational License) – kostenlos für private Nutzung, nicht für kommerzielle Weitergabe ohne Lizenz.
+
+## Alles automatisch (ein Befehl)
+
+Auf **Bazzite** einmal ausführen – installiert VirtualBox, Extension Pack, lädt Aurora-ISO und legt die VM `Silk-Test` an (inkl. Auto-Fortsetzung nach Reboot):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-website-local-2818/Silk-Website/scripts/setup-silk-test-all.sh | bash
+```
+
+Der Rechner startet einmal neu. Danach läuft der Rest von allein. Log: `~/.cache/silk-vbox-setup/setup.log`
+
+Oder lokal aus dem Repo:
+
+```bash
+./Silk-Website/scripts/setup-silk-test-all.sh
+```
