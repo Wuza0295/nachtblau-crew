@@ -48,21 +48,31 @@ bash reassemble.sh   # falls nur *.part* da sind
 
 In der VM: **Silk installieren** (Anaconda) → reboot → `silk-setup`.
 
-### Betriebssystem-Feld in VirtualBox
+### Betriebssystem-Feld in VirtualBox (wichtig)
 
-VirtualBox hat **kein** „Silk“ in der Dropdown-Liste – das ist nur ein Hardware-Profil.
-**Nicht** „Fedora“ wählen. Richtig:
+VirtualBox hat **kein** „Silk“ in der Dropdown-Liste – nur Hardware-Profile.
+**Empfehlung (beste Variante):**
 
-- Name: `Silk-Test` (oder wie du willst)
-- Betriebssystem / Version: **Linux 2.6 / 3.x / 4.x / 5.x (64-bit)** bzw. „Andere Linux (64-Bit)“
+| Feld | Wert |
+|------|------|
+| **Name** | `Silk` |
+| **Betriebssystem** | Linux 2.6 / 3.x / 4.x / 5.x **(64-bit)** |
+| **Beschreibung** | Silk – eigenständiges Desktop-Betriebssystem |
 
-Bereits angelegte VM umstellen:
+**Nicht** Fedora / Aurora / Red Hat wählen — das ist nur die unsichtbare Build-Basis.
+
+Deine bestehende `Silk-Test`-VM sofort korrigieren:
 
 ```bash
-VBoxManage modifyvm Silk-Test --ostype Linux26_64
+# im Repo:
+./silk/scripts/test-silk-virtualbox.sh fix Silk-Test
+
+# oder direkt:
+VBoxManage modifyvm Silk-Test --ostype Linux26_64 \
+  --description "Silk – eigenständiges Desktop-Betriebssystem"
 ```
 
-Das installierte System ist **Silk**, nicht Fedora.
+Das installierte System ist **Silk**.
 
 ## Mit fertiger QCOW2 (schneller)
 
