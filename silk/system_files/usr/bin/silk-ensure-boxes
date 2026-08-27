@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# silk-ensure-boxes – Distrobox-Umgebungen für .deb / .rpm / .snap
+set -euo pipefail
+
+need_podman() {
+  if ! command -v distrobox >/dev/null 2>&1; then
+    echo "distrobox fehlt." >&2
+    exit 1
+  fi
+  # Podman-Socket nur bei Bedarf (Distrobox), nicht dauerhaft im Image
+  systemctl --user enable --now podman.socket 2>/dev/null || \
+    sudo systemctl enable --now podman.socket 2>/dev/null || true
+}
+
+ensure_box() {
+  local name="$1" image="$2"
+  if distrobox list 2>/dev/null | grep -qw "$name"; then
+    echo "Box „${name}“ vorhanden."
+    return 0
+  fi
+  echo "Erstelle Distrobox „${name}“ ($image)…"
+  distrobox create --name "$name" --image "$image" --yes --additional-flags "--pull" \
+    || distrobox create --name "$name" --image "$image" -Y \
+    || distrobox create --name "$name" --image "$image"
+}
+
+need_podman
+# Nicht interaktiv blockieren
+export DBX_NON_INTERACTIVE=1
+ensure_box silk-ubuntu ubuntu:24.04
+ensure_box silk-fedora fedora:41 || ensure_box silk-fedora fedora:latest
+echo "Distroboxen bereit: silk-ubuntu, silk-fedora"

@@ -1,0 +1,30 @@
+# Base-Image muss VOR dem ersten FROM stehen (Buildah/Podman FROM-Substitution).
+ARG SILK_BASE_IMAGE=ghcr.io/ublue-os/aurora:stable
+
+# Allow build scripts to be referenced without being copied into the final image
+FROM scratch AS ctx
+COPY build_files /
+COPY system_files /system_files
+COPY silk.env /system_files/usr/share/silk/silk.env
+
+# Aurora (KDE Plasma) – Open-Stack für AMD/Intel; NVIDIA via Build-Arg (aurora-nvidia-open)
+# Gaming-Tools und Mac-inspiriertes Look-and-Feel werden in build.sh ergänzt.
+#
+# Base-Tag absichtlich floating (:stable), kein Digest-Pin.
+# Täglicher CI-Rebuild + --pull=always liefert laufend Upstream-Updates.
+# Nicht gleichzeitig FROM bazzite – Silk bleibt ein Aurora-Base.
+FROM ${SILK_BASE_IMAGE}
+
+### [IM]MUTABLE /opt
+## Uncomment if packages need a durable /opt (e.g. google-chrome).
+# RUN rm /opt && mkdir /opt
+
+### MODIFICATIONS
+RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
+    --mount=type=cache,dst=/var/cache \
+    --mount=type=cache,dst=/var/log \
+    --mount=type=tmpfs,dst=/tmp \
+    /ctx/build.sh
+
+### LINTING
+RUN bootc container lint

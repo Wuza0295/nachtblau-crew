@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Silk – Quickstart</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .doc { max-width: 720px; margin: 0 auto; padding: 32px 24px 64px; }
+    .doc h1 { font-size: 1.75rem; margin-bottom: 8px; }
+    .doc h2 { font-size: 1.2rem; margin: 28px 0 10px; color: #1e40af; }
+    .doc p, .doc li { color: #334155; margin-bottom: 8px; }
+    .doc ul { margin-left: 20px; }
+    .back { display: inline-block; margin-bottom: 20px; color: #2563eb; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="doc">
+    <a class="back" href="index.html">← Zurück zur Startseite</a>
+    <h1>Silk – Installation</h1>
+    <p><strong>Silk ist das Betriebssystem.</strong> Du brauchst kein Aurora.</p>
+
+    <h2>Empfohlen: Installer-ISO (VirtualBox / USB)</h2>
+    <ol>
+      <li>Release öffnen: <a href="https://github.com/Wuza0295/nachtblau-crew/releases/tag/silk-media-latest">silk-media-latest</a></li>
+      <li>Alle <code>Silk-Installer-x86_64.iso.part*</code> + <code>reassemble.sh</code> + <code>.sha256</code> laden</li>
+      <li><code>bash reassemble.sh</code> → <code>Silk-Installer-x86_64.iso</code></li>
+      <li>VirtualBox: neue EFI-VM, Name <strong>Silk</strong>, Betriebssystem <strong>Linux (64-bit)</strong> – nicht Fedora</li>
+      <li>ISO einbinden, Silk installieren, nach Login <code>silk-setup</code></li>
+    </ol>
+
+    <h2>Optional: schon Bootc (AMD / Intel)</h2>
+    <pre><code>sudo bootc switch --enforce-container-sigpolicy ghcr.io/wuza0295/silk:latest
+sudo systemctl reboot</code></pre>
+    <p><strong>NVIDIA:</strong></p>
+    <pre><code>sudo bootc switch --enforce-container-sigpolicy ghcr.io/wuza0295/silk-nvidia-open:latest
+sudo systemctl reboot</code></pre>
+
+    <h2>Erstlogin</h2>
+    <p><code>silk-setup</code> → Stil wählen → Essentials → optional Gaming → <code>silk-welcome</code></p>
+
+    <h2>Wichtige Befehle</h2>
+    <pre><code>silk-welcome
+silk-install datei.exe
+silk-desktop mac
+silk-wallpaper list
+silk-update
+sudo bootc upgrade</code></pre>
+
+    <h2>Probleme?</h2>
+    <ul>
+      <li><code>sha256sum -c</code> → Dateiname muss <code>Silk-Installer-x86_64.iso</code> heißen (kein <code>dist/</code>)</li>
+      <li>VirtualBox zeigt Fedora → <code>VBoxManage modifyvm Silk --ostype Linux26_64</code></li>
+      <li>NVIDIA schwarzer Bildschirm → <code>silk-nvidia-open</code> Image</li>
+    </ul>
+
+    <p><em>Silk ist kein macOS/Windows. Community-Projekt der Nachtblau Crew.</em></p>
+  </div>
+</body>
+</html>

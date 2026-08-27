@@ -1,0 +1,82 @@
+name: Republish Silk install media
+# Nutzt bestehende CI-Artefakte (kein ISO-Rebuild).
+# GitHub Release-Limit: 2 GiB → große Dateien werden gesplittet.
+
+on:
+  push:
+    branches: [cursor/aurora-silk-os-2818, main]
+    paths:
+      - '.github/workflows/silk-disk-republish.yml'
+      - '.github/silk-media-run-id'
+      - 'silk/scripts/prepare-release-assets.sh'
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'Actions run-id mit silk-installer / silk-vm Artefakten'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: silk-disk-republish
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    name: Split + publish Release
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve source run
+        id: src
+        run: |
+          if [[ -n "${{ github.event.inputs.run_id }}" ]]; then
+            echo "run_id=${{ github.event.inputs.run_id }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "run_id=$(tr -d '[:space:]' < .github/silk-media-run-id)" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download artifacts from build run
+        uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ steps.src.outputs.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          merge-multiple: true
+          path: release-assets
+
+      - name: List raw assets
+        run: ls -lhR release-assets
+
+      - name: Split oversized assets (<2 GiB)
+        run: |
+          chmod +x silk/scripts/prepare-release-assets.sh
+          silk/scripts/prepare-release-assets.sh release-assets
+
+      - name: Create or update Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: silk-media-latest
+          name: Silk Install Media
+          draft: false
+          make_latest: true
+          fail_on_unmatched_files: true
+          body: |
+            **Silk** – eigenständiges Install-Medium für VirtualBox / USB.
+
+            GitHub erlaubt max. ~2 GiB pro Release-Datei. ISO/QCOW sind deshalb **gesplittet**.
+
+            ### VirtualBox (ISO)
+            1. Alle `Silk-Installer-x86_64.iso.part*` + `Silk-Installer-x86_64.iso.sha256` + `reassemble.sh` laden
+            2. `bash reassemble.sh`
+            3. ISO in VirtualBox (EFI) einbinden und Silk installieren
+
+            Oder manuell: `cat Silk-Installer-x86_64.iso.part* > Silk-Installer-x86_64.iso`
+
+            Quelle: `ghcr.io/wuza0295/silk:latest` · Build-Run `${{ steps.src.outputs.run_id }}`
+          files: release-assets/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

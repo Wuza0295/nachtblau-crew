@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+# silk-update – ein Befehl für System- + App-Updates (Wechsler-freundlich)
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+silk-update – alles aktuell halten
+
+  silk-update              # Config von Git + Flatpaks + Hinweis für System-Update
+  silk-update --full       # wie oben + bootc upgrade (root, Neustart nötig)
+  silk-update --apps-only  # nur Flatpaks + Git-Listen
+  silk-update --sync-only  # nur App-Listen/Aliases vom Git-Repo
+
+Ebenen:
+  1) Git-Listen (Aliases, Essentials, Gaming) → silk-sync-config
+  2) Flatpaks (Steam, LibreOffice, …)        → flatpak update
+  3) Silk-System (Kernel, Silk-Skripte)      → bootc upgrade + Reboot
+EOF
+}
+
+sync_config() {
+  /usr/bin/silk-sync-config || true
+}
+
+update_flatpaks() {
+  if ! command -v flatpak >/dev/null; then
+    echo "Flatpak nicht installiert – übersprungen."
+    return 0
+  fi
+  flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
+  echo "Flatpak-Updates…"
+  flatpak update -y --user 2>/dev/null || flatpak update -y || true
+}
+
+update_system() {
+  if command -v bootc >/dev/null 2>&1; then
+    echo "System-Image (Silk)…"
+    sudo bootc upgrade
+    echo "→ Bitte neu starten: sudo systemctl reboot"
+    return 0
+  fi
+  if command -v rpm-ostree >/dev/null 2>&1; then
+    rpm-ostree upgrade
+    echo "→ Bitte neu starten."
+    return 0
+  fi
+  echo "bootc/rpm-ostree nicht gefunden."
+}
+
+notify_done() {
+  notify-send "Silk" "${1:-Updates abgeschlossen.}" 2>/dev/null || true
+}
+
+main() {
+  local mode="${1:-}"
+  case "$mode" in
+    -h|--help) usage; exit 0 ;;
+    --sync-only) sync_config; exit 0 ;;
+    --apps-only) sync_config; update_flatpaks; notify_done "Apps aktualisiert."; exit 0 ;;
+    --full)
+      sync_config
+      update_flatpaks
+      update_system
+      notify_done "System-Update bereit – neu starten."
+      exit 0
+      ;;
+    "")
+      sync_config
+      update_flatpaks
+      echo
+      echo "System-Image aktualisieren (Silk):"
+      echo "  silk-update --full"
+      echo "  oder: sudo bootc upgrade && sudo systemctl reboot"
+      notify_done "Apps & Listen aktualisiert."
+      ;;
+    *) echo "Unbekannte Option: $mode" >&2; usage; exit 1 ;;
+  esac
+}
+
+main "$@"

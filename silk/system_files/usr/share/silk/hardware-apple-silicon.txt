@@ -1,0 +1,30 @@
+# Silk auf Apple Silicon (M1 / M2 / M3 / M4 …)
+
+Silk läuft **nicht** als Aurora-Image auf dem MacBook.
+Für MacBook/Mac mini/iMac mit Apple Silicon gibt es **silk-asahi**.
+
+## Ablauf
+
+1. In macOS: [Fedora Asahi Remix](https://fedora-asahi-remix.org/) installieren
+2. Auf Atomic/Kinoite wechseln (Fedora Asahi Remix Atomic Desktops)
+3. Silk aktivieren:
+
+```bash
+sudo bootc switch ghcr.io/wuza0295/silk-asahi:latest
+sudo systemctl reboot
+silk-asahi setup
+silk-desktop mac
+```
+
+Nach System-Updates:
+
+```bash
+sudo bootc upgrade && sudo update-m1n1 && sudo systemctl reboot
+```
+
+## Hinweise
+
+- Experimental (WLAN/GPU/Schlaf je nach Modell)
+- Basis: `quay.io/fedora-asahi-remix-atomic-desktops/kinoite:43`
+- CLI: `silk-asahi status|install|switch|setup|intel-mac|hints`
+- Intel-MacBook: `silk-asahi intel-mac` (kein natives Silk)

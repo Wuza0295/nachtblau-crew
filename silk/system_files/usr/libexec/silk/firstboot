@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+set -euo pipefail
+mkdir -p /var/lib/silk
+
+# GPU-Erkennung: diskrete GPU bevorzugen (NVIDIA > AMD > Intel)
+vendor_from_pci() {
+  case "$1" in
+    0x1002) echo amd ;;
+    0x8086) echo intel ;;
+    0x10de) echo nvidia ;;
+    *) echo unknown ;;
+  esac
+}
+
+declare -a found=()
+for p in /sys/class/drm/card[0-9]/device/vendor; do
+  [[ -r "$p" ]] || continue
+  v="$(cat "$p" 2>/dev/null || true)"
+  name="$(vendor_from_pci "$v")"
+  [[ "$name" == unknown ]] && continue
+  found+=("$name")
+done
+
+primary=unknown
+if ((${#found[@]} > 0)); then
+  for g in nvidia amd intel; do
+    for v in "${found[@]}"; do
+      if [[ "$v" == "$g" ]]; then
+        primary="$g"
+        break 2
+      fi
+    done
+  done
+  [[ "$primary" == unknown ]] && primary="${found[0]}"
+fi
+
+echo "$primary" > /var/lib/silk/gpu
+
+# Plattform: PC / Intel-Mac / Apple Silicon
+detect_hardware() {
+  local arch vendor product dt
+  arch="$(uname -m)"
+  vendor="$(tr -d '\0' < /sys/class/dmi/id/sys_vendor 2>/dev/null || true)"
+  product="$(tr -d '\0' < /sys/class/dmi/id/product_name 2>/dev/null || true)"
+  dt="$(tr -d '\0' < /sys/firmware/devicetree/base/model 2>/dev/null || true)"
+  if [[ "$vendor" == *Apple* ]] || [[ "$product" == Mac* ]] || [[ "$dt" == *Mac* ]]; then
+    if [[ "$arch" == "aarch64" || "$arch" == "arm64" ]]; then
+      echo apple-silicon
+      return
+    fi
+    if [[ "$arch" == "x86_64" ]]; then
+      echo intel-mac
+      return
+    fi
+    echo unknown
+    return
+  fi
+  echo pc
+}
+detect_hardware > /var/lib/silk/hardware
+
+touch /var/lib/silk/firstboot-done
+
+# Nach bootc switch / Updates: os-release erneut auf Silk setzen
+/usr/libexec/silk/brand-os-release 2>/dev/null || true

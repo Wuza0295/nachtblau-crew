@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# silk-sync-config – App-Listen lokal (kein Remote-Pull ohne Opt-in)
+set -euo pipefail
+
+USER_SHARE="${XDG_DATA_HOME:-$HOME/.local/share}/silk"
+SYSTEM_SHARE="/usr/share/silk"
+CONFIG_BASE="${SILK_CONFIG_URL:-}"
+
+mkdir -p "$USER_SHARE"
+
+copy_bundled() {
+  local name="$1"
+  if [[ -f "${SYSTEM_SHARE}/${name}" && ! -f "${USER_SHARE}/${name}" ]]; then
+    cp -f "${SYSTEM_SHARE}/${name}" "${USER_SHARE}/${name}"
+  fi
+}
+
+sync_remote() {
+  local name="$1"
+  local url="${CONFIG_BASE}/${name}"
+  local dest_user="${USER_SHARE}/${name}"
+  echo "→ ${name} (remote)"
+  if curl -fsSL --max-time 30 "$url" -o "${dest_user}.new"; then
+    mv "${dest_user}.new" "$dest_user"
+  else
+    rm -f "${dest_user}.new"
+    echo "  Warnung: Remote-Download fehlgeschlagen – lokale Version."
+  fi
+}
+
+for f in recommended-essentials.txt recommended-flatpaks.txt app-aliases.json; do
+  copy_bundled "$f"
+  if [[ -n "$CONFIG_BASE" ]]; then
+    sync_remote "$f" || true
+  fi
+done
+
+export SILK_CONFIG_DIR="$USER_SHARE"
+echo "Konfiguration: $USER_SHARE"
+if [[ -z "$CONFIG_BASE" ]]; then
+  echo "Hinweis: Remote-Sync aus (Datenschutz). Optional: SILK_CONFIG_URL=… silk-sync-config"
+else
+  echo "Remote-Sync von: $CONFIG_BASE"
+fi
+echo "Neue Apps: silk-install --setup-essentials  bzw.  --setup-gaming"

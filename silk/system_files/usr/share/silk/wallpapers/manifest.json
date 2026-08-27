@@ -1,0 +1,327 @@
+{
+  "desktop": [
+    {
+      "id": "01",
+      "family": "mac",
+      "name": "Big Sur Blue",
+      "desc": "Mesh-Gradient wie macOS Big Sur",
+      "style": "mac_mesh",
+      "file": "silk-desktop-01.png"
+    },
+    {
+      "id": "02",
+      "family": "mac",
+      "name": "Monterey Purple",
+      "desc": "Lila-Rosa Mesh wie Monterey",
+      "style": "mac_mesh",
+      "file": "silk-desktop-02.png"
+    },
+    {
+      "id": "03",
+      "family": "mac",
+      "name": "Ventura Dawn",
+      "desc": "Sanftes Ventura-Blau",
+      "style": "mac_waves",
+      "file": "silk-desktop-03.png"
+    },
+    {
+      "id": "04",
+      "family": "mac",
+      "name": "Sonoma Sunset",
+      "desc": "Warmes Sonoma Rot-Lila",
+      "style": "mac_mesh",
+      "file": "silk-desktop-04.png"
+    },
+    {
+      "id": "05",
+      "family": "mac",
+      "name": "Mac Dark Graphite",
+      "desc": "Dunkler Mac-Nachtmodus",
+      "style": "mac_dark",
+      "file": "silk-desktop-05.png"
+    },
+    {
+      "id": "06",
+      "family": "mac",
+      "name": "Catalina Teal",
+      "desc": "Türkis-Grün Catalina",
+      "style": "mac_waves",
+      "file": "silk-desktop-06.png"
+    },
+    {
+      "id": "07",
+      "family": "mac",
+      "name": "Mojave Dunes",
+      "desc": "Warmes Mojave Orange",
+      "style": "mac_mesh",
+      "file": "silk-desktop-07.png"
+    },
+    {
+      "id": "08",
+      "family": "mac",
+      "name": "Sequoia Forest",
+      "desc": "Grün-blau wie Sequoia",
+      "style": "mac_waves",
+      "file": "silk-desktop-08.png"
+    },
+    {
+      "id": "09",
+      "family": "mac",
+      "name": "Mac Pink Sky",
+      "desc": "Rosa Himmel Mesh",
+      "style": "mac_mesh",
+      "file": "silk-desktop-09.png"
+    },
+    {
+      "id": "10",
+      "family": "mac",
+      "name": "Mac Northern Night",
+      "desc": "Nacht-Himmel Big Sur",
+      "style": "mac_mesh",
+      "file": "silk-desktop-10.png"
+    },
+    {
+      "id": "11",
+      "family": "win",
+      "name": "Win11 Bloom Blue",
+      "desc": "Windows 11 Standard-Bloom",
+      "style": "win11_bloom",
+      "file": "silk-desktop-11.png"
+    },
+    {
+      "id": "12",
+      "family": "win",
+      "name": "Win11 Dark",
+      "desc": "Windows 11 Dunkelmodus",
+      "style": "win11_bloom",
+      "file": "silk-desktop-12.png"
+    },
+    {
+      "id": "13",
+      "family": "win",
+      "name": "Win11 Flow",
+      "desc": "Fließende Win11-Bänder",
+      "style": "win11_ribbons",
+      "file": "silk-desktop-13.png"
+    },
+    {
+      "id": "14",
+      "family": "win",
+      "name": "Win10 Hero",
+      "desc": "Klassisches Windows 10 Blau",
+      "style": "win10_hero",
+      "file": "silk-desktop-14.png"
+    },
+    {
+      "id": "15",
+      "family": "win",
+      "name": "Win10 Enterprise",
+      "desc": "Dunkles Win10 Enterprise",
+      "style": "win10_hero",
+      "file": "silk-desktop-15.png"
+    },
+    {
+      "id": "16",
+      "family": "win",
+      "name": "Win11 Purple Night",
+      "desc": "Win11 Lila-Nacht",
+      "style": "win11_bloom",
+      "file": "silk-desktop-16.png"
+    },
+    {
+      "id": "17",
+      "family": "win",
+      "name": "Win11 Teal Glow",
+      "desc": "Teal Fluent Glow",
+      "style": "win11_ribbons",
+      "file": "silk-desktop-17.png"
+    },
+    {
+      "id": "18",
+      "family": "win",
+      "name": "Win10 Light Ray",
+      "desc": "Helles Win10 mit Lichtstrahl",
+      "style": "win10_light",
+      "file": "silk-desktop-18.png"
+    },
+    {
+      "id": "19",
+      "family": "win",
+      "name": "Win11 Sunrise",
+      "desc": "Win11 Sonnenaufgang-Bloom",
+      "style": "win11_bloom",
+      "file": "silk-desktop-19.png"
+    },
+    {
+      "id": "20",
+      "family": "win",
+      "name": "Win Slate",
+      "desc": "Neutrales Fluent Slate",
+      "style": "win11_ribbons",
+      "file": "silk-desktop-20.png"
+    }
+  ],
+  "lock": [
+    {
+      "id": "01",
+      "family": "mac",
+      "name": "Big Sur Blue",
+      "desc": "Mesh-Gradient wie macOS Big Sur",
+      "style": "mac_mesh",
+      "file": "silk-lock-01.png"
+    },
+    {
+      "id": "02",
+      "family": "mac",
+      "name": "Monterey Purple",
+      "desc": "Lila-Rosa Mesh wie Monterey",
+      "style": "mac_mesh",
+      "file": "silk-lock-02.png"
+    },
+    {
+      "id": "03",
+      "family": "mac",
+      "name": "Ventura Dawn",
+      "desc": "Sanftes Ventura-Blau",
+      "style": "mac_waves",
+      "file": "silk-lock-03.png"
+    },
+    {
+      "id": "04",
+      "family": "mac",
+      "name": "Sonoma Sunset",
+      "desc": "Warmes Sonoma Rot-Lila",
+      "style": "mac_mesh",
+      "file": "silk-lock-04.png"
+    },
+    {
+      "id": "05",
+      "family": "mac",
+      "name": "Mac Dark Graphite",
+      "desc": "Dunkler Mac-Nachtmodus",
+      "style": "mac_dark",
+      "file": "silk-lock-05.png"
+    },
+    {
+      "id": "06",
+      "family": "mac",
+      "name": "Catalina Teal",
+      "desc": "Türkis-Grün Catalina",
+      "style": "mac_waves",
+      "file": "silk-lock-06.png"
+    },
+    {
+      "id": "07",
+      "family": "mac",
+      "name": "Mojave Dunes",
+      "desc": "Warmes Mojave Orange",
+      "style": "mac_mesh",
+      "file": "silk-lock-07.png"
+    },
+    {
+      "id": "08",
+      "family": "mac",
+      "name": "Sequoia Forest",
+      "desc": "Grün-blau wie Sequoia",
+      "style": "mac_waves",
+      "file": "silk-lock-08.png"
+    },
+    {
+      "id": "09",
+      "family": "mac",
+      "name": "Mac Pink Sky",
+      "desc": "Rosa Himmel Mesh",
+      "style": "mac_mesh",
+      "file": "silk-lock-09.png"
+    },
+    {
+      "id": "10",
+      "family": "mac",
+      "name": "Mac Northern Night",
+      "desc": "Nacht-Himmel Big Sur",
+      "style": "mac_mesh",
+      "file": "silk-lock-10.png"
+    },
+    {
+      "id": "11",
+      "family": "win",
+      "name": "Win11 Bloom Blue",
+      "desc": "Windows 11 Standard-Bloom",
+      "style": "win11_bloom",
+      "file": "silk-lock-11.png"
+    },
+    {
+      "id": "12",
+      "family": "win",
+      "name": "Win11 Dark",
+      "desc": "Windows 11 Dunkelmodus",
+      "style": "win11_bloom",
+      "file": "silk-lock-12.png"
+    },
+    {
+      "id": "13",
+      "family": "win",
+      "name": "Win11 Flow",
+      "desc": "Fließende Win11-Bänder",
+      "style": "win11_ribbons",
+      "file": "silk-lock-13.png"
+    },
+    {
+      "id": "14",
+      "family": "win",
+      "name": "Win10 Hero",
+      "desc": "Klassisches Windows 10 Blau",
+      "style": "win10_hero",
+      "file": "silk-lock-14.png"
+    },
+    {
+      "id": "15",
+      "family": "win",
+      "name": "Win10 Enterprise",
+      "desc": "Dunkles Win10 Enterprise",
+      "style": "win10_hero",
+      "file": "silk-lock-15.png"
+    },
+    {
+      "id": "16",
+      "family": "win",
+      "name": "Win11 Purple Night",
+      "desc": "Win11 Lila-Nacht",
+      "style": "win11_bloom",
+      "file": "silk-lock-16.png"
+    },
+    {
+      "id": "17",
+      "family": "win",
+      "name": "Win11 Teal Glow",
+      "desc": "Teal Fluent Glow",
+      "style": "win11_ribbons",
+      "file": "silk-lock-17.png"
+    },
+    {
+      "id": "18",
+      "family": "win",
+      "name": "Win10 Light Ray",
+      "desc": "Helles Win10 mit Lichtstrahl",
+      "style": "win10_light",
+      "file": "silk-lock-18.png"
+    },
+    {
+      "id": "19",
+      "family": "win",
+      "name": "Win11 Sunrise",
+      "desc": "Win11 Sonnenaufgang-Bloom",
+      "style": "win11_bloom",
+      "file": "silk-lock-19.png"
+    },
+    {
+      "id": "20",
+      "family": "win",
+      "name": "Win Slate",
+      "desc": "Neutrales Fluent Slate",
+      "style": "win11_ribbons",
+      "file": "silk-lock-20.png"
+    }
+  ],
+  "version": 2
+}

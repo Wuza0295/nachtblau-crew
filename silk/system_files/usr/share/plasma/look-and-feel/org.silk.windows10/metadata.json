@@ -1,0 +1,11 @@
+{
+  "KPlugin": {
+    "Authors": [{ "Name": "Silk" }],
+    "Description": "Windows-10-inspiriertes Silk Desktop",
+    "Id": "org.silk.windows10",
+    "License": "GPLv3",
+    "Name": "Silk Windows 10",
+    "ServiceTypes": ["Plasma/LookAndFeel"],
+    "Version": "1.0"
+  }
+}

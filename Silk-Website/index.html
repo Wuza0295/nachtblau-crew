@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Silk – eigenständiges Linux-Desktop-OS. Installer-ISO für VirtualBox und PC." />
+  <title>Silk – Linux für Umsteiger</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="hero">
+  <nav class="nav">
+    <span class="logo">Silk</span>
+    <a href="#installieren">Installieren</a>
+    <a href="#features">Features</a>
+    <a href="https://github.com/Wuza0295/nachtblau-crew">GitHub</a>
+  </nav>
+  <div class="hero-inner">
+    <p class="badge">Eigenständiges Desktop-OS · Nachtblau Crew</p>
+    <h1>Silk</h1>
+    <p class="tagline">Linux für Umsteiger von Windows und macOS – mit wählbarer Mac- oder Windows-inspirierter Optik.</p>
+    <div class="hero-actions">
+      <a class="btn primary" href="https://github.com/Wuza0295/nachtblau-crew/releases/tag/silk-media-latest">ISO laden</a>
+      <a class="btn secondary" href="quickstart.html">Quickstart</a>
+    </div>
+  </div>
+</header>
+
+<section class="disclaimer">
+  <strong>Hinweis:</strong> Silk ist kein macOS und kein Windows. Silk ist kein offizielles Produkt von
+  Apple, Microsoft, Fedora oder Universal Blue. Optik ist <em>inspiriert</em> von Open-Source-Themes.
+  Marken gehören ihren jeweiligen Inhabern. Software ohne Garantie („AS IS“).
+</section>
+
+<section id="features" class="section">
+  <h2>Was Silk kann</h2>
+  <div class="grid">
+    <article class="card">
+      <h3>🖥 Desktop-Stil</h3>
+      <p>Mac (Menüleiste + Dock), Windows 11 oder Windows 10 – beim Erstlogin wählbar.</p>
+    </article>
+    <article class="card">
+      <h3>📦 Smart-Installer</h3>
+      <p><code>.exe</code>, <code>.apk</code>, <code>.dmg</code>, <code>.app</code>, <code>.deb</code>, AppImage – Flatpak zuerst, sonst Wine/Waydroid.</p>
+    </article>
+    <article class="card">
+      <h3>🎮 Gaming</h3>
+      <p>Steam, Heroic, Discord, OBS, Minecraft, MangoHud – optional beim Setup.</p>
+    </article>
+    <article class="card">
+      <h3>⚡ GPU</h3>
+      <p>AMD, Intel und NVIDIA (nvidia-open Image für Turing/16xx+).</p>
+    </article>
+    <article class="card">
+      <h3>🔄 Updates</h3>
+      <p><code>silk-update</code> für Apps, <code>bootc upgrade</code> für das System.</p>
+    </article>
+    <article class="card">
+      <h3>🌍 Wechsler</h3>
+      <p>NTFS/exFAT, SMB, Hilfe via <code>silk-welcome</code>, 20 Mac/Win-Hintergründe.</p>
+    </article>
+  </div>
+</section>
+
+<section id="installieren" class="section dark">
+  <h2>Installation</h2>
+  <p class="lead"><strong>Silk ist das Betriebssystem.</strong> Lade das Silk-Installer-ISO – kein Aurora nötig.</p>
+
+  <h3>VirtualBox – ein Befehl</h3>
+  <pre><code>mkdir -p ~/Silk-VMs && cd ~/Silk-VMs
+curl -fsSL -O https://github.com/Wuza0295/nachtblau-crew/raw/cursor/aurora-silk-os-2818/silk/scripts/go-virtualbox.sh
+bash go-virtualbox.sh</code></pre>
+  <p>Lädt Silk-ISO, startet VM <strong>Silk</strong> in VirtualBox. Kein Aurora.</p>
+
+  <h3>1. ISO laden (VirtualBox / USB)</h3>
+  <p><a class="link" href="https://github.com/Wuza0295/nachtblau-crew/releases/tag/silk-media-latest">Release silk-media-latest</a></p>
+  <pre><code># Alle Silk-Installer*.part* + reassemble.sh + sha256 laden, dann:
+bash reassemble.sh
+# → Silk-Installer-x86_64.iso
+
+# VirtualBox: EFI-VM, Betriebssystem = Linux (64-bit), nicht Fedora
+# Name/Beschreibung = Silk</code></pre>
+
+  <h3>2. Optional: schon Bootc (AMD/Intel)</h3>
+  <pre><code>sudo bootc switch --enforce-container-sigpolicy ghcr.io/wuza0295/silk:latest
+sudo systemctl reboot</code></pre>
+
+  <h3>NVIDIA (Turing / GTX 16xx+, RTX)</h3>
+  <pre><code>sudo bootc switch --enforce-container-sigpolicy ghcr.io/wuza0295/silk-nvidia-open:latest
+sudo systemctl reboot</code></pre>
+
+  <p>Nach dem Neustart: <code>silk-setup</code> führt durch Stil, Apps und Willkommen.</p>
+  <p><a class="link" href="quickstart.html">→ Ausführliche Quickstart-Anleitung</a></p>
+</section>
+
+<section class="section">
+  <h2>Erste Schritte nach der Installation</h2>
+  <pre><code>silk-welcome              # Kurzhilfe
+silk-install datei.exe    # Programme installieren
+silk-desktop mac          # Mac-Optik
+silk-wallpaper list mac   # Hintergründe
+silk-update               # Updates</code></pre>
+</section>
+
+<section class="section muted">
+  <h2>Technische Basis</h2>
+  <p>Silk ist ein unabhängiges Custom-OS. Quellcode: <a href="https://github.com/Wuza0295/nachtblau-crew">GitHub</a> · Lizenz Silk-Layer: Apache-2.0 · <a href="https://github.com/Wuza0295/nachtblau-crew/blob/cursor/aurora-silk-os-2818/silk/NOTICE">Third-Party NOTICE</a> · <a href="https://github.com/Wuza0295/nachtblau-crew/blob/cursor/aurora-silk-os-2818/silk/SECURITY.md">Sicherheit & Datenschutz</a></p>
+</section>
+
+<footer class="footer">
+  <div class="footer-grid">
+    <div>
+      <strong>Silk</strong><br />
+      Nachtblau Crew · Community-Projekt
+    </div>
+    <div>
+      <a href="#impressum">Impressum</a><br />
+      <a href="#datenschutz">Datenschutz</a>
+    </div>
+    <div>
+      <a href="https://github.com/Wuza0295/nachtblau-crew">GitHub</a><br />
+      <a href="https://github.com/Wuza0295/nachtblau-crew/blob/cursor/aurora-silk-os-2818/silk/LEGAL.md">Rechtliche Hinweise</a>
+    </div>
+  </div>
+  <p class="copy">© Nachtblau Crew · Silk</p>
+</footer>
+
+<section id="impressum" class="legal">
+  <h2>Impressum</h2>
+  <p><em>Bitte vor Launch ausfüllen (§ 5 TMG):</em></p>
+  <p>
+    [Name / Firma]<br />
+    [Straße, PLZ Ort]<br />
+    [E-Mail]<br />
+    [Optional: USt-IdNr., Verantwortlicher i.S.d. § 18 Abs. 2 MStV]
+  </p>
+</section>
+
+<section id="datenschutz" class="legal">
+  <h2>Datenschutz</h2>
+  <p><strong>Kein Tracking</strong> auf dieser Website. Keine Analytics-Cookies.</p>
+  <ul>
+    <li>Statische Seite – keine Speicherung personenbezogener Daten durch uns.</li>
+    <li>Silk-ISO-Download über <a href="https://github.com/Wuza0295/nachtblau-crew/releases/tag/silk-media-latest">GitHub Releases</a> – es gelten die Datenschutzbestimmungen von GitHub/Microsoft.</li>
+    <li>Silk als OS: Updates über ghcr.io (GitHub), Apps optional über Flathub. Keine Nachtblau-Crew-Telemetrie.</li>
+    <li>Remote-Konfiguration in Silk nur mit explizitem <code>SILK_CONFIG_URL</code> (standardmäßig aus).</li>
+  </ul>
+  <p>Details: <a href="https://github.com/Wuza0295/nachtblau-crew/blob/cursor/aurora-silk-os-2818/silk/SECURITY.md">SECURITY.md</a></p>
+</section>
+
+</body>
+</html>
