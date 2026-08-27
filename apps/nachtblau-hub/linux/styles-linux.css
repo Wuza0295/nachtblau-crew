@@ -1,0 +1,8 @@
+/* Linux desktop shell tweaks — loaded optionally; shared styles remain canonical */
+.platform-linux .footer {
+  opacity: 0.95;
+}
+.platform-linux #platform-label {
+  color: #7ec8ff;
+  font-weight: 600;
+}

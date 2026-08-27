@@ -1,0 +1,16 @@
+ORDNER FÜR CODE ASSIST — APK BAUEN
+
+Öffne DIESEN Ordner (NachtBlau-Hub) als Android-Projekt.
+
+Auftrag:
+1. Gradle-Wrapper nutzen (gradlew liegt hier).
+2. Debug-APK bauen: ./gradlew assembleDebug
+3. APK ausgeben als NachtBlau-Hub.apk
+   (aus app/build/outputs/apk/debug/app-debug.apk kopieren)
+
+App: NachtBlau Hub
+Paket: de.nachtblau.hub
+Start-URL: https://launcher.nachtblau-interactive.com/android.html
+Logo: branding/logo.svg — nicht neu zeichnen oder ersetzen.
+
+Nichts am Webspace-Inhalt ändern. Die App lädt den Launcher immer live.

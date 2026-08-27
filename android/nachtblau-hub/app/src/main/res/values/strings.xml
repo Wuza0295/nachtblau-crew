@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NachtBlau Hub</string>
+    <string name="offline_title">Keine Verbindung</string>
+    <string name="offline_body">Der NachtBlau Launcher braucht Internet, um Spiele, Bücher und den Join-Hub vom Webspace zu laden.</string>
+    <string name="retry">Erneut laden</string>
+    <string name="open_in_browser">Im Browser öffnen</string>
+</resources>

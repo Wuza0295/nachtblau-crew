@@ -3,6 +3,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
+import MaintenanceBanner from "./components/MaintenanceBanner";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import FreeGames from "./pages/FreeGames";
@@ -14,6 +15,7 @@ import NewThread from "./pages/NewThread";
 import Profile from "./pages/Profile";
 import ProfileRedirect from "./pages/ProfileRedirect";
 import About from "./pages/About";
+import Launcher from "./pages/Launcher";
 import SocialHub from "./pages/social/SocialHub";
 import SocialFluss from "./pages/social/SocialFluss";
 import SocialKreise from "./pages/social/SocialKreise";
@@ -43,6 +45,7 @@ function Router() {
               <Route path="/profil" component={ProfileRedirect} />
               <Route path="/profil/:id" component={Profile} />
               <Route path="/ueber-uns" component={About} />
+              <Route path="/launcher" component={Launcher} />
               <Route path="/404" component={NotFound} />
               <Route component={NotFound} />
             </Switch>
@@ -69,6 +72,7 @@ function App() {
               },
             }}
           />
+          <MaintenanceBanner />
           <Router />
         </TooltipProvider>
       </ThemeProvider>
