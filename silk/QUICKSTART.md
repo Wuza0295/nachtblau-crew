@@ -1,110 +1,53 @@
 # Silk – Installation in 5 Minuten
 
-> **Voraussetzung:** PC mit UEFI, Secure Boot optional (Aurora-kompatibel), Internet.
-> Du brauchst **kein** Git auf dem Zielsystem – nur `bootc switch`.
+> **Eigenständiges OS.** Du installierst **Silk**, nicht Aurora.  
+> Aurora ist nur die technische Build-Basis (wie Fedora bei Bazzite) – für dich unsichtbar.
 
-Silk ist ein **unabhängiges Custom-Image** auf [Universal Blue Aurora](https://getaurora.dev/).
-Kein macOS, kein Windows, kein offizielles Aurora-Produkt.
+Kein macOS, kein Windows, kein offizielles Aurora-/Apple-/Microsoft-Produkt.
 
 ---
 
-## 1. Ausgangssystem
+## Variante A – Installer-ISO (VirtualBox / USB) ✅ empfohlen
 
-Silk installierst du per **Rebase** von einem bestehenden Bootc-System:
+1. ISO laden: https://github.com/Wuza0295/nachtblau-crew/releases/tag/silk-media-latest  
+   Datei: **`Silk-Installer-x86_64.iso`**
+2. VirtualBox: EFI an, ≥4 GB RAM, ISO booten → **Silk installieren**  
+   (oder USB erstellen und auf Hardware booten)
+3. Nach dem Login: `silk-setup`
+
+Anleitung: [docs/VIRTUALBOX.md](docs/VIRTUALBOX.md)
+
+Fertige VM-Disk: `Silk-VM-x86_64.qcow2` im gleichen Release.
+
+---
+
+## Variante B – Rebase (wenn schon Bootc läuft)
 
 | Startpunkt | OK? |
 |------------|-----|
-| [Universal Blue Aurora](https://getaurora.dev/) | ✅ empfohlen |
-| Bazzite / Bluefin / anderer UBlue | ✅ |
-| Fedora Atomic (Kinoite/Silverblue) | ✅ (mit `--enforce-container-sigpolicy`) |
+| Bazzite / Bluefin / Aurora / Fedora Atomic | ✅ |
 
----
-
-## 2. Image wählen
-
-| GPU | Befehl-Image |
-|-----|----------------|
+| GPU | Image |
+|-----|--------|
 | **AMD / Intel** | `ghcr.io/wuza0295/silk:latest` |
-| **NVIDIA** (Turing / GTX 16xx+, RTX) | `ghcr.io/wuza0295/silk-nvidia-open:latest` |
-
-Unsicher? Später auf Silk: `silk-gpu status`
-
----
-
-## 3. Installieren (Terminal)
-
-### AMD / Intel
+| **NVIDIA** (Turing+) | `ghcr.io/wuza0295/silk-nvidia-open:latest` |
+| **Apple Silicon** | `ghcr.io/wuza0295/silk-asahi:latest` (nach Fedora Asahi Remix) |
 
 ```bash
-sudo bootc switch --enforce-container-sigpolicy ghcr.io/wuza0295/silk:latest
+sudo bootc switch ghcr.io/wuza0295/silk:latest
 sudo systemctl reboot
+silk-setup
 ```
 
-### NVIDIA
-
-```bash
-sudo bootc switch --enforce-container-sigpolicy ghcr.io/wuza0295/silk-nvidia-open:latest
-sudo systemctl reboot
-```
-
-Nach dem Neustart bist du auf **Silk**.
-
 ---
 
-## 4. Erstlogin (automatisch)
-
-Silk führt dich durch:
-
-1. **Stil wählen** – Mac, Windows 11 oder Windows 10 (`silk-setup`)
-2. **Alltags-Apps** – LibreOffice, Firefox, VLC, … (automatisch)
-3. **Optional Gaming** – Steam, Heroic, Discord, …
-4. **Willkommen** – `silk-welcome`
-
----
-
-## 5. Wichtige Befehle
+## Nach der Installation
 
 ```bash
-silk-welcome              # Kurzhilfe
+silk-welcome
+silk-desktop mac          # oder windows11 / windows10
 silk-install datei.exe    # Smart-Installer
-silk-desktop mac          # Stil wechseln
-silk-wallpaper list       # Hintergründe
-silk-update               # Apps + Listen aktualisieren
-silk-update --full        # + System-Update (Reboot)
-sudo bootc upgrade        # System-Image aktualisieren
-```
-
----
-
-## Updates
-
-```bash
-# Apps & Konfig-Listen
 silk-update
-
-# Komplett inkl. Silk-Image (Neustart nötig)
-silk-update --full
-# oder:
-sudo bootc upgrade && sudo systemctl reboot
 ```
 
----
-
-## Probleme?
-
-| Symptom | Lösung |
-|---------|--------|
-| `bootc switch` schlägt fehl | `--enforce-container-sigpolicy` setzen; GHCR erreichbar? |
-| NVIDIA schwarzer Bildschirm | `silk-nvidia-open`-Image nutzen, nicht `silk:latest` |
-| `.exe` startet nicht | `silk-install datei.exe`; ggf. Bottles/Wine |
-| Mac-App (.app) | Kein natives macOS – `silk-install` findet Flatpak-Ersatz |
-| Zurück zu Aurora | `sudo bootc switch ghcr.io/ublue-os/aurora:stable` + Reboot |
-
-Mehr: [`README.md`](README.md) · [`ROADMAP.md`](ROADMAP.md) · [`LEGAL.md`](LEGAL.md)
-
----
-
-## Rechtlicher Hinweis
-
-Silk ist ein Community-Projekt der Nachtblau Crew. Marken Dritter (Apple, Microsoft,
-Fedora, Universal Blue, …) gehören ihren Inhabern. Software ohne Garantie („AS IS“).
+Mehr: [PUBLISH.md](PUBLISH.md) · [docs/PLATFORMS.md](docs/PLATFORMS.md) · [ROADMAP.md](ROADMAP.md)

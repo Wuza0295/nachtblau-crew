@@ -1,0 +1,171 @@
+name: Build Silk install media
+# Baut eigenständiges Silk-ISO + QCOW2 aus ghcr.io/wuza0295/silk:latest
+# Nutzer brauchen KEIN Aurora – nur Silk-ISO in VirtualBox/USB.
+
+on:
+  workflow_dispatch:
+    inputs:
+      create_release:
+        description: 'GitHub Release mit ISO/QCOW anlegen'
+        type: boolean
+        default: true
+  workflow_run:
+    workflows: ["Build Silk image"]
+    types: [completed]
+    branches: [main, cursor/aurora-silk-os-2818]
+  push:
+    branches: [cursor/aurora-silk-os-2818, main]
+    paths:
+      - 'silk/disk_config/**'
+      - '.github/workflows/silk-disk.yml'
+
+concurrency:
+  group: silk-disk-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  packages: read
+  actions: read
+
+jobs:
+  gate:
+    name: Gate (Silk image ready)
+    runs-on: ubuntu-24.04
+    outputs:
+      should_build: ${{ steps.check.outputs.should_build }}
+    steps:
+      - id: check
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_run" ]]; then
+            if [[ "${{ github.event.workflow_run.conclusion }}" != "success" ]]; then
+              echo "should_build=false" >> "$GITHUB_OUTPUT"
+              echo "Upstream Build Silk image nicht erfolgreich – skip."
+              exit 0
+            fi
+          fi
+          # Image muss pullbar sein
+          if ! skopeo inspect docker://ghcr.io/wuza0295/silk:latest >/dev/null 2>&1; then
+            sudo apt-get update -qq && sudo apt-get install -y -qq skopeo
+          fi
+          if skopeo inspect docker://ghcr.io/wuza0295/silk:latest >/dev/null; then
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_build=false" >> "$GITHUB_OUTPUT"
+            echo "ghcr.io/wuza0295/silk:latest nicht erreichbar"
+          fi
+
+  build_media:
+    name: Build ${{ matrix.type }}
+    needs: gate
+    if: needs.gate.outputs.should_build == 'true'
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - type: anaconda-iso
+            config: silk/disk_config/iso.toml
+            artifact: silk-installer
+          - type: qcow2
+            config: silk/disk_config/disk.toml
+            artifact: silk-vm
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Maximize build space
+        uses: ublue-os/remove-unwanted-software@cc0becac701cf642c8f0a6613bbdaf5dc36b259e
+        with:
+          remove-codeql: true
+
+      - name: User ids
+        id: ids
+        run: |
+          echo "uid=$(id -u)" >> "$GITHUB_OUTPUT"
+          echo "gid=$(id -g)" >> "$GITHUB_OUTPUT"
+
+      - name: Build with bootc-image-builder
+        id: build
+        uses: osbuild/bootc-image-builder-action@8661cd3832544ad68c12dcde8681b13ab0f56a8d
+        with:
+          builder-image: quay.io/centos-bootc/bootc-image-builder:latest
+          config-file: ${{ matrix.config }}
+          image: ghcr.io/wuza0295/silk:latest
+          types: ${{ matrix.type }}
+          additional-args: --use-librepo=True
+          chown: ${{ steps.ids.outputs.uid }}:${{ steps.ids.outputs.gid }}
+
+      - name: Collect outputs
+        id: pack
+        run: |
+          set -euo pipefail
+          OUT="${{ steps.build.outputs.output-directory }}"
+          echo "BIB output: $OUT"
+          find "$OUT" -type f | head -50
+          mkdir -p dist
+          # Rename to Silk-branded files
+          if [[ "${{ matrix.type }}" == "anaconda-iso" ]]; then
+            ISO=$(find "$OUT" -name '*.iso' | head -1)
+            [[ -n "$ISO" ]] || { echo "Kein ISO gefunden"; exit 1; }
+            cp -f "$ISO" dist/Silk-Installer-x86_64.iso
+            sha256sum dist/Silk-Installer-x86_64.iso | tee dist/Silk-Installer-x86_64.iso.sha256
+            echo "file=Silk-Installer-x86_64.iso" >> "$GITHUB_OUTPUT"
+          else
+            QCOW=$(find "$OUT" -name '*.qcow2' | head -1)
+            [[ -n "$QCOW" ]] || { echo "Kein QCOW2 gefunden"; exit 1; }
+            cp -f "$QCOW" dist/Silk-VM-x86_64.qcow2
+            sha256sum dist/Silk-VM-x86_64.qcow2 | tee dist/Silk-VM-x86_64.qcow2.sha256
+            echo "file=Silk-VM-x86_64.qcow2" >> "$GITHUB_OUTPUT"
+          fi
+          ls -lh dist/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
+
+  release:
+    name: Publish Silk install media
+    needs: build_media
+    if: github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || inputs.create_release)
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: List assets
+        run: ls -lhR release-assets
+
+      - name: Create or update Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: silk-media-latest
+          name: Silk Install Media
+          body: |
+            **Silk** – eigenständiges Install-Medium (kein Aurora-Download nötig).
+
+            ### VirtualBox / USB
+            - `Silk-Installer-x86_64.iso` → als CD/USB starten, Silk installieren
+
+            ### Fertige VM-Disk
+            - `Silk-VM-x86_64.qcow2` → in VirtualBox/Boxes als Festplatte
+
+            Container-Image (Updates): `ghcr.io/wuza0295/silk:latest`
+
+            Aurora ist nur die technische Basis – für Nutzer ist das Produkt **Silk**.
+          files: |
+            release-assets/Silk-Installer-x86_64.iso
+            release-assets/Silk-Installer-x86_64.iso.sha256
+            release-assets/Silk-VM-x86_64.qcow2
+            release-assets/Silk-VM-x86_64.qcow2.sha256
+          fail_on_unmatched_files: false
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

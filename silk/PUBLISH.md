@@ -61,12 +61,18 @@ GitHub → Packages → `silk` / `silk-nvidia-open` / `silk-asahi` → **Public*
 - `silk` + `silk-nvidia-open` auf `ubuntu-24.04`
 - `silk-asahi` auf `ubuntu-24.04-arm`
 
-## VirtualBox (PC-Test)
+## VirtualBox / USB – eigenständiges Silk
 
-Siehe [docs/VIRTUALBOX.md](docs/VIRTUALBOX.md) bzw.:
+**Kein Aurora-Download.** Install-Medium ist Silk:
+
+- Release: https://github.com/Wuza0295/nachtblau-crew/releases/tag/silk-media-latest  
+- `Silk-Installer-x86_64.iso` / `Silk-VM-x86_64.qcow2`  
+- Anleitung: [docs/VIRTUALBOX.md](docs/VIRTUALBOX.md)
 
 ```bash
 ./scripts/test-silk-virtualbox.sh all
-# in der VM nach Aurora-Install:
-sudo bootc switch ghcr.io/wuza0295/silk:latest && sudo systemctl reboot
 ```
+
+CI: `.github/workflows/silk-disk.yml` (baut ISO+QCOW aus `silk:latest`).
+
+Aurora ist nur die **technische Basis** im Container-Build – für Nutzer ist das Produkt Silk.

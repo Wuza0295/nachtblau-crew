@@ -352,6 +352,16 @@ build-raw $target_image=("localhost/" + image_name) $tag=default_tag: && (_build
 [group('Build Virtal Machine Image')]
 build-iso $target_image=("localhost/" + image_name) $tag=default_tag: && (_build-bib target_image tag "iso" "disk_config/iso.toml")
 
+# Build ISO from published GHCR Silk image (eigenständiges Install-Medium)
+[group('Build Virtal Machine Image')]
+build-iso-release:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    just sudoif podman pull ghcr.io/wuza0295/silk:latest
+    just sudoif podman tag ghcr.io/wuza0295/silk:latest silk:latest
+    just _build-bib silk latest iso disk_config/iso.toml
+    echo "Fertig: output/ → Silk Installer ISO"
+
 # Rebuild a QCOW2 virtual machine image
 [group('Build Virtal Machine Image')]
 rebuild-qcow2 $target_image=("localhost/" + image_name) $tag=default_tag: && (_rebuild-bib target_image tag "qcow2" "disk_config/disk.toml")

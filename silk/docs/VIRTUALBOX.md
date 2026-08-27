@@ -1,74 +1,49 @@
-# Silk in VirtualBox testen
+# Silk in VirtualBox testen – **eigenständiges Silk**, kein Aurora
 
-Silk hat **kein eigenes Installer-ISO**. In der VM:
+Silk ist das Produkt. Aurora ist nur die technische Basis (wie Fedora bei Bazzite) –
+**du lädst kein Aurora** und installierst kein Aurora.
 
-1. Aurora installieren (Basis)  
-2. `bootc switch` → **Silk**
+## Was du brauchst
 
-`silk:latest` ist live: `ghcr.io/wuza0295/silk:latest`
+1. **Silk-Installer-ISO** (oder QCOW2) aus dem Release  
+2. VirtualBox mit funktionierendem `vboxdrv`
 
-## Auf Bazzite (Host)
+Download (sobald CI fertig):  
+https://github.com/Wuza0295/nachtblau-crew/releases/tag/silk-media-latest
 
-### 0) VirtualBox-Treiber (wichtig)
+- `Silk-Installer-x86_64.iso` → Installation wie jedes OS  
+- `Silk-VM-x86_64.qcow2` → fertige Disk (VirtualBox/Boxes)
 
-Der Fehler `Kernel driver not installed (rc=-1908)` heißt: **vboxdrv fehlt**.
+## VirtualBox-Treiber (Bazzite)
 
 ```bash
-# prüfen
-lsmod | grep vbox
-sudo /sbin/vboxconfig
-
-# falls immer noch tot (Atomic/Bazzite):
+lsmod | grep vboxdrv || sudo /sbin/vboxconfig
+# falls tot:
 sudo rpm-ostree install kernel-devel gcc make elfutils-libelf-devel
 sudo systemctl reboot
-# nach Reboot:
 sudo /sbin/vboxconfig
-lsmod | grep vboxdrv
 ```
 
-Secure Boot: Module ggf. signieren oder Secure Boot für Tests aus.
-
-Wenn VirtualBox auf Bazzite dauerhaft scheitert → **GNOME Boxes / virt-manager** (KVM):
+## Mit Silk-ISO
 
 ```bash
-ujust setup-virtualization
+# ISO aus Release laden (Beispiel)
+mkdir -p ~/Silk-VMs && cd ~/Silk-VMs
+gh release download silk-media-latest -p 'Silk-Installer*.iso' -R Wuza0295/nachtblau-crew
+
+# oder manuell von der Release-Seite speichern, dann:
+./silk/scripts/test-silk-virtualbox.sh iso-local ~/Silk-VMs/Silk-Installer-x86_64.iso
+./silk/scripts/test-silk-virtualbox.sh start
 ```
 
-### 1) One-Shot: ISO + VM
+In der VM: **Silk installieren** (Anaconda) → reboot → `silk-setup`.
 
-```bash
-curl -fsSL -o /tmp/test-silk-vbox.sh \
-  https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/aurora-silk-os-2818/silk/scripts/test-silk-virtualbox.sh
-chmod +x /tmp/test-silk-vbox.sh
-/tmp/test-silk-vbox.sh all
-```
+## Mit fertiger QCOW2 (schneller)
 
-Oder aus dem Repo:
+In VirtualBox: neue VM → vorhandene Disk `Silk-VM-x86_64.qcow2` (ggf. konvertieren)  
+oder GNOME Boxes: QCOW2 direkt öffnen.
 
-```bash
-cd ~/nachtblau-crew && git fetch && git checkout cursor/aurora-silk-os-2818
-./silk/scripts/test-silk-virtualbox.sh all
-```
+## CI
 
-### 2) In der VM nach Aurora-Install
-
-```bash
-sudo bootc switch ghcr.io/wuza0295/silk:latest
-sudo systemctl reboot
-silk-setup
-```
-
-## VM-Empfehlung
-
-| Einstellung | Wert |
-|-------------|------|
-| Firmware | **EFI** |
-| RAM | ≥ 4 GB |
-| CPU | ≥ 2 |
-| Disk | ≥ 40 GB |
-| ISO | Aurora stable webui |
-
-## Nicht in VirtualBox
-
-- **silk-asahi** (Apple Silicon) – nur echte M1+-Hardware + Asahi  
-- **silk-nvidia-open** – in VBox sinnlos (keine NVIDIA-Passthrough-Garantie)
+`.github/workflows/silk-disk.yml` baut ISO + QCOW aus `ghcr.io/wuza0295/silk:latest`  
+und veröffentlicht sie unter Release-Tag `silk-media-latest`.

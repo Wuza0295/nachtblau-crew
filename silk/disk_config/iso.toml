@@ -1,0 +1,28 @@
+# Silk Installer-ISO (Anaconda) – eigenständiges Silk-OS
+# Basis technisch Aurora, für Nutzer: nur Silk.
+
+[[customizations.filesystem]]
+mountpoint = "/"
+minsize = "20 GiB"
+
+[customizations.installer.kickstart]
+contents = """
+%post --erroronfail
+# Sicherstellen, dass das installierte System auf Silk zeigt
+bootc switch --mutate-in-place --transport registry ghcr.io/wuza0295/silk:latest || true
+%end
+"""
+
+[customizations.installer.modules]
+enable = [
+  "org.fedoraproject.Anaconda.Modules.Storage",
+  "org.fedoraproject.Anaconda.Modules.Runtime",
+  "org.fedoraproject.Anaconda.Modules.Network",
+  "org.fedoraproject.Anaconda.Modules.Security",
+  "org.fedoraproject.Anaconda.Modules.Services",
+  "org.fedoraproject.Anaconda.Modules.Users",
+  "org.fedoraproject.Anaconda.Modules.Timezone"
+]
+disable = [
+  "org.fedoraproject.Anaconda.Modules.Subscription"
+]
