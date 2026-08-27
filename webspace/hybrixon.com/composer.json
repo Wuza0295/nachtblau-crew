@@ -1,0 +1,13 @@
+{
+  "name": "nachtblau/hybrixon",
+  "description": "Hybrixon social portal (ALL-INKL, PHP 8.5)",
+  "type": "project",
+  "require": {
+    "php": ">=8.5"
+  },
+  "config": {
+    "platform": {
+      "php": "8.5.3"
+    }
+  }
+}

@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Link, useLocation } from "wouter";
+import AllInklPartnerBanner from "@/components/AllInklPartnerBanner";
 import {
   Compass,
   Home,
@@ -10,6 +11,8 @@ import {
   Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import MaintenanceBanner from "@/components/MaintenanceBanner";
+import { SITE } from "@/lib/site";
 
 const NAV = [
   { href: "/portal", label: "Hub", icon: Home, match: (p: string) => p === "/portal" },
@@ -50,7 +53,12 @@ export default function SocialShell({
           "radial-gradient(ellipse 120% 80% at 100% 0%, oklch(0.22 0.12 310 / 0.35), transparent 50%), radial-gradient(ellipse 80% 60% at 0% 100%, oklch(0.18 0.1 25 / 0.25), transparent 45%), oklch(0.07 0.02 280)",
       }}
     >
-      <header className="sticky top-0 z-40 border-b border-white/10 backdrop-blur-xl bg-background/60">
+      <MaintenanceBanner />
+      <header
+        className={`sticky z-40 border-b border-white/10 backdrop-blur-xl bg-background/60 ${
+          SITE.maintenanceMode ? "top-10" : "top-0"
+        }`}
+      >
         <div className="container flex h-14 items-center justify-between gap-4">
           <Link href="/portal" className="flex items-center gap-2 group">
             <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-[oklch(0.72_0.2_25)] via-[oklch(0.65_0.22_310)] to-[oklch(0.55_0.18_260)] flex items-center justify-center shadow-lg shadow-primary/20 transition-transform duration-200 group-active:scale-95">
@@ -113,6 +121,10 @@ export default function SocialShell({
       </header>
 
       <div className="flex-1 container pb-24 md:pb-8">{children}</div>
+
+      <div className="container pb-4 md:pb-6">
+        <AllInklPartnerBanner />
+      </div>
 
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-white/10 bg-background/80 backdrop-blur-xl">
         <div className="flex justify-around py-2">
