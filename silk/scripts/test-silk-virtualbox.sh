@@ -57,12 +57,22 @@ download_silk_iso() {
   if have gh; then
     gh release download "$RELEASE_TAG" -R "$RELEASE_REPO" \
       -p 'Silk-Installer*' -p 'reassemble.sh' -D "$ISO_DIR" || true
+    if [[ ! -f "$ISO_PATH" ]] && [[ -x "${ISO_DIR}/reassemble.sh" || -f "${ISO_DIR}/reassemble.sh" ]]; then
+      info "reassemble.sh …"
+      (cd "$ISO_DIR" && bash reassemble.sh) || true
+    fi
     if [[ ! -f "$ISO_PATH" ]] && compgen -G "${ISO_DIR}/Silk-Installer-x86_64.iso.part*" >/dev/null; then
       info "Setze ISO aus Split-Teilen zusammen …"
       cat "${ISO_DIR}/Silk-Installer-x86_64.iso.part"* > "$ISO_PATH"
-      if [[ -f "${ISO_DIR}/Silk-Installer-x86_64.iso.sha256" ]]; then
-        (cd "$ISO_DIR" && sha256sum -c Silk-Installer-x86_64.iso.sha256)
-      fi
+    fi
+    # SHA immer auf Basename normalisieren (alte Releases hatten dist/…)
+    if [[ -f "${ISO_DIR}/Silk-Installer-x86_64.iso.sha256" ]]; then
+      local hash
+      hash="$(awk '{print $1}' "${ISO_DIR}/Silk-Installer-x86_64.iso.sha256")"
+      printf '%s  %s\n' "$hash" "Silk-Installer-x86_64.iso" > "${ISO_DIR}/Silk-Installer-x86_64.iso.sha256"
+    fi
+    if [[ -f "$ISO_PATH" && -f "${ISO_DIR}/Silk-Installer-x86_64.iso.sha256" ]]; then
+      (cd "$ISO_DIR" && sha256sum -c Silk-Installer-x86_64.iso.sha256)
     fi
     local found
     found="$(find "$ISO_DIR" -maxdepth 1 -name 'Silk-Installer*.iso' ! -name '*.part*' | head -1 || true)"
@@ -122,22 +132,33 @@ apply_silk_vm_profile() {
       --ioapic on
 }
 
-# Bestehende VM (z. B. Silk-Test mit Fedora-Label) korrigieren.
+# Bestehende VM korrigieren (Fedora-Label weg, Name → Silk).
 fix_vm_branding() {
   need_vbox
-  local name="${1:-$VM_NAME}"
-  # Häufiger Altname aus früherem Skript
-  if ! VBoxManage showvminfo "$name" &>/dev/null && [[ "$name" == "$VM_NAME" ]]; then
-    if VBoxManage showvminfo "Silk-Test" &>/dev/null; then
+  local name="${1:-}"
+  if [[ -z "$name" ]]; then
+    if VBoxManage showvminfo "Silk" &>/dev/null; then
+      name="Silk"
+    elif VBoxManage showvminfo "Silk-Test" &>/dev/null; then
       name="Silk-Test"
+    else
+      die "Keine VM „Silk“ oder „Silk-Test“ gefunden."
     fi
   fi
   VBoxManage showvminfo "$name" &>/dev/null || die "VM nicht gefunden: $name"
+
+  # Alte Silk-Test → Silk umbenennen (wenn Ziel noch frei)
+  if [[ "$name" == "Silk-Test" ]] && ! VBoxManage showvminfo "Silk" &>/dev/null; then
+    info "Benenne Silk-Test → Silk um …"
+    VBoxManage modifyvm "Silk-Test" --name "Silk"
+    name="Silk"
+  fi
+
   info "Setze Silk-Profil für VM '${name}' (Linux, nicht Fedora) …"
   apply_silk_vm_profile "$name"
   echo
   VBoxManage showvminfo "$name" | grep -E '^(Name:|Guest OS:|Description:|Firmware:|Graphics Controller:)' || true
-  info "Fertig. In der GUI: Betriebssystem = Linux … (64-bit), Beschreibung = Silk."
+  info "Fertig. Betriebssystem-Profil = Linux … (64-bit), Produkt = Silk."
 }
 
 create_vm() {
@@ -189,9 +210,14 @@ main() {
     start)
       need_vbox; check_driver
       local start_name="$VM_NAME"
-      if ! VBoxManage showvminfo "$start_name" &>/dev/null && VBoxManage showvminfo "Silk-Test" &>/dev/null; then
-        start_name="Silk-Test"
+      if ! VBoxManage showvminfo "$start_name" &>/dev/null; then
+        if VBoxManage showvminfo "Silk-Test" &>/dev/null; then
+          # Auto-Migration beim Start
+          fix_vm_branding "Silk-Test"
+          start_name="Silk"
+        fi
       fi
+      VBoxManage showvminfo "$start_name" &>/dev/null || die "VM fehlt: $start_name (lege mit: $0 vm an)"
       VBoxManage startvm "$start_name" --type gui
       ;;
     all)

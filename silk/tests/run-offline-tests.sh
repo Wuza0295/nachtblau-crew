@@ -259,6 +259,28 @@ grep -q 'windows11' "$ROOT/system_files/usr/bin/silk-desktop" \
 grep -q 'handle_mac' "$ROOT/system_files/usr/bin/silk-install" \
   && ok "silk-install handle_mac" || bad "handle_mac"
 
+echo "== Install-Medien / VirtualBox (kein Aurora-User-Pfad) =="
+DISK_WF="$(cd "$ROOT/.." && pwd)/.github/workflows/silk-disk.yml"
+REP_WF="$(cd "$ROOT/.." && pwd)/.github/workflows/silk-disk-republish.yml"
+grep -q 'Silk-Installer-x86_64.iso' "$DISK_WF" && ok "disk workflow ISO name" || bad "disk workflow ISO name"
+grep -q 'sha256sum "${{ matrix.outname }}"' "$DISK_WF" || grep -q 'cd dist && sha256sum' "$DISK_WF" \
+  && ok "sha256 basename-only in disk workflow" || bad "sha256 must be basename-only (no dist/)"
+grep -q 'SHA normalisiert' "$ROOT/scripts/prepare-release-assets.sh" && ok "prepare-release normalizes sha" || bad "prepare-release sha normalize"
+grep -q 'Linux26_64' "$ROOT/scripts/test-silk-virtualbox.sh" && ok "vbox ostype Linux not Fedora" || bad "vbox ostype"
+grep -q 'Fedora_64' "$ROOT/scripts/test-silk-virtualbox.sh" && bad "Fedora_64 still in vbox script" || ok "no Fedora_64 in vbox script"
+grep -q 'VM_NAME=.*Silk"' "$ROOT/scripts/test-silk-virtualbox.sh" || grep -q 'SILK_VM_NAME:-Silk}' "$ROOT/scripts/test-silk-virtualbox.sh" \
+  && ok "default VM name Silk" || bad "default VM name Silk"
+grep -q 'PRETTY_NAME="Silk"' "$ROOT/build_files/05-finalize.sh" && ok "os-release PRETTY_NAME Silk" || bad "os-release Silk"
+grep -q 'silk-media-latest' "$ROOT/docs/VIRTUALBOX.md" && ok "VIRTUALBOX release tag" || bad "VIRTUALBOX release tag"
+grep -q 'Fedora_64\|Aurora ISO\|download.*aurora' "$ROOT/docs/VIRTUALBOX.md" && bad "VIRTUALBOX still Aurora/Fedora path" || ok "VIRTUALBOX no Aurora ISO path"
+SITE="$(cd "$ROOT/.." && pwd)/Silk-Website/index.html"
+if [[ -f "$SITE" ]]; then
+  grep -q 'silk-media-latest' "$SITE" && ok "website ISO release link" || bad "website ISO release link"
+  grep -q 'kein Aurora\|Kein Aurora\|kein Aurora nötig\|kein Aurora' "$SITE" \
+    || grep -q 'Silk ist das Betriebssystem' "$SITE" \
+    && ok "website Silk-first" || bad "website still Aurora-first"
+fi
+
 echo
 echo "Ergebnis: $PASS bestanden, $FAIL fehlgeschlagen"
 [[ "$FAIL" -eq 0 ]]

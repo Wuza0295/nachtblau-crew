@@ -21,7 +21,7 @@
     <h1>Silk</h1>
     <p class="tagline">Linux für Umsteiger von Windows und macOS – mit wählbarer Mac- oder Windows-inspirierter Optik.</p>
     <div class="hero-actions">
-      <a class="btn primary" href="#installieren">Jetzt installieren</a>
+      <a class="btn primary" href="https://github.com/Wuza0295/nachtblau-crew/releases/tag/silk-media-latest">ISO laden</a>
       <a class="btn secondary" href="https://github.com/Wuza0295/nachtblau-crew/blob/cursor/aurora-silk-os-2818/silk/QUICKSTART.md">Quickstart</a>
     </div>
   </div>
@@ -65,9 +65,12 @@
 
 <section id="installieren" class="section dark">
   <h2>Installation</h2>
-  <p class="lead">Du startest von Universal Blue Aurora (oder anderem Bootc-System) und wechselst per <code>bootc switch</code>.</p>
+  <p class="lead"><strong>Silk ist das Betriebssystem.</strong> ISO laden – kein Aurora nötig.</p>
 
-  <h3>AMD / Intel</h3>
+  <h3>Installer-ISO (VirtualBox / USB)</h3>
+  <p><a class="link" href="https://github.com/Wuza0295/nachtblau-crew/releases/tag/silk-media-latest">Release silk-media-latest</a> · Parts mit <code>bash reassemble.sh</code> zusammenfügen.</p>
+
+  <h3>Optional: schon Bootc (AMD / Intel)</h3>
   <pre><code>sudo bootc switch --enforce-container-sigpolicy ghcr.io/wuza0295/silk:latest
 sudo systemctl reboot</code></pre>
 

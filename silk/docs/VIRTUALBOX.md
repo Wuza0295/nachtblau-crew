@@ -51,7 +51,7 @@ In der VM: **Silk installieren** (Anaconda) → reboot → `silk-setup`.
 ### Betriebssystem-Feld in VirtualBox (wichtig)
 
 VirtualBox hat **kein** „Silk“ in der Dropdown-Liste – nur Hardware-Profile.
-**Empfehlung (beste Variante):**
+**Empfehlung:**
 
 | Feld | Wert |
 |------|------|
@@ -59,17 +59,13 @@ VirtualBox hat **kein** „Silk“ in der Dropdown-Liste – nur Hardware-Profil
 | **Betriebssystem** | Linux 2.6 / 3.x / 4.x / 5.x **(64-bit)** |
 | **Beschreibung** | Silk – eigenständiges Desktop-Betriebssystem |
 
-**Nicht** Fedora / Aurora / Red Hat wählen — das ist nur die unsichtbare Build-Basis.
+**Nicht** Fedora wählen.
 
-Deine bestehende `Silk-Test`-VM sofort korrigieren:
+Alte VM `Silk-Test` wird automatisch korrigiert:
 
 ```bash
-# im Repo:
-./silk/scripts/test-silk-virtualbox.sh fix Silk-Test
-
-# oder direkt:
-VBoxManage modifyvm Silk-Test --ostype Linux26_64 \
-  --description "Silk – eigenständiges Desktop-Betriebssystem"
+./silk/scripts/test-silk-virtualbox.sh fix
+# → benennt zu Silk um, setzt Linux-Profil + Beschreibung
 ```
 
 Das installierte System ist **Silk**.

@@ -30,6 +30,16 @@ for f in Silk-Installer-x86_64.iso Silk-VM-x86_64.qcow2; do
   prepare_one "$f"
 done
 
+# SHA256-Dateien: immer nur Basename (nie dist/… oder absolute Pfade)
+for s in *.sha256; do
+  [[ -f "$s" ]] || continue
+  hash="$(awk '{print $1}' "$s")"
+  [[ -n "$hash" ]] || continue
+  base="${s%.sha256}"
+  printf '%s  %s\n' "$hash" "$base" > "$s"
+  echo "SHA normalisiert: $s → $base"
+done
+
 cat > reassemble.sh <<'EOF'
 #!/usr/bin/env bash
 # Silk-Medien aus Split-Teilen wieder zusammensetzen

@@ -128,7 +128,8 @@ jobs:
             [[ -n "$QCOW" ]] || { echo "Kein QCOW2"; find bib-output -type f; exit 1; }
             cp -f "$QCOW" "dist/${{ matrix.outname }}"
           fi
-          sha256sum "dist/${{ matrix.outname }}" | tee "dist/${{ matrix.outname }}.sha256"
+          # Basename-only SHA (sonst scheitert sha256sum -c nach Download)
+          (cd dist && sha256sum "${{ matrix.outname }}" | tee "${{ matrix.outname }}.sha256")
           ls -lh dist/
 
       - name: Upload artifact

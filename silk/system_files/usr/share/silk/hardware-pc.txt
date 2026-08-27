@@ -1,14 +1,15 @@
-# Silk auf PC / Standard-Laptop (x86_64 oder ARM64-SBC, nicht Apple Silicon)
+# Silk auf PC / Standard-Laptop (x86_64)
 #
-# Silk ist für normale PC-Hardware auf Universal Blue Aurora gebaut.
+# Silk ist das Produkt. Aurora ist nur die Build-Basis.
 #
-# Installation:
-#   sudo bootc switch --enforce-container-sigpolicy ghcr.io/<user>/silk:latest
+# Empfohlen – Installer-ISO (VirtualBox / USB):
+#   https://github.com/Wuza0295/nachtblau-crew/releases/tag/silk-media-latest
+#   bash reassemble.sh   # falls *.part*
+#
+# Optional – schon Bootc:
+#   sudo bootc switch --enforce-container-sigpolicy ghcr.io/wuza0295/silk:latest
 #   sudo systemctl reboot
 #
-# GPU je nach Karte:
+# GPU:
 #   silk-gpu status
-#   silk-gpu hints
-#
-# NVIDIA (Turing/16xx+):
-#   ghcr.io/<user>/silk-nvidia-open:latest
+# NVIDIA: ghcr.io/wuza0295/silk-nvidia-open:latest

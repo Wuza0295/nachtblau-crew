@@ -10,7 +10,13 @@
 | **Intel-MacBook** | `silk-asahi intel-mac` | kein natives Image |
 | **Erkennung** | `silk-platform` / `silk-hardware status` | — |
 
-## PC (Aurora-Basis) ✅
+## PC ✅
+
+**Empfohlen:** Silk-Installer-ISO  
+https://github.com/Wuza0295/nachtblau-crew/releases/tag/silk-media-latest  
+(`*.part*` → `bash reassemble.sh` → VirtualBox EFI, OS-Profil = Linux, Name = Silk)
+
+**Optional** (schon Bootc):
 
 ```bash
 sudo bootc switch ghcr.io/wuza0295/silk:latest   # oder silk-nvidia-open
