@@ -1,3 +1,5 @@
+> **Hinweis:** Zum **Silk-Testen** brauchst du kein Aurora-ISO und kein VirtualBox. Siehe [TEST-SILK.md](TEST-SILK.md).
+
 # VirtualBox auf Bazzite (für Silk-Tests)
 
 Bazzite ist immutable (`rpm-ostree`). VirtualBox lässt sich am zuverlässigsten **layern**.
