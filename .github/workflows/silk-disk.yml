@@ -1,6 +1,6 @@
 name: Build Silk install media
-# Baut eigenständiges Silk-ISO + QCOW2 aus ghcr.io/wuza0295/silk:latest
-# Nutzer brauchen KEIN Aurora – nur Silk-ISO in VirtualBox/USB.
+# Eigenständiges Silk-ISO + QCOW2 aus ghcr.io/wuza0295/silk:latest
+# Kein Aurora-User-Pfad – nur Silk-Installer für VirtualBox/USB.
 
 on:
   workflow_dispatch:
@@ -28,6 +28,10 @@ permissions:
   packages: read
   actions: read
 
+env:
+  BIB_IMAGE: quay.io/centos-bootc/bootc-image-builder:latest
+  SILK_IMAGE: ghcr.io/wuza0295/silk:latest
+
 jobs:
   gate:
     name: Gate (Silk image ready)
@@ -37,22 +41,16 @@ jobs:
     steps:
       - id: check
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_run" ]]; then
-            if [[ "${{ github.event.workflow_run.conclusion }}" != "success" ]]; then
-              echo "should_build=false" >> "$GITHUB_OUTPUT"
-              echo "Upstream Build Silk image nicht erfolgreich – skip."
-              exit 0
-            fi
+          if [[ "${{ github.event_name }}" == "workflow_run" && "${{ github.event.workflow_run.conclusion }}" != "success" ]]; then
+            echo "should_build=false" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
-          # Image muss pullbar sein
-          if ! skopeo inspect docker://ghcr.io/wuza0295/silk:latest >/dev/null 2>&1; then
-            sudo apt-get update -qq && sudo apt-get install -y -qq skopeo
-          fi
-          if skopeo inspect docker://ghcr.io/wuza0295/silk:latest >/dev/null; then
+          sudo apt-get update -qq && sudo apt-get install -y -qq skopeo
+          if skopeo inspect "docker://${SILK_IMAGE}" >/dev/null; then
             echo "should_build=true" >> "$GITHUB_OUTPUT"
           else
             echo "should_build=false" >> "$GITHUB_OUTPUT"
-            echo "ghcr.io/wuza0295/silk:latest nicht erreichbar"
+            echo "${SILK_IMAGE} nicht erreichbar"
           fi
 
   build_media:
@@ -67,9 +65,11 @@ jobs:
           - type: anaconda-iso
             config: silk/disk_config/iso.toml
             artifact: silk-installer
+            outname: Silk-Installer-x86_64.iso
           - type: qcow2
             config: silk/disk_config/disk.toml
             artifact: silk-vm
+            outname: Silk-VM-x86_64.qcow2
     steps:
       - uses: actions/checkout@v4
 
@@ -78,52 +78,57 @@ jobs:
         with:
           remove-codeql: true
 
-      - name: User ids
-        id: ids
+      - name: Install podman
         run: |
-          echo "uid=$(id -u)" >> "$GITHUB_OUTPUT"
-          echo "gid=$(id -g)" >> "$GITHUB_OUTPUT"
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq podman
 
-      # bootc-image-builder-action mountet config-file als Volume-Name –
-      # Pfade mit "/" sind ungültig → flache Kopie im Workspace-Root.
-      - name: Flatten config path
-        run: |
-          cp -f "${{ matrix.config }}" ./bib-config.toml
-          ls -la ./bib-config.toml
-
-      - name: Build with bootc-image-builder
-        id: build
-        uses: osbuild/bootc-image-builder-action@8661cd3832544ad68c12dcde8681b13ab0f56a8d
-        with:
-          builder-image: quay.io/centos-bootc/bootc-image-builder:latest
-          config-file: bib-config.toml
-          image: ghcr.io/wuza0295/silk:latest
-          types: ${{ matrix.type }}
-          additional-args: --use-librepo=True
-          chown: ${{ steps.ids.outputs.uid }}:${{ steps.ids.outputs.gid }}
-
-      - name: Collect outputs
-        id: pack
+      - name: Build with bootc-image-builder (absolute mounts)
         run: |
           set -euo pipefail
-          OUT="${{ steps.build.outputs.output-directory }}"
-          echo "BIB output: $OUT"
-          find "$OUT" -type f | head -50
+          CFG="$(pwd)/${{ matrix.config }}"
+          OUT="$(pwd)/bib-output"
+          mkdir -p "$OUT"
+          test -f "$CFG"
+          echo "Config: $CFG"
+          echo "Output: $OUT"
+          echo "Image:  ${SILK_IMAGE}"
+
+          # Image lokal cachen
+          sudo podman pull "${SILK_IMAGE}"
+          sudo podman pull "${BIB_IMAGE}"
+
+          # WICHTIG: absolute Host-Pfade, sonst erzeugt Podman Named Volumes
+          # und /config.toml landet als Verzeichnis → Build stirbt.
+          sudo podman run --rm --privileged \
+            --security-opt label=type:unconfined_t \
+            -v /var/lib/containers/storage:/var/lib/containers/storage \
+            -v "${OUT}:/output" \
+            -v "${CFG}:/config.toml:ro" \
+            "${BIB_IMAGE}" \
+            --type "${{ matrix.type }}" \
+            --use-librepo=True \
+            --rootfs=btrfs \
+            "${SILK_IMAGE}"
+
+          echo "=== bib-output ==="
+          find "$OUT" -type f | head -40
+          sudo chown -R "$(id -u):$(id -g)" "$OUT" || true
+
+      - name: Collect Silk-branded artifact
+        run: |
+          set -euo pipefail
           mkdir -p dist
-          # Rename to Silk-branded files
           if [[ "${{ matrix.type }}" == "anaconda-iso" ]]; then
-            ISO=$(find "$OUT" -name '*.iso' | head -1)
-            [[ -n "$ISO" ]] || { echo "Kein ISO gefunden"; exit 1; }
-            cp -f "$ISO" dist/Silk-Installer-x86_64.iso
-            sha256sum dist/Silk-Installer-x86_64.iso | tee dist/Silk-Installer-x86_64.iso.sha256
-            echo "file=Silk-Installer-x86_64.iso" >> "$GITHUB_OUTPUT"
+            ISO=$(find bib-output -name '*.iso' -type f | head -1)
+            [[ -n "$ISO" ]] || { echo "Kein ISO"; find bib-output -type f; exit 1; }
+            cp -f "$ISO" "dist/${{ matrix.outname }}"
           else
-            QCOW=$(find "$OUT" -name '*.qcow2' | head -1)
-            [[ -n "$QCOW" ]] || { echo "Kein QCOW2 gefunden"; exit 1; }
-            cp -f "$QCOW" dist/Silk-VM-x86_64.qcow2
-            sha256sum dist/Silk-VM-x86_64.qcow2 | tee dist/Silk-VM-x86_64.qcow2.sha256
-            echo "file=Silk-VM-x86_64.qcow2" >> "$GITHUB_OUTPUT"
+            QCOW=$(find bib-output -name '*.qcow2' -type f | head -1)
+            [[ -n "$QCOW" ]] || { echo "Kein QCOW2"; find bib-output -type f; exit 1; }
+            cp -f "$QCOW" "dist/${{ matrix.outname }}"
           fi
+          sha256sum "dist/${{ matrix.outname }}" | tee "dist/${{ matrix.outname }}.sha256"
           ls -lh dist/
 
       - name: Upload artifact
@@ -138,7 +143,7 @@ jobs:
   release:
     name: Publish Silk install media
     needs: build_media
-    if: github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || inputs.create_release)
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-24.04
     steps:
       - name: Download artifacts
@@ -156,17 +161,12 @@ jobs:
           tag_name: silk-media-latest
           name: Silk Install Media
           body: |
-            **Silk** – eigenständiges Install-Medium (kein Aurora-Download nötig).
+            **Silk** – eigenständiges Install-Medium für VirtualBox / USB.
 
-            ### VirtualBox / USB
-            - `Silk-Installer-x86_64.iso` → als CD/USB starten, Silk installieren
+            - `Silk-Installer-x86_64.iso` → booten & Silk installieren
+            - `Silk-VM-x86_64.qcow2` → fertige VM-Disk
 
-            ### Fertige VM-Disk
-            - `Silk-VM-x86_64.qcow2` → in VirtualBox/Boxes als Festplatte
-
-            Container-Image (Updates): `ghcr.io/wuza0295/silk:latest`
-
-            Aurora ist nur die technische Basis – für Nutzer ist das Produkt **Silk**.
+            Kein Aurora-Download nötig. Image: `ghcr.io/wuza0295/silk:latest`
           files: |
             release-assets/Silk-Installer-x86_64.iso
             release-assets/Silk-Installer-x86_64.iso.sha256
