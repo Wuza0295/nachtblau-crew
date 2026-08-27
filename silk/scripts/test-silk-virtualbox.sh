@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Silk in VirtualBox – eigenständiges Silk-ISO (kein Aurora).
+# Silk in VirtualBox – eigenständiges Silk-ISO (kein Aurora, kein Fedora-Label).
 set -euo pipefail
 
-VM_NAME="${SILK_VM_NAME:-Silk-Test}"
+VM_NAME="${SILK_VM_NAME:-Silk}"
 ISO_DIR="${HOME}/Silk-VMs"
 ISO_PATH="${ISO_DIR}/Silk-Installer-x86_64.iso"
 RELEASE_REPO="${SILK_RELEASE_REPO:-Wuza0295/nachtblau-crew}"
@@ -10,6 +10,9 @@ RELEASE_TAG="${SILK_RELEASE_TAG:-silk-media-latest}"
 MEM_MB="${SILK_VM_MEM:-4096}"
 CPUS="${SILK_VM_CPUS:-2}"
 DISK_MB="${SILK_VM_DISK:-51200}"
+# VirtualBox hat kein „Silk“ in der Liste → generisches Linux (nie Fedora_*).
+VBOX_OSTYPE="${SILK_VBOX_OSTYPE:-Linux26_64}"
+VM_DESC="${SILK_VM_DESC:-Silk – eigenständiges Desktop-Betriebssystem}"
 
 info() { printf '\n==> %s\n' "$*"; }
 die() { printf 'Fehler: %s\n' "$*" >&2; exit 1; }
@@ -52,7 +55,6 @@ download_silk_iso() {
   fi
   info "Lade Silk-Installer-ISO vom GitHub-Release ${RELEASE_TAG} …"
   if have gh; then
-    # Ganzes ISO oder Split-Teile (GitHub-Limit 2 GiB)
     gh release download "$RELEASE_TAG" -R "$RELEASE_REPO" \
       -p 'Silk-Installer*' -p 'reassemble.sh' -D "$ISO_DIR" || true
     if [[ ! -f "$ISO_PATH" ]] && compgen -G "${ISO_DIR}/Silk-Installer-x86_64.iso.part*" >/dev/null; then
@@ -82,46 +84,89 @@ EOF
   fi
 }
 
+# Beste Defaults für Silk (Linux-Gast), ohne Fedora-Label in der GUI.
+apply_silk_vm_profile() {
+  local name="$1"
+  VBoxManage modifyvm "$name" \
+    --ostype "$VBOX_OSTYPE" \
+    --description "$VM_DESC" \
+    --memory "$MEM_MB" \
+    --cpus "$CPUS" \
+    --firmware efi \
+    --chipset ich9 \
+    --mouse usbtablet \
+    --graphicscontroller vmsvga \
+    --vram 128 \
+    --nic1 nat \
+    --audio-driver none \
+    --clipboard-mode bidirectional \
+    --draganddrop bidirectional \
+    --ioapic on \
+    --acpi on \
+    --pae on \
+    --rtcuseutc on \
+    --hwvirtex on \
+    --nestedpaging on \
+    --largepages on \
+    --vtxvpid on \
+    --accelerate3d off \
+    2>/dev/null || VBoxManage modifyvm "$name" \
+      --ostype "$VBOX_OSTYPE" \
+      --description "$VM_DESC" \
+      --memory "$MEM_MB" \
+      --cpus "$CPUS" \
+      --firmware efi \
+      --vram 128 \
+      --nic1 nat \
+      --clipboard-mode bidirectional \
+      --ioapic on
+}
+
+# Bestehende VM (z. B. Silk-Test mit Fedora-Label) korrigieren.
+fix_vm_branding() {
+  need_vbox
+  local name="${1:-$VM_NAME}"
+  # Häufiger Altname aus früherem Skript
+  if ! VBoxManage showvminfo "$name" &>/dev/null && [[ "$name" == "$VM_NAME" ]]; then
+    if VBoxManage showvminfo "Silk-Test" &>/dev/null; then
+      name="Silk-Test"
+    fi
+  fi
+  VBoxManage showvminfo "$name" &>/dev/null || die "VM nicht gefunden: $name"
+  info "Setze Silk-Profil für VM '${name}' (Linux, nicht Fedora) …"
+  apply_silk_vm_profile "$name"
+  echo
+  VBoxManage showvminfo "$name" | grep -E '^(Name:|Guest OS:|Description:|Firmware:|Graphics Controller:)' || true
+  info "Fertig. In der GUI: Betriebssystem = Linux … (64-bit), Beschreibung = Silk."
+}
+
 create_vm() {
   need_vbox
   check_driver
   mkdir -p "$ISO_DIR"
   [[ -f "$ISO_PATH" ]] || die "ISO fehlt: $ISO_PATH"
 
-  # VirtualBox kennt kein „Silk“ in der OS-Liste – nie Fedora anzeigen.
-  # Linux26_64 = generisches Linux (64-Bit); das Gast-OS ist Silk.
-  local vbox_ostype="${SILK_VBOX_OSTYPE:-Linux26_64}"
-
   if ! VBoxManage showvminfo "$VM_NAME" &>/dev/null; then
-    info "VM '${VM_NAME}' anlegen (OS-Typ: Linux, Produkt: Silk) …"
-    VBoxManage createvm --name "$VM_NAME" --ostype "$vbox_ostype" --register --basefolder "$ISO_DIR"
+    info "VM '${VM_NAME}' anlegen (Produkt: Silk, Profil: Linux 64-bit) …"
+    VBoxManage createvm --name "$VM_NAME" --ostype "$VBOX_OSTYPE" --register --basefolder "$ISO_DIR"
     VBoxManage createmedium disk --filename "${ISO_DIR}/${VM_NAME}.vdi" --size "$DISK_MB" --format VDI
     VBoxManage storagectl "$VM_NAME" --name "SATA" --add sata --controller IntelAhci
     VBoxManage storageattach "$VM_NAME" --storagectl "SATA" --port 0 --device 0 --type hdd \
       --medium "${ISO_DIR}/${VM_NAME}.vdi"
     VBoxManage storagectl "$VM_NAME" --name "IDE" --add ide
   else
-    info "VM '${VM_NAME}' existiert – OS-Typ auf Linux (nicht Fedora) setzen …"
+    info "VM '${VM_NAME}' existiert – Silk-Profil aktualisieren …"
   fi
 
-  VBoxManage modifyvm "$VM_NAME" \
-    --ostype "$vbox_ostype" \
-    --memory "$MEM_MB" \
-    --cpus "$CPUS" \
-    --firmware efi \
-    --vram 128 \
-    --nic1 nat \
-    --audio-driver none \
-    --clipboard-mode bidirectional \
-    --ioapic on
+  apply_silk_vm_profile "$VM_NAME"
 
   VBoxManage storageattach "$VM_NAME" --storagectl "IDE" --port 0 --device 0 \
     --type dvddrive --medium "$ISO_PATH" 2>/dev/null \
     || VBoxManage storageattach "$VM_NAME" --storagectl "IDE" --port 0 --device 0 \
          --type dvddrive --medium "$ISO_PATH" --forceunmount || true
 
-  info "Fertig. Das ist das **Silk**-Installer-ISO (kein Aurora)."
-  VBoxManage list vms
+  info "Fertig. Gast-OS ist **Silk** (VirtualBox-Profil: Linux, nicht Fedora)."
+  VBoxManage showvminfo "$VM_NAME" | grep -E '^(Name:|Guest OS:|Description:)' || true
   echo
   echo "Start: VBoxManage startvm ${VM_NAME} --type gui"
   echo "In der VM: Silk installieren → nach Login: silk-setup"
@@ -138,9 +183,16 @@ main() {
       info "ISO gesetzt: $ISO_PATH"
       ;;
     vm) download_silk_iso; create_vm ;;
+    fix|fix-vm)
+      fix_vm_branding "${2:-}"
+      ;;
     start)
       need_vbox; check_driver
-      VBoxManage startvm "$VM_NAME" --type gui
+      local start_name="$VM_NAME"
+      if ! VBoxManage showvminfo "$start_name" &>/dev/null && VBoxManage showvminfo "Silk-Test" &>/dev/null; then
+        start_name="Silk-Test"
+      fi
+      VBoxManage startvm "$start_name" --type gui
       ;;
     all)
       need_vbox
@@ -151,8 +203,14 @@ main() {
       [[ "${ans}" =~ ^[jJyY]$ ]] && VBoxManage startvm "$VM_NAME" --type gui || true
       ;;
     -h|--help)
-      echo "Usage: $0 [all|driver|iso|iso-local PATH|vm|start]"
-      echo "Silk-Installer-ISO (Release ${RELEASE_TAG}) – kein Aurora."
+      cat <<EOF
+Usage: $0 [all|driver|iso|iso-local PATH|vm|fix|start]
+
+  fix [VM-Name]  Fedora-Label entfernen, Silk-Beschreibung setzen
+                 (findet auch „Silk-Test“)
+
+Silk-Installer-ISO (Release ${RELEASE_TAG}) – kein Aurora, kein Fedora als Produktname.
+EOF
       ;;
     *) die "Unbekannt: $1" ;;
   esac
