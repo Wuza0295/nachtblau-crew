@@ -88,19 +88,24 @@ create_vm() {
   mkdir -p "$ISO_DIR"
   [[ -f "$ISO_PATH" ]] || die "ISO fehlt: $ISO_PATH"
 
+  # VirtualBox kennt kein „Silk“ in der OS-Liste – nie Fedora anzeigen.
+  # Linux26_64 = generisches Linux (64-Bit); das Gast-OS ist Silk.
+  local vbox_ostype="${SILK_VBOX_OSTYPE:-Linux26_64}"
+
   if ! VBoxManage showvminfo "$VM_NAME" &>/dev/null; then
-    info "VM '${VM_NAME}' anlegen …"
-    VBoxManage createvm --name "$VM_NAME" --ostype "Fedora_64" --register --basefolder "$ISO_DIR"
+    info "VM '${VM_NAME}' anlegen (OS-Typ: Linux, Produkt: Silk) …"
+    VBoxManage createvm --name "$VM_NAME" --ostype "$vbox_ostype" --register --basefolder "$ISO_DIR"
     VBoxManage createmedium disk --filename "${ISO_DIR}/${VM_NAME}.vdi" --size "$DISK_MB" --format VDI
     VBoxManage storagectl "$VM_NAME" --name "SATA" --add sata --controller IntelAhci
     VBoxManage storageattach "$VM_NAME" --storagectl "SATA" --port 0 --device 0 --type hdd \
       --medium "${ISO_DIR}/${VM_NAME}.vdi"
     VBoxManage storagectl "$VM_NAME" --name "IDE" --add ide
   else
-    info "VM '${VM_NAME}' existiert."
+    info "VM '${VM_NAME}' existiert – OS-Typ auf Linux (nicht Fedora) setzen …"
   fi
 
   VBoxManage modifyvm "$VM_NAME" \
+    --ostype "$vbox_ostype" \
     --memory "$MEM_MB" \
     --cpus "$CPUS" \
     --firmware efi \

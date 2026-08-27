@@ -38,7 +38,8 @@ sudo /sbin/vboxconfig
 ```bash
 # ISO aus Release laden (Beispiel)
 mkdir -p ~/Silk-VMs && cd ~/Silk-VMs
-gh release download silk-media-latest -p 'Silk-Installer*.iso' -R Wuza0295/nachtblau-crew
+gh release download silk-media-latest -p 'Silk-Installer*' -p 'reassemble.sh' -R Wuza0295/nachtblau-crew
+bash reassemble.sh   # falls nur *.part* da sind
 
 # oder manuell von der Release-Seite speichern, dann:
 ./silk/scripts/test-silk-virtualbox.sh iso-local ~/Silk-VMs/Silk-Installer-x86_64.iso
@@ -46,6 +47,22 @@ gh release download silk-media-latest -p 'Silk-Installer*.iso' -R Wuza0295/nacht
 ```
 
 In der VM: **Silk installieren** (Anaconda) → reboot → `silk-setup`.
+
+### Betriebssystem-Feld in VirtualBox
+
+VirtualBox hat **kein** „Silk“ in der Dropdown-Liste – das ist nur ein Hardware-Profil.
+**Nicht** „Fedora“ wählen. Richtig:
+
+- Name: `Silk-Test` (oder wie du willst)
+- Betriebssystem / Version: **Linux 2.6 / 3.x / 4.x / 5.x (64-bit)** bzw. „Andere Linux (64-Bit)“
+
+Bereits angelegte VM umstellen:
+
+```bash
+VBoxManage modifyvm Silk-Test --ostype Linux26_64
+```
+
+Das installierte System ist **Silk**, nicht Fedora.
 
 ## Mit fertiger QCOW2 (schneller)
 
