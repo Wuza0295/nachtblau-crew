@@ -133,16 +133,17 @@ sudo bootc switch --enforce-container-sigpolicy ghcr.io/<user>/silk-nvidia-open:
 | Szenario | Silk? | Hinweis |
 |----------|-------|---------|
 | **Wechsel von macOS auf PC** | ✅ | Mac-Optik, `.dmg`/`.app`-Installer, App-Aliase |
-| **Silk auf Intel-MacBook** | ❌ | x86_64, aber T2/WLAN/Firmware – nicht supported |
-| **Silk auf Apple Silicon (M1+)** | ❌ | Braucht [Fedora Asahi Remix](https://fedora-asahi-remix.org/); `silk-asahi` geplant |
+| **Silk auf Intel-MacBook** | ❌ | T2/WLAN – `silk-asahi intel-mac` für Alternativen |
+| **Silk auf Apple Silicon (M1+)** | ✅ (experimentell) | `ghcr.io/wuza0295/silk-asahi:latest` nach Fedora Asahi Remix |
 
 ```bash
 silk-hardware status     # PC / intel-mac / apple-silicon erkennen
-silk-hardware hints      # Kompatibilität & Alternativen
+silk-asahi install       # Anleitung Apple Silicon
+silk-asahi switch        # bootc switch auf silk-asahi
 silk-install meine.app   # Mac-Datei → Linux-Ersatz (auf Silk-PC)
 ```
 
-Silk ist ein **PC-/Laptop-Image** (Aurora), kein MacBook-Installationsmedium. Für Linux **auf dem Mac** selbst: Asahi Remix, nicht Silk.
+Details: [PUBLISH.md](PUBLISH.md) · [docs/PLATFORMS.md](docs/PLATFORMS.md)
 
 ## Was im Image steckt
 

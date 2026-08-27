@@ -115,6 +115,9 @@ grep -q 'detect_hardware' "$ROOT/system_files/usr/libexec/silk/firstboot" && ok 
 grep -q 'Fedora Asahi' "$ROOT/system_files/usr/share/silk/hardware-apple-silicon.txt" && ok "asahi doc" || bad "asahi doc"
 grep -q 'Mac / MacBook' "$ROOT/README.md" && ok "README mac hardware" || bad "README mac hardware"
 bash "$ROOT/system_files/usr/bin/silk-hardware" status >/dev/null && ok "silk-hardware status runs" || bad "silk-hardware status"
+test -x "$ROOT/system_files/usr/bin/silk-asahi" && grep -q 'silk-asahi' "$ROOT/system_files/usr/bin/silk-asahi" && ok "silk-asahi cli" || bad "silk-asahi cli"
+grep -q 'IMAGE_NAME_ASAHI' "$ROOT/silk.env" && ok "asahi image env" || bad "asahi image env"
+grep -q 'IS_ASAHI' "$ROOT/build_files/build.sh" && ok "asahi build guards" || bad "asahi build guards"
 
 echo "== Branding / Image-Name =="
 if grep -q '^IMAGE_NAME=silk$' "$ROOT/silk.env"; then
@@ -167,8 +170,8 @@ else
   bad "Justfile missing --pull=always"
 fi
 WF_ROOT="$(cd "$ROOT/.." && pwd)/.github/workflows/silk-build.yml"
-if [[ -f "$WF_ROOT" ]] && grep -q 'cron:' "$WF_ROOT" && grep -q 'aurora:stable' "$WF_ROOT" && grep -q 'aurora-nvidia-open:stable' "$WF_ROOT"; then
-  ok "root workflow cron + amd/intel + nvidia base pull"
+if [[ -f "$WF_ROOT" ]] && grep -q 'cron:' "$WF_ROOT" && grep -q 'aurora:stable' "$WF_ROOT" && grep -q 'aurora-nvidia-open:stable' "$WF_ROOT" && grep -q 'silk-asahi' "$WF_ROOT" && grep -q 'ubuntu-24.04-arm' "$WF_ROOT"; then
+  ok "root workflow cron + amd/intel + nvidia + asahi arm"
 else
   bad "root workflow cron/base pull"
 fi

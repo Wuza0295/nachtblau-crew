@@ -20,14 +20,17 @@ on:
       build_nvidia:
         description: 'Auch silk-nvidia-open bauen'
         type: boolean
-        default: false
+        default: true
+      build_asahi:
+        description: 'Auch silk-asahi (Apple Silicon) bauen'
+        type: boolean
+        default: true
   schedule:
     - cron: '05 10 * * *'
 
 env:
   IMAGE_REGISTRY: "ghcr.io/${{ github.repository_owner }}"
 
-# WICHTIG: kein matrix.* hier – sonst scheitert der Workflow sofort
 concurrency:
   group: silk-${{ github.workflow }}-${{ github.ref || github.run_id }}
   cancel-in-progress: true
@@ -51,33 +54,49 @@ jobs:
   build_push:
     name: Build ${{ matrix.image_name }}
     needs: offline_tests
-    runs-on: ubuntu-24.04
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - image_name: silk
             base_image: ghcr.io/ublue-os/aurora:stable
+            runner: ubuntu-24.04
           - image_name: silk-nvidia-open
             base_image: ghcr.io/ublue-os/aurora-nvidia-open:stable
+            runner: ubuntu-24.04
+          - image_name: silk-asahi
+            base_image: quay.io/fedora-asahi-remix-atomic-desktops/kinoite:43
+            runner: ubuntu-24.04-arm
     permissions:
       contents: read
       packages: write
       id-token: write
     steps:
-      - name: Maybe skip NVIDIA
+      - name: Maybe skip variant
         id: gate
         working-directory: .
         run: |
-          # Alle unterstützten Images publishen (AMD/Intel + NVIDIA).
-          # Asahi/Apple Silicon ist 2.0 und hier bewusst nicht im Matrix.
-          echo "skip=false" >> "$GITHUB_OUTPUT"
+          SKIP=false
+          NAME="${{ matrix.image_name }}"
+          if [[ "$NAME" == "silk-nvidia-open" ]]; then
+            if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.build_nvidia }}" != "true" ]]; then
+              SKIP=true
+            fi
+          fi
+          if [[ "$NAME" == "silk-asahi" ]]; then
+            if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.build_asahi }}" != "true" ]]; then
+              SKIP=true
+            fi
+          fi
+          echo "skip=${SKIP}" >> "$GITHUB_OUTPUT"
+          echo "Variant ${NAME}: skip=${SKIP} runner=${{ matrix.runner }}"
 
       - uses: actions/checkout@v4
         if: steps.gate.outputs.skip != 'true'
 
       - name: Maximize build space
-        if: steps.gate.outputs.skip != 'true'
+        if: steps.gate.outputs.skip != 'true' && matrix.runner == 'ubuntu-24.04'
         uses: ublue-os/remove-unwanted-software@695eb75bc387dbcd9685a8e72d23439d8686cba6
 
       - name: Install just
@@ -101,7 +120,7 @@ jobs:
           echo "IMAGE_REGISTRY=${IMAGE_REGISTRY,,}" >> ${GITHUB_ENV}
           echo "IMAGE_NAME=${{ matrix.image_name }}" >> ${GITHUB_ENV}
 
-      - name: Pull Aurora base (${{ matrix.base_image }})
+      - name: Pull base (${{ matrix.base_image }})
         if: steps.gate.outputs.skip != 'true'
         run: podman pull ${{ matrix.base_image }}
 
@@ -178,7 +197,7 @@ jobs:
         run: |
           if [[ -z "${COSIGN_PRIVATE_KEY}" ]]; then
             echo "Kein SIGNING_SECRET – Signatur übersprungen."
-            echo "Test-Switch ohne Enforce: sudo bootc switch ${IMAGE_REGISTRY}/${IMAGE_NAME}:latest"
+            echo "Test-Switch: sudo bootc switch ${IMAGE_REGISTRY}/${IMAGE_NAME}:latest"
             exit 0
           fi
           cosign sign -y --new-bundle-format=false --use-signing-config=false --key env://COSIGN_PRIVATE_KEY ${IMAGE_REGISTRY}/${IMAGE_NAME}@${DIGEST}

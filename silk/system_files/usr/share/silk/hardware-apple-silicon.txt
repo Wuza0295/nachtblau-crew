@@ -1,19 +1,30 @@
-# Apple Silicon (M1 / M2 / M3 / M4 MacBook, Mac mini, iMac, Mac Studio)
-#
-# Status: Silk läuft hier NICHT (andere CPU-Architektur + Apple-Treiber nötig)
-#
-# Warum:
-#   - Apple Silicon = ARM64 mit Apple-spezifischem Boot, GPU, WLAN, Audio
-#   - Silk nutzt ghcr.io/ublue-os/aurora:stable (PC-Image, kein Asahi-Kernel)
-#   - Mesa AGX + Asahi-Firmware fehlen in Aurora
-#
-# Alternative für Linux auf dem Mac:
-#   Fedora Asahi Remix: https://fedora-asahi-remix.org/
-#   (Installation über Asahi Linux Installer in macOS)
-#
-# Zukunft:
-#   Wenn Fedora Asahi Remix atomic/bootc stabil ist, ist ein Silk-Image
-#   „silk-asahi“ denkbar – analog zu silk-nvidia-open. Noch nicht verfügbar.
-#
-# Wechsel von Mac auf PC:
-#   Silk + silk-install + silk-desktop mac – siehe hardware-mac-migration.txt
+# Silk auf Apple Silicon (M1 / M2 / M3 / M4 …)
+
+Silk läuft **nicht** als Aurora-Image auf dem MacBook.
+Für MacBook/Mac mini/iMac mit Apple Silicon gibt es **silk-asahi**.
+
+## Ablauf
+
+1. In macOS: [Fedora Asahi Remix](https://fedora-asahi-remix.org/) installieren
+2. Auf Atomic/Kinoite wechseln (Fedora Asahi Remix Atomic Desktops)
+3. Silk aktivieren:
+
+```bash
+sudo bootc switch ghcr.io/wuza0295/silk-asahi:latest
+sudo systemctl reboot
+silk-asahi setup
+silk-desktop mac
+```
+
+Nach System-Updates:
+
+```bash
+sudo bootc upgrade && sudo update-m1n1 && sudo systemctl reboot
+```
+
+## Hinweise
+
+- Experimental (WLAN/GPU/Schlaf je nach Modell)
+- Basis: `quay.io/fedora-asahi-remix-atomic-desktops/kinoite:43`
+- CLI: `silk-asahi status|install|switch|setup|intel-mac|hints`
+- Intel-MacBook: `silk-asahi intel-mac` (kein natives Silk)

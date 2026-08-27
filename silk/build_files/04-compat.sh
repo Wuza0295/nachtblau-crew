@@ -3,6 +3,15 @@
 
 set -ouex pipefail
 
+# Auf Apple Silicon / aarch64: Wine/Waydroid oft unbrauchbar oder kaputt → skip
+if [[ "${IS_ASAHI:-0}" == "1" || "${IS_AARCH64:-0}" == "1" ]]; then
+  echo "Asahi/aarch64: Wine/Waydroid-Compat übersprungen."
+  update-desktop-database /usr/share/applications 2>/dev/null || true
+  update-mime-database /usr/share/mime 2>/dev/null || true
+  echo "Compat layer ready (asahi-lite)."
+  exit 0
+fi
+
 # Wine / Winetricks (Fallback wenn 03 schon installiert hat)
 dnf5 -y install wine winetricks cabextract 2>/dev/null || true
 

@@ -1,30 +1,24 @@
 # Silk publishen – Geräte-Übersicht
 
-Silk ist **öffentlich** über GHCR. Installation = `bootc switch` vom bestehenden Bootc-System (Bazzite, Aurora, Bluefin, …).
+Silk ist über GHCR öffentlich. Installation = `bootc switch` vom bestehenden Bootc-System.
 
-## Images (aktuell)
+## Images
 
 | Gerät / GPU | Image | Status |
 |-------------|-------|--------|
-| PC/Laptop **AMD / Intel** | `ghcr.io/wuza0295/silk:latest` | ✅ veröffentlicht |
-| PC/Laptop **NVIDIA** (Turing / GTX 16xx+, RTX) | `ghcr.io/wuza0295/silk-nvidia-open:latest` | 🔄 Build/Publish |
-| **Apple Silicon** MacBook | — | ❌ noch nicht (Roadmap 2.0 / Asahi) |
-| Intel-Mac (Hackintosh/Bootcamp-ähnlich) | wie PC AMD/Intel | nur wenn Linux UEFI-bootfähig |
+| PC/Laptop **AMD / Intel** | `ghcr.io/wuza0295/silk:latest` | ✅ |
+| PC/Laptop **NVIDIA** (Turing+) | `ghcr.io/wuza0295/silk-nvidia-open:latest` | ✅/🔄 CI |
+| **Apple Silicon** Mac (M1+) | `ghcr.io/wuza0295/silk-asahi:latest` | 🔄 CI (ARM) |
+| Intel-MacBook | — | ❌ kein natives Image (`silk-asahi intel-mac`) |
 
-## Auf jedem unterstützten Gerät installieren
+## Installation
 
-### AMD / Intel (jetzt)
+### AMD / Intel
 
 ```bash
 sudo bootc switch ghcr.io/wuza0295/silk:latest
 sudo systemctl reboot
-```
-
-Mit Signatur-Policy (wenn Cosign-Secret gesetzt und Image signiert):
-
-```bash
-sudo bootc switch --enforce-container-sigpolicy ghcr.io/wuza0295/silk:latest
-sudo systemctl reboot
+silk-setup
 ```
 
 ### NVIDIA
@@ -32,28 +26,37 @@ sudo systemctl reboot
 ```bash
 sudo bootc switch ghcr.io/wuza0295/silk-nvidia-open:latest
 sudo systemctl reboot
+silk-setup
 ```
 
-### Nach dem Reboot
+### Apple Silicon (MacBook / Mac mini / iMac)
+
+1. [Fedora Asahi Remix](https://fedora-asahi-remix.org/) in macOS installieren  
+2. Atomic/Kinoite aktivieren  
+3. Dann:
 
 ```bash
-silk-setup
-silk-welcome
+sudo bootc switch ghcr.io/wuza0295/silk-asahi:latest
+sudo systemctl reboot
+silk-asahi setup
+silk-desktop mac
 ```
 
-## Zurück (z. B. zu Bazzite)
+Nach Updates auf dem Mac: `sudo bootc upgrade && sudo update-m1n1 && reboot`
+
+## Zurück (Beispiel Bazzite)
 
 ```bash
 sudo bootc switch ghcr.io/ublue-os/bazzite:stable
 sudo systemctl reboot
 ```
 
-## Sichtbarkeit GHCR
+## GHCR-Sichtbarkeit
 
-Falls ein Image privat bleibt: GitHub → Packages → Paket `silk` / `silk-nvidia-open` →  
-**Package settings → Change visibility → Public**
+GitHub → Packages → `silk` / `silk-nvidia-open` / `silk-asahi` → **Public**
 
 ## CI
 
-Build & Push: `.github/workflows/silk-build.yml`  
-Branch: `cursor/aurora-silk-os-2818` (und `main` nach Merge)
+`.github/workflows/silk-build.yml` baut:
+- `silk` + `silk-nvidia-open` auf `ubuntu-24.04`
+- `silk-asahi` auf `ubuntu-24.04-arm`

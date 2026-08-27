@@ -1,0 +1,173 @@
+#!/usr/bin/env bash
+# silk-asahi – Silk auf Apple Silicon Mac (M1/M2/M3/M4 MacBook, iMac, Mac mini)
+set -euo pipefail
+
+REGISTRY="${SILK_REGISTRY:-ghcr.io/wuza0295}"
+SILK_ASAHI_IMAGE="${REGISTRY}/silk-asahi:latest"
+ASAHI_BASE="${SILK_ASAHI_BASE:-quay.io/fedora-asahi-remix-atomic-desktops/kinoite:43}"
+FEDORA_ASAHI_URL="https://fedora-asahi-remix.org/"
+
+usage() {
+  cat <<EOF
+silk-asahi – Silk für MacBook / Mac (Apple Silicon)
+
+Usage:
+  silk-asahi status       Kompatibilität & aktuelles Image
+  silk-asahi setup        Ersteinrichtung auf Mac (nach Installation)
+  silk-asahi install      Installations-Anleitung (Asahi + Silk)
+  silk-asahi switch       Zu silk-asahi wechseln (nach Fedora Asahi Atomic)
+  silk-asahi intel-mac    Intel-MacBook: Alternativen (kein natives Silk)
+  silk-asahi hints        Ausführliche Hinweise
+
+Image: ${SILK_ASAHI_IMAGE}
+Basis: Fedora Asahi Remix Atomic (Kinoite/KDE)
+EOF
+}
+
+is_apple_silicon() {
+  [[ "$(uname -m)" == "aarch64" || "$(uname -m)" == "arm64" ]] && \
+    (grep -qi apple /sys/class/dmi/id/sys_vendor 2>/dev/null || \
+     grep -qi mac /sys/firmware/devicetree/base/model 2>/dev/null)
+}
+
+cmd_status() {
+  echo "=== Silk Asahi (Mac) ==="
+  if is_apple_silicon; then
+    echo "Hardware:  Apple Silicon ✓"
+  else
+    echo "Hardware:  Kein Apple Silicon erkannt"
+    /usr/bin/silk-hardware status 2>/dev/null | head -4 || true
+  fi
+  echo "Image:     $SILK_ASAHI_IMAGE"
+  echo
+  if command -v bootc >/dev/null 2>&1; then
+    bootc status 2>/dev/null | head -10 || echo "bootc status nicht verfügbar"
+  else
+    echo "bootc: nicht installiert (noch kein Atomic/Asahi-System)"
+  fi
+}
+
+cmd_install() {
+  cat <<EOF
+╔══════════════════════════════════════════════════════════════╗
+║  Silk auf MacBook (Apple Silicon) installieren               ║
+╚══════════════════════════════════════════════════════════════╝
+
+Voraussetzung: Fedora Asahi Remix (Linux auf dem Mac)
+
+Schritt 1 – Fedora Asahi installieren (einmalig, in macOS):
+  • ${FEDORA_ASAHI_URL}
+  • Asahi Linux Installer in macOS ausführen
+  • Partition wählen → Fedora Asahi Remix installieren
+
+Schritt 2 – Auf Atomic/Kinoite umstellen (experimentell):
+  Siehe: github.com/fedora-asahi-remix-atomic-desktops/images
+  Basis-Image: ${ASAHI_BASE}
+
+Schritt 3 – Silk-Asahi aktivieren:
+  sudo bootc switch --enforce-container-sigpolicy ${SILK_ASAHI_IMAGE}
+  sudo systemctl reboot
+
+Schritt 4 – Einrichten:
+  silk-asahi setup
+  silk-desktop mac
+  silk-setup
+
+Nach jedem System-Update auf Mac:
+  sudo bootc upgrade && sudo update-m1n1 && sudo systemctl reboot
+
+Hinweis: Experimental – WLAN, GPU und Schlafmodus können je nach Modell
+abweichen. Intel-MacBooks: silk-asahi intel-mac
+EOF
+}
+
+cmd_switch() {
+  if ! is_apple_silicon; then
+    echo "Nicht auf Apple Silicon – silk-asahi switch nur auf M1+ Mac." >&2
+    echo "Nutze: silk-setup (PC) oder silk-asahi install" >&2
+    exit 1
+  fi
+  if ! command -v bootc >/dev/null 2>&1; then
+    echo "bootc fehlt. Zuerst Fedora Asahi Remix Atomic installieren." >&2
+    cmd_install
+    exit 1
+  fi
+  echo "Wechsle zu: $SILK_ASAHI_IMAGE"
+  read -r -p "Fortfahren? [j/N] " ans
+  [[ "${ans,,}" == j || "${ans,,}" == y ]] || exit 0
+  # Ohne Signatur zuerst ohne Enforce versuchen
+  if sudo bootc switch --enforce-container-sigpolicy "$SILK_ASAHI_IMAGE"; then
+    echo "OK (signiert)."
+  else
+    echo "Signatur-Enforce fehlgeschlagen – versuche ohne Enforce …"
+    sudo bootc switch "$SILK_ASAHI_IMAGE"
+  fi
+  echo "Reboot: sudo systemctl reboot && silk-asahi setup"
+}
+
+cmd_setup() {
+  if ! is_apple_silicon; then
+    echo "silk-asahi setup ist für Apple-Silicon-Macs gedacht." >&2
+    /usr/bin/silk-hardware hints
+    exit 1
+  fi
+  /usr/bin/silk-desktop mac || /usr/bin/silk-apply-layout mac || true
+  /usr/bin/silk-setup --force || /usr/bin/silk-setup
+  notify-send "Silk Mac" "MacBook-Einrichtung abgeschlossen" 2>/dev/null || true
+  echo "Fertig. Tipp: silk-desktop mac && silk-welcome"
+}
+
+cmd_intel_mac() {
+  cat <<'EOF'
+╔══════════════════════════════════════════════════════════════╗
+║  Intel-MacBook – Silk läuft hier NICHT nativ                  ║
+╚══════════════════════════════════════════════════════════════╝
+
+Warum: T2-Chip, Apple-WLAN/Bluetooth, Firmware – nicht getestet.
+
+Deine Optionen:
+
+  A) Silk auf neuem PC/Laptop (empfohlen)
+     → Mac-Optik: silk-desktop mac
+     → Mac-Dateien: silk-install meine.app
+
+  B) Linux auf Intel-Mac (experimentell, ohne Silk-Garantie)
+     → Fedora Workstation oder Ubuntu mit rEFInd
+     → Kein offizieller Silk-Support
+
+  C) Mac behalten + Silk-PC nutzen
+     → Remote/SSH vom MacBook zum Silk-PC
+
+  D) Apple Silicon Mac kaufen/umsteigen
+     → silk-asahi install (M1/M2/M3/M4)
+
+Details: /usr/share/silk/hardware-intel-mac.txt
+EOF
+}
+
+cmd_hints() {
+  if [[ -f /usr/share/silk/hardware-apple-silicon.txt ]]; then
+    cat /usr/share/silk/hardware-apple-silicon.txt
+  fi
+  echo
+  cmd_install
+}
+
+main() {
+  case "${1:-status}" in
+    status) cmd_status ;;
+    setup) cmd_setup ;;
+    install) cmd_install ;;
+    switch) cmd_switch ;;
+    intel-mac) cmd_intel_mac ;;
+    hints) cmd_hints ;;
+    -h|--help) usage ;;
+    *)
+      echo "Unbekannt: $1" >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+}
+
+main "$@"

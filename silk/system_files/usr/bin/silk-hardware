@@ -37,9 +37,9 @@ platform_label() {
 
 silk_support_label() {
   case "$1" in
-    pc) echo "voll unterstützt" ;;
-    intel-mac) echo "nicht offiziell – Silk ist kein MacBook-Image" ;;
-    apple-silicon) echo "nicht unterstützt – braucht Asahi-Base (silk-asahi: geplant)" ;;
+    pc) echo "voll unterstützt (silk / silk-nvidia-open)" ;;
+    intel-mac) echo "kein natives Silk – siehe silk-asahi intel-mac" ;;
+    apple-silicon) echo "über silk-asahi (Fedora Asahi Remix Atomic)" ;;
     *) echo "unbekannt" ;;
   esac
 }
@@ -120,9 +120,10 @@ status_cmd() {
       echo "Details: silk-hardware hints"
       ;;
     apple-silicon)
-      echo "Hinweis: Apple-Silicon braucht Asahi-Kernel + Apple-Treiber."
-      echo "Silk (aurora:stable) läuft hier nicht. Alternative: Fedora Asahi Remix."
-      echo "Details: silk-hardware hints"
+      echo "Apple Silicon: zuerst Fedora Asahi Remix, dann:"
+      echo "  sudo bootc switch ghcr.io/wuza0295/silk-asahi:latest"
+      echo "  sudo systemctl reboot && silk-asahi setup"
+      echo "Details: silk-asahi install | silk-hardware hints"
       ;;
     *)
       echo "Plattform unbekannt – silk-hardware detect ausführen."
