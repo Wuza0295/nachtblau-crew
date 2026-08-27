@@ -69,6 +69,16 @@ cd Silk-Website && ./start.sh
 | `style.css` | Design |
 | `start.sh` | Lokaler Webserver |
 
+## VirtualBox auf Bazzite (Silk testen)
+
+Siehe [VIRTUALBOX-BAZZITE.md](VIRTUALBOX-BAZZITE.md) bzw.:
+
+```bash
+./scripts/install-virtualbox-bazzite.sh --install
+# nach Reboot:
+VBOX_ACCEPT_PUEL=1 ./scripts/install-virtualbox-bazzite.sh --extpack-only
+```
+
 ## Hinweis
 
 Vor öffentlichem Launch Impressum & Datenschutz in `index.html` ausfüllen.
