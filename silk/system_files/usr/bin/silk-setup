@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# silk-setup – maximal einfacher Ersteinstieg für Win/Mac-Wechsler
+set -euo pipefail
+
+MARKER="${XDG_CONFIG_HOME:-$HOME/.config}/silk/.setup-done"
+WELCOME_FLAG="${XDG_CONFIG_HOME:-$HOME/.config}/silk/.welcome-shown"
+mkdir -p "$(dirname "$MARKER")" "$HOME/Applications" "$HOME/.local/share/silk/appimages"
+
+if [[ -f "$MARKER" && "${1:-}" != "--force" ]]; then
+  exit 0
+fi
+
+notify-send "Silk" "Einrichtung für Windows-/Mac-Wechsler…" 2>/dev/null || true
+
+# 1) Optik
+/usr/bin/silk-desktop --ask || /usr/bin/silk-apply-layout mac || true
+/usr/bin/silk-apply-wallpaper || true
+
+flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo || true
+
+# 2) Alltag immer (einfacher Umstieg) – außer SILK_SKIP_ESSENTIALS=1
+if [[ "${SILK_SKIP_ESSENTIALS:-0}" != "1" ]]; then
+  notify-send "Silk" "Installiere Alltags-Apps (Office, Browser, VLC, …)" 2>/dev/null || true
+  /usr/bin/silk-install --setup-essentials || true
+fi
+
+# 3) Gaming optional
+if [[ "${SILK_AUTO_GAMING:-0}" == "1" ]]; then
+  /usr/bin/silk-install --setup-gaming || true
+elif command -v kdialog >/dev/null; then
+  if kdialog --yesno "Auch Gaming-Apps (Steam, Epic, Discord, …)?"; then
+    /usr/bin/silk-install --setup-gaming || true
+  fi
+fi
+
+# 4) Distrobox für deb/snap vorbereiten (Hintergrund-freundlich)
+/usr/bin/silk-ensure-boxes || true
+
+# 5) Willkommen
+if [[ ! -f "$WELCOME_FLAG" ]]; then
+  /usr/bin/silk-welcome || true
+  touch "$WELCOME_FLAG"
+fi
+
+# 6) Optional: Begleitgeräte (iPhone/iPad) anbinden
+if [[ "${SILK_AUTO_CONNECT:-0}" == "1" ]]; then
+  /usr/bin/silk-connect setup || true
+elif command -v kdialog >/dev/null 2>&1; then
+  if kdialog --yesno "Altes iPhone/iPad mit Silk verbinden?\n(Silk Connect – kein natives iOS-OS)" 2>/dev/null; then
+    /usr/bin/silk-connect setup || true
+  fi
+fi
+
+touch "$MARKER"
+notify-send "Silk" "Fertig! Doppelklick auf .exe .dmg .AppImage .deb .flatpak .snap funktioniert." 2>/dev/null || true

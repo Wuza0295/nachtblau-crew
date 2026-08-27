@@ -1,0 +1,14 @@
+# Silk auf PC / Standard-Laptop (x86_64 oder ARM64-SBC, nicht Apple Silicon)
+#
+# Silk ist für normale PC-Hardware auf Universal Blue Aurora gebaut.
+#
+# Installation:
+#   sudo bootc switch --enforce-container-sigpolicy ghcr.io/<user>/silk:latest
+#   sudo systemctl reboot
+#
+# GPU je nach Karte:
+#   silk-gpu status
+#   silk-gpu hints
+#
+# NVIDIA (Turing/16xx+):
+#   ghcr.io/<user>/silk-nvidia-open:latest

@@ -1,0 +1,49 @@
+[Default Applications]
+application/x-ms-dos-executable=silk-open-exe.desktop
+application/x-msi=silk-open-exe.desktop
+application/x-msdownload=silk-open-exe.desktop
+application/vnd.android.package-archive=silk-open-apk.desktop
+application/x-apple-diskimage=silk-open-mac.desktop
+application/x-macbinary=silk-open-mac.desktop
+
+# Linux-Pakete / portable
+application/vnd.appimage=silk-open-appimage.desktop
+application/x-executable=silk-open-appimage.desktop
+application/vnd.debian.binary-package=silk-open-package.desktop
+application/x-deb=silk-open-package.desktop
+application/x-rpm=silk-open-package.desktop
+application/x-redhat-package-manager=silk-open-package.desktop
+application/vnd.snap=silk-open-package.desktop
+application/vnd.flatpak=silk-open-package.desktop
+application/vnd.flatpak.ref=silk-open-package.desktop
+
+# Dokumente
+application/pdf=org.kde.okular.desktop;okular.desktop;
+application/vnd.openxmlformats-officedocument.wordprocessingml.document=org.libreoffice.LibreOffice.desktop;libreoffice-writer.desktop;
+application/vnd.openxmlformats-officedocument.spreadsheetml.sheet=org.libreoffice.LibreOffice.desktop;libreoffice-calc.desktop;
+application/vnd.openxmlformats-officedocument.presentationml.presentation=org.libreoffice.LibreOffice.desktop;libreoffice-impress.desktop;
+application/msword=org.libreoffice.LibreOffice.desktop;libreoffice-writer.desktop;
+application/vnd.ms-excel=org.libreoffice.LibreOffice.desktop;libreoffice-calc.desktop;
+application/vnd.ms-powerpoint=org.libreoffice.LibreOffice.desktop;libreoffice-impress.desktop;
+application/vnd.oasis.opendocument.text=org.libreoffice.LibreOffice.desktop;libreoffice-writer.desktop;
+text/plain=org.kde.kate.desktop;kate.desktop;
+
+# Bilder / Medien
+image/jpeg=org.kde.gwenview.desktop;gwenview.desktop;
+image/png=org.kde.gwenview.desktop;gwenview.desktop;
+image/webp=org.kde.gwenview.desktop;gwenview.desktop;
+image/gif=org.kde.gwenview.desktop;gwenview.desktop;
+video/mp4=org.videolan.VLC.desktop;vlc.desktop;
+video/x-matroska=org.videolan.VLC.desktop;vlc.desktop;
+audio/mpeg=org.videolan.VLC.desktop;vlc.desktop;
+audio/flac=org.videolan.VLC.desktop;vlc.desktop;
+
+# Archive
+application/zip=org.kde.ark.desktop;ark.desktop;
+application/x-7z-compressed=org.kde.ark.desktop;ark.desktop;
+application/x-rar=org.kde.ark.desktop;ark.desktop;
+
+# Browser
+x-scheme-handler/http=org.mozilla.firefox.desktop;firefox.desktop;
+x-scheme-handler/https=org.mozilla.firefox.desktop;firefox.desktop;
+text/html=org.mozilla.firefox.desktop;firefox.desktop;

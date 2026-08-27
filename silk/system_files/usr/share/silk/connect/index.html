@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#2563eb" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <title>Silk Connect</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <div class="badge">Silk Connect</div>
+    <h1 id="host">Silk-PC</h1>
+    <p class="sub">Begleit-Dashboard für iPhone, iPad &amp; Tablet</p>
+    <div class="status"><span class="dot"></span><span id="status-text">Verbunden</span></div>
+  </header>
+
+  <main class="grid">
+    <section class="card span2">
+      <h2>🖥 Remote-Desktop</h2>
+      <p>Steuere deinen Silk-PC vom Sofa – ideal für alte iPads als Zweitbildschirm.</p>
+      <a class="btn btn-primary" href="https://rustdesk.com/web/" target="_blank" rel="noopener">RustDesk Web öffnen</a>
+      <button class="btn btn-secondary" type="button" id="btn-remote-help">Remote einrichten (Hilfe)</button>
+    </section>
+
+    <section class="card">
+      <h2>📁 Dateien</h2>
+      <p>Nextcloud, Dropbox oder Rclone – auf Silk eingerichtet.</p>
+      <button class="btn btn-secondary" type="button" id="btn-files">Sync-Hinweise</button>
+    </section>
+
+    <section class="card">
+      <h2>🎵 Medien</h2>
+      <p>Steuere Musik &amp; Video auf dem Silk-PC.</p>
+      <button class="btn btn-secondary" type="button" id="btn-media">Tipps anzeigen</button>
+    </section>
+
+    <section class="card">
+      <h2>❓ Hilfe</h2>
+      <p>Silk für Umsteiger – FAQ &amp; Grenzen.</p>
+      <a class="btn btn-secondary" href="https://github.com/Wuza0295/nachtblau-crew/blob/main/silk/docs/CONNECT.md" target="_blank" rel="noopener">Connect-Doku</a>
+    </section>
+
+    <section class="card span2">
+      <h2>📌 Kiosk-Modus (altes iPad)</h2>
+      <p>
+        Safari → Teilen → „Zum Home-Bildschirm“. Dann: Einstellungen → Anzeige →
+        Automatisches Sperren → <strong>Nie</strong> (nur wenn das Gerät dauerhaft als Display dient).
+      </p>
+    </section>
+  </main>
+
+  <p class="note">
+    <strong>Hinweis:</strong> Silk läuft nicht nativ auf iPhone/iPad.
+    Dieses Dashboard verbindet dein Apple-Gerät mit einem Silk-PC –
+    so bleibt alte Hardware nutzbar.
+  </p>
+
+  <footer>Silk · Nachtblau Crew · Connect</footer>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const token = params.get("token") || "";
+    const deviceName = navigator.userAgent.includes("iPad") ? "iPad"
+      : navigator.userAgent.includes("iPhone") ? "iPhone"
+      : "Begleitgerät";
+
+    async function init() {
+      try {
+        const qs = token ? `?token=${encodeURIComponent(token)}` : "";
+        const res = await fetch(`/api/status${qs}`);
+        const data = await res.json();
+        if (data.hostname) {
+          document.getElementById("host").textContent = data.hostname;
+        }
+        if (token) {
+          await fetch(`/api/pair?device=${encodeURIComponent(deviceName)}&token=${encodeURIComponent(token)}`);
+        }
+      } catch (e) {
+        document.getElementById("status-text").textContent = "Offline – PC erreichbar?";
+      }
+    }
+
+    document.getElementById("btn-remote-help").addEventListener("click", () => {
+      alert(
+        "Auf dem Silk-PC:\n" +
+        "1. flatpak install flathub com.rustdesk.RustDesk\n" +
+        "2. RustDesk-ID notieren\n" +
+        "3. RustDesk-App auf iPhone/iPad installieren\n" +
+        "4. ID eingeben → verbunden\n\n" +
+        "Alternativ: Parsec, Moonlight, Microsoft Remote Desktop"
+      );
+    });
+
+    document.getElementById("btn-files").addEventListener("click", () => {
+      alert(
+        "Datei-Sync auf Silk:\n" +
+        "• Dropbox: flatpak install flathub com.dropbox.Client\n" +
+        "• Nextcloud: flatpak install flathub org.nextcloud.Nextcloud\n" +
+        "• Rclone: bereits in Silk Essentials\n\n" +
+        "Dann auf dem iPad die jeweilige App nutzen – gleicher Account."
+      );
+    });
+
+    document.getElementById("btn-media").addEventListener("click", () => {
+      alert(
+        "Medien steuern:\n" +
+        "• KDE Connect (flatpak) – Telefon als Fernbedienung\n" +
+        "• Spotify/YouTube im Browser auf Silk-PC + Remote-Desktop\n" +
+        "• Moonlight für Spiele-Streaming vom Silk-PC"
+      );
+    });
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    }
+
+    init();
+  </script>
+</body>
+</html>

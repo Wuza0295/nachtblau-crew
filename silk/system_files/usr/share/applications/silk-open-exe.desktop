@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Silk Installer (Windows)
+Name[de]=Silk-Installer (Windows)
+Comment=Installiert Linux-Äquivalent oder startet .exe mit Wine/Bottles
+Comment[de]=Sucht Flatpak-Gegenstück oder startet .exe mit Wine/Bottles
+Exec=silk-install %f
+Icon=application-x-ms-dos-executable
+Terminal=false
+Type=Application
+MimeType=application/x-ms-dos-executable;application/x-msi;application/x-msdownload;
+Categories=System;Utility;
+NoDisplay=false

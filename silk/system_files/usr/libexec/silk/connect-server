@@ -1,0 +1,125 @@
+#!/usr/bin/env python3
+"""Silk Connect – leichter HTTP-Server für Begleitgeräte (PWA)."""
+from __future__ import annotations
+
+import json
+import os
+import socket
+import sys
+from http import HTTPStatus
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from urllib.parse import parse_qs, urlparse
+
+SHARE = Path("/usr/share/silk/connect")
+CONFIG = Path(os.environ.get("SILK_CONNECT_CONFIG", Path.home() / ".config/silk/connect"))
+PORT = int(os.environ.get("SILK_CONNECT_PORT", "8765"))
+TOKEN_FILE = CONFIG / "pair-token"
+STATE_FILE = CONFIG / "state" / "paired.json"
+
+
+def read_token() -> str:
+    if TOKEN_FILE.is_file():
+        return TOKEN_FILE.read_text(encoding="utf-8").strip()
+    return ""
+
+
+def load_paired() -> set[str]:
+    if STATE_FILE.is_file():
+        try:
+            data = json.loads(STATE_FILE.read_text(encoding="utf-8"))
+            return set(data.get("devices", []))
+        except (json.JSONDecodeError, OSError):
+            return set()
+    return set()
+
+
+def save_paired(devices: set[str]) -> None:
+    STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    STATE_FILE.write_text(
+        json.dumps({"devices": sorted(devices)}, indent=2),
+        encoding="utf-8",
+    )
+
+
+class SilkConnectHandler(SimpleHTTPRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, directory=str(SHARE), **kwargs)
+
+    def log_message(self, fmt: str, *args) -> None:
+        sys.stderr.write("[silk-connect] " + (fmt % args) + "\n")
+
+    def _check_token(self) -> bool:
+        qs = parse_qs(urlparse(self.path).query)
+        supplied = (qs.get("token") or [""])[0]
+        expected = read_token()
+        if not expected:
+            return True
+        return supplied == expected
+
+    def _json(self, payload: dict, status: int = 200) -> None:
+        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_GET(self) -> None:
+        parsed = urlparse(self.path)
+        if parsed.path == "/api/status":
+            hostname = socket.gethostname()
+            self._json(
+                {
+                    "ok": True,
+                    "hostname": hostname,
+                    "product": "Silk Connect",
+                    "token_required": bool(read_token()),
+                    "paired_count": len(load_paired()),
+                }
+            )
+            return
+        if parsed.path == "/api/pair":
+            if not self._check_token():
+                self._json({"ok": False, "error": "invalid_token"}, HTTPStatus.FORBIDDEN)
+                return
+            qs = parse_qs(parsed.query)
+            device = (qs.get("device") or ["unknown"])[0][:120]
+            paired = load_paired()
+            paired.add(device)
+            save_paired(paired)
+            self._json({"ok": True, "device": device, "paired_count": len(paired)})
+            return
+        if parsed.path.startswith("/api/"):
+            self._json({"ok": False, "error": "not_found"}, HTTPStatus.NOT_FOUND)
+            return
+        if not self._check_token() and parsed.path not in ("/", "/index.html", "/style.css", "/manifest.json", "/sw.js"):
+            self.send_error(HTTPStatus.FORBIDDEN, "Invalid pairing token")
+            return
+        if parsed.path == "/":
+            self.path = "/index.html"
+        return super().do_GET()
+
+    def end_headers(self) -> None:
+        self.send_header("Cache-Control", "no-store")
+        super().end_headers()
+
+
+def main() -> None:
+    CONFIG.mkdir(parents=True, exist_ok=True)
+    if not SHARE.is_dir():
+        sys.stderr.write(f"Missing share dir: {SHARE}\n")
+        sys.exit(1)
+    server = ThreadingHTTPServer(("0.0.0.0", PORT), SilkConnectHandler)
+    sys.stderr.write(f"Silk Connect listening on 0.0.0.0:{PORT}\n")
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        server.server_close()
+
+
+if __name__ == "__main__":
+    main()

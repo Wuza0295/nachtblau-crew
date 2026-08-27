@@ -1,0 +1,372 @@
+#!/usr/bin/env bash
+# silk-install – einheitlicher Installer für Wechsler (Win/Mac/Linux-Pakete)
+set -euo pipefail
+
+ALIASES=""
+FLATHUB_API="https://flathub.org/api/v2"
+APPS_DIR="${XDG_BIN_HOME:-$HOME/.local/bin}"
+APPIMAGE_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/silk/appimages"
+SILK_USER_CONFIG="${XDG_DATA_HOME:-$HOME/.local/share}/silk"
+
+silk_config() {
+  local name="$1"
+  if [[ -f "${SILK_USER_CONFIG}/${name}" ]]; then
+    echo "${SILK_USER_CONFIG}/${name}"
+  else
+    echo "/usr/share/silk/${name}"
+  fi
+}
+
+init_config_paths() {
+  ALIASES="$(silk_config app-aliases.json)"
+}
+
+init_config_paths
+
+usage() {
+  cat <<'EOF'
+silk-install – Programme wie gewohnt öffnen/installieren
+
+Usage:
+  silk-install <datei|app-name> [--force-compat]
+  silk-install --search <query>
+  silk-install --setup-essentials
+  silk-install --setup-gaming
+  silk-install --ensure-boxes
+
+Strategie (immer zuerst Flatpak-Gegenstück, dann natives Format):
+  .exe/.msi     → Flatpak, sonst Wine/Bottles
+  .apk          → Flatpak, sonst Waydroid
+  .dmg/.pkg/.app→ Flatpak (Mac-Binaries laufen nicht)
+  .AppImage     → Flatpak, sonst Gear Lever / lokal integrieren
+  .flatpakref / .flatpak / .flatpakrepo → flatpak install
+  .deb          → Flatpak, sonst Ubuntu-Distrobox (apt)
+  .rpm          → Flatpak, sonst rpm-ostree / Fedora-Box
+  .snap         → Flatpak, sonst Ubuntu-Box mit snap
+
+Kein Apple-/Microsoft-Store – Flathub + Compat-Layer.
+EOF
+}
+
+need() { command -v "$1" >/dev/null 2>&1 || { echo "Fehlt: $1" >&2; exit 1; }; }
+
+dialog_yesno() {
+  local msg="$1"
+  if command -v kdialog >/dev/null 2>&1; then
+    kdialog --yesno "$msg" 2>/dev/null
+  elif command -v zenity >/dev/null 2>&1; then
+    zenity --question --text="$msg" 2>/dev/null
+  else
+    return 0
+  fi
+}
+
+dialog_msg() {
+  local msg="$1"
+  if command -v kdialog >/dev/null 2>&1; then
+    kdialog --msgbox "$msg" 2>/dev/null || true
+  elif command -v zenity >/dev/null 2>&1; then
+    zenity --info --text="$msg" 2>/dev/null || true
+  else
+    echo "$msg"
+  fi
+}
+
+search_flathub() {
+  local q="$1"
+  need curl; need jq
+  curl -fsSL "${FLATHUB_API}/search" \
+    -H 'Content-Type: application/json' \
+    -d "$(jq -n --arg q "$q" '{query:$q}')" 2>/dev/null \
+    | jq -r '
+        (.hits // .) as $h
+        | (if ($h|type)=="array" then $h else [] end)[:8][]
+        | [(.app_id // .flatpakAppId // .appId // .id // empty), (.name // ""), (.summary // "")]
+        | @tsv
+      ' 2>/dev/null || true
+}
+
+alias_lookup() {
+  local key="$1"
+  [[ -f "$ALIASES" ]] || return 1
+  need jq
+  key="$(echo "$key" | tr '[:upper:]' '[:lower:]' | sed -E 's/[[:space:]]+/ /g; s/^ +| +$//g')"
+  jq -r --arg k "$key" '
+    to_entries[] | select((.key | ascii_downcase) == $k) | .value
+  ' "$ALIASES" 2>/dev/null | head -1
+}
+
+install_flatpak() {
+  local appid="$1"
+  echo "→ Flatpak: ${appid}"
+  flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
+  flatpak install -y --user flathub "$appid"
+}
+
+setup_list() {
+  local list="$1" label="$2"
+  echo "${label}…"
+  [[ -f "$list" ]] || { echo "Liste fehlt: $list" >&2; return 1; }
+  while IFS= read -r app; do
+    [[ -z "$app" || "$app" =~ ^# ]] && continue
+    install_flatpak "$app" || echo "Warnung: $app fehlgeschlagen"
+  done < <(grep -vE '^\s*(#|$)' "$list")
+  echo "Fertig: ${label}"
+}
+
+setup_essentials() {
+  setup_list "$(silk_config recommended-essentials.txt)" "Alltags-Apps"
+  install_flatpak it.mijorus.gearlever || true
+  install_flatpak io.github.flattool.Warehouse || true
+  install_flatpak com.github.tchx84.Flatseal || true
+  /usr/bin/silk-ensure-boxes || true
+}
+
+setup_gaming() {
+  setup_list "$(silk_config recommended-flatpaks.txt)" "Gaming-Flatpaks"
+}
+
+basename_stem() {
+  local b; b="$(basename "$1")"
+  if [[ "${b,,}" == *.app ]]; then b="${b:0:-4}"
+  elif [[ "${b,,}" == *.appimage ]]; then b="${b%.*}"
+  elif [[ "${b,,}" == *.flatpakref ]]; then b="${b%.*}"
+  else b="${b%.*}"; fi
+  echo "$b"
+}
+
+guess_query_from_file() {
+  local stem; stem="$(basename_stem "$1")"
+  echo "$stem" | sed -E \
+    -e 's/\.app$//I' \
+    -e 's/[-_ ]?(setup|installer|install|x64|x86|win64|windows|portable|dmg|pkg|universal|arm64|intel|amd64|appimage)$//I' \
+    -e 's/[0-9]+(\.[0-9]+){1,3}//g' \
+    -e 's/[-_.]+/ /g' \
+    -e 's/^ +| +$//g'
+}
+
+resolve_linux_app() {
+  local query="$1" appid
+  appid="$(alias_lookup "$query" || true)"
+  [[ -z "$appid" ]] && appid="$(alias_lookup "${query// /-}" || true)"
+  [[ -z "$appid" ]] && appid="$(search_flathub "$query" | head -1 | cut -f1 || true)"
+  if [[ -n "${appid:-}" && "$appid" != "null" ]]; then
+    echo "$appid"; return 0
+  fi
+  return 1
+}
+
+offer_flatpak_or() {
+  local query="$1" yes_msg="$2" appid
+  appid="$(resolve_linux_app "$query" || true)"
+  if [[ -n "${appid:-}" ]]; then
+    echo "Gefundenes Flatpak-Gegenstück: $appid"
+    if dialog_yesno "$yes_msg"$'\n\n'"App: ${appid}"; then
+      install_flatpak "$appid"; return 0
+    fi
+    return 2
+  fi
+  echo "Kein Flatpak-Gegenstück für „${query}“."
+  return 1
+}
+
+ensure_boxes() { /usr/bin/silk-ensure-boxes; }
+
+handle_exe() {
+  local file="$1" force="${2:-0}" query
+  query="$(guess_query_from_file "$file")"
+  echo "Windows-Programm: $file → Suche „${query}“"
+  if [[ "$force" != "1" ]]; then
+    offer_flatpak_or "$query" "Linux-App gefunden. Flatpak installieren?"$'\n'"Nein = Wine/Bottles" && return 0
+  fi
+  exec /usr/bin/silk-run-exe "$file"
+}
+
+handle_apk() {
+  local file="$1" force="${2:-0}" query
+  query="$(guess_query_from_file "$file")"
+  if [[ "$force" != "1" ]]; then
+    offer_flatpak_or "$query" "Linux-App gefunden. Flatpak installieren?"$'\n'"Nein = Waydroid" && return 0
+  fi
+  exec /usr/bin/silk-run-apk "$file"
+}
+
+handle_mac() {
+  local file="$1" query appid
+  query="$(guess_query_from_file "$file")"
+  echo "macOS-Paket: $file (Binaries laufen nicht) → „${query}“"
+  appid="$(resolve_linux_app "$query" || true)"
+  if [[ -n "${appid:-}" ]]; then
+    if dialog_yesno "Linux-App „${appid}“ für „${query}“ installieren?"; then
+      install_flatpak "$appid"
+      dialog_msg "Fertig – App im Startmenü/Dock öffnen."
+      return 0
+    fi
+    exit 0
+  fi
+  dialog_msg "Kein Gegenstück für „${query}“.\n• silk-install --search ${query}\n• Web-Version\n• ggf. Windows-.exe mit Wine"
+  exit 3
+}
+
+handle_appimage() {
+  local file="$1" force="${2:-0}" query dest
+  file="$(realpath "$file")"
+  query="$(guess_query_from_file "$file")"
+  echo "AppImage: $file"
+  if [[ "$force" != "1" ]]; then
+    offer_flatpak_or "$query" "Bessere Variante als Flatpak gefunden. Flatpak statt AppImage?"$'\n'"Nein = AppImage integrieren" && return 0
+  fi
+  chmod +x "$file" || true
+  mkdir -p "$APPIMAGE_DIR" "$APPS_DIR" "$HOME/Applications"
+  dest="$APPIMAGE_DIR/$(basename "$file")"
+  cp -f "$file" "$dest"
+  chmod +x "$dest"
+  ln -sfn "$dest" "$HOME/Applications/$(basename "$file")"
+  if flatpak info it.mijorus.gearlever &>/dev/null; then
+    echo "Integriere mit Gear Lever…"
+    flatpak run it.mijorus.gearlever "$dest" 2>/dev/null || \
+      flatpak run it.mijorus.gearlever --integrate "$dest" 2>/dev/null || true
+  fi
+  # Sofort starten anbieten
+  if dialog_yesno "AppImage integriert unter ~/Applications.\nJetzt starten?"; then
+    exec "$dest"
+  fi
+  dialog_msg "AppImage bereit: $dest\nVerwaltung: Gear Lever (Startmenü)."
+}
+
+handle_flatpak_file() {
+  local file="$1"
+  file="$(realpath "$file")"
+  echo "Flatpak-Paket: $file"
+  flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
+  case "${file,,}" in
+    *.flatpakref|*.flatpakrepo)
+      flatpak install -y --user "$file"
+      ;;
+    *.flatpak)
+      flatpak install -y --user --bundle "$file" 2>/dev/null || flatpak install -y --user "$file"
+      ;;
+    *)
+      flatpak install -y --user "$file"
+      ;;
+  esac
+  dialog_msg "Flatpak installiert. App im Startmenü öffnen."
+}
+
+handle_deb() {
+  local file="$1" force="${2:-0}" query
+  file="$(realpath "$file")"
+  query="$(guess_query_from_file "$file")"
+  echo "Debian-Paket (.deb): $file"
+  if [[ "$force" != "1" ]]; then
+    offer_flatpak_or "$query" "Flatpak-Gegenstück gefunden (empfohlen auf Silk).\nFlatpak statt .deb?"$'\n'"Nein = in Ubuntu-Box installieren" && return 0
+  fi
+  ensure_boxes
+  echo "Installiere .deb in Distrobox „silk-ubuntu“…"
+  distrobox enter silk-ubuntu -- sudo apt-get update -qq
+  distrobox enter silk-ubuntu -- sudo apt-get install -y "$file" \
+    || distrobox enter silk-ubuntu -- bash -lc "sudo dpkg -i '$file' || sudo apt-get -f install -y"
+  # Export desktop entry if possible
+  distrobox enter silk-ubuntu -- distrobox-export --app "$(basename_stem "$file")" 2>/dev/null || true
+  dialog_msg ".deb in Ubuntu-Box installiert.\nFalls kein Menüeintrag: distrobox enter silk-ubuntu"
+}
+
+handle_rpm() {
+  local file="$1" force="${2:-0}" query
+  file="$(realpath "$file")"
+  query="$(guess_query_from_file "$file")"
+  echo "RPM-Paket: $file"
+  if [[ "$force" != "1" ]]; then
+    offer_flatpak_or "$query" "Flatpak empfohlen. Flatpak statt RPM?"$'\n'"Nein = layered rpm-ostree / Fedora-Box" && return 0
+  fi
+  if command -v rpm-ostree >/dev/null 2>&1; then
+    if dialog_yesno "RPM systemweit per rpm-ostree layeren?\n(Neustart nötig)\nNein = Fedora Distrobox"; then
+      rpm-ostree install "$file" || true
+      dialog_msg "Layer angelegt – bitte neu starten."
+      return 0
+    fi
+  fi
+  ensure_boxes
+  distrobox enter silk-fedora -- sudo dnf install -y "$file"
+  dialog_msg "RPM in Fedora-Box installiert."
+}
+
+handle_snap() {
+  local file="$1" force="${2:-0}" query
+  file="$(realpath "$file")"
+  query="$(guess_query_from_file "$file")"
+  echo "Snap-Paket: $file"
+  if [[ "$force" != "1" ]]; then
+    offer_flatpak_or "$query" "Flatpak empfohlen (besser auf Silk).\nFlatpak statt Snap?"$'\n'"Nein = Snap in Ubuntu-Box" && return 0
+  fi
+  ensure_boxes
+  distrobox enter silk-ubuntu -- bash -lc '
+    if ! command -v snap >/dev/null; then
+      sudo apt-get update -qq
+      sudo apt-get install -y snapd
+      sudo systemctl enable --now snapd.socket 2>/dev/null || true
+    fi
+  '
+  distrobox enter silk-ubuntu -- sudo snap install --dangerous "$file" 2>/dev/null \
+    || distrobox enter silk-ubuntu -- sudo snap install "$file"
+  dialog_msg "Snap in Ubuntu-Box installiert.\nTipp: Bevorzuge Flatpaks unter Silk."
+}
+
+handle_name() {
+  local name="$1" appid
+  # flatpak: prefix
+  if [[ "$name" == flatpak:* ]]; then
+    install_flatpak "${name#flatpak:}"; return 0
+  fi
+  appid="$(resolve_linux_app "$name" || true)"
+  if [[ -z "$appid" ]]; then
+    echo "Flathub:"; search_flathub "$name" | head -10
+    appid="$(search_flathub "$name" | head -1 | cut -f1 || true)"
+  fi
+  if [[ -n "${appid:-}" && "$appid" != "null" ]]; then
+    install_flatpak "$appid"
+  else
+    echo "Kein Flatpak für: $name" >&2; exit 2
+  fi
+}
+
+is_mac_target() {
+  local p="$1" low="${p,,}"
+  [[ -f "$p" && ( "$low" == *.dmg || "$low" == *.pkg ) ]] && return 0
+  [[ (-d "$p" || -f "$p") && "$low" == *.app ]] && return 0
+  return 1
+}
+
+main() {
+  local force=0 arg="${1:-}"
+  case "$arg" in
+    ""|-h|--help) usage; exit 0 ;;
+    --setup-gaming) setup_gaming; exit 0 ;;
+    --setup-essentials) setup_essentials; exit 0 ;;
+    --ensure-boxes) ensure_boxes; exit 0 ;;
+    --search) shift; search_flathub "${1:-}"; exit 0 ;;
+    --force-compat) force=1; shift; arg="${1:-}" ;;
+  esac
+  [[ "${2:-}" == "--force-compat" ]] && force=1
+
+  if [[ -e "${arg:-}" ]]; then
+    case "${arg,,}" in
+      *.exe|*.msi) handle_exe "$arg" "$force" ;;
+      *.apk) handle_apk "$arg" "$force" ;;
+      *.dmg|*.pkg|*.app) handle_mac "$arg" ;;
+      *.appimage) handle_appimage "$arg" "$force" ;;
+      *.flatpak|*.flatpakref|*.flatpakrepo) handle_flatpak_file "$arg" ;;
+      *.deb) handle_deb "$arg" "$force" ;;
+      *.rpm) handle_rpm "$arg" "$force" ;;
+      *.snap) handle_snap "$arg" "$force" ;;
+      *)
+        if is_mac_target "$arg"; then handle_mac "$arg"
+        else echo "Unbekannter Dateityp: $arg" >&2; exit 1; fi
+        ;;
+    esac
+  else
+    handle_name "$arg"
+  fi
+}
+
+main "$@"
