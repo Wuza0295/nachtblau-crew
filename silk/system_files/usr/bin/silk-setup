@@ -12,6 +12,11 @@ fi
 
 notify-send "Silk" "Einrichtung für Windows-/Mac-Wechsler…" 2>/dev/null || true
 
+# Produktname überall „Silk“ (auch wenn Installer noch Upstream-Text zeigte)
+if [[ -x /usr/libexec/silk/brand-os-release ]]; then
+  sudo /usr/libexec/silk/brand-os-release 2>/dev/null || /usr/libexec/silk/brand-os-release 2>/dev/null || true
+fi
+
 # 1) Optik
 /usr/bin/silk-desktop --ask || /usr/bin/silk-apply-layout mac || true
 /usr/bin/silk-apply-wallpaper || true
