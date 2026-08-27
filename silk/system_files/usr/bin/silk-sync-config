@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# silk-sync-config – zieht App-Listen & Aliases vom Git-Repo (ohne Image-Rebuild)
+set -euo pipefail
+
+CONFIG_BASE="${SILK_CONFIG_URL:-https://raw.githubusercontent.com/wuza0295/nachtblau-crew/main/silk/system_files/usr/share/silk}"
+USER_SHARE="${XDG_DATA_HOME:-$HOME/.local/share}/silk"
+SYSTEM_SHARE="/usr/share/silk"
+
+mkdir -p "$USER_SHARE"
+
+sync_one() {
+  local name="$1"
+  local url="${CONFIG_BASE}/${name}"
+  local dest_user="${USER_SHARE}/${name}"
+  echo "→ ${name}"
+  if curl -fsSL "$url" -o "${dest_user}.new"; then
+    mv "${dest_user}.new" "$dest_user"
+    ok=1
+  else
+    rm -f "${dest_user}.new"
+    echo "  Warnung: Download fehlgeschlagen – behalte lokale Version."
+    ok=0
+  fi
+  # System-Pfad nur mit root aktualisieren (optional)
+  if [[ "${EUID:-$(id -u)}" -eq 0 && -d "$SYSTEM_SHARE" ]]; then
+    cp -f "$dest_user" "${SYSTEM_SHARE}/${name}" 2>/dev/null || true
+  fi
+  return 0
+}
+
+for f in recommended-essentials.txt recommended-flatpaks.txt app-aliases.json; do
+  sync_one "$f" || true
+done
+
+# silk-install bevorzugt User-Overrides
+export SILK_CONFIG_DIR="$USER_SHARE"
+echo "Konfiguration synchronisiert nach: $USER_SHARE"
+echo "Neue Apps: silk-install --setup-essentials  bzw.  --setup-gaming"

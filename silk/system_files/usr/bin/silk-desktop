@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+# silk-desktop – Desktop-Stil für Wechsler: mac | windows11 | windows10 | tablet
+set -euo pipefail
+
+STYLE_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/silk/desktop-style"
+mkdir -p "$(dirname "$STYLE_FILE")"
+
+usage() {
+  cat <<'EOF'
+silk-desktop – Optik & Layout für Umsteiger
+
+Usage:
+  silk-desktop                 # aktuellen Stil anzeigen
+  silk-desktop mac             # mac-inspiriert (Top-Bar + Dock)
+  silk-desktop windows11       # Windows-11-inspiriert (zentrierte Taskleiste)
+  silk-desktop windows10       # Windows-10-inspiriert (linke Taskleiste)
+  silk-desktop tablet          # Touch-Tablet (große Leiste, 2-in-1)
+  silk-desktop --ask           # Dialog zur Auswahl
+
+Open-Source-Themes (WhiteSur / Fluent) – keine Apple-/Microsoft-Markenassets.
+EOF
+}
+
+ask_style() {
+  if command -v kdialog >/dev/null 2>&1; then
+    kdialog --radiolist "Von welchem System kommst du?\nSilk richtet Optik und Bedienung danach aus." \
+      mac "macOS-ähnlich (Menüleiste + Dock)" on \
+      windows11 "Windows 11-ähnlich (zentrierte Taskleiste)" off \
+      windows10 "Windows 10-ähnlich (klassische Taskleiste)" off \
+      tablet "Tablet / 2-in-1 (Touch, große Leiste)" off \
+      2>/dev/null || echo "mac"
+  else
+    echo "mac"
+  fi
+}
+
+apply_style() {
+  local style="$1"
+  case "$style" in
+    mac|windows11|windows10|tablet) ;;
+    win11) style=windows11 ;;
+    win10|windows) style=windows10 ;;
+    macos|osx) style=mac ;;
+    *)
+      echo "Unbekannter Stil: $style (erlaubt: mac, windows11, windows10, tablet)" >&2
+      exit 1
+      ;;
+  esac
+  echo "$style" > "$STYLE_FILE"
+  /usr/bin/silk-apply-layout "$style"
+  notify-send "Silk" "Desktop-Stil: ${style}" 2>/dev/null || true
+  echo "Stil gesetzt: $style"
+}
+
+main() {
+  local arg="${1:-}"
+  case "$arg" in
+    ""|--show)
+      if [[ -f "$STYLE_FILE" ]]; then
+        cat "$STYLE_FILE"
+      else
+        echo "mac (Standard, noch nicht gesetzt)"
+      fi
+      ;;
+    -h|--help) usage ;;
+    --ask)
+      apply_style "$(ask_style)"
+      ;;
+    *)
+      apply_style "$arg"
+      ;;
+  esac
+}
+
+main "$@"

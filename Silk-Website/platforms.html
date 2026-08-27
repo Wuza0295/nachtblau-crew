@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Silk – Alle Plattformen</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="hero hero-compact">
+  <nav class="nav">
+    <a class="logo" href="index.html">Silk</a>
+    <a href="platforms.html">Plattformen</a>
+    <a href="connect.html">Connect</a>
+    <a href="faq.html">FAQ</a>
+    <a href="quickstart.html">Quickstart</a>
+  </nav>
+  <div class="hero-inner">
+    <h1>Silk auf allen Geräten</h1>
+    <p class="tagline">PC, Tablet, MacBook, Smartphone – ein Ökosystem.</p>
+  </div>
+</header>
+
+<section class="section">
+  <h2>Übersicht</h2>
+  <div class="grid">
+    <article class="card platform-card">
+      <h3>🖥 PC / Laptop</h3>
+      <p><strong>Vollwertig</strong> – natives Silk OS</p>
+      <pre><code>silk-installer switch
+silk-setup</code></pre>
+      <p class="muted">Image: <code>ghcr.io/wuza0295/silk:latest</code></p>
+    </article>
+    <article class="card platform-card">
+      <h3>📲 Tablet / 2-in-1</h3>
+      <p><strong>Vollwertig</strong> – Touch-Layout</p>
+      <pre><code>silk-tablet setup
+silk-desktop tablet</code></pre>
+    </article>
+    <article class="card platform-card">
+      <h3>💻 MacBook (M1+)</h3>
+      <p><strong>silk-asahi</strong> – experimentell</p>
+      <pre><code>silk-asahi install
+silk-asahi switch
+silk-asahi setup</code></pre>
+      <p class="muted">Voraussetzung: Fedora Asahi Remix</p>
+    </article>
+    <article class="card platform-card">
+      <h3>🍎 Intel-MacBook</h3>
+      <p><strong>Kein natives Silk</strong></p>
+      <pre><code>silk-asahi intel-mac</code></pre>
+      <p class="muted">Alternativen: PC mit Mac-Optik</p>
+    </article>
+    <article class="card platform-card">
+      <h3>📱 Android</h3>
+      <p>Apps auf Silk + <a href="connect.html">Connect</a></p>
+      <pre><code>silk-mobile android
+silk-connect setup</code></pre>
+    </article>
+    <article class="card platform-card">
+      <h3>📱 iPhone / iPad</h3>
+      <p><strong>Connect</strong> – Begleiter</p>
+      <pre><code>silk-connect pair</code></pre>
+      <p class="muted">Kein natives iOS-OS</p>
+    </article>
+    <article class="card platform-card">
+      <h3>📱 Linux-Phone</h3>
+      <p>postmarketOS / Mobian</p>
+      <pre><code>silk-mobile devices
+silk-mobile install</code></pre>
+    </article>
+    <article class="card platform-card">
+      <h3>🔧 Universal</h3>
+      <p>Automatische Erkennung</p>
+      <pre><code>silk-platform setup
+silk-doctor</code></pre>
+    </article>
+  </div>
+</section>
+
+<section class="section dark">
+  <h2>Images</h2>
+  <table class="platform-table">
+    <thead><tr><th>Edition</th><th>Image</th><th>Ziel</th></tr></thead>
+    <tbody>
+      <tr><td>Silk Desktop</td><td><code>silk:latest</code></td><td>PC AMD/Intel</td></tr>
+      <tr><td>Silk NVIDIA</td><td><code>silk-nvidia-open:latest</code></td><td>PC NVIDIA</td></tr>
+      <tr><td>Silk Asahi</td><td><code>silk-asahi:latest</code></td><td>MacBook M1+</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<footer class="footer">
+  <p class="copy">© Nachtblau Crew · <a href="index.html">Startseite</a></p>
+</footer>
+
+</body>
+</html>

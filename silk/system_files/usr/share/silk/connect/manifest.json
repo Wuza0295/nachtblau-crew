@@ -1,0 +1,19 @@
+{
+  "name": "Silk Connect",
+  "short_name": "Silk",
+  "description": "Begleit-Dashboard für iPhone, iPad und andere Geräte – verbunden mit deinem Silk-PC.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#2563eb",
+  "orientation": "any",
+  "lang": "de",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

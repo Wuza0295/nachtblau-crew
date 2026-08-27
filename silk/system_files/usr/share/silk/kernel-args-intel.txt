@@ -1,0 +1,4 @@
+# Intel – empfohlene Kernel-Args (als root, einmalig):
+#   rpm-ostree kargs --append=intel_pstate=active
+#   rpm-ostree kargs --append=i915.enable_guc=3
+# Für neuere Intel Arc / Xe oft ausreichend: Standard-Aurora + intel-media-driver.

@@ -1,0 +1,16 @@
+# PC / Laptop (x86_64, AMD/Intel/NVIDIA)
+
+Installation:
+  silk-installer              # Interaktiv
+  silk-installer switch       # bootc switch
+  silk-installer iso          # USB-Stick
+
+Nach Installation:
+  silk-setup
+  silk-doctor
+
+Images:
+  AMD/Intel:  ghcr.io/wuza0295/silk:latest
+  NVIDIA:     ghcr.io/wuza0295/silk-nvidia-open:latest
+
+Details: silk/QUICKSTART.md

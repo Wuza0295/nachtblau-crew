@@ -1,0 +1,167 @@
+#!/usr/bin/env bash
+# silk-hardware – Plattform-Erkennung (PC / Intel-Mac / Apple Silicon) + Silk-Kompatibilität
+set -euo pipefail
+
+STATE="/var/lib/silk/hardware"
+SHARE="/usr/share/silk"
+
+usage() {
+  cat <<'EOF'
+silk-hardware – Mac/MacBook & PC-Erkennung
+
+  silk-hardware status     # Plattform + Silk-Kompatibilität
+  silk-hardware hints      # Hinweise je nach Hardware
+  silk-hardware detect     # Erkennung neu schreiben (/var/lib/silk/hardware)
+EOF
+}
+
+read_dmi() {
+  local key="$1"
+  local f="/sys/class/dmi/id/${key}"
+  [[ -r "$f" ]] && tr -d '\0' <"$f" || true
+}
+
+read_dt_model() {
+  local f="/sys/firmware/devicetree/base/model"
+  [[ -r "$f" ]] && tr -d '\0' <"$f" || true
+}
+
+platform_label() {
+  case "$1" in
+    pc) echo "PC / Standard-Laptop" ;;
+    intel-mac) echo "Intel-Mac (MacBook/iMac/Mac mini)" ;;
+    apple-silicon) echo "Apple Silicon (M1/M2/M3/M4…)" ;;
+    *) echo "Unbekannt" ;;
+  esac
+}
+
+silk_support_label() {
+  case "$1" in
+    pc) echo "voll unterstützt – silk-installer" ;;
+    intel-mac) echo "nicht nativ – silk-asahi intel-mac für Alternativen" ;;
+    apple-silicon) echo "silk-asahi (M1+) – silk-asahi install" ;;
+    *) echo "unbekannt" ;;
+  esac
+}
+
+scan_platform() {
+  local arch vendor product model dt
+  arch="$(uname -m)"
+  vendor="$(read_dmi sys_vendor)"
+  product="$(read_dmi product_name)"
+  dt="$(read_dt_model)"
+
+  if [[ "$vendor" == *Apple* ]] || [[ "$product" == Mac* ]] || [[ "$dt" == *Mac* ]]; then
+    if [[ "$arch" == "aarch64" || "$arch" == "arm64" ]]; then
+      echo apple-silicon
+      return
+    fi
+    if [[ "$arch" == "x86_64" ]]; then
+      echo intel-mac
+      return
+    fi
+    echo unknown
+    return
+  fi
+
+  echo pc
+}
+
+primary_platform() {
+  if [[ -r "$STATE" ]]; then
+    cat "$STATE"
+    return
+  fi
+  scan_platform
+}
+
+detect_and_save() {
+  mkdir -p /var/lib/silk
+  scan_platform >"$STATE"
+  cat "$STATE"
+}
+
+machine_info() {
+  local arch vendor product version
+  arch="$(uname -m)"
+  vendor="$(read_dmi sys_vendor)"
+  product="$(read_dmi product_name)"
+  version="$(read_dmi product_version)"
+  echo "Architektur: $arch"
+  [[ -n "$vendor" ]] && echo "Hersteller:  $vendor"
+  [[ -n "$product" ]] && echo "Modell:      $product"
+  [[ -n "$version" ]] && echo "Version:     $version"
+  local dt
+  dt="$(read_dt_model)"
+  [[ -n "$dt" ]] && echo "DeviceTree:  $dt"
+  return 0
+}
+
+status_cmd() {
+  local platform support
+  platform="$(primary_platform)"
+  support="$(silk_support_label "$platform")"
+
+  echo "Plattform: $(platform_label "$platform") ($platform)"
+  echo "Silk:      $support"
+  echo
+  machine_info
+  echo
+
+  case "$platform" in
+    pc)
+      echo "Silk ist für diese Hardware gedacht (bootc switch auf ghcr.io/<user>/silk:latest)."
+      echo "GPU-Hinweise: silk-gpu status"
+      ;;
+    intel-mac)
+      echo "Hinweis: Intel-Macs sind x86_64, aber Mac-spezifische Hardware (T2, WLAN, …)"
+      echo "wird von Aurora/Silk nicht unterstützt. Silk auf dem MacBook installieren ist"
+      echo "nicht empfohlen – nutze Silk auf einem PC oder Dual-Boot mit Fedora/Ubuntu."
+      echo "Details: silk-hardware hints"
+      ;;
+    apple-silicon)
+      echo "Silk Asahi für Apple Silicon: silk-asahi install"
+      echo "Nach Fedora Asahi: silk-asahi switch && silk-asahi setup"
+      echo "Details: silk-asahi hints"
+      ;;
+    *)
+      echo "Plattform unbekannt – silk-hardware detect ausführen."
+      ;;
+  esac
+}
+
+hints_cmd() {
+  local platform="$1"
+  local file=""
+  case "$platform" in
+    pc) file="${SHARE}/hardware-pc.txt" ;;
+    intel-mac) file="${SHARE}/hardware-intel-mac.txt" ;;
+    apple-silicon) file="${SHARE}/hardware-apple-silicon.txt" ;;
+  esac
+
+  echo "=== $(platform_label "$platform") ==="
+  if [[ -n "$file" && -f "$file" ]]; then
+    cat "$file"
+  else
+    echo "Keine Hinweise für diese Plattform."
+  fi
+
+  echo
+  echo "=== Mac-Software (Wechsel von macOS auf PC) ==="
+  if [[ -f "${SHARE}/hardware-mac-migration.txt" ]]; then
+    cat "${SHARE}/hardware-mac-migration.txt"
+  fi
+}
+
+main() {
+  local cmd="${1:-status}"
+  case "$cmd" in
+    status) status_cmd ;;
+    detect) detect_and_save ;;
+    hints) hints_cmd "$(primary_platform)" ;;
+    -h|--help) usage ;;
+    *) echo "Unbekannt: $cmd" >&2; usage; exit 1 ;;
+  esac
+}
+
+main "$@"

@@ -1,0 +1,138 @@
+#!/usr/bin/env bash
+# silk-installer – PC-Installation (bootc switch oder ISO)
+set -euo pipefail
+
+REGISTRY="${SILK_REGISTRY:-ghcr.io/wuza0295}"
+IMAGE_AMD="${REGISTRY}/silk:latest"
+IMAGE_NVIDIA="${REGISTRY}/silk-nvidia-open:latest"
+
+usage() {
+  cat <<EOF
+silk-installer – Silk auf PC installieren
+
+Usage:
+  silk-installer              Interaktiver Assistent
+  silk-installer quick        Nur Erstlogin (wenn Silk schon läuft)
+  silk-installer switch       bootc switch (GPU automatisch)
+  silk-installer iso          ISO/USB-Anleitung
+  silk-installer status       Aktuelles System prüfen
+
+Images:
+  AMD/Intel:  ${IMAGE_AMD}
+  NVIDIA:     ${IMAGE_NVIDIA}
+EOF
+}
+
+on_silk() {
+  bootc status 2>/dev/null | grep -qi silk && return 0
+  rpm-ostree status 2>/dev/null | grep -qi silk && return 0
+  return 1
+}
+
+pick_image() {
+  if command -v silk-gpu >/dev/null 2>&1; then
+    if silk-gpu status 2>/dev/null | grep -qi nvidia; then
+      echo "$IMAGE_NVIDIA"
+      return
+    fi
+  fi
+  if lspci 2>/dev/null | grep -qi nvidia; then
+    echo "$IMAGE_NVIDIA"
+    return
+  fi
+  echo "$IMAGE_AMD"
+}
+
+cmd_status() {
+  echo "=== Silk Installer Status ==="
+  if on_silk; then
+    echo "Status:    Silk ist installiert ✓"
+    bootc status 2>/dev/null | head -8 || rpm-ostree status 2>/dev/null | head -5
+  else
+    echo "Status:    Silk noch nicht aktiv"
+    echo "Empfohlen: silk-installer switch"
+  fi
+  echo
+  echo "GPU-Image: $(pick_image)"
+  /usr/bin/silk-hardware status 2>/dev/null | head -6 || true
+}
+
+cmd_switch() {
+  local img
+  img="$(pick_image)"
+  echo "Wechsle zu: $img"
+  echo
+  if ! command -v bootc >/dev/null 2>&1; then
+    echo "bootc nicht gefunden. Voraussetzung: Fedora Atomic / Aurora / Bazzite." >&2
+    exit 1
+  fi
+  read -r -p "Fortfahren? System wird nach Reboot auf Silk umgestellt. [j/N] " ans
+  [[ "${ans,,}" == j || "${ans,,}" == y ]] || exit 0
+  sudo bootc switch --enforce-container-sigpolicy "$img"
+  echo
+  echo "Fertig. Neustart: sudo systemctl reboot"
+  echo "Danach: silk-setup"
+}
+
+cmd_iso() {
+  cat <<'EOF'
+=== Silk per USB-Stick installieren ===
+
+1. ISO bauen (Entwickler):
+   cd silk && just build-iso
+
+2. ISO auf USB schreiben (z. B. Fedora Media Writer, balenaEtcher, dd)
+
+3. PC vom USB booten → Anaconda-Installer → Silk wird automatisch
+   per Kickstart auf ghcr.io/wuza0295/silk:latest umgestellt.
+
+4. Nach Installation: silk-setup
+
+Alternativ ohne USB: Von Aurora/Bazzite per bootc switch:
+  silk-installer switch
+
+Details: silk/QUICKSTART.md
+EOF
+}
+
+cmd_quick() {
+  /usr/bin/silk-setup
+}
+
+cmd_interactive() {
+  cmd_status
+  echo
+  if on_silk; then
+    echo "Silk läuft bereits. Starte Ersteinrichtung…"
+    cmd_quick
+    return
+  fi
+  echo "Optionen:"
+  echo "  1) bootc switch (von Aurora/Bazzite/Fedora Atomic)"
+  echo "  2) USB/ISO-Anleitung"
+  echo "  3) Abbrechen"
+  read -r -p "Wahl [1-3]: " choice
+  case "$choice" in
+    1) cmd_switch ;;
+    2) cmd_iso ;;
+    *) exit 0 ;;
+  esac
+}
+
+main() {
+  case "${1:-}" in
+    ""|menu) cmd_interactive ;;
+    quick) cmd_quick ;;
+    switch) cmd_switch ;;
+    iso) cmd_iso ;;
+    status) cmd_status ;;
+    -h|--help) usage ;;
+    *)
+      echo "Unbekannt: $1" >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+}
+
+main "$@"

@@ -1,0 +1,15 @@
+# Intel-Mac (MacBook Pro/Air, iMac, Mac mini bis ca. 2020)
+#
+# Status: NICHT offiziell unterstützt für Silk auf dem Mac selbst
+#
+# Warum:
+#   - Silk basiert auf Aurora für PC-Hardware, nicht für Mac-Motherboards
+#   - T2-Sicherheitschip, Apple-WLAN/Bluetooth, Touch Bar, Firmware
+#   - Kein getesteter bootc-/Mac-Installationsweg
+#
+# Was stattdessen:
+#   1. Silk auf einem neuen PC/Laptop installieren (empfohlen für Wechsler)
+#   2. Dual-Boot: Fedora Workstation oder Ubuntu auf dem Intel-Mac (experimentell)
+#   3. Mac-Software-Kompatibilität auf Silk-PC: silk-install für .dmg/.pkg/.app
+#
+# Silk auf dem Intel-Mac booten ist theoretisch x86_64-nah, praktisch unsupported.

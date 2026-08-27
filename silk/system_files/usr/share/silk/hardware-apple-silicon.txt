@@ -1,0 +1,19 @@
+# Apple Silicon (M1 / M2 / M3 / M4 MacBook, Mac mini, iMac, Mac Studio)
+#
+# Status: Silk Asahi – über silk-asahi (experimentell)
+#
+# Installation:
+#   1. Fedora Asahi Remix in macOS installieren: https://fedora-asahi-remix.org/
+#   2. Optional: Fedora Asahi Atomic (Kinoite) – github.com/fedora-asahi-remix-atomic-desktops
+#   3. silk-asahi switch  →  ghcr.io/wuza0295/silk-asahi:latest
+#   4. silk-asahi setup   →  Mac-Optik + Apps
+#
+# Nach System-Updates auf Mac:
+#   sudo bootc upgrade && sudo update-m1n1 && sudo systemctl reboot
+#
+# iPhone/iPad am Mac:
+#   silk-connect setup (Begleiter, kein natives iOS auf dem Phone)
+#
+# Befehle:
+#   silk-asahi status | install | switch | setup | hints
+#   silk-asahi intel-mac   (für ältere Intel-MacBooks – kein natives Silk)

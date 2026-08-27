@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Willkommen bei Silk</title>
+<style>
+  :root { --bg:#0f1419; --card:#1a2332; --text:#e8eef7; --muted:#9aadc2; --accent:#5eb1ff; --ok:#3dd68c; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: "Segoe UI", "Inter", system-ui, sans-serif; background:linear-gradient(160deg,#0f1419,#1a2740); color:var(--text); line-height:1.5; }
+  main { max-width:720px; margin:0 auto; padding:2.5rem 1.25rem 4rem; }
+  h1 { font-size:1.85rem; margin:0 0 .4rem; letter-spacing:-.02em; }
+  .lead { color:var(--muted); margin-bottom:1.75rem; }
+  section { background:var(--card); border-radius:14px; padding:1.1rem 1.25rem; margin-bottom:1rem; border:1px solid #2a3a52; }
+  h2 { font-size:1.05rem; margin:0 0 .65rem; color:var(--accent); }
+  ul { margin:.2rem 0 0; padding-left:1.15rem; }
+  li { margin:.35rem 0; }
+  kbd { background:#0d121a; border:1px solid #334155; border-radius:6px; padding:.1rem .4rem; font-size:.85em; }
+  code { background:#0d121a; padding:.1rem .35rem; border-radius:4px; font-size:.9em; }
+  .ok { color:var(--ok); }
+  footer { color:var(--muted); font-size:.85rem; margin-top:1.5rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Willkommen bei Silk</h1>
+  <p class="lead">Kurzhilfe für den Umstieg von Windows oder macOS. Du kannst dieses Fenster jederzeit mit <code>silk-welcome</code> öffnen.</p>
+
+  <section>
+    <h2>Mac / MacBook</h2>
+    <ul>
+      <li><code>silk-hardware status</code> – PC vs. Intel-Mac vs. Apple Silicon</li>
+      <li><code>silk-hardware hints</code> – was geht, was nicht</li>
+      <li>Wechsel von macOS auf <strong>PC</strong>: <code>silk-desktop mac</code>, <code>silk-install datei.dmg</code></li>
+      <li>Linux <strong>auf dem MacBook</strong>: Fedora Asahi Remix (nicht Silk)</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>GPU (AMD / Intel / NVIDIA)</h2>
+    <ul>
+      <li><code>silk-gpu status</code> – erkannte Grafikkarte</li>
+      <li><code>silk-gpu hints</code> – Kernel-Args &amp; Image-Empfehlung</li>
+      <li>NVIDIA: <code>bootc switch …/silk-nvidia-open:latest</code></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Hintergründe (20× Desktop + 20× Sperrbild)</h2>
+    <ul>
+      <li><code>silk-wallpaper list</code> – alle Varianten anzeigen</li>
+      <li><code>silk-wallpaper list mac</code> / <code>list win</code> – nach Stil filtern</li>
+      <li><code>silk-wallpaper set mac 03</code> – Ventura Dawn (Mac)</li>
+      <li><code>silk-wallpaper set win 14</code> – Win10 Hero (Windows)</li>
+      <li><code>silk-wallpaper random win</code> – zufällig wechseln</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Desktop-Stil</h2>
+    <ul>
+      <li><code>silk-desktop mac</code> – Menüleiste + Dock</li>
+      <li><code>silk-desktop windows11</code> – zentrierte Taskleiste</li>
+      <li><code>silk-desktop windows10</code> – klassische Taskleiste</li>
+      <li><code>silk-desktop --ask</code> – Auswahl erneut</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Tastatur (Umgewöhnung)</h2>
+    <ul>
+      <li>Windows-Taste / Mac-<kbd>⌘</kbd> → hier oft <kbd>Meta</kbd> (Windows-Taste)</li>
+      <li>App wechseln: <kbd>Alt</kbd>+<kbd>Tab</kbd></li>
+      <li>Screenshot: Spectacle (Taskleiste) oder <kbd>Meta</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> (je nach Layout)</li>
+      <li>Terminal: Konsole im Startmenü</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Programme wie vorher</h2>
+    <ul>
+      <li class="ok">Windows <code>.exe</code> → Linux-App oder Wine/Bottles</li>
+      <li class="ok">Mac <code>.dmg</code>/<code>.app</code> → Linux-Gegenstück</li>
+      <li class="ok"><code>.AppImage</code> → Flatpak oder Gear Lever / ~/Applications</li>
+      <li class="ok"><code>.flatpak</code> / <code>.flatpakref</code> → direkt installieren</li>
+      <li class="ok"><code>.deb</code> / <code>.snap</code> → Flatpak bevorzugt, sonst Ubuntu-Box</li>
+      <li class="ok"><code>.rpm</code> → Flatpak oder Fedora-Box / rpm-ostree</li>
+      <li>Alltag: wird beim ersten Start eingerichtet · Gaming: optional</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Dateien &amp; USB</h2>
+    <ul>
+      <li>Windows-Sticks (NTFS / exFAT) sollten automatisch mounten</li>
+      <li>Netzwerkfreigaben (SMB): Dolphin → Netzwerk</li>
+      <li>Backup: Pika Backup (nach Essentials-Setup)</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Updates</h2>
+    <ul>
+      <li>Alles bequem: <code>silk-update</code> (Apps + Listen vom Git-Repo)</li>
+      <li>System komplett: <code>silk-update --full</code> (danach neu starten)</li>
+      <li>Manuell: <code>sudo bootc upgrade</code> · <code>flatpak update</code></li>
+    </ul>
+  </section>
+
+  <footer>Silk nutzt Universal Blue Aurora nur als technische Basis – der Produktname ist Silk.</footer>
+</main>
+</body>
+</html>

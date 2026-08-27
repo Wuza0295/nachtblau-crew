@@ -1,0 +1,286 @@
+#!/usr/bin/env bash
+# silk-connect – Alte iPhones/iPads & Begleitgeräte an Silk anbinden (kein natives iOS-OS)
+set -euo pipefail
+
+CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/silk/connect"
+TOKEN_FILE="$CONFIG_DIR/pair-token"
+PORT_FILE="$CONFIG_DIR/port"
+STATE_DIR="$CONFIG_DIR/state"
+CONNECT_SHARE="/usr/share/silk/connect"
+USER_UNIT="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user/silk-connect.service"
+
+DEFAULT_PORT=8765
+
+usage() {
+  cat <<'EOF'
+silk-connect – Begleitgeräte (iPhone, iPad, Android) mit Silk verbinden
+
+Silk läuft nicht nativ auf iPhone/iPad. Connect macht alte Apple-Geräte
+trotzdem nutzbar: Dashboard, Dateien, Remote-Desktop zum Silk-PC.
+
+Usage:
+  silk-connect setup              Server + Pairing einrichten
+  silk-connect status             URL, Token, Dienst-Status
+  silk-connect pair               Anleitung für iPhone/iPad im Browser
+  silk-connect dashboard          Kiosk-URL für altes iPad (Startseite pinnen)
+  silk-connect remote             Remote-Desktop-Hilfen (RustDesk, Parsec, …)
+  silk-connect start|stop|restart Dienst steuern
+  silk-connect open               Dashboard im Browser öffnen
+  silk-connect kdeconnect         KDE Connect für Android einrichten
+  silk-connect qr                 Pairing-URL als QR (Terminal)
+
+Hinweis: iOS bleibt auf dem Gerät – Silk Connect ist eine Begleit-Lösung.
+EOF
+}
+
+ensure_dirs() {
+  mkdir -p "$CONFIG_DIR" "$STATE_DIR" "$(dirname "$USER_UNIT")"
+}
+
+random_token() {
+  tr -dc 'A-Z2-9' </dev/urandom 2>/dev/null | head -c 6 || date +%s | sha256sum | head -c 6 | tr 'a-f' 'A-F'
+}
+
+read_port() {
+  if [[ -f "$PORT_FILE" ]]; then
+    cat "$PORT_FILE"
+  else
+    echo "$DEFAULT_PORT"
+  fi
+}
+
+local_ips() {
+  hostname -I 2>/dev/null | tr ' ' '\n' | grep -E '^[0-9]+\.' | grep -v '^127\.' | head -3
+}
+
+primary_url() {
+  local port token ip
+  port="$(read_port)"
+  token=""
+  [[ -f "$TOKEN_FILE" ]] && token="$(tr -d '[:space:]' < "$TOKEN_FILE")"
+  ip="$(local_ips | head -1)"
+  if [[ -n "$ip" ]]; then
+    echo "http://${ip}:${port}/?token=${token}"
+  else
+    echo "http://127.0.0.1:${port}/?token=${token}"
+  fi
+}
+
+write_token() {
+  local token="${1:-$(random_token)}"
+  echo "$token" > "$TOKEN_FILE"
+  chmod 600 "$TOKEN_FILE"
+  echo "$token"
+}
+
+write_port() {
+  local port="${1:-$DEFAULT_PORT}"
+  echo "$port" > "$PORT_FILE"
+}
+
+install_user_unit() {
+  local port
+  port="$(read_port)"
+  cat > "$USER_UNIT" <<UNIT
+[Unit]
+Description=Silk Connect – Begleitgeräte-Dashboard
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/libexec/silk/connect-server
+Environment=SILK_CONNECT_PORT=${port}
+Environment=SILK_CONNECT_CONFIG=${CONFIG_DIR}
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target
+UNIT
+}
+
+firewall_allow() {
+  local port
+  port="$(read_port)"
+  if command -v firewall-cmd >/dev/null 2>&1; then
+    firewall-cmd --add-port="${port}/tcp" --permanent 2>/dev/null || \
+      firewall-cmd --add-port="${port}/tcp" 2>/dev/null || true
+    firewall-cmd --reload 2>/dev/null || true
+  fi
+}
+
+systemd_user() {
+  systemctl --user "$@" 2>/dev/null || true
+}
+
+cmd_setup() {
+  ensure_dirs
+  local token port
+  token="$(write_token)"
+  write_port "$DEFAULT_PORT"
+  install_user_unit
+  firewall_allow
+  systemd_user daemon-reload
+  systemd_user enable silk-connect.service
+  systemd_user restart silk-connect.service
+  echo "Silk Connect eingerichtet."
+  echo "Pairing-Code: $token"
+  echo "Dashboard:   $(primary_url)"
+  echo
+  echo "Auf iPhone/iPad: Safari öffnen → URL eingeben → „Zum Home-Bildschirm“."
+  notify-send "Silk Connect" "Eingerichtet – Code: ${token}" 2>/dev/null || true
+}
+
+cmd_status() {
+  ensure_dirs
+  local token port running="nein"
+  token="(nicht gesetzt)"
+  [[ -f "$TOKEN_FILE" ]] && token="$(tr -d '[:space:]' < "$TOKEN_FILE")"
+  port="$(read_port)"
+  if systemd_user is-active silk-connect.service | grep -q active; then
+    running="ja"
+  fi
+  cat <<EOF
+Silk Connect Status
+───────────────────
+Dienst aktiv:  $running
+Port:          $port
+Pairing-Code:  $token
+Dashboard:     $(primary_url)
+Lokale IPs:    $(hostname -I 2>/dev/null | xargs echo || echo unbekannt)
+Config:        $CONFIG_DIR
+EOF
+}
+
+cmd_pair() {
+  ensure_dirs
+  [[ -f "$TOKEN_FILE" ]] || { echo "Zuerst: silk-connect setup" >&2; exit 1; }
+  local url token
+  token="$(tr -d '[:space:]' < "$TOKEN_FILE")"
+  url="$(primary_url)"
+  cat <<EOF
+═══ iPhone / iPad mit Silk verbinden ═══
+
+1. iPhone/iPad und Silk-PC im gleichen WLAN
+2. Safari öffnen (auch auf älteren iOS-Versionen)
+3. Diese Adresse eingeben:
+
+   $url
+
+4. Pairing-Code bestätigen: $token
+5. Optional: Teilen → „Zum Home-Bildschirm“ (Kiosk-Modus)
+
+Funktionen im Dashboard:
+  • Remote-Desktop zum Silk-PC
+  • Dateien & Sync (Nextcloud/Rclone)
+  • Medien-Fernbedienung
+  • Silk-Hilfe & FAQ
+
+Silk ersetzt iOS nicht – das Gerät bleibt ein Begleiter.
+EOF
+}
+
+cmd_dashboard() {
+  cmd_pair
+  echo
+  echo "Kiosk-Tipp (altes iPad): Einstellungen → Anzeige & Helligkeit → Automatisches Sperren → Nie"
+}
+
+cmd_remote() {
+  cat <<'EOF'
+═══ Remote-Desktop zum Silk-PC ═══
+
+Empfohlene Apps (vom Begleitgerät aus installieren):
+
+  RustDesk     – einfach, Open Source (Flatpak auf Silk: com.rustdesk.RustDesk)
+  Parsec       – Gaming / niedrige Latenz
+  Moonlight    – NVIDIA Game Stream (auf Silk: com.moonlight_stream.Moonlight)
+  Microsoft RD – falls Windows-RDP auf Silk eingerichtet
+
+Auf Silk-PC:
+  flatpak install flathub com.rustdesk.RustDesk
+  # RustDesk-ID in der App ablesen → auf iPad RustDesk-App eingeben
+
+Oder: silk-install --setup-gaming (enthält Moonlight)
+EOF
+  if command -v flatpak >/dev/null 2>&1; then
+    if ! flatpak info com.rustdesk.RustDesk >/dev/null 2>&1; then
+      echo
+      read -r -p "RustDesk jetzt installieren? [j/N] " ans || ans=n
+      if [[ "${ans,,}" == j || "${ans,,}" == y ]]; then
+        flatpak install -y flathub com.rustdesk.RustDesk 2>/dev/null || \
+          echo "Installation fehlgeschlagen – manuell: flatpak install flathub com.rustdesk.RustDesk"
+      fi
+    else
+      echo
+      echo "RustDesk ist bereits installiert."
+    fi
+  fi
+}
+
+cmd_open() {
+  local url
+  url="$(primary_url)"
+  xdg-open "$url" 2>/dev/null || echo "$url"
+}
+
+cmd_kdeconnect() {
+  cat <<'EOF'
+=== KDE Connect (Android ↔ Silk) ===
+
+Auf Silk-PC:
+  flatpak install flathub org.kde.kdeconnect
+  # oder: bereits via kdeconnectd
+
+Auf Android:
+  1. „KDE Connect“ aus Play Store / F-Droid
+  2. Gleiches WLAN wie Silk-PC
+  3. Gerät koppeln → Dateien, Benachrichtigungen, Fernbedienung
+
+Zusätzlich: silk-connect setup für Browser-Dashboard (iOS + Android)
+EOF
+  flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
+  flatpak install -y flathub org.kde.kdeconnect 2>/dev/null || \
+    echo "KDE Connect: flatpak install flathub org.kde.kdeconnect"
+  systemctl --user enable --now kdeconnectd 2>/dev/null || true
+}
+
+cmd_qr() {
+  ensure_dirs
+  [[ -f "$TOKEN_FILE" ]] || { echo "Zuerst: silk-connect setup" >&2; exit 1; }
+  local url
+  url="$(primary_url)"
+  echo "URL: $url"
+  if command -v qrencode >/dev/null 2>&1; then
+    echo
+    qrencode -t ANSIUTF8 "$url"
+  else
+    echo "(qrencode nicht installiert – URL oben in Safari eingeben)"
+  fi
+}
+
+main() {
+  local cmd="${1:-}"
+  case "$cmd" in
+    ""|-h|--help) usage ;;
+    setup) cmd_setup ;;
+    status) cmd_status ;;
+    pair) cmd_pair ;;
+    dashboard) cmd_dashboard ;;
+    remote) cmd_remote ;;
+    open) cmd_open ;;
+    kdeconnect) cmd_kdeconnect ;;
+    qr) cmd_qr ;;
+    start) ensure_dirs; systemd_user start silk-connect.service; cmd_status ;;
+    stop) systemd_user stop silk-connect.service ;;
+    restart) ensure_dirs; systemd_user restart silk-connect.service; cmd_status ;;
+    *)
+      echo "Unbekannter Befehl: $cmd" >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+}
+
+main "$@"
