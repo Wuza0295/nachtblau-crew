@@ -116,19 +116,33 @@ download_iso() {
     return 0
   fi
   info "Aurora-ISO laden (~6.5 GB) nach ${ISO_PATH} …"
+  info "(dauert je nach Leitung – VM wird vorher schon angelegt)"
   curl -fL --progress-bar -o "${ISO_PATH}.partial" "$ISO_URL"
   mv "${ISO_PATH}.partial" "$ISO_PATH"
   info "ISO fertig."
 }
 
+attach_iso_if_present() {
+  have VBoxManage || return 0
+  VBoxManage showvminfo "$VM_NAME" &>/dev/null || return 0
+  [[ -f "$ISO_PATH" ]] || return 0
+  info "ISO an VM anhängen …"
+  VBoxManage storageattach "$VM_NAME" --storagectl "IDE" --port 0 --device 0 --type dvddrive \
+    --medium "$ISO_PATH" 2>/dev/null || \
+  VBoxManage storageattach "$VM_NAME" --storagectl "IDE" --port 0 --device 0 --type dvddrive \
+    --medium "$ISO_PATH" --forceunmount 2>/dev/null || true
+}
+
 create_vm() {
-  have VBoxManage || die "VBoxManage fehlt"
+  have VBoxManage || die "VBoxManage fehlt – ist VirtualBox installiert? Probier: which VBoxManage"
   if VBoxManage showvminfo "$VM_NAME" &>/dev/null; then
     info "VM '${VM_NAME}' existiert schon."
+    attach_iso_if_present
+    VBoxManage list vms
     return 0
   fi
   info "VirtualBox-VM '${VM_NAME}' anlegen …"
-  VBoxManage createvm --name "$VM_NAME" --ostype "Fedora_64" --register
+  VBoxManage createvm --name "$VM_NAME" --ostype "Fedora_64" --register --basefolder "$ISO_DIR"
   VBoxManage modifyvm "$VM_NAME" \
     --memory 4096 \
     --cpus 2 \
@@ -143,9 +157,14 @@ create_vm() {
   VBoxManage storageattach "$VM_NAME" --storagectl "SATA" --port 0 --device 0 --type hdd \
     --medium "${ISO_DIR}/${VM_NAME}.vdi"
   VBoxManage storagectl "$VM_NAME" --name "IDE" --add ide
-  VBoxManage storageattach "$VM_NAME" --storagectl "IDE" --port 0 --device 0 --type dvddrive \
-    --medium "$ISO_PATH"
-  info "VM bereit. Start: VirtualBox → ${VM_NAME} → Starten"
+  if [[ -f "$ISO_PATH" ]]; then
+    VBoxManage storageattach "$VM_NAME" --storagectl "IDE" --port 0 --device 0 --type dvddrive \
+      --medium "$ISO_PATH"
+  else
+    info "ISO noch nicht da – VM ohne ISO angelegt."
+  fi
+  info "VM bereit. Liste:"
+  VBoxManage list vms
 }
 
 print_silk_next() {
@@ -180,25 +199,34 @@ cleanup_autostart() {
 }
 
 do_finish() {
-  info "Phase 2: Extension Pack + ISO + VM …"
-  # Warten bis VBoxManage da ist (nach ostree-Reboot)
-  for i in $(seq 1 30); do
+  info "Phase 2: Extension Pack + VM (+ ISO) …"
+  for i in $(seq 1 60); do
     have VBoxManage && break
     sleep 2
   done
-  have VBoxManage || die "VBoxManage nach Reboot nicht gefunden. Log: $LOG_FILE"
+  have VBoxManage || die "VBoxManage nicht gefunden. VirtualBox installiert? which VBoxManage"
 
   ensure_groups
-  install_extpack
-  download_iso
-  create_vm
+  # VM zuerst (sofort sichtbar), ISO danach (dauert)
+  create_vm || true
+  install_extpack || info "Extension Pack fehlgeschlagen – VM trotzdem nutzbar."
+  download_iso || info "ISO-Download fehlgeschlagen – später manuell nachladen."
+  attach_iso_if_present
   cleanup_autostart
   print_silk_next
 
-  # Desktop-Benachrichtigung falls möglich
   if have notify-send; then
-    notify-send "Silk Test-Setup" "VirtualBox + Extension Pack + VM '${VM_NAME}' sind bereit." || true
+    notify-send "Silk Test-Setup" "VirtualBox + VM '${VM_NAME}' sind bereit." || true
   fi
+}
+
+do_vm_only() {
+  info "Nur VM anlegen …"
+  have VBoxManage || die "VBoxManage fehlt. Zuerst VirtualBox installieren."
+  ensure_groups
+  create_vm
+  VBoxManage list vms
+  info "VirtualBox neu öffnen – VM '${VM_NAME}' sollte erscheinen."
 }
 
 do_install() {
@@ -208,9 +236,10 @@ do_install() {
   if have VBoxManage; then
     info "VirtualBox bereits nutzbar – überspringe Layering."
     ensure_groups
-    install_extpack
-    download_iso
     create_vm
+    install_extpack || true
+    download_iso || true
+    attach_iso_if_present
     write_state "done"
     print_silk_next
     return 0
@@ -224,11 +253,11 @@ do_install() {
 
 ============================================================
 VirtualBox wird gelayert. Rechner startet in 15 Sekunden neu.
-Danach läuft die Einrichtung automatisch weiter
-(Extension Pack, Aurora-ISO, VM '${VM_NAME}').
+NACH dem Reboot bitte manuell ausführen (falls die VM fehlt):
 
-Abbrechen: Strg+C jetzt.
-Log danach: ${LOG_FILE}
+  curl -fsSL https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-website-local-2818/Silk-Website/scripts/setup-silk-test-all.sh | bash -s -- --finish
+
+Log: ${LOG_FILE}
 ============================================================
 EOF
   sleep 15
@@ -238,10 +267,12 @@ EOF
 main() {
   case "${1:-}" in
     --finish) do_finish ;;
+    --vm-only) do_vm_only ;;
     --help|-h)
-      echo "Usage: $0 [--finish]"
-      echo "  Ohne Args: alles installieren (Reboot inkl.)"
-      echo "  --finish:  nur Phase 2 (nach Reboot)"
+      echo "Usage: $0 [--finish|--vm-only]"
+      echo "  Ohne Args: VirtualBox installieren (Reboot inkl.)"
+      echo "  --finish:  Extension Pack + VM + ISO (nach Reboot)"
+      echo "  --vm-only: nur VM Silk-Test anlegen"
       ;;
     *) do_install ;;
   esac
