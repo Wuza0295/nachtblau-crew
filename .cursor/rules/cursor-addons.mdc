@@ -1,0 +1,32 @@
+---
+description: Cursor-Plugins und MCP-Server, die zu den NachtBlau-Projekten gehören
+alwaysApply: true
+---
+
+# Cursor-Addons für NachtBlau
+
+Projekt-MCPs liegen in `.cursor/mcp.json`. Nach dem Öffnen des Repos in Cursor unter **Customize → MCP** aktivieren und bei Bedarf anmelden.
+
+## Marketplace-Plugins nachinstallieren
+
+Im Agent-Chat (einmalig, Desktop):
+
+- `/add-plugin github`
+- `/add-plugin playwright`
+- `/add-plugin shadcn`
+- `/add-plugin figma`
+- Notion-, Gmail-, Google-Kalender- und Google-Drive-Plugins, falls noch nicht installiert
+
+## Welches Addon wofür
+
+| Aufgabe | Addon |
+|---|---|
+| Issues, PRs, Actions (`nachtblau-crew`) | GitHub MCP |
+| Projekte, Tasks, Specs laden | Notion MCP |
+| Launcher, Social Portal, UI aus Designs | Figma MCP + shadcn MCP |
+| shadcn/ui-Komponenten suchen/installieren | shadcn MCP |
+| Aktuelle Docs (React 19, Tailwind 4, tRPC, Drizzle, Vitest) | Context7 MCP |
+| UI im Browser prüfen (Crew-App, Webspace, Launcher) | Playwright MCP |
+| Mails, Kalender, Dateien (GbR / Partner) | Gmail, Google Calendar, Google Drive |
+
+Keine Secrets in `mcp.json` speichern. OAuth läuft über Cursor; GitHub-PAT nur lokal über `GITHUB_PERSONAL_ACCESS_TOKEN`, falls OAuth nicht greift.

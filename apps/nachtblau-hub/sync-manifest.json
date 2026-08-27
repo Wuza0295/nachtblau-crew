@@ -1,0 +1,19 @@
+{
+  "action": "pull",
+  "updatedAt": "2026-08-06T00:54:00.905168+00:00",
+  "contentHash": "7405bd96b51eb36b",
+  "fileCount": 157,
+  "platforms": {
+    "linux": 159,
+    "android": 159,
+    "web": 157
+  },
+  "paths": {
+    "shared": "apps/nachtblau-hub/shared",
+    "linux": "apps/nachtblau-hub/linux/www",
+    "android": "apps/nachtblau-hub/android/www",
+    "webspace": "webspace/launcher.nachtblau-interactive.com"
+  },
+  "androidAppVersion": "1.1.0",
+  "androidUrl": "https://launcher.nachtblau-interactive.com/android.html"
+}
