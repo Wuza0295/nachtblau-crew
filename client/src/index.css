@@ -98,7 +98,8 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    font-family: "Sora", "Segoe UI", system-ui, sans-serif;
+    letter-spacing: -0.01em;
   }
   .flex {
     min-width: 0;
@@ -234,8 +235,12 @@
 
 /* ── Typography ─────────────────────────────────────────────────────────────── */
 h1, h2, h3, h4, h5, h6 {
-  font-family: "Orbitron", "Inter", system-ui, sans-serif;
+  font-family: "Orbitron", "Sora", system-ui, sans-serif;
   letter-spacing: 0.02em;
+}
+
+.launcher-home {
+  isolation: isolate;
 }
 
 /* Prose overrides for dark theme */

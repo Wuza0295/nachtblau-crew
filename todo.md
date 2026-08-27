@@ -3,13 +3,15 @@
 ## Branding & Design
 - [x] Eulen-Mond-Logo generieren und als statisches Asset hochladen
 - [x] Dunkles Blau-Design-System in index.css (Farben, Schriften, Tokens)
-- [x] Google Fonts (z. B. Orbitron + Inter) in index.html einbinden
+- [x] Google Fonts (Orbitron + Sora) in index.html einbinden
 - [x] Globale Navigation mit Logo, Links und Auth-Status
 
-## Startseite
-- [x] Hero-Sektion mit Logo, Titel und CTA
-- [x] Feature-Highlights (News, Free Games, Forum)
-- [x] Animierter Sternenhimmel / Mond-Hintergrund
+## Community Launcher (Startseite)
+- [x] Launcher von Grund auf neu: Full-Bleed Hero mit Brand-Signal
+- [x] Launch-Module für Free Games, News, Forum
+- [x] Spotlight Giveaway + News Feed + Forum Pulse
+- [x] Netzwerk-Dock (Webspace / GitHub) beibehalten
+- [x] Framer-Motion Einstiege + Sternenfeld
 
 ## Free Games & Angebote
 - [x] Backend: tRPC-Router für Free Games (Epic Games / GamerPower API)

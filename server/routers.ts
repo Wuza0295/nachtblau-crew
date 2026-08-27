@@ -134,6 +134,21 @@ const newsRouter = router({
 
       const selectedFeeds = feeds[input.category] ?? feeds.all;
 
+      const decodeXmlEntities = (value: string) =>
+        value
+          .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+          .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
+          .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) =>
+            String.fromCharCode(parseInt(hex, 16))
+          )
+          .replace(/&quot;/g, '"')
+          .replace(/&apos;/g, "'")
+          .replace(/&amp;/g, "&")
+          .replace(/&lt;/g, "<")
+          .replace(/&gt;/g, ">")
+          .replace(/&nbsp;/g, " ")
+          .trim();
+
       const parseRSSFeed = async (url: string) => {
         try {
           const res = await fetch(url, {
@@ -162,35 +177,38 @@ const newsRouter = router({
           let match;
           while ((match = itemRegex.exec(text)) !== null) {
             const item = match[1];
-            const title = (/<title><!\[CDATA\[(.*?)\]\]><\/title>/.exec(item) ||
-              /<title>(.*?)<\/title>/.exec(item))?.[1]?.trim() ?? "";
-            const link = (/<link>(.*?)<\/link>/.exec(item) ||
-              /<guid[^>]*>(.*?)<\/guid>/.exec(item))?.[1]?.trim() ?? "";
-            const desc = (
-              /<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/.exec(item) ||
-              /<description>([\s\S]*?)<\/description>/.exec(item)
-            )?.[1]?.trim() ?? "";
+            const title = decodeXmlEntities(
+              (/<title><!\[CDATA\[(.*?)\]\]><\/title>/.exec(item) ||
+                /<title>(.*?)<\/title>/.exec(item))?.[1] ?? ""
+            );
+            const link = decodeXmlEntities(
+              (/<link><!\[CDATA\[(.*?)\]\]><\/link>/.exec(item) ||
+                /<link>(.*?)<\/link>/.exec(item) ||
+                /<guid[^>]*><!\[CDATA\[(.*?)\]\]><\/guid>/.exec(item) ||
+                /<guid[^>]*>(.*?)<\/guid>/.exec(item))?.[1] ?? ""
+            );
+            const descRaw =
+              (/<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/.exec(item) ||
+                /<description>([\s\S]*?)<\/description>/.exec(item))?.[1]?.trim() ?? "";
+            const desc = decodeXmlEntities(descRaw);
             const pubDate = (/<pubDate>(.*?)<\/pubDate>/.exec(item))?.[1]?.trim() ?? "";
 
             // Extract image from enclosure or media:content or description
             let image = "";
             const enclosure = /<enclosure[^>]+url="([^"]+)"/.exec(item);
             const media = /<media:content[^>]+url="([^"]+)"/.exec(item);
-            const imgInDesc = /<img[^>]+src="([^"]+)"/.exec(desc);
+            const imgInDesc =
+              /<img[^>]+src="([^"]+)"/i.exec(desc) ||
+              /<img[^>]+src='([^']+)'/i.exec(desc);
             if (enclosure) image = enclosure[1];
             else if (media) image = media[1];
             else if (imgInDesc) image = imgInDesc[1];
 
-            if (title && link) {
+            if (title && link && /^https?:\/\//i.test(link)) {
               items.push({
-                title: title.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">"),
+                title,
                 link,
-                description: desc
-                  .replace(/<[^>]+>/g, "")
-                  .replace(/&amp;/g, "&")
-                  .replace(/&lt;/g, "<")
-                  .replace(/&gt;/g, ">")
-                  .slice(0, 200),
+                description: desc.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").slice(0, 200),
                 pubDate,
                 image,
                 source: sourceName.charAt(0).toUpperCase() + sourceName.slice(1),
