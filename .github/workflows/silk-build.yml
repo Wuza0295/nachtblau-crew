@@ -69,16 +69,21 @@ jobs:
         id: gate
         working-directory: .
         run: |
+          SKIP=false
           if [[ "${{ matrix.image_name }}" == "silk-nvidia-open" ]]; then
-            if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.build_nvidia }}" != "true" ]]; then
-              echo "skip=true" >> "$GITHUB_OUTPUT"
-              echo "NVIDIA-Build übersprungen (build_nvidia=false)."
+            # NVIDIA nur auf main/schedule oder wenn explizit angefordert
+            if [[ "${{ github.event_name }}" == "schedule" ]]; then
+              SKIP=false
+            elif [[ "${{ github.ref }}" == "refs/heads/${{ github.event.repository.default_branch }}" ]]; then
+              SKIP=false
+            elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.build_nvidia }}" == "true" ]]; then
+              SKIP=false
             else
-              echo "skip=false" >> "$GITHUB_OUTPUT"
+              SKIP=true
+              echo "NVIDIA-Build übersprungen (nur silk:latest für schnelleren Test-Publish)."
             fi
-          else
-            echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
+          echo "skip=${SKIP}" >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@v4
         if: steps.gate.outputs.skip != 'true'
