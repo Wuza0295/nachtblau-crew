@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# silk-setup – maximal einfacher Ersteinstieg für Win/Mac-Wechsler
+# silk-setup – maximal einfacher Ersteinstieg (PC, Tablet, Mac, Mobile)
 set -euo pipefail
 
 MARKER="${XDG_CONFIG_HOME:-$HOME/.config}/silk/.setup-done"
@@ -8,6 +8,26 @@ mkdir -p "$(dirname "$MARKER")" "$HOME/Applications" "$HOME/.local/share/silk/ap
 
 if [[ -f "$MARKER" && "${1:-}" != "--force" ]]; then
   exit 0
+fi
+
+# Plattform-spezifischer Einstieg (Mac → asahi, Tablet → tablet, …)
+if [[ "${SILK_SKIP_PLATFORM:-0}" != "1" ]]; then
+  platform="$(/usr/bin/silk-platform detect 2>/dev/null || echo pc)"
+  case "$platform" in
+    apple-silicon)
+      /usr/bin/silk-asahi setup && exit 0
+      ;;
+    tablet)
+      /usr/bin/silk-tablet setup && exit 0
+      ;;
+    mobile)
+      /usr/bin/silk-mobile setup && exit 0
+      ;;
+    intel-mac)
+      /usr/bin/silk-asahi intel-mac
+      exit 1
+      ;;
+  esac
 fi
 
 notify-send "Silk" "Einrichtung für Windows-/Mac-Wechsler…" 2>/dev/null || true

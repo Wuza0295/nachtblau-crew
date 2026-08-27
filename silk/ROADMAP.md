@@ -24,7 +24,10 @@ und wohin **Silk 2.0** langfristig gehen kann.
 | **Hintergründe** | ✅ | 20× Desktop + 20× Sperrbild, `silk-wallpaper` |
 | **Updates** | ✅ | `silk-update`, `silk-sync-config`, bootc upgrade |
 | **Silk Connect** | ✅ | `silk-connect` – iPhone/iPad Begleit-PWA, Remote, Pairing |
-| **Tablet-Modus** | ✅ | `silk-desktop tablet`, Touch-Layout |
+| **Tablet-Modus** | ✅ | `silk-tablet`, `silk-desktop tablet` |
+| **Silk Asahi (Mac M1+)** | ✅ | `silk-asahi`, Image `silk-asahi:latest`, CI |
+| **Silk Mobile** | ✅ | `silk-mobile`, Geräteliste, postmarketOS-Anleitung |
+| **PC-Installer** | ✅ | `silk-installer`, `silk-platform`, ISO (`iso.toml`) |
 | **Diagnose** | ✅ | `silk-doctor` |
 | **Multi-Plattform-Doku** | ✅ | `docs/PLATFORMS.md`, `docs/CONNECT.md`, FAQ-Website |
 | **Tests** | ✅ | Offline-Suite (~140+ Checks) |

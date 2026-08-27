@@ -39,10 +39,18 @@ for f in \
   system_files/usr/bin/silk-hardware \
   system_files/usr/bin/silk-connect \
   system_files/usr/bin/silk-doctor \
+  system_files/usr/bin/silk-platform \
+  system_files/usr/bin/silk-installer \
+  system_files/usr/bin/silk-asahi \
+  system_files/usr/bin/silk-tablet \
+  system_files/usr/bin/silk-mobile \
   system_files/usr/libexec/silk/connect-server \
   system_files/usr/share/silk/connect/index.html \
   system_files/usr/share/silk/connect/manifest.json \
+  system_files/usr/share/silk/mobile-devices.txt \
+  system_files/usr/share/silk/guides/install-pc.txt \
   system_files/usr/share/silk/plasma-tablet-layout.js \
+  disk_config/iso.toml \
   docs/CONNECT.md \
   docs/PLATFORMS.md \
   system_files/usr/share/silk/wallpapers/manifest.json \
@@ -121,6 +129,7 @@ grep -q 'apple-silicon' "$ROOT/system_files/usr/bin/silk-hardware" && ok "silk-h
 grep -q 'intel-mac' "$ROOT/system_files/usr/bin/silk-hardware" && ok "silk-hardware intel-mac" || bad "silk-hardware intel-mac"
 grep -q 'detect_hardware' "$ROOT/system_files/usr/libexec/silk/firstboot" && ok "firstboot hardware detect" || bad "firstboot hardware"
 grep -q 'Fedora Asahi' "$ROOT/system_files/usr/share/silk/hardware-apple-silicon.txt" && ok "asahi doc" || bad "asahi doc"
+grep -q 'silk-asahi' "$ROOT/system_files/usr/bin/silk-hardware" && ok "silk-hardware asahi" || bad "silk-hardware asahi"
 grep -q 'Mac / MacBook' "$ROOT/README.md" && ok "README mac hardware" || bad "README mac hardware"
 bash "$ROOT/system_files/usr/bin/silk-hardware" status >/dev/null && ok "silk-hardware status runs" || bad "silk-hardware status"
 
@@ -276,6 +285,21 @@ grep -q 'python3' "$ROOT/build_files/01-packages.sh" && ok "python3 for connect"
 [[ -f "$ROOT/docs/PLATFORMS.md" ]] && ok "PLATFORMS.md" || bad "PLATFORMS.md"
 [[ -f "$ROOT/docs/CONNECT.md" ]] && ok "CONNECT.md" || bad "CONNECT.md"
 python3 -m py_compile "$ROOT/system_files/usr/libexec/silk/connect-server" && ok "connect-server syntax" || bad "connect-server py"
+
+echo "== Multi-Plattform (PC, Tablet, Mac, Mobile) =="
+grep -q 'silk-platform detect' "$ROOT/system_files/usr/bin/silk-platform" && ok "silk-platform" || bad "silk-platform"
+grep -q 'silk-installer switch' "$ROOT/system_files/usr/bin/silk-installer" && ok "silk-installer" || bad "silk-installer"
+grep -q 'silk-asahi switch' "$ROOT/system_files/usr/bin/silk-asahi" && ok "silk-asahi" || bad "silk-asahi"
+grep -q 'silk-tablet setup' "$ROOT/system_files/usr/bin/silk-tablet" && ok "silk-tablet" || bad "silk-tablet"
+grep -q 'silk-mobile setup' "$ROOT/system_files/usr/bin/silk-mobile" && ok "silk-mobile" || bad "silk-mobile"
+grep -q 'IMAGE_NAME_ASAHI' "$ROOT/silk.env" && ok "silk-asahi env" || bad "silk-asahi env"
+grep -q 'silk-asahi' "$ROOT/system_files/usr/share/silk/hardware-apple-silicon.txt" && ok "asahi hardware doc" || bad "asahi hardware doc"
+grep -q 'kdeconnect' "$ROOT/build_files/04-compat.sh" && ok "kdeconnect package" || bad "kdeconnect"
+grep -q 'silk-platform detect' "$ROOT/system_files/usr/bin/silk-setup" && ok "setup platform detect" || bad "setup platform"
+[[ -f "$ROOT/disk_config/iso.toml" ]] && ok "iso.toml" || bad "iso.toml"
+WF_ROOT="$(cd "$ROOT/.." && pwd)/.github/workflows/silk-build.yml"
+grep -q 'silk-asahi' "$WF_ROOT" && ok "CI silk-asahi matrix" || bad "CI asahi"
+grep -q 'kdeconnect' "$ROOT/system_files/usr/bin/silk-connect" && ok "connect kdeconnect" || bad "connect kdeconnect"
 
 echo
 echo "Ergebnis: $PASS bestanden, $FAIL fehlgeschlagen"

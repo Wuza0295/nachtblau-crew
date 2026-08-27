@@ -49,6 +49,8 @@ jobs:
             base_image: ghcr.io/ublue-os/aurora:stable
           - image_name: silk-nvidia-open
             base_image: ghcr.io/ublue-os/aurora-nvidia-open:stable
+          - image_name: silk-asahi
+            base_image: quay.io/fedora-asahi-remix-atomic-desktops/kinoite:43
     permissions:
       contents: read
       packages: write

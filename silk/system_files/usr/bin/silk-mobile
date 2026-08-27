@@ -1,0 +1,167 @@
+#!/usr/bin/env bash
+# silk-mobile – Smartphones (Android/Linux-Phone) & Begleit-Apps
+set -euo pipefail
+
+SHARE="/usr/share/silk"
+DEVICES="${SHARE}/mobile-devices.txt"
+
+usage() {
+  cat <<'EOF'
+silk-mobile – Smartphone-Unterstützung
+
+Native Silk-Mobile (Linux auf Phone): experimentell, nur ausgewählte Geräte.
+Android/iPhone: Silk Connect (Begleiter zum Silk-PC/Mac).
+
+Usage:
+  silk-mobile status        Gerät & Edition
+  silk-mobile setup         Passendes Setup starten
+  silk-mobile devices       Unterstützte Linux-Phones
+  silk-mobile android       Android: Waydroid + Connect
+  silk-mobile ios           iPhone: Connect-Anleitung
+  silk-mobile install       postmarketOS/Mobian Anleitung
+
+EOF
+}
+
+is_linux_phone() {
+  [[ "$(uname -m)" == "aarch64" ]] && \
+    ! grep -qi mac /sys/firmware/devicetree/base/model 2>/dev/null && \
+    [[ -d /sys/firmware/devicetree/base ]] && \
+    has_touch_input
+}
+
+has_touch_input() {
+  grep -q . /sys/class/input/input*/capabilities/abs 2>/dev/null
+}
+
+detect_mobile_os() {
+  if [[ -f /system/build.prop ]] || getprop ro.build.version.release &>/dev/null; then
+    echo android-container
+    return
+  fi
+  if is_linux_phone; then
+    echo linux-phone
+    return
+  fi
+  if [[ "$(uname -s)" == "Darwin" ]]; then
+    echo ios-companion
+    return
+  fi
+  echo desktop
+}
+
+cmd_status() {
+  echo "=== Silk Mobile ==="
+  echo "Kontext:    $(detect_mobile_os)"
+  echo "Architektur: $(uname -m)"
+  if [[ -f /sys/firmware/devicetree/base/model ]]; then
+    echo "Modell:     $(tr -d '\0' </sys/firmware/devicetree/base/model 2>/dev/null)"
+  fi
+  echo
+  case "$(detect_mobile_os)" in
+    linux-phone)
+      echo "Edition:    Silk Mobile (Linux-Phone)"
+      echo "Nächster Schritt: silk-mobile install"
+      ;;
+    android-container|desktop)
+      echo "Edition:    Android-Apps via Waydroid auf Silk-PC"
+      echo "              Smartphone via silk-connect"
+      ;;
+    ios-companion)
+      echo "Edition:    Silk Connect (kein natives iOS)"
+      ;;
+  esac
+}
+
+cmd_devices() {
+  if [[ -f "$DEVICES" ]]; then
+    cat "$DEVICES"
+  else
+    echo "Siehe: https://postmarketos.org/devices/"
+    echo "       https://mobian-project.org/"
+  fi
+}
+
+cmd_android() {
+  cat <<'EOF'
+=== Android auf Silk (PC/Tablet) ===
+
+Android-APPS auf dem Silk-Rechner:
+  silk-install --ensure-boxes
+  waydroid init && waydroid session start
+  silk-install meine.apk
+
+Smartphone als Begleiter:
+  silk-connect setup   # auf Silk-PC
+  KDE Connect App auf Android installieren
+  flatpak install flathub org.kde.kdeconnect
+
+EOF
+  flatpak install -y flathub org.kde.kdeconnect 2>/dev/null || true
+  /usr/bin/silk-ensure-boxes 2>/dev/null || true
+}
+
+cmd_ios() {
+  /usr/bin/silk-connect pair
+}
+
+cmd_install() {
+  cat <<'EOF'
+=== Silk Mobile – Linux auf Smartphone (experimentell) ===
+
+Unterstützte Wege:
+  • postmarketOS – viele ältere Android-Geräte
+  • Mobian – Debian für Phones (PinePhone, Librem 5, …)
+  • Ubuntu Touch – ausgewählte Geräte
+
+Ablauf (postmarketOS Beispiel):
+  1. Gerät in mobile-devices.txt prüfen: silk-mobile devices
+  2. postmarketOS Installer: https://postmarketos.org/download/
+  3. Nach Installation: gleiche silk-* Tools aus Community-Repo
+  4. silk-desktop tablet + silk-connect
+
+Hinweis: Vollwertiges Silk-Mobile-Image (silk-mobile:latest) ist in Entwicklung.
+Aktuell: postmarketOS + manuelle silk-Skripte oder Connect vom Phone zum Silk-PC.
+
+iPhone: Kein natives Silk – nur silk-connect (Begleiter).
+EOF
+  cmd_devices
+}
+
+cmd_setup() {
+  case "$(detect_mobile_os)" in
+    linux-phone)
+      /usr/bin/silk-tablet setup
+      ;;
+    ios-companion)
+      echo "iOS: Nutze Silk Connect auf einem Silk-PC/Mac und verbinde das iPhone."
+      cmd_ios
+      ;;
+    *)
+      cmd_android
+      if command -v kdialog >/dev/null 2>&1; then
+        kdialog --yesno "Silk Connect für Smartphone einrichten?" 2>/dev/null && \
+          /usr/bin/silk-connect setup || true
+      fi
+      ;;
+  esac
+}
+
+main() {
+  case "${1:-status}" in
+    status) cmd_status ;;
+    setup) cmd_setup ;;
+    devices) cmd_devices ;;
+    android) cmd_android ;;
+    ios) cmd_ios ;;
+    install) cmd_install ;;
+    -h|--help) usage ;;
+    *)
+      echo "Unbekannt: $1" >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+}
+
+main "$@"

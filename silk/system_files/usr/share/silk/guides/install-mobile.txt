@@ -1,0 +1,15 @@
+# Smartphone
+
+Android (Apps auf Silk-PC):
+  waydroid + silk-install .apk
+  silk-connect setup + KDE Connect App
+
+iPhone/iPad:
+  silk-connect pair (kein natives OS)
+
+Linux-Phone (postmarketOS/Mobian):
+  silk-mobile devices
+  silk-mobile install
+  silk-tablet setup
+
+Befehl: silk-mobile setup

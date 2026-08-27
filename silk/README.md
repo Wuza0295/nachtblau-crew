@@ -152,11 +152,30 @@ Silk läuft **nicht nativ** auf iPhone/iPad. **Silk Connect** bindet alte Apple-
 ```bash
 silk-connect setup      # Dashboard-Server + Pairing
 silk-connect pair       # Anleitung für Safari auf iOS
+silk-connect kdeconnect # Android ↔ Silk
 silk-connect remote     # RustDesk / Parsec
 silk-doctor             # Diagnose inkl. Connect
 ```
 
 Details: [`docs/CONNECT.md`](docs/CONNECT.md) · Multi-Plattform: [`docs/PLATFORMS.md`](docs/PLATFORMS.md)
+
+## Multi-Plattform (PC, Tablet, Mac, Smartphone)
+
+```bash
+silk-platform setup     # Erkennt Gerät automatisch
+silk-installer          # PC-Installation
+silk-tablet setup       # Touch-Tablet
+silk-asahi install      # MacBook M1+
+silk-mobile setup       # Smartphone
+```
+
+| Gerät | Lösung |
+|-------|--------|
+| PC | `silk-installer switch` |
+| Tablet | `silk-tablet setup` |
+| MacBook M1+ | `silk-asahi` |
+| iPhone/iPad | `silk-connect` |
+| Android | `silk-mobile` + Connect |
 
 ## Was im Image steckt
 

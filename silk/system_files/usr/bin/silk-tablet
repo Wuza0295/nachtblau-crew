@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+# silk-tablet – Touch-Tablet & 2-in-1 Optimierung
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+silk-tablet – Tablet-Modus für Touch-Geräte
+
+Usage:
+  silk-tablet setup       Touch-Layout + Tastatur + Connect
+  silk-tablet on          Tablet-Layout aktivieren
+  silk-tablet off         Windows-11-Layout (Desktop)
+  silk-tablet status      Touch-Erkennung & aktueller Modus
+  silk-tablet keyboard    Bildschirmtastatur einrichten
+
+Für: Surface, Lenovo Yoga, Touch-Laptops, große Android-Tablets (mit Linux)
+EOF
+}
+
+has_touch() {
+  local f
+  for f in /sys/class/input/input*/capabilities/abs; do
+    [[ -r "$f" ]] && grep -q . "$f" 2>/dev/null && return 0
+  done
+  return 1
+}
+
+cmd_status() {
+  local style="unbekannt"
+  [[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/silk/desktop-style" ]] && \
+    style="$(tr -d '[:space:]' < "${XDG_CONFIG_HOME:-$HOME/.config}/silk/desktop-style")"
+  echo "Tablet-Modus: $style"
+  if has_touch; then
+    echo "Touch:        erkannt ✓"
+  else
+    echo "Touch:        nicht erkannt (Layout trotzdem anwendbar)"
+  fi
+}
+
+setup_keyboard() {
+  if flatpak info org.maliit.keyboard >/dev/null 2>&1; then
+    echo "Maliit (Flatpak) bereits installiert."
+    return 0
+  fi
+  flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
+  flatpak install -y flathub org.maliit.keyboard 2>/dev/null || \
+    echo "Hinweis: Maliit manuell: flatpak install flathub org.maliit.keyboard"
+  if command -v kwriteconfig6 >/dev/null 2>&1; then
+    kwriteconfig6 --file kwinrc --group Wayland --key InputMethod "/usr/bin/maliit-keyboard" 2>/dev/null || true
+  fi
+}
+
+cmd_setup() {
+  echo "Richte Silk Tablet ein…"
+  /usr/bin/silk-tablet on
+  setup_keyboard
+  flatpak install -y flathub org.kde.kdeconnect 2>/dev/null || true
+  if command -v kdialog >/dev/null 2>&1; then
+    kdialog --yesno "Silk Connect für Smartphone/iPad einrichten?" 2>/dev/null && \
+      /usr/bin/silk-connect setup || true
+  else
+    /usr/bin/silk-connect setup 2>/dev/null || true
+  fi
+  /usr/bin/silk-setup --force 2>/dev/null || /usr/bin/silk-setup
+  notify-send "Silk Tablet" "Touch-Modus aktiv" 2>/dev/null || true
+}
+
+cmd_on() {
+  /usr/bin/silk-desktop tablet
+  setup_keyboard
+}
+
+cmd_off() {
+  /usr/bin/silk-desktop windows11
+}
+
+main() {
+  case "${1:-setup}" in
+    setup) cmd_setup ;;
+    on|enable) cmd_on ;;
+    off|disable) cmd_off ;;
+    status) cmd_status ;;
+    keyboard) setup_keyboard ;;
+    -h|--help) usage ;;
+    *)
+      echo "Unbekannt: $1" >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+}
+
+main "$@"

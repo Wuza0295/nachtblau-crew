@@ -26,6 +26,8 @@ Usage:
   silk-connect remote             Remote-Desktop-Hilfen (RustDesk, Parsec, …)
   silk-connect start|stop|restart Dienst steuern
   silk-connect open               Dashboard im Browser öffnen
+  silk-connect kdeconnect         KDE Connect für Android einrichten
+  silk-connect qr                 Pairing-URL als QR (Terminal)
 
 Hinweis: iOS bleibt auf dem Gerät – Silk Connect ist eine Begleit-Lösung.
 EOF
@@ -223,6 +225,41 @@ cmd_open() {
   xdg-open "$url" 2>/dev/null || echo "$url"
 }
 
+cmd_kdeconnect() {
+  cat <<'EOF'
+=== KDE Connect (Android ↔ Silk) ===
+
+Auf Silk-PC:
+  flatpak install flathub org.kde.kdeconnect
+  # oder: bereits via kdeconnectd
+
+Auf Android:
+  1. „KDE Connect“ aus Play Store / F-Droid
+  2. Gleiches WLAN wie Silk-PC
+  3. Gerät koppeln → Dateien, Benachrichtigungen, Fernbedienung
+
+Zusätzlich: silk-connect setup für Browser-Dashboard (iOS + Android)
+EOF
+  flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
+  flatpak install -y flathub org.kde.kdeconnect 2>/dev/null || \
+    echo "KDE Connect: flatpak install flathub org.kde.kdeconnect"
+  systemctl --user enable --now kdeconnectd 2>/dev/null || true
+}
+
+cmd_qr() {
+  ensure_dirs
+  [[ -f "$TOKEN_FILE" ]] || { echo "Zuerst: silk-connect setup" >&2; exit 1; }
+  local url
+  url="$(primary_url)"
+  echo "URL: $url"
+  if command -v qrencode >/dev/null 2>&1; then
+    echo
+    qrencode -t ANSIUTF8 "$url"
+  else
+    echo "(qrencode nicht installiert – URL oben in Safari eingeben)"
+  fi
+}
+
 main() {
   local cmd="${1:-}"
   case "$cmd" in
@@ -233,6 +270,8 @@ main() {
     dashboard) cmd_dashboard ;;
     remote) cmd_remote ;;
     open) cmd_open ;;
+    kdeconnect) cmd_kdeconnect ;;
+    qr) cmd_qr ;;
     start) ensure_dirs; systemd_user start silk-connect.service; cmd_status ;;
     stop) systemd_user stop silk-connect.service ;;
     restart) ensure_dirs; systemd_user restart silk-connect.service; cmd_status ;;

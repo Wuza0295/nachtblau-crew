@@ -21,7 +21,9 @@ fi
 update-desktop-database /usr/share/applications 2>/dev/null || true
 update-mime-database /usr/share/mime 2>/dev/null || true
 
-# Waydroid Service vorbereiten (nicht auto-starten bis User will)
-systemctl disable waydroid-container.service 2>/dev/null || true
+dnf5 -y install \
+  kdeconnectd \
+  qrencode \
+  2>/dev/null || true
 
 echo "Compat layer ready."

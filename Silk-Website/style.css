@@ -198,8 +198,8 @@ pre {
   list-style: none;
 }
 .faq-item summary::-webkit-details-marker { display: none; }
-.faq-item p {
-  padding-bottom: 1rem;
-  color: #475569;
-  font-size: 0.95rem;
-}
+.platform-card pre { margin-top: 0.75rem; font-size: 0.8rem; }
+.platform-card .muted { font-size: 0.8rem; color: #64748b; margin-top: 0.5rem; }
+.platform-table { width: 100%; border-collapse: collapse; max-width: 960px; margin: 0 auto; }
+.platform-table th, .platform-table td { padding: 0.6rem 1rem; border-bottom: 1px solid #334155; text-align: left; }
+.platform-table th { color: #93c5fd; }
