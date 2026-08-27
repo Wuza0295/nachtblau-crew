@@ -38,6 +38,7 @@ const NAV_LINKS = [
 
 const EXTERNAL_NAV_LINKS = [
   { href: SITE.webspaceUrl, label: "Webspace", icon: Globe },
+  { href: SITE.hybrixonUrl, label: SITE.hybrixonLabel, icon: Zap },
   { href: SITE.githubUrl, label: "GitHub", icon: Github },
 ];
 
@@ -62,7 +63,9 @@ export default function Navbar() {
     : "?";
 
   return (
-    <nav className="glass-nav sticky top-0 z-50">
+    <nav
+      className={`glass-nav sticky z-50 ${SITE.maintenanceMode ? "top-10" : "top-0"}`}
+    >
       <div className="container">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-3 group">

@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Gift, ExternalLink, Clock, Users, RefreshCw, Filter } from "lucide-react";
+import MaintenanceNotice from "@/components/MaintenanceNotice";
 
 const PLATFORMS = [
   { value: "", label: "Alle Plattformen" },
@@ -140,7 +141,8 @@ export default function FreeGames() {
 
   return (
     <div className="py-12">
-      <div className="container">
+      <div className="container space-y-6">
+        <MaintenanceNotice />
         {/* Header */}
         <div className="mb-10 space-y-2">
           <div className="flex items-center gap-3">
