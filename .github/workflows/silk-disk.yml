@@ -84,12 +84,19 @@ jobs:
           echo "uid=$(id -u)" >> "$GITHUB_OUTPUT"
           echo "gid=$(id -g)" >> "$GITHUB_OUTPUT"
 
+      # bootc-image-builder-action mountet config-file als Volume-Name –
+      # Pfade mit "/" sind ungültig → flache Kopie im Workspace-Root.
+      - name: Flatten config path
+        run: |
+          cp -f "${{ matrix.config }}" ./bib-config.toml
+          ls -la ./bib-config.toml
+
       - name: Build with bootc-image-builder
         id: build
         uses: osbuild/bootc-image-builder-action@8661cd3832544ad68c12dcde8681b13ab0f56a8d
         with:
           builder-image: quay.io/centos-bootc/bootc-image-builder:latest
-          config-file: ${{ matrix.config }}
+          config-file: bib-config.toml
           image: ghcr.io/wuza0295/silk:latest
           types: ${{ matrix.type }}
           additional-args: --use-librepo=True
