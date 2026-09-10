@@ -100,16 +100,38 @@ jobs:
 
           # WICHTIG: absolute Host-Pfade, sonst erzeugt Podman Named Volumes
           # und /config.toml landet als Verzeichnis → Build stirbt.
+          #
+          # BIB matched Distro über os-release ID+VERSION_ID. Aurora/Silk-IDs
+          # haben keine Defs → Symlink auf fedora-*.yaml (siehe osbuild#904).
           sudo podman run --rm --privileged \
             --security-opt label=type:unconfined_t \
             -v /var/lib/containers/storage:/var/lib/containers/storage \
             -v "${OUT}:/output" \
             -v "${CFG}:/config.toml:ro" \
+            --entrypoint /bin/bash \
             "${BIB_IMAGE}" \
-            --type "${{ matrix.type }}" \
-            --use-librepo=True \
-            --rootfs=btrfs \
-            "${SILK_IMAGE}"
+            -c "
+              set -euo pipefail
+              DEFS=/usr/share/bootc-image-builder/defs
+              if [[ -d \"\$DEFS\" ]]; then
+                FED=\$(ls \"\$DEFS\"/fedora-*.yaml 2>/dev/null | sort -V | tail -1 || true)
+                if [[ -n \"\$FED\" ]]; then
+                  BASE=\$(basename \"\$FED\")
+                  for id in aurora silk; do
+                    for ver in 1.0 40 41 42 43 44; do
+                      ln -sfn \"\$BASE\" \"\$DEFS/\${id}-\${ver}.yaml\"
+                    done
+                  done
+                  echo \"BIB distro aliases → \$BASE\"
+                  ls -l \"\$DEFS\"/{aurora,silk}-*.yaml 2>/dev/null || true
+                fi
+              fi
+              exec /usr/bin/bootc-image-builder \
+                --type '${{ matrix.type }}' \
+                --use-librepo=True \
+                --rootfs=btrfs \
+                '${SILK_IMAGE}'
+            "
 
           echo "=== bib-output ==="
           find "$OUT" -type f | head -40

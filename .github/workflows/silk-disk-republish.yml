@@ -6,9 +6,10 @@ on:
   push:
     branches: [cursor/aurora-silk-os-2818, main]
     paths:
+      # Nur bei neuer Run-ID oder Workflow-Änderung – nicht bei Script-Tweaks
+      # (sonst: Download abgelaufener Artefakte → roter Check ohne Nutzen).
       - '.github/workflows/silk-disk-republish.yml'
       - '.github/silk-media-run-id'
-      - 'silk/scripts/prepare-release-assets.sh'
   workflow_dispatch:
     inputs:
       run_id:
