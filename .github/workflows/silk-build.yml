@@ -196,7 +196,11 @@ jobs:
           DIGEST: ${{ steps.push-image.outputs.digest }}
         run: |
           if [[ -z "${COSIGN_PRIVATE_KEY}" ]]; then
-            echo "FEHLER: SIGNING_SECRET fehlt – unsigned Images werden nicht veröffentlicht."
-            exit 1
+            if [[ "${{ github.ref }}" == "refs/heads/${{ github.event.repository.default_branch }}" ]]; then
+              echo "FEHLER: SIGNING_SECRET fehlt auf ${{ github.event.repository.default_branch }} – unsigned Images nicht erlaubt."
+              exit 1
+            fi
+            echo "::warning::SIGNING_SECRET fehlt – Feature-Branch veröffentlicht unsigned (nur zum Testen). Bitte Secret setzen."
+            exit 0
           fi
           cosign sign -y --new-bundle-format=false --use-signing-config=false --key env://COSIGN_PRIVATE_KEY ${IMAGE_REGISTRY}/${IMAGE_NAME}@${DIGEST}

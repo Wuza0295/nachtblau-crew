@@ -98,11 +98,46 @@ jobs:
           sudo podman pull "${SILK_IMAGE}"
           sudo podman pull "${BIB_IMAGE}"
 
+          # BIB depsolvt Fedora-Repos anhand VERSION_ID aus dem Container.
+          # Altes Silk-Branding setzte VERSION_ID=1.0 → Metalink fedora-1.0 (404).
+          # Deshalb: lokale Ableitung mit ID=fedora + echter Fedora-VERSION_ID.
+          FEDORA_VER="$(
+            sudo podman run --rm --entrypoint /bin/bash "${BIB_IMAGE}" -c \
+              'ls /usr/share/bootc-image-builder/defs/fedora-*.yaml 2>/dev/null | sort -V | tail -1 | grep -oE "[0-9]+" | tail -1' \
+            || true
+          )"
+          FEDORA_VER="${FEDORA_VER:-42}"
+          echo "BIB Fedora-Def-Version: ${FEDORA_VER}"
+
+          # Containerfile ohne YAML-Einrückung schreiben (sonst bricht FROM)
+          {
+            echo "FROM ${SILK_IMAGE}"
+            echo "RUN set -eux; \\"
+            echo "  for f in /usr/lib/os-release /etc/os-release; do \\"
+            echo "    [ -e \"\$f\" ] || continue; \\"
+            echo "    if [ -L \"\$f\" ]; then rm -f \"\$f\"; fi; \\"
+            echo "  done; \\"
+            echo "  if [ ! -f /etc/os-release ] && [ -f /usr/lib/os-release ]; then cp -a /usr/lib/os-release /etc/os-release; fi; \\"
+            echo "  for f in /usr/lib/os-release /etc/os-release; do \\"
+            echo "    [ -f \"\$f\" ] || continue; \\"
+            echo "    sed -i \\"
+            echo "      -e 's/^NAME=.*/NAME=\"Silk\"/' \\"
+            echo "      -e 's/^PRETTY_NAME=.*/PRETTY_NAME=\"Silk\"/' \\"
+            echo "      -e 's/^ID=.*/ID=fedora/' \\"
+            echo "      -e 's/^VERSION_ID=.*/VERSION_ID=\"${FEDORA_VER}\"/' \\"
+            echo "      -e 's/^VARIANT=.*/VARIANT=\"Silk\"/' \\"
+            echo "      -e 's/^VARIANT_ID=.*/VARIANT_ID=silk/' \\"
+            echo "      \"\$f\"; \\"
+            echo "  done; \\"
+            echo "  grep -E '^(NAME|ID|VERSION_ID|VARIANT)=' /usr/lib/os-release"
+          } > /tmp/Containerfile.silk-bib
+          echo "---- Containerfile.silk-bib ----"
+          cat /tmp/Containerfile.silk-bib
+          sudo podman build --layers=false -t localhost/silk-bib:latest -f /tmp/Containerfile.silk-bib
+          BIB_SRC="localhost/silk-bib:latest"
+
           # WICHTIG: absolute Host-Pfade, sonst erzeugt Podman Named Volumes
           # und /config.toml landet als Verzeichnis → Build stirbt.
-          #
-          # BIB matched Distro über os-release ID+VERSION_ID. Aurora/Silk-IDs
-          # haben keine Defs → Symlink auf fedora-*.yaml (siehe osbuild#904).
           sudo podman run --rm --privileged \
             --security-opt label=type:unconfined_t \
             -v /var/lib/containers/storage:/var/lib/containers/storage \
@@ -130,7 +165,8 @@ jobs:
                 --type '${{ matrix.type }}' \
                 --use-librepo=True \
                 --rootfs=btrfs \
-                '${SILK_IMAGE}'
+                --local \
+                '${BIB_SRC}'
             "
 
           echo "=== bib-output ==="
