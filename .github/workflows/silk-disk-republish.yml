@@ -69,12 +69,13 @@ jobs:
 
             GitHub erlaubt max. ~2 GiB pro Release-Datei. ISO/QCOW sind deshalb **gesplittet**.
 
-            ### VirtualBox (ISO)
+            ### VirtualBox (ein Befehl)
+            `bash go-virtualbox.sh` – ISO laden, VM **Silk**, VirtualBox starten.
+
+            Manuell:
             1. Alle `Silk-Installer-x86_64.iso.part*` + `Silk-Installer-x86_64.iso.sha256` + `reassemble.sh` laden
             2. `bash reassemble.sh`
             3. ISO in VirtualBox (EFI) einbinden und Silk installieren
-
-            Oder manuell: `cat Silk-Installer-x86_64.iso.part* > Silk-Installer-x86_64.iso`
 
             Quelle: `ghcr.io/wuza0295/silk:latest` · Build-Run `${{ steps.src.outputs.run_id }}`
           files: release-assets/*

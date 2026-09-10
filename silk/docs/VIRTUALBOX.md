@@ -36,7 +36,7 @@ sudo /sbin/vboxconfig
 ## VirtualBox – ein Befehl
 
 ```bash
-curl -fsSL -O https://github.com/Wuza0295/nachtblau-crew/raw/cursor/aurora-silk-os-2818/silk/scripts/go-virtualbox.sh
+curl -fsSL -O https://github.com/Wuza0295/nachtblau-crew/releases/download/silk-media-latest/go-virtualbox.sh
 bash go-virtualbox.sh
 ```
 

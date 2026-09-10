@@ -93,5 +93,24 @@ VirtualBox: EFI-VM anlegen, ISO als optisches Medium, Silk installieren.
 Kein Aurora-Download nötig.
 EOF
 
+# VirtualBox-Einstieg mitliefern (ein Befehl, kein Aurora)
+SCRIPT_SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+for s in go-virtualbox.sh test-silk-virtualbox.sh; do
+  if [[ -f "$SCRIPT_SRC/$s" ]]; then
+    cp -f "$SCRIPT_SRC/$s" "./$s"
+    chmod +x "./$s"
+  fi
+done
+
+cat > GO-VIRTUALBOX.txt <<'EOF'
+Silk in VirtualBox – ein Befehl
+===============================
+
+  bash go-virtualbox.sh
+
+Das Skript lädt das Silk-ISO (setzt Teile zusammen), legt die VM „Silk“ an
+(OS-Typ Linux, nicht Fedora) und startet VirtualBox.
+EOF
+
 echo "=== Release-Assets bereit ==="
 ls -lh

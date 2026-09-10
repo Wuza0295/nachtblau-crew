@@ -14,6 +14,7 @@ systemctl disable podman.socket 2>/dev/null || true
 
 # Produktidentität: überall „Silk“, nicht Aurora/Fedora als Produktname
 /usr/libexec/silk/brand-os-release
+systemctl enable silk-brand.service 2>/dev/null || true
 
 # Cache aufräumen
 dnf5 clean all

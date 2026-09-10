@@ -1,6 +1,6 @@
 # Silk auf Apple Silicon (M1 / M2 / M3 / M4 …)
 
-Silk läuft **nicht** als Aurora-Image auf dem MacBook.
+Silk läuft **nicht** nativ als x86_64-ISO auf dem MacBook.
 Für MacBook/Mac mini/iMac mit Apple Silicon gibt es **silk-asahi**.
 
 ## Ablauf

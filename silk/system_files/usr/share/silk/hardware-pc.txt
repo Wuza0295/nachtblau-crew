@@ -1,10 +1,12 @@
 # Silk auf PC / Standard-Laptop (x86_64)
 #
-# Silk ist das Produkt. Aurora ist nur die Build-Basis.
-#
 # Empfohlen – Installer-ISO (VirtualBox / USB):
 #   https://github.com/Wuza0295/nachtblau-crew/releases/tag/silk-media-latest
 #   bash reassemble.sh   # falls *.part*
+#
+# Ein-Befehl VirtualBox:
+#   curl -fsSL -O https://github.com/Wuza0295/nachtblau-crew/releases/download/silk-media-latest/go-virtualbox.sh
+#   bash go-virtualbox.sh
 #
 # Optional – schon Bootc:
 #   sudo bootc switch --enforce-container-sigpolicy ghcr.io/wuza0295/silk:latest

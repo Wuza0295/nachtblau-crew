@@ -2,7 +2,7 @@
 #   rpm-ostree kargs --append=nvidia-drm.modeset=1
 #
 # Wichtig: Für NVIDIA-GPUs das Silk-Image auf nvidia-open Basis nutzen:
-#   sudo bootc switch --enforce-container-sigpolicy ghcr.io/<user>/silk-nvidia-open:latest
+#   sudo bootc switch --enforce-container-sigpolicy ghcr.io/wuza0295/silk-nvidia-open:latest
 #
-# Upstream-Basis: ghcr.io/ublue-os/aurora-nvidia-open:stable (Turing/RTX 16xx+).
+# Technische Upstream-Basis (nur Build, kein Produktname): ublue nvidia-open (Turing/RTX 16xx+).
 # Ältere Pascal/Maxwell (GTX 9xx/10xx): ggf. Bazzite-nvidia (siehe README).

@@ -15,7 +15,7 @@ Voraussetzung: VirtualBox + `vboxdrv`.
 # 1) Skript vom Release laden (mit ISO-Parts):
 mkdir -p ~/Silk-VMs && cd ~/Silk-VMs
 curl -fsSL -O https://github.com/Wuza0295/nachtblau-crew/releases/download/silk-media-latest/reassemble.sh
-curl -fsSL -O https://github.com/Wuza0295/nachtblau-crew/raw/cursor/aurora-silk-os-2818/silk/scripts/go-virtualbox.sh
+curl -fsSL -O https://github.com/Wuza0295/nachtblau-crew/releases/download/silk-media-latest/go-virtualbox.sh
 bash go-virtualbox.sh
 ```
 

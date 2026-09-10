@@ -115,7 +115,7 @@ status_cmd() {
       ;;
     intel-mac)
       echo "Hinweis: Intel-Macs sind x86_64, aber Mac-spezifische Hardware (T2, WLAN, …)"
-      echo "wird von Aurora/Silk nicht unterstützt. Silk auf dem MacBook installieren ist"
+      echo "wird von Silk nicht unterstützt. Silk auf dem MacBook installieren ist"
       echo "nicht empfohlen – nutze Silk auf einem PC oder Dual-Boot mit Fedora/Ubuntu."
       echo "Details: silk-hardware hints"
       ;;

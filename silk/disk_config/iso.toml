@@ -1,9 +1,14 @@
 # Silk Installer-ISO (Anaconda) – eigenständiges Silk-OS
-# Basis technisch Aurora, für Nutzer: nur Silk.
+# ISO-Label/Publisher: Silk (kein Fedora-/Aurora-Medienname).
 
 [[customizations.filesystem]]
 mountpoint = "/"
 minsize = "20 GiB"
+
+[customizations.iso]
+volume_id = "SILK_X86_64"
+application_id = "Silk"
+publisher = "Nachtblau Crew"
 
 [customizations.installer.kickstart]
 contents = """
@@ -12,6 +17,7 @@ bootc switch --mutate-in-place --transport registry \
   --enforce-container-sigpolicy \
   ghcr.io/wuza0295/silk:latest
 /usr/libexec/silk/brand-os-release || true
+systemctl enable silk-brand.service || true
 %end
 """
 

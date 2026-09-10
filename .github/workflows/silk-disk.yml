@@ -177,6 +177,9 @@ jobs:
             GitHub erlaubt max. ~2 GiB pro Datei → ISO/QCOW sind ggf. **gesplittet** (`*.part00` …).
             Zusammenfügen: `bash reassemble.sh` oder `cat Silk-Installer-x86_64.iso.part* > Silk-Installer-x86_64.iso`
 
+            ### VirtualBox in einem Befehl
+            `bash go-virtualbox.sh` (liegt im Release) – lädt ISO, VM **Silk**, startet VirtualBox.
+
             Kein Aurora-Download nötig. Image: `ghcr.io/wuza0295/silk:latest`
           files: release-assets/*
           fail_on_unmatched_files: true
