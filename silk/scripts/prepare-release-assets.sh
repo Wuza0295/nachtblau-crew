@@ -7,6 +7,9 @@ DIR="${1:-.}"
 PART_SIZE="${SILK_PART_SIZE:-1900M}"
 LIMIT="${SILK_SIZE_LIMIT:-2147483648}"
 
+# Absolut merken, bevor wir nach $DIR wechseln (sonst scheitert Relativpfad)
+SCRIPT_SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 cd "$DIR"
 shopt -s nullglob
 
@@ -94,7 +97,6 @@ Kein Aurora-Download nötig.
 EOF
 
 # VirtualBox-Einstieg mitliefern (ein Befehl, kein Aurora)
-SCRIPT_SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 for s in go-virtualbox.sh test-silk-virtualbox.sh; do
   if [[ -f "$SCRIPT_SRC/$s" ]]; then
     cp -f "$SCRIPT_SRC/$s" "./$s"
