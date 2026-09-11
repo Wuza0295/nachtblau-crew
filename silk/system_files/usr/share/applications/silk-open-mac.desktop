@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Silk Installer (macOS)
+Name[de]=Silk-Installer (macOS)
+Comment=Finds a Linux Flatpak equivalent for .dmg/.pkg/.app (macOS binaries do not run)
+Comment[de]=Sucht Linux-Flatpak-Gegenstück für .dmg/.pkg/.app (Mac-Binaries laufen nicht)
+Exec=silk-install %f
+Icon=application-x-apple-diskimage
+Terminal=false
+Type=Application
+MimeType=application/x-apple-diskimage;application/x-iso9660-app;application/x-macbinary;application/vnd.apple.installer+xml;
+Categories=System;Utility;
+NoDisplay=false

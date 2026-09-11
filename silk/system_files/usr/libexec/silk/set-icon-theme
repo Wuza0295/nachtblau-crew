@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+THEME="${1:-WhiteSur}"
+if command -v kwriteconfig6 >/dev/null; then
+  kwriteconfig6 --file kdeglobals --group Icons --key Theme "$THEME"
+elif command -v kwriteconfig5 >/dev/null; then
+  kwriteconfig5 --file kdeglobals --group Icons --key Theme "$THEME"
+fi

@@ -1,0 +1,12 @@
+{
+  "KPlugin": {
+    "Authors": [{ "Name": "Silk" }],
+    "Category": "",
+    "Description": "Mac-inspiriertes Silk Look-and-Feel",
+    "Id": "org.silk.desktop",
+    "License": "GPLv3",
+    "Name": "Silk",
+    "ServiceTypes": ["Plasma/LookAndFeel"],
+    "Version": "1.0"
+  }
+}

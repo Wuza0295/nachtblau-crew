@@ -1,0 +1,143 @@
+#!/usr/bin/env bash
+# silk-wallpaper – Hintergrund & Sperrbild auswählen (20 Mac/Win-Varianten)
+set -euo pipefail
+
+WALL_DIR="/usr/share/silk/wallpapers"
+MANIFEST="${WALL_DIR}/manifest.json"
+CFG="${XDG_CONFIG_HOME:-$HOME/.config}/silk/wallpaper.conf"
+
+usage() {
+  cat <<'EOF'
+silk-wallpaper – Silk Hintergründe (Mac 01–10, Windows 11–20)
+
+  silk-wallpaper list [mac|win]
+  silk-wallpaper set <01-20>          # Desktop + passendes Lock
+  silk-wallpaper set mac <01-10>      # Mac-Variante
+  silk-wallpaper set win <11-20>      # Windows-Variante
+  silk-wallpaper set desktop <id>
+  silk-wallpaper set lock <id>
+  silk-wallpaper random [mac|win]
+  silk-wallpaper current
+EOF
+}
+
+list_wallpapers() {
+  local filter="${1:-}"
+  if [[ -f "$MANIFEST" ]] && command -v jq >/dev/null; then
+    echo "Desktop (Mac 01–10, Windows 11–20):"
+    if [[ "$filter" == "mac" ]]; then
+      jq -r '.desktop[] | select(.family=="mac") | "  \(.id)  \(.name) – \(.desc)"' "$MANIFEST"
+    elif [[ "$filter" == "win" ]]; then
+      jq -r '.desktop[] | select(.family=="win") | "  \(.id)  \(.name) – \(.desc)"' "$MANIFEST"
+    else
+      jq -r '.desktop[] | "  \(.id)  [\(.family)] \(.name) – \(.desc)"' "$MANIFEST"
+    fi
+    echo "Sperrbild: gleiche ID wie Desktop"
+  else
+    ls -1 "$WALL_DIR"/silk-desktop-*.png 2>/dev/null | sed 's|.*/silk-desktop-||;s/.png//'
+  fi
+}
+
+resolve_id() {
+  local raw="$1"
+  raw="$(echo "$raw" | tr '[:upper:]' '[:lower:]' | sed 's/^0*//')"
+  [[ -z "$raw" ]] && raw="1"
+  printf '%02d' "$raw" 2>/dev/null || echo "$1"
+}
+
+pick_file() {
+  local kind="$1" id="$2"
+  id="$(resolve_id "$id")"
+  local f="${WALL_DIR}/silk-${kind}-${id}.png"
+  [[ -f "$f" ]] || { echo "Nicht gefunden: $f" >&2; exit 1; }
+  echo "$f"
+}
+
+save_choice() {
+  local desk="$1" lock="$2"
+  mkdir -p "$(dirname "$CFG")"
+  cat >"$CFG" <<EOF
+DESKTOP=${desk}
+LOCK=${lock}
+DESKTOP_ID=${3:-01}
+EOF
+}
+
+apply_desktop() {
+  local file="$1"
+  export SILK_WALLPAPER_DESKTOP="$file"
+  /usr/bin/silk-apply-wallpaper
+}
+
+apply_lock_only() {
+  local file="$1"
+  if command -v kwriteconfig6 >/dev/null; then
+    kwriteconfig6 --file kscreenlockerrc --group Greeter --group Wallpaper --group org.kde.image --group General --key Image "file://${file}"
+    kwriteconfig6 --file kscreenlockerrc --group Greeter --group Wallpaper --group org.kde.image --group General --key FillMode 2
+  fi
+}
+
+set_pair() {
+  local id="$1"
+  local desk lock
+  desk="$(pick_file desktop "$id")"
+  lock="$(pick_file lock "$id")"
+  cp -f "$desk" "${WALL_DIR}/silk-desktop.png" 2>/dev/null || true
+  cp -f "$lock" "${WALL_DIR}/silk-lock.png" 2>/dev/null || true
+  save_choice "$desk" "$lock" "$(resolve_id "$id")"
+  apply_desktop "$desk"
+  apply_lock_only "$lock"
+  notify-send "Silk" "Hintergrund: $(basename "$desk" .png | sed 's/silk-desktop-//')" 2>/dev/null || true
+  echo "Gesetzt: $(basename "$desk") + $(basename "$lock")"
+}
+
+random_pick() {
+  local filter="${1:-}"
+  local ids=()
+  if [[ -f "$MANIFEST" ]] && command -v jq >/dev/null; then
+    case "$filter" in
+      mac) mapfile -t ids < <(jq -r '.desktop[] | select(.family=="mac") | .id' "$MANIFEST") ;;
+      win) mapfile -t ids < <(jq -r '.desktop[] | select(.family=="win") | .id' "$MANIFEST") ;;
+      *) mapfile -t ids < <(jq -r '.desktop[].id' "$MANIFEST") ;;
+    esac
+  else
+    for f in "$WALL_DIR"/silk-desktop-*.png; do
+      [[ -f "$f" ]] || continue
+      ids+=("$(basename "$f" .png | sed 's/silk-desktop-//')")
+    done
+  fi
+  local pick="${ids[RANDOM % ${#ids[@]}]}"
+  set_pair "$pick"
+}
+
+current() {
+  if [[ -f "$CFG" ]]; then
+    cat "$CFG"
+  else
+    echo "DESKTOP=${WALL_DIR}/silk-desktop.png (Standard 01)"
+  fi
+}
+
+main() {
+  local cmd="${1:-}"
+  case "$cmd" in
+    list|-l) list_wallpapers "${2:-}" ;;
+    current) current ;;
+    random) random_pick "${2:-}" ;;
+    set)
+      shift
+      case "${1:-}" in
+        mac) set_pair "${2:-01}" ;;
+        win) set_pair "${2:-11}" ;;
+        desktop) apply_desktop "$(pick_file desktop "${2:-01}")" ;;
+        lock) apply_lock_only "$(pick_file lock "${2:-01}")" ;;
+        "") set_pair "01" ;;
+        *) set_pair "$1" ;;
+      esac
+      ;;
+    -h|--help|"") usage ;;
+    *) echo "Unbekannt: $cmd" >&2; usage; exit 1 ;;
+  esac
+}
+
+main "$@"

@@ -1,0 +1,142 @@
+#!/usr/bin/env bash
+# silk-platform – Erkennt dein Gerät und startet die passende Silk-Edition
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+silk-platform – Multi-Plattform-Einstieg
+
+Usage:
+  silk-platform              # Gerät erkennen + passendes Setup starten
+  silk-platform detect       # Nur Plattform anzeigen (pc|tablet|apple-silicon|intel-mac|mobile)
+  silk-platform setup        # Setup für erkannte Plattform
+  silk-platform guide        # Installations-Anleitung je Plattform
+
+Editionen:
+  PC          → silk-setup / silk-gpu
+  Tablet      → silk-setup (Touch) / Hinweise
+  Mac (M1+)   → silk-asahi
+  Mac (Intel) → silk-asahi intel-mac (kein natives Silk)
+  Smartphone  → Begleiter am PC (kein Phone-OS)
+EOF
+}
+
+has_touch() {
+  local f
+  for f in /sys/class/input/input*/capabilities/abs; do
+    [[ -r "$f" ]] && grep -q . "$f" 2>/dev/null && return 0
+  done
+  return 1
+}
+
+is_mobile() {
+  local w h
+  w="$(echo "${SCREEN_WIDTH:-0}" | tr -cd '0-9')"
+  h="$(echo "${SCREEN_HEIGHT:-0}" | tr -cd '0-9')"
+  [[ -n "$w" && "$w" -gt 0 && "$w" -lt 900 ]] && return 0
+  [[ "$(uname -m)" == "aarch64" && -d /sys/firmware/devicetree/base ]] && \
+    grep -qi 'phone\|pixel\|oneplus\|samsung' /sys/firmware/devicetree/base/model 2>/dev/null && return 0
+  return 1
+}
+
+detect_platform() {
+  local hw arch
+  hw="$(/usr/bin/silk-hardware detect 2>/dev/null || echo pc)"
+  arch="$(uname -m)"
+
+  case "$hw" in
+    apple-silicon) echo apple-silicon; return ;;
+    intel-mac) echo intel-mac; return ;;
+  esac
+
+  if [[ "$arch" == "aarch64" ]] && [[ -r /sys/firmware/devicetree/base/model ]]; then
+    local model
+    model="$(tr -d '\0' </sys/firmware/devicetree/base/model 2>/dev/null || true)"
+    if echo "$model" | grep -qiE 'phone|pixel|oneplus|samsung|xiaomi|poco|fairphone'; then
+      echo mobile
+      return
+    fi
+  fi
+
+  if has_touch && [[ "${SILK_FORCE_DESKTOP:-0}" != "1" ]]; then
+    local sw sh
+    sw="$(getconf LONG_BIT 2>/dev/null || echo 64)"
+    if [[ -r /sys/class/graphics/fb0/virtual_size ]]; then
+      read -r sw sh </sys/class/graphics/fb0/virtual_size 2>/dev/null || true
+    fi
+    if [[ -n "${sh:-}" && "${sh:-0}" -gt 0 && "${sh:-0}" -lt 1400 ]] || has_touch; then
+      echo tablet
+      return
+    fi
+  fi
+
+  echo pc
+}
+
+run_setup() {
+  local platform="$1"
+  case "$platform" in
+    pc)
+      if command -v kdialog >/dev/null 2>&1; then
+        kdialog --msgbox "Silk PC-Edition\n\nStarte Einrichtung…" 2>/dev/null || true
+      fi
+      /usr/bin/silk-setup
+      ;;
+    tablet)
+      /usr/bin/silk-setup
+      echo "Tipp: Touch-freundlich – Flatpaks & großzügige UI-Skalierung."
+      ;;
+    apple-silicon)
+      /usr/bin/silk-asahi setup
+      ;;
+    intel-mac)
+      /usr/bin/silk-asahi intel-mac
+      ;;
+    mobile)
+      echo "Silk ist Desktop-OS. Am PC: silk-setup. Phone bleibt Begleiter."
+      /usr/bin/silk-setup 2>/dev/null || true
+      ;;
+    *)
+      /usr/bin/silk-setup
+      ;;
+  esac
+}
+
+show_guide() {
+  local platform="$1"
+  local doc="/usr/share/silk/guides/install-${platform}.txt"
+  if [[ -f "$doc" ]]; then
+    cat "$doc"
+  else
+    echo "Anleitung: silk/docs/PLATFORMS.md im Repository"
+    /usr/bin/silk-hardware hints
+  fi
+}
+
+main() {
+  local cmd="${1:-}"
+  local platform
+
+  case "$cmd" in
+    ""|setup)
+      platform="$(detect_platform)"
+      echo "Erkannte Plattform: $platform"
+      run_setup "$platform"
+      ;;
+    detect)
+      detect_platform
+      ;;
+    guide)
+      platform="${2:-$(detect_platform)}"
+      show_guide "$platform"
+      ;;
+    -h|--help) usage ;;
+    *)
+      echo "Unbekannt: $cmd" >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+}
+
+main "$@"

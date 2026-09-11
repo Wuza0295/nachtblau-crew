@@ -1,0 +1,6 @@
+[Greeter][Wallpaper][org.kde.image][General]
+Image=file:///usr/share/silk/wallpapers/silk-lock.png
+FillMode=2
+
+[Greeter][Theme]
+theme=silk-lock

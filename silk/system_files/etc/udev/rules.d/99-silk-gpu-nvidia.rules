@@ -1,0 +1,2 @@
+# NVIDIA GPU: Runtime-PM (nvidia-open Treiber)
+ACTION=="add", SUBSYSTEM=="pci", DRIVER=="nvidia", ATTR{power/control}="auto"

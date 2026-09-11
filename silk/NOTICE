@@ -1,0 +1,39 @@
+Silk – Third-Party Notices
+==========================
+
+Silk is a custom bootc image. It includes and derives from the following
+projects. See each project for full license terms.
+
+Upstream base
+-------------
+- Universal Blue Aurora (Apache-2.0)
+  https://github.com/ublue-os/aurora
+- Fedora Atomic Desktop / Kinoite (various OSS licenses)
+  https://fedoraproject.org/
+
+Silk project template
+---------------------
+- ublue-os/image-template (Apache-2.0)
+  https://github.com/ublue-os/image-template
+
+Desktop themes (build-time)
+---------------------------
+- WhiteSur GTK/KDE/Icons/Cursors (MIT)
+  https://github.com/vinceliuice/WhiteSur-gtk-theme
+- Fluent GTK/Icons (MIT)
+  https://github.com/vinceliuice/Fluent-gtk-theme
+- Win11OS-kde (best-effort; check upstream license)
+  https://github.com/yeyushengfan258/Win11OS-kde
+
+Runtime applications
+--------------------
+Flatpaks and RPM packages in the image are licensed separately by their
+respective authors (Steam, Firefox, LibreOffice, etc.). Silk does not
+claim ownership of those applications or their trademarks.
+
+Trademarks
+----------
+Silk, Universal Blue, Aurora, Fedora, Apple, macOS, Microsoft, Windows,
+Steam, and other product names are trademarks of their respective owners.
+Silk is not affiliated with or endorsed by those owners unless explicitly
+stated otherwise.

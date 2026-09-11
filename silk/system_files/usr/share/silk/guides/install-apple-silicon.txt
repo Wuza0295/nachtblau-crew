@@ -1,0 +1,16 @@
+# MacBook / Mac (Apple Silicon M1+)
+
+Voraussetzung: Fedora Asahi Remix
+
+Schritte:
+  1. https://fedora-asahi-remix.org/ – in macOS installieren
+  2. Atomic/Kinoite (experimentell) – fedora-asahi-remix-atomic-desktops
+  3. silk-asahi switch
+  4. silk-asahi setup
+  5. silk-desktop mac
+
+Image: ghcr.io/wuza0295/silk-asahi:latest
+
+Nach Updates: sudo bootc upgrade && sudo update-m1n1 && reboot
+
+Intel-MacBook: silk-asahi intel-mac (kein natives Silk)

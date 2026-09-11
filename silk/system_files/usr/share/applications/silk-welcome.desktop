@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Silk Willkommen
+Name[de]=Silk Willkommen
+Comment=Kurzhilfe für Windows- und Mac-Wechsler
+Exec=silk-welcome
+Icon=help-about
+Terminal=false
+Type=Application
+Categories=Utility;Documentation;
+StartupNotify=true

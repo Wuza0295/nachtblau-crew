@@ -1,0 +1,159 @@
+#!/usr/bin/env bash
+# silk-gpu – GPU-Erkennung, Treiber-Hinweise, Kernel-Args, Image-Empfehlung
+set -euo pipefail
+
+STATE="/var/lib/silk/gpu"
+SHARE="/usr/share/silk"
+
+usage() {
+  cat <<'EOF'
+silk-gpu – AMD / Intel / NVIDIA Unterstützung
+
+  silk-gpu status          # erkannte GPU(s) + Treiber
+  silk-gpu hints           # Kernel-Args & Image-Empfehlung
+  silk-gpu detect          # Erkennung neu schreiben (/var/lib/silk/gpu)
+EOF
+}
+
+vendor_label() {
+  case "$1" in
+    amd) echo "AMD" ;;
+    intel) echo "Intel" ;;
+    nvidia) echo "NVIDIA" ;;
+    *) echo "Unbekannt" ;;
+  esac
+}
+
+vendor_from_pci() {
+  case "$1" in
+    0x1002) echo amd ;;
+    0x8086) echo intel ;;
+    0x10de) echo nvidia ;;
+    *) echo unknown ;;
+  esac
+}
+
+scan_vendors() {
+  local -a found=()
+  local p v name
+  for p in /sys/class/drm/card[0-9]/device/vendor; do
+    [[ -r "$p" ]] || continue
+    v="$(cat "$p" 2>/dev/null || true)"
+    name="$(vendor_from_pci "$v")"
+    [[ "$name" == unknown ]] && continue
+    found+=("$name")
+  done
+  if ((${#found[@]} == 0)); then
+    echo unknown
+    return
+  fi
+  # Diskrete GPU bevorzugen (NVIDIA > AMD > Intel)
+  local g
+  for g in nvidia amd intel; do
+    for v in "${found[@]}"; do
+      [[ "$v" == "$g" ]] && { echo "$g"; return; }
+    done
+  done
+  echo "${found[0]}"
+}
+
+primary_gpu() {
+  if [[ -r "$STATE" ]]; then
+    cat "$STATE"
+    return
+  fi
+  scan_vendors
+}
+
+detect_and_save() {
+  mkdir -p /var/lib/silk
+  scan_vendors >"$STATE"
+  cat "$STATE"
+}
+
+list_cards() {
+  local card vendor driver model
+  shopt -s nullglob
+  for card in /sys/class/drm/card[0-9]; do
+    [[ -d "$card/device" ]] || continue
+    vendor=""
+    driver=""
+    model=""
+    [[ -r "$card/device/vendor" ]] && vendor="$(cat "$card/device/vendor")"
+    [[ -r "$card/device/uevent" ]] && driver="$(grep -E '^DRIVER=' "$card/device/uevent" | cut -d= -f2- || true)"
+    [[ -r "$card/device/device" ]] && model="$(cat "$card/device/device")"
+    printf '%s vendor=%s driver=%s device=%s\n' "$(basename "$card")" "$vendor" "$driver" "$model"
+  done
+}
+
+booted_image() {
+  bootc status 2>/dev/null | awk '/^● Booted image:/ {print $4; exit}' || true
+}
+
+recommended_image() {
+  local gpu="$1"
+  local org
+org="${SILK_REPO_ORG:-}"
+if [[ -z "$org" ]] && [[ -f /usr/share/silk/silk.env ]]; then
+  org="$(grep -E '^REPO_ORGANIZATION=' /usr/share/silk/silk.env | cut -d= -f2- | tr -d '"')"
+fi
+[[ -z "$org" ]] && org="wuza0295"
+  case "$gpu" in
+    nvidia) echo "ghcr.io/${org}/silk-nvidia-open:latest" ;;
+    *) echo "ghcr.io/${org}/silk:latest" ;;
+  esac
+}
+
+status_cmd() {
+  local gpu cards image current
+  gpu="$(primary_gpu)"
+  echo "Primäre GPU: $(vendor_label "$gpu") ($gpu)"
+  echo
+  echo "Grafikkarten:"
+  list_cards | sed 's/^/  /'
+  echo
+  current="$(booted_image)"
+  if [[ -n "$current" ]]; then
+    echo "Boot-Image: $current"
+  fi
+  image="$(recommended_image "$gpu")"
+  if [[ "$gpu" == nvidia ]] && [[ "$current" != *nvidia* ]]; then
+    echo
+    echo "Hinweis: NVIDIA erkannt – empfohlenes Image:"
+    echo "  sudo bootc switch --enforce-container-sigpolicy $image"
+  fi
+}
+
+hints_cmd() {
+  local gpu="$1"
+  local file=""
+  case "$gpu" in
+    amd) file="${SHARE}/kernel-args-amd.txt" ;;
+    intel) file="${SHARE}/kernel-args-intel.txt" ;;
+    nvidia) file="${SHARE}/kernel-args-nvidia.txt" ;;
+  esac
+  echo "=== $(vendor_label "$gpu") ==="
+  if [[ -n "$file" && -f "$file" ]]; then
+    cat "$file"
+  else
+    echo "Keine GPU erkannt oder keine Hinweise verfügbar."
+  fi
+  echo
+  if [[ -f "${SHARE}/gpu-images.txt" ]]; then
+    echo "=== Image-Varianten ==="
+    cat "${SHARE}/gpu-images.txt"
+  fi
+}
+
+main() {
+  local cmd="${1:-status}"
+  case "$cmd" in
+    status) status_cmd ;;
+    detect) detect_and_save ;;
+    hints) hints_cmd "$(primary_gpu)" ;;
+    -h|--help) usage ;;
+    *) echo "Unbekannt: $cmd" >&2; usage; exit 1 ;;
+  esac
+}
+
+main "$@"

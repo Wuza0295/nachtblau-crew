@@ -1,0 +1,11 @@
+{
+  "KPlugin": {
+    "Authors": [{ "Name": "Silk" }],
+    "Description": "Windows-11-inspiriertes Silk Desktop",
+    "Id": "org.silk.windows11",
+    "License": "GPLv3",
+    "Name": "Silk Windows 11",
+    "ServiceTypes": ["Plasma/LookAndFeel"],
+    "Version": "1.0"
+  }
+}

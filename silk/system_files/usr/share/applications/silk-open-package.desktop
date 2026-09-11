@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Silk Installer (Paket)
+Name[de]=Silk-Installer (deb/rpm/snap/flatpak)
+Comment=Installiert Linux-Pakete intelligent (Flatpak bevorzugt)
+Exec=silk-install %f
+Icon=package-x-generic
+Terminal=false
+Type=Application
+MimeType=application/vnd.debian.binary-package;application/x-deb;application/x-rpm;application/x-redhat-package-manager;application/vnd.snap;application/vnd.flatpak;application/vnd.flatpak.ref;text/plain;
+Categories=System;Utility;
+NoDisplay=false

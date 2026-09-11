@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# silk-run-exe – startet .exe/.msi via Bottles (bevorzugt) oder Wine
+set -euo pipefail
+
+FILE="${1:-}"
+[[ -n "$FILE" && -f "$FILE" ]] || { echo "Usage: silk-run-exe <file.exe>" >&2; exit 1; }
+FILE="$(realpath "$FILE")"
+
+if flatpak info com.usebottles.bottles &>/dev/null; then
+  echo "Starte mit Bottles…"
+  exec flatpak run --command=bottles-cli com.usebottles.bottles run -e "$FILE" \
+    || exec flatpak run com.usebottles.bottles -e "$FILE"
+fi
+
+if command -v wine >/dev/null 2>&1; then
+  echo "Starte mit Wine…"
+  cd "$(dirname "$FILE")"
+  exec wine "$FILE"
+fi
+
+kdialog --error "Weder Bottles noch Wine gefunden.\nBitte ausführen: silk-install --setup-gaming" 2>/dev/null \
+  || echo "Bitte: silk-install --setup-gaming" >&2
+exit 1

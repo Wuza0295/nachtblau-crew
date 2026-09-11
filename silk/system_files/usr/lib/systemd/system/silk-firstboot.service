@@ -1,0 +1,12 @@
+[Unit]
+Description=Silk firstboot system markers
+After=local-fs.target
+ConditionPathExists=!/var/lib/silk/firstboot-done
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/silk/firstboot
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

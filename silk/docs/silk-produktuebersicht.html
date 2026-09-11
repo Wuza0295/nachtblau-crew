@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Silk – Produktübersicht</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 18mm 16mm 22mm 16mm;
+    }
+    @page :first {
+      margin: 0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      font-size: 10.5pt;
+      line-height: 1.45;
+      color: #1a1a2e;
+      background: #fff;
+    }
+
+    /* ── Cover ── */
+    .cover {
+      page-break-after: always;
+      height: 297mm;
+      background: linear-gradient(145deg, #0f172a 0%, #1e3a5f 45%, #2563eb 100%);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 48mm 28mm;
+      position: relative;
+      overflow: hidden;
+    }
+    .cover::before {
+      content: "";
+      position: absolute;
+      top: -80px; right: -80px;
+      width: 340px; height: 340px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.06);
+    }
+    .cover::after {
+      content: "";
+      position: absolute;
+      bottom: -60px; left: -60px;
+      width: 260px; height: 260px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.04);
+    }
+    .cover-badge {
+      display: inline-block;
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: 9pt;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .cover h1 {
+      font-size: 52pt;
+      font-weight: 700;
+      letter-spacing: -.02em;
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+    .cover .subtitle {
+      font-size: 16pt;
+      font-weight: 300;
+      opacity: .9;
+      margin-bottom: 36px;
+      max-width: 420px;
+    }
+    .cover-meta {
+      margin-top: auto;
+      font-size: 9.5pt;
+      opacity: .75;
+      line-height: 1.8;
+    }
+    .cover-meta strong { opacity: 1; font-weight: 600; }
+
+    /* ── Content pages ── */
+    .page { padding: 0; }
+    h2 {
+      font-size: 13pt;
+      font-weight: 700;
+      color: #1e40af;
+      border-left: 4px solid #2563eb;
+      padding-left: 10px;
+      margin: 22px 0 10px;
+      page-break-after: avoid;
+    }
+    h2:first-child { margin-top: 0; }
+    h3 {
+      font-size: 10.5pt;
+      font-weight: 600;
+      color: #334155;
+      margin: 14px 0 6px;
+      page-break-after: avoid;
+    }
+    p { margin-bottom: 8px; }
+    .lead {
+      font-size: 11pt;
+      color: #475569;
+      margin-bottom: 16px;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 14px;
+    }
+
+    /* Info boxes */
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 12px 0;
+    }
+    .info-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+    .info-card .label {
+      font-size: 8pt;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: #64748b;
+      margin-bottom: 3px;
+    }
+    .info-card .value {
+      font-size: 10pt;
+      font-weight: 600;
+      color: #1e293b;
+      word-break: break-all;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 14px;
+      font-size: 9.5pt;
+      page-break-inside: avoid;
+    }
+    thead th {
+      background: #1e40af;
+      color: #fff;
+      font-weight: 600;
+      text-align: left;
+      padding: 7px 10px;
+    }
+    thead th:first-child { border-radius: 6px 0 0 0; }
+    thead th:last-child  { border-radius: 0 6px 0 0; }
+    tbody tr:nth-child(even) { background: #f8fafc; }
+    tbody td {
+      padding: 6px 10px;
+      border-bottom: 1px solid #e2e8f0;
+      vertical-align: top;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    td.fmt { font-family: "Courier New", monospace; font-size: 9pt; color: #1e40af; white-space: nowrap; }
+
+    /* Status badges */
+    .badge {
+      display: inline-block;
+      border-radius: 4px;
+      padding: 1px 7px;
+      font-size: 8.5pt;
+      font-weight: 600;
+    }
+    .badge-yes { background: #dcfce7; color: #166534; }
+    .badge-no  { background: #fee2e2; color: #991b1b; }
+    .badge-part{ background: #fef9c3; color: #854d0e; }
+
+    /* Lists */
+    ul { margin: 6px 0 10px 18px; }
+    li { margin-bottom: 4px; }
+
+    /* Code */
+    code, .cmd {
+      font-family: "Courier New", Consolas, monospace;
+      font-size: 9pt;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      padding: 1px 5px;
+      color: #0f172a;
+    }
+    .cmd-block {
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: "Courier New", Consolas, monospace;
+      font-size: 9pt;
+      line-height: 1.7;
+      margin: 8px 0 12px;
+      page-break-inside: avoid;
+    }
+    .cmd-block span { color: #93c5fd; }
+
+    /* Two-column layout for apps */
+    .cols2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 20px;
+      margin: 8px 0;
+    }
+    .cols2 li { list-style: disc; margin-left: 14px; font-size: 9.5pt; }
+
+    /* Footer note */
+    .footer-note {
+      margin-top: 24px;
+      padding-top: 12px;
+      border-top: 1px solid #e2e8f0;
+      font-size: 8.5pt;
+      color: #64748b;
+      text-align: center;
+    }
+
+    /* Page break helpers */
+    .pb { page-break-before: always; }
+
+    /* TOC */
+    .toc { margin: 10px 0 20px; }
+    .toc li {
+      list-style: none;
+      padding: 4px 0;
+      border-bottom: 1px dotted #cbd5e1;
+      font-size: 10pt;
+      display: flex;
+      justify-content: space-between;
+    }
+    .toc li span { color: #64748b; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════ COVER ══════════════ -->
+<div class="cover">
+  <div class="cover-badge">Custom Bootc Image · Universal Blue Aurora</div>
+  <h1>Silk</h1>
+  <p class="subtitle">Produktübersicht – Was Silk bereits kann</p>
+  <div class="cover-meta">
+    <strong>Version:</strong> Stand August 2026<br />
+    <strong>Basis:</strong> ghcr.io/ublue-os/aurora:stable<br />
+    <strong>Images:</strong> ghcr.io/wuza0295/silk:latest · silk-nvidia-open:latest<br />
+    <strong>Repository:</strong> github.com/Wuza0295/nachtblau-crew
+  </div>
+</div>
+
+<!-- ══════════════ INHALT ══════════════ -->
+<div class="page">
+
+  <p class="lead">
+    <strong>Silk</strong> ist ein eigenständiges Linux-Desktop-Betriebssystem für
+    <strong>Wechsler von Windows und macOS</strong>. Es basiert auf Universal Blue Aurora
+    (KDE Plasma 6) und wird als unveränderliches Bootc-Image ausgeliefert.
+    Optik, Programme und Hardware werden so weit wie möglich vertraut gehalten –
+    ohne macOS oder Windows zu kopieren.
+  </p>
+
+  <h2>Inhaltsverzeichnis</h2>
+  <ul class="toc">
+    <li>1. Kernidee &amp; Images <span>3</span></li>
+    <li>2. Desktop-Stil (Mac / Windows) <span>3</span></li>
+    <li>3. Smart-Installer <span>4</span></li>
+    <li>4. Mitgelieferte Apps <span>4</span></li>
+    <li>5. GPU-Unterstützung <span>5</span></li>
+    <li>6. Mac / MacBook <span>5</span></li>
+    <li>7. Hintergründe &amp; Komfort <span>6</span></li>
+    <li>8. Befehle &amp; Installation <span>6</span></li>
+    <li>9. Grenzen <span>7</span></li>
+  </ul>
+
+  <h2>1. Kernidee &amp; Images</h2>
+  <div class="info-grid">
+    <div class="info-card">
+      <div class="label">Standard-Image</div>
+      <div class="value">ghcr.io/wuza0295/silk:latest</div>
+    </div>
+    <div class="info-card">
+      <div class="label">NVIDIA-Image (Turing/16xx+)</div>
+      <div class="value">ghcr.io/wuza0295/silk-nvidia-open:latest</div>
+    </div>
+    <div class="info-card">
+      <div class="label">Desktop-Umgebung</div>
+      <div class="value">KDE Plasma 6 (Aurora)</div>
+    </div>
+    <div class="info-card">
+      <div class="label">Update-Rhythmus</div>
+      <div class="value">Täglicher CI-Rebuild + bootc upgrade</div>
+    </div>
+  </div>
+  <ul>
+    <li>Unveränderliches OS (rpm-ostree / bootc) mit Rollback</li>
+    <li>Leichtgewicht, gaming-tauglich, für AMD / Intel / NVIDIA auf PC-Hardware</li>
+    <li>Open-Source-Themes: WhiteSur (Mac) &amp; Fluent (Windows) – keine Markenassets</li>
+    <li>Image signiert mit Cosign, verteilt über GitHub Container Registry</li>
+  </ul>
+
+  <h2>2. Desktop-Stil (Mac / Windows)</h2>
+  <p>Beim ersten Login wählt der Nutzer seinen gewohnten Stil. Das Layout wird automatisch angewendet.</p>
+  <table>
+    <thead>
+      <tr><th>Befehl</th><th>Erscheinungsbild</th><th>Theme</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>silk-desktop mac</code></td>
+        <td>Menüleiste oben + Dock unten</td>
+        <td>WhiteSur (Mac-inspiriert)</td>
+      </tr>
+      <tr>
+        <td><code>silk-desktop windows11</code></td>
+        <td>Zentrierte Taskleiste</td>
+        <td>Fluent Win11</td>
+      </tr>
+      <tr>
+        <td><code>silk-desktop windows10</code></td>
+        <td>Klassische Taskleiste links</td>
+        <td>Fluent Win10</td>
+      </tr>
+      <tr>
+        <td><code>silk-desktop --ask</code></td>
+        <td>Auswahl-Dialog erneut anzeigen</td>
+        <td>–</td>
+      </tr>
+    </tbody>
+  </table>
+  <p><code>silk-setup</code> führt durch: Stil wählen → Alltags-Apps automatisch → optional Gaming → Willkommens-Hilfe.</p>
+
+  <h2 class="pb">3. Smart-Installer (<code>silk-install</code>)</h2>
+  <p>Silk erkennt Dateiformate und installiert intelligent – <strong>Flatpak zuerst</strong>, sonst Wine, Waydroid oder Distrobox.</p>
+  <table>
+    <thead>
+      <tr><th>Dateiformat</th><th>Verhalten</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="fmt">.exe / .msi</td><td>Flatpak-Suche → Wine / Bottles</td></tr>
+      <tr><td class="fmt">.apk</td><td>Flatpak-Suche → Waydroid (Android)</td></tr>
+      <tr><td class="fmt">.dmg / .pkg / .app</td><td>Flatpak-Gegenstück via App-Aliase (z.&nbsp;B. Safari → Firefox)</td></tr>
+      <tr><td class="fmt">.AppImage</td><td>Flatpak → Gear Lever / ~/Applications</td></tr>
+      <tr><td class="fmt">.deb</td><td>Flatpak → Ubuntu-Distrobox (<code>silk-ubuntu</code>)</td></tr>
+      <tr><td class="fmt">.rpm</td><td>Flatpak → rpm-ostree oder Fedora-Box (<code>silk-fedora</code>)</td></tr>
+      <tr><td class="fmt">.snap</td><td>Flatpak → Snap in Ubuntu-Box</td></tr>
+      <tr><td class="fmt">.flatpak / .flatpakref</td><td><code>flatpak install</code></td></tr>
+    </tbody>
+  </table>
+  <div class="cmd-block">
+    <span>$</span> silk-install --setup-essentials<br />
+    <span>$</span> silk-install --setup-gaming<br />
+    <span>$</span> silk-install --ensure-boxes<br />
+    <span>$</span> silk-install meine-datei.exe
+  </div>
+  <p>Doppelklick auf Installer-Dateien ist vorkonfiguriert (MIME-Handler).</p>
+
+  <h2>4. Mitgelieferte Apps</h2>
+  <h3>Alltag (Essentials) – <code>silk-install --setup-essentials</code></h3>
+  <ul class="cols2">
+    <li>LibreOffice (Office)</li>
+    <li>Mozilla Firefox (Browser)</li>
+    <li>VLC (Medien)</li>
+    <li>Thunderbird (E-Mail)</li>
+    <li>Bitwarden (Passwörter)</li>
+    <li>Dropbox (Cloud)</li>
+    <li>Rclone Manager</li>
+    <li>Zoom</li>
+    <li>Microsoft Teams</li>
+    <li>Slack</li>
+    <li>Pika Backup</li>
+    <li>Gear Lever (AppImages)</li>
+    <li>Warehouse / Flatseal</li>
+    <li>Okular / Gwenview</li>
+  </ul>
+
+  <h3>Gaming – <code>silk-install --setup-gaming</code></h3>
+  <ul class="cols2">
+    <li>Steam &amp; Steam Link</li>
+    <li>Heroic Games Launcher</li>
+    <li>itch.io</li>
+    <li>Lutris &amp; Bottles</li>
+    <li>Discord</li>
+    <li>OBS Studio</li>
+    <li>Prism Launcher (Minecraft)</li>
+    <li>osu!</li>
+    <li>RetroArch</li>
+    <li>Dolphin / PPSSPP</li>
+    <li>Moonlight / Chiaki</li>
+    <li>GeForce Now</li>
+    <li>MangoHud / GameMode</li>
+    <li>gamescope</li>
+  </ul>
+
+  <h2 class="pb">5. GPU-Unterstützung</h2>
+  <table>
+    <thead>
+      <tr><th>GPU</th><th>Silk-Image</th><th>Upstream-Basis</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>AMD</strong></td>
+        <td><code>silk:latest</code></td>
+        <td>aurora:stable (Mesa/RADV)</td>
+        <td><span class="badge badge-yes">✓ Unterstützt</span></td>
+      </tr>
+      <tr>
+        <td><strong>Intel</strong> (iGPU / Arc)</td>
+        <td><code>silk:latest</code></td>
+        <td>aurora:stable (Mesa/i915/Xe)</td>
+        <td><span class="badge badge-yes">✓ Unterstützt</span></td>
+      </tr>
+      <tr>
+        <td><strong>NVIDIA</strong> (Turing/16xx+)</td>
+        <td><code>silk-nvidia-open:latest</code></td>
+        <td>aurora-nvidia-open:stable</td>
+        <td><span class="badge badge-yes">✓ Unterstützt</span></td>
+      </tr>
+      <tr>
+        <td><strong>NVIDIA</strong> (GTX 9xx/10xx)</td>
+        <td>–</td>
+        <td>Legacy-Treiber nötig</td>
+        <td><span class="badge badge-no">✗ Nicht in Silk</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="cmd-block">
+    <span>$</span> silk-gpu status &nbsp;&nbsp;&nbsp;# GPU erkennen + Image-Empfehlung<br />
+    <span>$</span> silk-gpu hints &nbsp;&nbsp;&nbsp;&nbsp;# Kernel-Args &amp; Treiber-Hinweise
+  </div>
+
+  <h2>6. Mac / MacBook</h2>
+  <table>
+    <thead>
+      <tr><th>Szenario</th><th>Silk?</th><th>Hinweis</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Wechsel von macOS auf <strong>PC</strong></td>
+        <td><span class="badge badge-yes">✓ Ja</span></td>
+        <td>Mac-Optik, .dmg/.app-Installer, App-Aliase</td>
+      </tr>
+      <tr>
+        <td>Silk auf <strong>Intel-MacBook</strong></td>
+        <td><span class="badge badge-no">✗ Nein</span></td>
+        <td>T2-Chip, WLAN/Firmware – nicht supported</td>
+      </tr>
+      <tr>
+        <td>Silk auf <strong>Apple Silicon</strong> (M1+)</td>
+        <td><span class="badge badge-no">✗ Nein</span></td>
+        <td>Braucht Fedora Asahi Remix (silk-asahi: geplant)</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="cmd-block">
+    <span>$</span> silk-hardware status &nbsp;&nbsp;# PC / intel-mac / apple-silicon<br />
+    <span>$</span> silk-hardware hints &nbsp;&nbsp;&nbsp;&nbsp;# Kompatibilität &amp; Alternativen
+  </div>
+
+  <h2 class="pb">7. Hintergründe &amp; Wechsler-Komfort</h2>
+  <h3>Hintergründe – 20 Desktop + 20 Sperrbild</h3>
+  <table>
+    <thead>
+      <tr><th>Bereich</th><th>IDs</th><th>Beispiele</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Mac-inspiriert</td>
+        <td>01 – 10</td>
+        <td>Big Sur Blue, Monterey Purple, Ventura Dawn, Sonoma Sunset …</td>
+      </tr>
+      <tr>
+        <td>Windows-inspiriert</td>
+        <td>11 – 20</td>
+        <td>Win11 Bloom, Win10 Hero, Fluent Dark, Win Slate …</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="cmd-block">
+    <span>$</span> silk-wallpaper list mac<br />
+    <span>$</span> silk-wallpaper set win 14<br />
+    <span>$</span> silk-wallpaper random win
+  </div>
+
+  <h3>Wechsler-Komfort</h3>
+  <ul>
+    <li>NTFS + exFAT Unterstützung, SMB-Netzlaufwerke</li>
+    <li>Fonts: Liberation, Noto, MS-Core (wo verfügbar)</li>
+    <li>CUPS-Druck, Standard-Apps für PDF/Office/Medien</li>
+    <li><code>silk-welcome</code> – HTML-Kurzhilfe für Umsteiger</li>
+    <li><code>silk-sync-config</code> – App-Listen &amp; Aliase live vom GitHub-Repo</li>
+  </ul>
+
+  <h2>8. Befehle &amp; Installation</h2>
+  <table>
+    <thead>
+      <tr><th>Befehl</th><th>Funktion</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>silk-setup</code></td><td>Erstlogin-Assistent (Stil, Apps, Gaming)</td></tr>
+      <tr><td><code>silk-welcome</code></td><td>Willkommens-Hilfe (HTML)</td></tr>
+      <tr><td><code>silk-desktop [mac|windows11|windows10]</code></td><td>Desktop-Stil wechseln</td></tr>
+      <tr><td><code>silk-install &lt;datei&gt;</code></td><td>Smart-Installer für alle Formate</td></tr>
+      <tr><td><code>silk-update</code></td><td>Listen + Flatpaks aktualisieren</td></tr>
+      <tr><td><code>silk-update --full</code></td><td>+ System-Update (bootc upgrade)</td></tr>
+      <tr><td><code>silk-gpu / silk-hardware</code></td><td>GPU- &amp; Plattform-Erkennung</td></tr>
+      <tr><td><code>silk-wallpaper</code></td><td>Hintergrund &amp; Sperrbild wählen</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Installation &amp; Update</h3>
+  <div class="cmd-block">
+    <span>#</span> Erstinstallation (von Aurora/Bazzite):<br />
+    <span>$</span> sudo bootc switch --enforce-container-sigpolicy ghcr.io/wuza0295/silk:latest<br />
+    <span>$</span> sudo systemctl reboot<br /><br />
+    <span>#</span> System-Update:<br />
+    <span>$</span> sudo bootc upgrade &amp;&amp; sudo systemctl reboot<br /><br />
+    <span>#</span> NVIDIA-System:<br />
+    <span>$</span> sudo bootc switch --enforce-container-sigpolicy ghcr.io/wuza0295/silk-nvidia-open:latest
+  </div>
+
+  <h2>9. Grenzen (ehrlich)</h2>
+  <ul>
+    <li><strong>Kein macOS / Windows:</strong> Optik ist angelehnt, kein 1:1-Klon, keine Markenassets</li>
+    <li><strong>Mac-Apps</strong> (.app, .dmg) laufen nicht nativ – Silk findet Linux-Ersatz via Flatpak</li>
+    <li><strong>Nicht jedes .exe</strong> funktioniert (Anti-Cheat, DRM, spezielle Treiber)</li>
+    <li><strong>Kein Silk auf MacBook-Hardware</strong> (weder Intel-Mac noch Apple Silicon)</li>
+    <li><strong>Gaming:</strong> Steam/Proton deckt viel ab, aber nicht alles (z.&nbsp;B. manche Online-Shooter)</li>
+  </ul>
+
+  <div class="footer-note">
+    Silk · Custom Bootc Image auf Universal Blue Aurora ·
+    github.com/Wuza0295/nachtblau-crew ·
+    Stand August 2026 · Automatisch generiert
+  </div>
+
+</div>
+</body>
+</html>

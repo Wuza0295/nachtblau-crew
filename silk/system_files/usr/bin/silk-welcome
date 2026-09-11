@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# silk-welcome – Wechsler-Checkliste / Kurzhilfe
+set -euo pipefail
+
+PAGE="/usr/share/silk/welcome.html"
+[[ -f "$PAGE" ]] || { echo "Welcome-Seite fehlt: $PAGE" >&2; exit 1; }
+
+if command -v xdg-open >/dev/null 2>&1; then
+  xdg-open "$PAGE" >/dev/null 2>&1 &
+elif command -v firefox >/dev/null 2>&1; then
+  firefox "$PAGE" >/dev/null 2>&1 &
+else
+  # Fallback: Textauszug
+  if command -v kdialog >/dev/null 2>&1; then
+    kdialog --msgbox "Silk-Hilfe: öffne $PAGE im Browser\n\nTipps:\n• silk-desktop --ask\n• silk-install --setup-essentials\n• silk-install --setup-gaming\n• sudo bootc upgrade"
+  else
+    echo "Öffne: $PAGE"
+    cat "$PAGE"
+  fi
+fi
