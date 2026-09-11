@@ -9,6 +9,7 @@ on:
     branches: [cursor/aurora-silk-os-2818, main]
     paths:
       - '.github/silk-media-run-id'
+      - 'silk/scripts/prepare-release-assets.sh'
   workflow_dispatch:
     inputs:
       run_id:

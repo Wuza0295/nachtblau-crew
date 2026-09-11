@@ -114,5 +114,17 @@ Das Skript lädt das Silk-ISO (setzt Teile zusammen), legt die VM „Silk“ an
 (OS-Typ Linux, nicht Fedora) und startet VirtualBox.
 EOF
 
+# Plausibilität: Parts müssen Originalgröße ergeben (falls SHA die Voll-Datei referenziert)
+for base in Silk-Installer-x86_64.iso Silk-VM-x86_64.qcow2; do
+  parts=( "${base}.part"* )
+  if [[ -e "${parts[0]:-}" && -f "${base}.sha256" ]]; then
+    sum=0
+    for p in "${parts[@]}"; do
+      sum=$(( sum + $(stat -c%s "$p") ))
+    done
+    echo "Parts-Summe $base: $sum bytes"
+  fi
+done
+
 echo "=== Release-Assets bereit ==="
 ls -lh
