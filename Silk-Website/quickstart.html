@@ -18,7 +18,7 @@
   <div class="doc">
     <a class="back" href="index.html">← Zurück zur Startseite</a>
     <h1>Silk – Installation in 5 Minuten</h1>
-    <p><strong>Voraussetzung:</strong> PC mit UEFI, Internet. Start von Universal Blue Aurora oder anderem Bootc-System.</p>
+    <p><strong>Voraussetzung:</strong> PC mit UEFI, Internet. Start von Universal Blue (Fedora Atomic, KDE Plasma) oder anderem Bootc-System.</p>
 
     <h2>1. Image wählen</h2>
     <ul>
@@ -49,7 +49,7 @@ sudo bootc upgrade</code></pre>
     <ul>
       <li><code>bootc switch</code> fehlgeschlagen → <code>--enforce-container-sigpolicy</code> setzen</li>
       <li>NVIDIA schwarzer Bildschirm → <code>silk-nvidia-open</code> Image nutzen</li>
-      <li>Zurück zu Aurora → <code>sudo bootc switch ghcr.io/ublue-os/aurora:stable</code></li>
+      <li>Zurück zum vorherigen Bootc-Image → <code>sudo bootc switch &lt;dein-vorheriges-image&gt;</code> (z. B. Universal-Blue-KDE-Tag aus <code>silk/silk.env</code>)</li>
     </ul>
 
     <p><em>Silk ist kein macOS/Windows. Community-Projekt der Nachtblau Crew.</em></p>

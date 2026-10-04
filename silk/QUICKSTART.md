@@ -7,7 +7,7 @@
 ## PC / Laptop
 
 ```bash
-silk-installer switch    # von Aurora/Bazzite
+silk-installer switch    # von Universal Blue / Bazzite
 # oder USB-ISO: silk-installer iso
 sudo systemctl reboot
 silk-setup

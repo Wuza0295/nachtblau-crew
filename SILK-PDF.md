@@ -11,6 +11,6 @@ Die 8-seitige Übersicht liegt hier:
 **Öffnen:** Doppelklick im Dateimanager (Okular, Evince, …) – **nicht** als Text im Editor.
 
 ```bash
-git pull origin cursor/aurora-silk-os-2818
+git pull origin main
 xdg-open Silk-Zusammenfassung.pdf
 ```

@@ -4,5 +4,5 @@
 # Wichtig: Für NVIDIA-GPUs das Silk-Image auf nvidia-open Basis nutzen:
 #   sudo bootc switch --enforce-container-sigpolicy ghcr.io/<user>/silk-nvidia-open:latest
 #
-# Upstream-Basis: ghcr.io/ublue-os/aurora-nvidia-open:stable (Turing/RTX 16xx+).
+# Upstream nvidia-open Image (Turing/RTX 16xx+) – siehe silk-gpu / silk.env
 # Ältere Pascal/Maxwell (GTX 9xx/10xx): ggf. Bazzite-nvidia (siehe README).

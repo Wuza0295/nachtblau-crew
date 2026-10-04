@@ -3,7 +3,7 @@
 # Status: NICHT offiziell unterstützt für Silk auf dem Mac selbst
 #
 # Warum:
-#   - Silk basiert auf Aurora für PC-Hardware, nicht für Mac-Motherboards
+#   - Silk basiert auf der Upstream-Basis für PC-Hardware, nicht für Mac-Motherboards
 #   - T2-Sicherheitschip, Apple-WLAN/Bluetooth, Touch Bar, Firmware
 #   - Kein getesteter bootc-/Mac-Installationsweg
 #

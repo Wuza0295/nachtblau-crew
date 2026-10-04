@@ -78,7 +78,7 @@ jobs:
           echo "IMAGE_REGISTRY=${IMAGE_REGISTRY,,}" >> ${GITHUB_ENV}
           echo "IMAGE_NAME=${{ matrix.image_name }}" >> ${GITHUB_ENV}
 
-      - name: Pull Aurora base (${{ matrix.base_image }})
+      - name: Pull upstream base (${{ matrix.base_image }})
         run: podman pull ${{ matrix.base_image }}
 
       - name: Build Image

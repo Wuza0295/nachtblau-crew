@@ -19,7 +19,7 @@
       "matchFileNames": [".github/workflows/**.yaml", ".github/workflows/**.yml"],
     },
     {
-      // Silk tracks ghcr.io/ublue-os/aurora:stable via daily CI rebuild
+      // Silk tracks upstream ublue-os KDE :stable via daily CI rebuild
       // (--pull=always). Digest-pinning would freeze upstream and defeat rolling updates.
       "description": "Keep Containerfile base on floating :stable (no digest pin)",
       "matchFileNames": ["Containerfile", "**/Containerfile"],

@@ -93,7 +93,7 @@ sudoif command *args:
 #
 
 # Build the image using the specified parameters
-# $base: Upstream-Base (aurora:stable oder aurora-nvidia-open:stable)
+# $base: Upstream-Base (KDE :stable oder nvidia-open :stable – siehe silk.env / CI)
 build $target_image=image_name $tag=default_tag $base="ghcr.io/ublue-os/aurora:stable":
     #!/usr/bin/env bash
 
@@ -122,7 +122,7 @@ build $target_image=image_name $tag=default_tag $base="ghcr.io/ublue-os/aurora:s
     LABELS+=("--label" "org.opencontainers.image.title={{ image_name }}")
     LABELS+=("--label" "org.opencontainers.image.vendor={{ repo_organization }}")
 
-    # Always refresh floating base tags (aurora:stable) so scheduled CI tracks upstream.
+    # Always refresh floating upstream :stable tags so scheduled CI tracks upstream.
     PODMAN_BUILD_ARGS=("${BUILD_ARGS[@]}" "${LABELS[@]}" --pull=always --tag "${target_image}:${tag}" --file Containerfile)
 
     podman build "${PODMAN_BUILD_ARGS[@]}" .

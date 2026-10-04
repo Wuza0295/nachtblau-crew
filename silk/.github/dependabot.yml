@@ -1,5 +1,5 @@
 # Nested config (falls silk als eigenes Repo genutzt wird).
-# Base-Image aurora:stable wird bewusst NICHT per Dependabot/Digest gepinnt –
+# Upstream-Base :stable wird bewusst NICHT per Dependabot/Digest gepinnt –
 # täglicher CI-Rebuild mit --pull=always trackt Upstream.
 # https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 

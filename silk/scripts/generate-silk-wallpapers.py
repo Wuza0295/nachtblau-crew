@@ -34,7 +34,7 @@ THEMES = [
      "style": "mac_waves", "base": (8, 28, 22), "accent": (34, 197, 94), "accent2": (14, 165, 233)},
     {"id": "09", "family": "mac", "name": "Mac Pink Sky", "desc": "Rosa Himmel Mesh",
      "style": "mac_mesh", "base": (30, 15, 35), "blobs": [(0.35, 0.4, (244, 114, 182), 0.5), (0.7, 0.55, (167, 139, 250), 0.42), (0.2, 0.75, (251, 113, 133), 0.35)]},
-    {"id": "10", "family": "mac", "name": "Mac Aurora Night", "desc": "Nacht-Aurora Big Sur",
+    {"id": "10", "family": "mac", "name": "Mac Polar Night", "desc": "Nacht-Himmel Big Sur",
      "style": "mac_mesh", "base": (5, 8, 22), "blobs": [(0.25, 0.35, (79, 70, 229), 0.55), (0.75, 0.4, (14, 165, 233), 0.45), (0.5, 0.65, (99, 102, 241), 0.4)]},
     # --- Windows-inspiriert (11–20) ---
     {"id": "11", "family": "win", "name": "Win11 Bloom Blue", "desc": "Windows 11 Standard-Bloom",

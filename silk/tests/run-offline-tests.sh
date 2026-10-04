@@ -135,32 +135,32 @@ bash "$ROOT/system_files/usr/bin/silk-hardware" status >/dev/null && ok "silk-ha
 
 echo "== Branding / Image-Name =="
 if grep -q '^IMAGE_NAME=silk$' "$ROOT/silk.env"; then
-  ok "IMAGE_NAME=silk (kein aurora- Prefix)"
+  ok "IMAGE_NAME=silk (kein Upstream-Prefix im Produktnamen)"
 else
   bad "IMAGE_NAME sollte silk sein"
 fi
-if grep -qi 'Aurora Silk' "$ROOT/README.md" "$ROOT/silk.env" 2>/dev/null; then
-  bad "Produktname darf nicht mehr Aurora Silk heißen"
+if grep -qiE 'Aurora Silk|Silk Aurora' "$ROOT/README.md" "$ROOT/silk.env" 2>/dev/null; then
+  bad "Produktname darf nicht mit Upstream-Markenname kombiniert sein"
 else
-  ok "kein Produktname Aurora Silk"
+  ok "Produktname nur Silk"
 fi
 
 echo "== Containerfile Basis =="
 if grep -qE 'ARG SILK_BASE_IMAGE=ghcr.io/ublue-os/aurora:stable' "$ROOT/Containerfile"; then
-  ok "Upstream-Base aurora:stable default (ARG)"
+  ok "Upstream-Base KDE :stable default (ARG)"
 else
   bad "Containerfile base image default"
 fi
-# Kein Digest-Pin wie aurora@sha256:… – würde Upstream-Tracking einfrieren
+# Kein Digest-Pin – würde Upstream-Tracking einfrieren
 if grep -qE 'FROM ghcr.io/ublue-os/aurora@sha256:' "$ROOT/Containerfile"; then
-  bad "Containerfile must not pin aurora digest"
+  bad "Containerfile must not pin upstream digest"
 else
-  ok "no aurora digest pin"
+  ok "no upstream digest pin"
 fi
 if grep -qiE '^FROM[[:space:]].*bazzite' "$ROOT/Containerfile"; then
-  bad "Containerfile must not FROM bazzite (single Aurora base)"
+  bad "Containerfile must not FROM bazzite (single KDE upstream base)"
 else
-  ok "single Aurora base (no bazzite FROM)"
+  ok "single KDE upstream base (no bazzite FROM)"
 fi
 
 echo "== Update-Dokumentation =="
@@ -300,6 +300,23 @@ grep -q 'silk-platform detect' "$ROOT/system_files/usr/bin/silk-setup" && ok "se
 WF_ROOT="$(cd "$ROOT/.." && pwd)/.github/workflows/silk-build.yml"
 grep -q 'silk-asahi' "$WF_ROOT" && ok "CI silk-asahi matrix" || bad "CI asahi"
 grep -q 'kdeconnect' "$ROOT/system_files/usr/bin/silk-connect" && ok "connect kdeconnect" || bad "connect kdeconnect"
+
+echo "== Markenname Aurora nicht in Nutzer-Text =="
+for f in README.md QUICKSTART.md ROADMAP.md LEGAL.md system_files/usr/share/silk/welcome.html docs/silk-produktuebersicht.html; do
+  if [[ -f "$ROOT/$f" ]] && grep -qiE '\bAurora\b' "$ROOT/$f"; then
+    bad "Aurora in $f"
+  elif [[ -f "$ROOT/$f" ]]; then
+    ok "no Aurora in $f"
+  fi
+done
+WEBROOT="$(cd "$ROOT/.." && pwd)/Silk-Website"
+for f in index.html faq.html quickstart.html connect.html platforms.html; do
+  if [[ -f "$WEBROOT/$f" ]] && grep -qiE '\bAurora\b' "$WEBROOT/$f"; then
+    bad "Aurora in Silk-Website/$f"
+  elif [[ -f "$WEBROOT/$f" ]]; then
+    ok "no Aurora in Website/$f"
+  fi
+done
 
 echo
 echo "Ergebnis: $PASS bestanden, $FAIL fehlgeschlagen"

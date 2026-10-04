@@ -31,7 +31,7 @@ dnf5 -y install \
   intel-gpu-tools \
   || true
 
-# NVIDIA – Firmware-Hints (Treiber kommen aus aurora-nvidia-open Base-Image)
+# NVIDIA – Firmware-Hints (Treiber kommen aus nvidia-open Upstream-Image)
 dnf5 -y install \
   nvidia-gpu-firmware \
   || true

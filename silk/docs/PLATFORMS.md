@@ -28,7 +28,7 @@ Silk ist ein **Ökosystem** mit Editionen pro Gerätetyp.
          ┌──────────┬──────────┬──────────┬──────────────┐
          ▼          ▼          ▼          ▼              ▼
     Silk PC    Silk Tablet  Silk Asahi  Silk Mobile   Silk Connect
-    (Aurora)   (Touch)      (Mac M1+)   (Linux Phone) (iOS/Android)
+    (Silk Desktop)   (Touch)      (Mac M1+)   (Linux Phone) (iOS/Android)
 ```
 
 ---

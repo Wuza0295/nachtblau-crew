@@ -241,12 +241,12 @@
 
 <!-- ══════════════ COVER ══════════════ -->
 <div class="cover">
-  <div class="cover-badge">Custom Bootc Image · Universal Blue Aurora</div>
+  <div class="cover-badge">Custom Bootc Image · Universal Blue (Fedora Atomic, KDE Plasma)</div>
   <h1>Silk</h1>
   <p class="subtitle">Produktübersicht – Was Silk bereits kann</p>
   <div class="cover-meta">
     <strong>Version:</strong> Stand August 2026<br />
-    <strong>Basis:</strong> ghcr.io/ublue-os/aurora:stable<br />
+    <strong>Basis:</strong> Universal Blue KDE Upstream (:stable, siehe silk.env)<br />
     <strong>Images:</strong> ghcr.io/wuza0295/silk:latest · silk-nvidia-open:latest<br />
     <strong>Repository:</strong> github.com/Wuza0295/nachtblau-crew
   </div>
@@ -257,7 +257,7 @@
 
   <p class="lead">
     <strong>Silk</strong> ist ein eigenständiges Linux-Desktop-Betriebssystem für
-    <strong>Wechsler von Windows und macOS</strong>. Es basiert auf Universal Blue Aurora
+    <strong>Wechsler von Windows und macOS</strong>. Es basiert auf Universal Blue (Fedora Atomic, KDE Plasma)
     (KDE Plasma 6) und wird als unveränderliches Bootc-Image ausgeliefert.
     Optik, Programme und Hardware werden so weit wie möglich vertraut gehalten –
     ohne macOS oder Windows zu kopieren.
@@ -288,7 +288,7 @@
     </div>
     <div class="info-card">
       <div class="label">Desktop-Umgebung</div>
-      <div class="value">KDE Plasma 6 (Aurora)</div>
+      <div class="value">KDE Plasma 6</div>
     </div>
     <div class="info-card">
       <div class="label">Update-Rhythmus</div>
@@ -404,19 +404,19 @@
       <tr>
         <td><strong>AMD</strong></td>
         <td><code>silk:latest</code></td>
-        <td>aurora:stable (Mesa/RADV)</td>
+        <td>Upstream KDE :stable (Mesa/RADV)</td>
         <td><span class="badge badge-yes">✓ Unterstützt</span></td>
       </tr>
       <tr>
         <td><strong>Intel</strong> (iGPU / Arc)</td>
         <td><code>silk:latest</code></td>
-        <td>aurora:stable (Mesa/i915/Xe)</td>
+        <td>Upstream KDE :stable (Mesa/i915/Xe)</td>
         <td><span class="badge badge-yes">✓ Unterstützt</span></td>
       </tr>
       <tr>
         <td><strong>NVIDIA</strong> (Turing/16xx+)</td>
         <td><code>silk-nvidia-open:latest</code></td>
-        <td>aurora-nvidia-open:stable</td>
+        <td>Upstream nvidia-open :stable</td>
         <td><span class="badge badge-yes">✓ Unterstützt</span></td>
       </tr>
       <tr>
@@ -513,7 +513,7 @@
 
   <h3>Installation &amp; Update</h3>
   <div class="cmd-block">
-    <span>#</span> Erstinstallation (von Aurora/Bazzite):<br />
+    <span>#</span> Erstinstallation (von Universal Blue / Bazzite):<br />
     <span>$</span> sudo bootc switch --enforce-container-sigpolicy ghcr.io/wuza0295/silk:latest<br />
     <span>$</span> sudo systemctl reboot<br /><br />
     <span>#</span> System-Update:<br />
@@ -532,7 +532,7 @@
   </ul>
 
   <div class="footer-note">
-    Silk · Custom Bootc Image auf Universal Blue Aurora ·
+    Silk · Custom Bootc Image auf Universal Blue (Fedora Atomic, KDE Plasma) ·
     github.com/Wuza0295/nachtblau-crew ·
     Stand August 2026 · Automatisch generiert
   </div>

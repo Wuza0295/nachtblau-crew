@@ -1,12 +1,12 @@
 # Silk Roadmap – 1.0 → 2.0
 
-Stand: August 2026 · Produkt: **Silk** (Custom Bootc-Image auf Universal Blue Aurora)
+Stand: August 2026 · Produkt: **Silk** (Custom Bootc-Image auf Universal Blue (Fedora Atomic, KDE Plasma))
 
 Diese Roadmap beschreibt, was **fertig ist**, was für einen **öffentlichen Launch (1.0)** fehlt,
 und wohin **Silk 2.0** langfristig gehen kann.
 
-> Silk ist ein **eigenes Produkt**, kein Aurora-Klon. Technische Basis bleibt Open Source
-> (Aurora → Fedora → Linux). Siehe [`LEGAL.md`](LEGAL.md) für Vermarktung & Marken.
+> Silk ist ein **eigenes Produkt**, kein Upstream-Klon. Technische Basis bleibt Open Source
+> (Universal Blue → Fedora → Linux). Siehe [`LEGAL.md`](LEGAL.md) für Vermarktung & Marken.
 
 ---
 
@@ -43,7 +43,7 @@ Ihr dürft es **marketing-tauglich** als eigenes Produkt bewerben (mit Disclaime
 
 ### Must-Have (Blocker)
 
-- [ ] **PR `cursor/aurora-silk-os-2818` mergen** → vollständiges `silk/` auf `main`
+- [ ] **PR `main` mergen** → vollständiges `silk/` auf `main`
 - [x] **Silk Connect** – Begleitgeräte (iPhone/iPad) via `silk-connect`
 - [x] **Tablet-Modus** – `silk-desktop tablet`
 - [x] **FAQ + Connect-Seite** – `Silk-Website/faq.html`, `connect.html`
@@ -52,7 +52,7 @@ Ihr dürft es **marketing-tauglich** als eigenes Produkt bewerben (mit Disclaime
 - [ ] **GHCR public** – `ghcr.io/wuza0295/silk:latest` für alle pullbar
 - [ ] **Install-Anleitung (1 Seite)** – bootc switch + Reboot, NVIDIA-Variante → [`QUICKSTART.md`](QUICKSTART.md)
 - [ ] **Landing Page** – getsilk.* oder Unterseite mit:
-  - Was ist Silk / was nicht (kein macOS/Windows, kein offizielles Aurora)
+  - Was ist Silk / was nicht (kein macOS/Windows, kein offizielles Universal-Blue-Produkt)
   - Download/Install (bootc-Befehl)
   - Impressum + Datenschutz (DE) → Vorlage [`docs/website/index.html`](docs/website/index.html) (Impressum ausfüllen!)
 - [ ] **Smoke-Test auf echter Hardware** – AMD/Intel-PC + optional NVIDIA
@@ -91,13 +91,13 @@ Ihr dürft es **marketing-tauglich** als eigenes Produkt bewerben (mit Disclaime
 
 ## Silk 2.0 – Vision (größere Schritte)
 
-**Ziel:** Silk fühlt sich wie **ein fertiges Consumer-OS** an – ohne Fedora/Aurora sichtbar zu machen.
+**Ziel:** Silk fühlt sich wie **ein fertiges Consumer-OS** an – ohne Fedora/Universal Blue sichtbar sichtbar zu machen.
 
 | Feature | Beschreibung | Abhängigkeit |
 |---------|--------------|--------------|
 | **Silk-Website + Account** | Download, Changelog, optional Nutzer-Forum | Hosting |
 | **Silk-Installer (GUI)** | Grafischer Assistent statt nur Terminal/bootc | Entwicklung |
-| **ISO-First-Install** | USB-Stick → Silk, ohne vorher Aurora zu kennen | bootc-image-builder |
+| **ISO-First-Install** | USB-Stick → Silk, ohne vorheriges Bootc-System | bootc-image-builder |
 | **Silk-Asahi** | Apple-Silicon-Image auf Fedora Asahi Remix atomic | Asahi-Base stabil |
 | **Silk Connect+** | KDE Connect Integration, QR-Pairing, Nextcloud-Auto | Connect 1.0 live |
 | **Silk Mobile** | Linux-Phone-Edition (postmarketOS/Mobian) | Hoher Aufwand |
@@ -129,7 +129,7 @@ Ihr dürft es **marketing-tauglich** als eigenes Produkt bewerben (mit Disclaime
 
 **Als Nächstes (Reihenfolge):**
 
-1. PR #17 / `cursor/aurora-silk-os-2818` → `main` mergen
+1. PR #17 / `main` → `main` mergen
 2. CI + signierte Images verifizieren
 3. Install-Anleitung + 1-Seiten-Quickstart
 4. Minimale Landing Page (Impressum, Disclaimer, bootc-Befehl)
@@ -177,4 +177,4 @@ Ihr dürft es **marketing-tauglich** als eigenes Produkt bewerben (mit Disclaime
 
 ---
 
-*Nachtblau Crew · Silk is built on Universal Blue Aurora.*
+*Nachtblau Crew · Silk is built on Universal Blue (Fedora Atomic, KDE Plasma).*

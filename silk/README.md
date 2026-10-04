@@ -1,7 +1,7 @@
 # Silk
 
 **Silk** ist ein eigenständiges Custom-Bootc-Image (kein Upstream-Produktname).  
-Technische Basis: [Universal Blue Aurora](https://getaurora.dev/) – nur als Upstream, nicht als Markenname.
+Technische Basis: [Universal Blue (Fedora Atomic, KDE Plasma)](https://universal-blue.org/) – nur als Upstream, nicht als Markenname.
 
 Für **Wechsler von macOS und Windows**: Optik wählbar, Programme möglichst „wie vorher“ nutzbar.
 
@@ -10,7 +10,7 @@ Für **Wechsler von macOS und Windows**: Optik wählbar, Programme möglichst �
 ## Name
 
 Produktname: **Silk** / Image: `silk`  
-Nicht „Aurora …“ – Aurora ist bereits das Universal-Blue-Desktop. Upstream erwähnen wir nur technisch (`FROM …/aurora:stable`).
+Der Produktname ist nur **Silk**. Technische Upstream-Images stehen in `Containerfile` / CI (Registry-Tags von Universal Blue).
 
 **Schnellstart:** [`QUICKSTART.md`](QUICKSTART.md) · **Website-Vorlage:** [`docs/website/index.html`](docs/website/index.html)
 
@@ -69,14 +69,14 @@ Beim ersten Login: Stil wählen → **Alltags-Apps automatisch** → optional Ga
 |-------|-----|
 | **Entwickler** | Änderungen in Git → Push → GitHub Actions baut Image |
 | **Registry** | `ghcr.io/<user>/silk:latest` (signiert mit Cosign) |
-| **Erstinstallation** | ISO (optional) oder `bootc switch` von Aurora/Bazzite |
+| **Erstinstallation** | ISO (optional) oder `bootc switch` von Universal Blue / Bazzite |
 | **Nutzer-Update System** | `sudo bootc upgrade` (+ Reboot) |
 | **Nutzer-Update Apps** | `flatpak update` oder `silk-update` |
 | **Listen ohne Rebuild** | `silk-sync-config` zieht Aliases/Essentials vom Git-`main` |
 
 ### Drei Update-Ebenen
 
-1. **Aurora-Base** – Universal Blue; Silk-CI baut **täglich** neu mit frischem `aurora:stable`
+1. **Upstream-Base** – Universal Blue KDE; Silk-CI baut **täglich** neu mit frischem Upstream-`:stable`-Tag
 2. **Silk-Image** – Skripte, Themes, Pakete im Container → kommt mit `bootc upgrade`
 3. **Apps & Listen** – Flatpaks + `recommended-*.txt` / `app-aliases.json` via Git-Raw-URL
 
@@ -97,9 +97,9 @@ Repo-URL für Listen: `SILK_CONFIG_URL` (Standard: dieses GitHub-Repo `main/silk
 
 ## Basis & Updates
 
-- **Base-Image:** `ghcr.io/ublue-os/aurora:stable` (floating Tag, kein Digest-Pin)
+- **Base-Image (intern):** `SILK_UPSTREAM_KDE` in [`silk.env`](silk.env) / `SILK_BASE_IMAGE` im `Containerfile` (floating `:stable`, kein Digest-Pin)
 - CI baut **täglich** neu und zieht Upstream mit `--pull=always`
-- Silk-Layer liegt **oben** auf dem Aurora-Base
+- Silk-Layer liegt **oben** auf dem Upstream-Base
 
 ### Updates einspielen
 
@@ -111,15 +111,15 @@ sudo bootc upgrade && sudo systemctl reboot
 
 ### Upstream vs. Bazzite
 
-Silk trackt **nur** Aurora als Base (nie `FROM` Bazzite). Gaming-Flatpaks/Tools können Bazzite-*ähnlich* sein; wer maximale Gaming-Integration will, nimmt ggf. direkt [Bazzite](https://bazzite.gg/).
+Silk trackt **nur** die Universal-Blue-KDE-Basis (nie `FROM` Bazzite). Gaming-Flatpaks/Tools können Bazzite-*ähnlich* sein; wer maximale Gaming-Integration will, nimmt ggf. direkt [Bazzite](https://bazzite.gg/).
 
 ## GPU-Unterstützung (AMD / Intel / NVIDIA)
 
 | GPU | Silk-Image | Basis |
 |-----|------------|-------|
-| **AMD** | `ghcr.io/<user>/silk:latest` | `aurora:stable` (Mesa/RADV) |
-| **Intel** (iGPU/Arc) | `ghcr.io/<user>/silk:latest` | `aurora:stable` (Mesa/i915/Xe) |
-| **NVIDIA** (Turing/16xx+) | `ghcr.io/<user>/silk-nvidia-open:latest` | `aurora-nvidia-open:stable` |
+| **AMD** | `ghcr.io/<user>/silk:latest` | Upstream KDE `:stable` (Mesa/RADV) |
+| **Intel** (iGPU/Arc) | `ghcr.io/<user>/silk:latest` | Upstream KDE `:stable` (Mesa/i915/Xe) |
+| **NVIDIA** (Turing/16xx+) | `ghcr.io/<user>/silk-nvidia-open:latest` | Upstream nvidia-open `:stable` |
 
 ```bash
 silk-gpu status          # erkannte GPU + empfohlenes Image
@@ -143,7 +143,7 @@ silk-hardware hints      # Kompatibilität & Alternativen
 silk-install meine.app   # Mac-Datei → Linux-Ersatz (auf Silk-PC)
 ```
 
-Silk ist ein **PC-/Laptop-Image** (Aurora), kein MacBook-Installationsmedium. Für Linux **auf dem Mac** selbst: Asahi Remix, nicht Silk.
+Silk ist ein **PC-/Laptop-Image** (Silk Desktop), kein MacBook-Installationsmedium. Für Linux **auf dem Mac** selbst: Asahi Remix, nicht Silk.
 
 ## Silk Connect (iPhone / iPad / Begleitgeräte)
 
@@ -181,7 +181,7 @@ silk-mobile setup       # Smartphone
 
 - AMD/Lightweight: Sysctl, NVMe-Kyber, Mesa/RADV
 - Intel: `intel-gpu-firmware`, `intel-media-driver`, i915/Xe Udev
-- NVIDIA: `silk-nvidia-open` Image (aurora-nvidia-open Basis), `silk-gpu hints`
+- NVIDIA: `silk-nvidia-open` Image (nvidia-open Upstream-Basis), `silk-gpu hints`
 - Gaming: Steam, Steam Link, Heroic, itch.io, Discord, OBS, Minecraft (Prism), osu!, RetroArch, Dolphin, PPSSPP, Moonlight, Chiaki, GeForce Now, Bottles/Lutris + GameMode/MangoHud
 
 ## Build / Rebase
@@ -199,7 +199,7 @@ Lokal:
 
 ```bash
 cd silk && just build silk latest
-just build silk-nvidia-open latest ghcr.io/ublue-os/aurora-nvidia-open:stable
+just build silk-nvidia-open latest "${SILK_UPSTREAM_NVIDIA:-siehe silk.env}"
 ```
 
 ## Grenzen

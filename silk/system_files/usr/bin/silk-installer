@@ -63,7 +63,7 @@ cmd_switch() {
   echo "Wechsle zu: $img"
   echo
   if ! command -v bootc >/dev/null 2>&1; then
-    echo "bootc nicht gefunden. Voraussetzung: Fedora Atomic / Aurora / Bazzite." >&2
+    echo "bootc nicht gefunden. Voraussetzung: Fedora Atomic / Universal Blue / Bazzite." >&2
     exit 1
   fi
   read -r -p "Fortfahren? System wird nach Reboot auf Silk umgestellt. [j/N] " ans
@@ -88,7 +88,7 @@ cmd_iso() {
 
 4. Nach Installation: silk-setup
 
-Alternativ ohne USB: Von Aurora/Bazzite per bootc switch:
+Alternativ ohne USB: Von Universal Blue / Bazzite per bootc switch:
   silk-installer switch
 
 Details: silk/QUICKSTART.md
@@ -108,7 +108,7 @@ cmd_interactive() {
     return
   fi
   echo "Optionen:"
-  echo "  1) bootc switch (von Aurora/Bazzite/Fedora Atomic)"
+  echo "  1) bootc switch (von Universal Blue / Bazzite/Fedora Atomic)"
   echo "  2) USB/ISO-Anleitung"
   echo "  3) Abbrechen"
   read -r -p "Wahl [1-3]: " choice

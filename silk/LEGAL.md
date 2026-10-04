@@ -6,22 +6,22 @@
 ## Was Silk ist
 
 Silk ist ein **unabhängiges Custom-Linux-Image** der Nachtblau Crew, gebaut auf
-[Universal Blue Aurora](https://getaurora.dev/). Silk ist **weder** ein offizielles
+[Universal Blue (Fedora Atomic, KDE Plasma)](https://universal-blue.org/). Silk ist **weder** ein offizielles
 Produkt von Universal Blue, Fedora, Apple noch Microsoft.
 
 ## Erlaubte Formulierungen (Website)
 
 - „Silk – Linux für Umsteiger von Windows und macOS“
 - „Mac- und Windows-**inspirierte** Optik (Open-Source-Themes)“
-- „Gebaut auf Universal Blue Aurora“
+- „Gebaut auf Universal Blue (Fedora Atomic, KDE Plasma)“
 - „Custom Bootc-Image, quelloffen (Apache-2.0 für Silk-Layer)“
 
 ## Zu vermeidende Formulierungen
 
 | ❌ Nicht | ✅ Stattdessen |
 |---------|----------------|
-| Offizielles Aurora-Produkt | Unabhängiges Image **auf Basis von** Aurora |
-| Aurora Silk / Fedora Silk | **Silk** (eigener Produktname) |
+| Offizielles Universal-Blue-Produkt | Unabhängiges Image **auf Basis von** Universal Blue (Upstream) |
+| Silk / Fedora Silk | **Silk** (eigener Produktname) |
 | macOS für PC / Windows-Ersatz | Optik **inspiriert von** macOS/Windows |
 | Apple-/Microsoft-Logos | Eigene Silk-Grafik, Theme-Screenshots ohne Markenlogos |
 | „Wir besitzen alle Rechte“ | „Open-Source-Komponenten, siehe NOTICE“ |
@@ -39,7 +39,7 @@ Produkt von Universal Blue, Fedora, Apple noch Microsoft.
 
 ```text
 Silk ist ein Community-Projekt der Nachtblau Crew. Silk basiert technisch auf
-Universal Blue Aurora und Fedora. Silk ist kein macOS, kein Windows und kein
+Universal Blue (Fedora Atomic, KDE Plasma) und Fedora. Silk ist kein macOS, kein Windows und kein
 offizielles Produkt von Apple, Microsoft, Fedora oder Universal Blue.
 Marken gehören ihren jeweiligen Inhabern.
 ```

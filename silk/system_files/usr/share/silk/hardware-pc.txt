@@ -1,6 +1,6 @@
 # Silk auf PC / Standard-Laptop (x86_64 oder ARM64-SBC, nicht Apple Silicon)
 #
-# Silk ist für normale PC-Hardware auf Universal Blue Aurora gebaut.
+# Silk ist für normale PC-Hardware auf Universal Blue (Fedora Atomic, KDE Plasma) gebaut.
 #
 # Installation:
 #   sudo bootc switch --enforce-container-sigpolicy ghcr.io/<user>/silk:latest
