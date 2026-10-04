@@ -32,7 +32,7 @@ Beim ersten Login fragt Silk, woher du kommst:
 
 | Datei | Verhalten |
 |-------|-----------|
-| `.exe` / `.msi` | Flatpak → sonst Wine/Bottles |
+| `.exe` / `.msi` | `silk-windows` (Bottles, Auto-Setup) – siehe [`docs/WINDOWS.md`](docs/WINDOWS.md) |
 | `.apk` | Flatpak → sonst Waydroid |
 | `.dmg` / `.pkg` / `.app` | Flatpak-Gegenstück |
 | `.AppImage` | Flatpak → sonst Gear Lever / `~/Applications` |
@@ -43,9 +43,9 @@ Beim ersten Login fragt Silk, woher du kommst:
 
 ```bash
 silk-install --setup-essentials
-silk-install --ensure-boxes
-silk-install etwas.AppImage
-silk-install paket.deb
+silk-install --setup-windows   # .exe Doppelklick ohne Extra-Schritte
+silk-windows prefer windows  # optional: nie nach Flatpak fragen
+silk-install datei.exe
 silk-welcome
 ```
 

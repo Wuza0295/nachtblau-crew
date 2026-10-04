@@ -32,10 +32,15 @@ Usage:
   silk-install --search <query>
   silk-install --setup-essentials
   silk-install --setup-gaming
+  silk-install --setup-windows
   silk-install --ensure-boxes
 
-Strategie (immer zuerst Flatpak-Gegenstück, dann natives Format):
-  .exe/.msi     → Flatpak, sonst Wine/Bottles
+Strategie:
+  .exe/.msi     → je nach silk-windows prefer:
+                    auto     = Flatpak nur bei bekanntem Alias, sonst Windows
+                    windows  = direkt Bottles (ohne Dialog)
+                    linux    = Flatpak anbieten, sonst Windows
+                  Windows-Pfad: silk-windows (Bottles, Auto-Setup)
   .apk          → Flatpak, sonst Waydroid
   .dmg/.pkg/.app→ Flatpak (Mac-Binaries laufen nicht)
   .AppImage     → Flatpak, sonst Gear Lever / lokal integrieren
@@ -44,7 +49,7 @@ Strategie (immer zuerst Flatpak-Gegenstück, dann natives Format):
   .rpm          → Flatpak, sonst rpm-ostree / Fedora-Box
   .snap         → Flatpak, sonst Ubuntu-Box mit snap
 
-Kein Apple-/Microsoft-Store – Flathub + Compat-Layer.
+Windows möglichst ohne Hürde: silk-install --setup-windows
 EOF
 }
 
@@ -124,6 +129,17 @@ setup_essentials() {
 
 setup_gaming() {
   setup_list "$(silk_config recommended-flatpaks.txt)" "Gaming-Flatpaks"
+  /usr/bin/silk-windows setup || true
+}
+
+setup_windows() {
+  echo "Richte Windows-Kompatibilität ein…"
+  /usr/bin/silk-windows setup
+  install_flatpak com.usebottles.bottles || true
+  install_flatpak net.davidotek.pupgui2 || true
+  install_flatpak com.github.Matoking.protontricks || true
+  /usr/bin/silk-windows prefer auto
+  dialog_msg "Windows-Programme: Doppelklick auf .exe / .msi"$'\n'"Bei Problemen: silk-windows doctor"$'\n'"Anti-Cheat/Banking: silk-windows vm-setup"
 }
 
 basename_stem() {
@@ -172,14 +188,46 @@ offer_flatpak_or() {
 
 ensure_boxes() { /usr/bin/silk-ensure-boxes; }
 
-handle_exe() {
-  local file="$1" force="${2:-0}" query
-  query="$(guess_query_from_file "$file")"
-  echo "Windows-Programm: $file → Suche „${query}“"
-  if [[ "$force" != "1" ]]; then
-    offer_flatpak_or "$query" "Linux-App gefunden. Flatpak installieren?"$'\n'"Nein = Wine/Bottles" && return 0
+windows_prefer() {
+  local conf="${XDG_CONFIG_HOME:-$HOME/.config}/silk/windows.conf"
+  local p="${SILK_WINDOWS_PREFER:-}"
+  if [[ -z "$p" && -f "$conf" ]]; then
+    # shellcheck disable=SC1090
+    source "$conf" 2>/dev/null || true
+    p="${SILK_WINDOWS_PREFER:-auto}"
   fi
-  exec /usr/bin/silk-run-exe "$file"
+  echo "${p:-auto}"
+}
+
+handle_exe() {
+  local file="$1" force="${2:-0}" query prefer appid
+  query="$(guess_query_from_file "$file")"
+  prefer="$(windows_prefer)"
+  echo "Windows-Programm: $file („${query}“, Modus: ${prefer})"
+
+  # --force-compat oder prefer=windows → direkt Windows-Schicht
+  if [[ "$force" == "1" || "$prefer" == "windows" || "$prefer" == "win" || "$prefer" == "direct" ]]; then
+    exec /usr/bin/silk-windows run "$file"
+  fi
+
+  # prefer=linux → Flatpak anbieten, sonst Windows
+  if [[ "$prefer" == "linux" || "$prefer" == "flatpak" ]]; then
+    offer_flatpak_or "$query" "Linux-App gefunden. Flatpak installieren?"$'\n'"Nein = Windows (Bottles)" && return 0
+    exec /usr/bin/silk-windows run "$file"
+  fi
+
+  # auto (Standard): nur bei bekanntem Alias Flatpak ohne Nachfrage-Zwang;
+  # sonst sofort Windows – möglichst ohne Hürde
+  appid="$(alias_lookup "$query" || true)"
+  [[ -z "$appid" ]] && appid="$(alias_lookup "${query// /-}" || true)"
+  if [[ -n "${appid:-}" && "$appid" != "null" ]]; then
+    echo "Bekanntes Linux-Gegenstück: $appid"
+    if dialog_yesno "„${query}“ gibt es als Linux-App (${appid})."$'\n'"Ja = Flatpak (empfohlen)"$'\n'"Nein = Windows-.exe trotzdem starten"; then
+      install_flatpak "$appid"
+      return 0
+    fi
+  fi
+  exec /usr/bin/silk-windows run "$file"
 }
 
 handle_apk() {
@@ -342,6 +390,7 @@ main() {
   case "$arg" in
     ""|-h|--help) usage; exit 0 ;;
     --setup-gaming) setup_gaming; exit 0 ;;
+    --setup-windows) setup_windows; exit 0 ;;
     --setup-essentials) setup_essentials; exit 0 ;;
     --ensure-boxes) ensure_boxes; exit 0 ;;
     --search) shift; search_flathub "${1:-}"; exit 0 ;;

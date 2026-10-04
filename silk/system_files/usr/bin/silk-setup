@@ -44,7 +44,19 @@ if [[ "${SILK_SKIP_ESSENTIALS:-0}" != "1" ]]; then
   /usr/bin/silk-install --setup-essentials || true
 fi
 
-# 3) Gaming optional
+# 3) Windows-Kompatibilität (Bottles) – ohne Hürde für .exe
+if [[ "${SILK_SKIP_WINDOWS:-0}" != "1" ]]; then
+  if [[ "${SILK_AUTO_WINDOWS:-1}" == "1" ]]; then
+    notify-send "Silk" "Richte Windows-Programme ein (Bottles)…" 2>/dev/null || true
+    /usr/bin/silk-install --setup-windows || /usr/bin/silk-windows setup || true
+  elif command -v kdialog >/dev/null 2>&1; then
+    if kdialog --yesno "Windows-Programme (.exe) ohne Extra-Schritte ermöglichen?" 2>/dev/null; then
+      /usr/bin/silk-install --setup-windows || true
+    fi
+  fi
+fi
+
+# 4) Gaming optional
 if [[ "${SILK_AUTO_GAMING:-0}" == "1" ]]; then
   /usr/bin/silk-install --setup-gaming || true
 elif command -v kdialog >/dev/null; then
@@ -53,16 +65,16 @@ elif command -v kdialog >/dev/null; then
   fi
 fi
 
-# 4) Distrobox für deb/snap vorbereiten (Hintergrund-freundlich)
+# 5) Distrobox für deb/snap vorbereiten (Hintergrund-freundlich)
 /usr/bin/silk-ensure-boxes || true
 
-# 5) Willkommen
+# 6) Willkommen
 if [[ ! -f "$WELCOME_FLAG" ]]; then
   /usr/bin/silk-welcome || true
   touch "$WELCOME_FLAG"
 fi
 
-# 6) Optional: Begleitgeräte (iPhone/iPad) anbinden
+# 7) Optional: Begleitgeräte (iPhone/iPad) anbinden
 if [[ "${SILK_AUTO_CONNECT:-0}" == "1" ]]; then
   /usr/bin/silk-connect setup || true
 elif command -v kdialog >/dev/null 2>&1; then
@@ -72,4 +84,4 @@ elif command -v kdialog >/dev/null 2>&1; then
 fi
 
 touch "$MARKER"
-notify-send "Silk" "Fertig! Doppelklick auf .exe .dmg .AppImage .deb .flatpak .snap funktioniert." 2>/dev/null || true
+notify-send "Silk" "Fertig! Doppelklick auf .exe startet Windows-Programme (Bottles)." 2>/dev/null || true

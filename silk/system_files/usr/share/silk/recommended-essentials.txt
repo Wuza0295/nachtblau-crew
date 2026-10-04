@@ -26,3 +26,7 @@ org.gnome.World.PikaBackup
 it.mijorus.gearlever
 io.github.flattool.Warehouse
 com.github.tchx84.Flatseal
+
+# --- Windows-Programme (.exe) ---
+com.usebottles.bottles
+net.davidotek.pupgui2

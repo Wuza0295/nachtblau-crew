@@ -1,0 +1,355 @@
+#!/usr/bin/env bash
+# silk-windows – Windows-Programme möglichst ohne Hürde (Bottles + Auto-Setup)
+set -euo pipefail
+
+CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/silk"
+CONF="$CONFIG_DIR/windows.conf"
+BOTTLE_NAME="${SILK_WINDOWS_BOTTLE:-SilkWindows}"
+BOTTLES_ID="com.usebottles.bottles"
+DESKTOP_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
+ICONS_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/icons/hicolor/256x256/apps"
+STATE_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/silk/windows"
+
+usage() {
+  cat <<'EOF'
+silk-windows – Windows-.exe/.msi möglichst ohne Hürde
+
+Usage:
+  silk-windows setup              Bottles + Standard-Umgebung einrichten
+  silk-windows status             Status der Windows-Schicht
+  silk-windows run <datei.exe>    Programm starten/installieren
+  silk-windows install <datei>    Alias für run (Installer)
+  silk-windows prefer windows     Immer Windows-Pfad (kein Flatpak-Dialog)
+  silk-windows prefer linux       Zuerst Linux-Flatpak anbieten (Standard)
+  silk-windows prefer auto        Flatpak nur bei klarem Alias, sonst Windows
+  silk-windows desktop <exe>      .desktop-Verknüpfung anlegen
+  silk-windows vm-setup           Echte Windows-VM (für Banking/Anti-Cheat)
+  silk-windows doctor             Diagnose
+
+Ablauf bei Doppelklick auf .exe:
+  1) Bottles wird bei Bedarf automatisch installiert
+  2) Flasche „SilkWindows“ wird angelegt (DXVK/Fonts)
+  3) Programm startet – Installer legen oft selbst Shortcuts an
+
+Hinweis: Nicht jedes .exe funktioniert (Anti-Cheat, Kernel-Treiber).
+Für solche Fälle: silk-windows vm-setup
+EOF
+}
+
+ensure_dirs() {
+  mkdir -p "$CONFIG_DIR" "$STATE_DIR" "$DESKTOP_DIR" "$ICONS_DIR"
+}
+
+load_prefer() {
+  local p="auto"
+  if [[ -f "$CONF" ]]; then
+    # shellcheck disable=SC1090
+    source "$CONF" 2>/dev/null || true
+    p="${SILK_WINDOWS_PREFER:-auto}"
+  fi
+  echo "${SILK_WINDOWS_PREFER:-$p}"
+}
+
+save_prefer() {
+  ensure_dirs
+  local mode="$1"
+  cat > "$CONF" <<EOF
+# Silk Windows-Kompatibilität
+SILK_WINDOWS_PREFER=$mode
+SILK_WINDOWS_BOTTLE=$BOTTLE_NAME
+EOF
+  echo "Präferenz: $mode"
+}
+
+bottles_installed() {
+  flatpak info "$BOTTLES_ID" &>/dev/null
+}
+
+ensure_bottles() {
+  if bottles_installed; then
+    return 0
+  fi
+  echo "Installiere Bottles (Windows-Umgebung)…"
+  flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
+  flatpak install -y --user flathub "$BOTTLES_ID" || {
+    echo "Bottles-Installation fehlgeschlagen." >&2
+    return 1
+  }
+  # Hilfsprogramme
+  flatpak install -y --user flathub net.davidotek.pupgui2 2>/dev/null || true
+  flatpak install -y --user flathub com.github.Matoking.protontricks 2>/dev/null || true
+}
+
+bottles_cli() {
+  flatpak run --command=bottles-cli "$BOTTLES_ID" "$@"
+}
+
+bottle_exists() {
+  bottles_cli list bottles 2>/dev/null | grep -qiE "(^|/)${BOTTLE_NAME}([[:space:]]|$)" \
+    || bottles_cli list bottles 2>/dev/null | grep -qi "$BOTTLE_NAME"
+}
+
+ensure_bottle() {
+  ensure_bottles || return 1
+  if bottle_exists; then
+    return 0
+  fi
+  echo "Lege Windows-Umgebung „${BOTTLE_NAME}“ an…"
+  # Bottles CLI: new --bottle-name Name [--environment gaming|application]
+  if bottles_cli new --bottle-name "$BOTTLE_NAME" --environment gaming 2>/dev/null; then
+    :
+  elif bottles_cli new --bottle-name "$BOTTLE_NAME" 2>/dev/null; then
+    :
+  else
+    # Fallback: GUI einmal öffnen lassen / wine-prefix
+    echo "Bottles-CLI konnte keine Flasche anlegen – öffne Bottles einmalig…"
+    flatpak run "$BOTTLES_ID" &
+    sleep 2
+    # Wine-Prefix als Fallback
+    if command -v wine >/dev/null 2>&1; then
+      export WINEPREFIX="${STATE_DIR}/prefix"
+      mkdir -p "$WINEPREFIX"
+      wineboot -u 2>/dev/null || true
+      touch "${STATE_DIR}/.wine-fallback"
+    fi
+  fi
+  # Empfohlene Dependencies (best-effort)
+  bottles_cli add -b "$BOTTLE_NAME" -d dxvk 2>/dev/null || true
+  bottles_cli add -b "$BOTTLE_NAME" -d vkd3d 2>/dev/null || true
+  bottles_cli add -b "$BOTTLE_NAME" -d allfonts 2>/dev/null || true
+  bottles_cli add -b "$BOTTLE_NAME" -d vcredist2022 2>/dev/null || true
+  bottles_cli add -b "$BOTTLE_NAME" -d dotnet48 2>/dev/null || true
+  touch "${STATE_DIR}/.bottle-ready"
+  echo "Windows-Umgebung bereit."
+}
+
+cmd_setup() {
+  ensure_dirs
+  ensure_bottle || exit 1
+  # MIME bereits im Image; sicherstellen dass Handler sichtbar sind
+  update-desktop-database "$DESKTOP_DIR" 2>/dev/null || true
+  if [[ "$(load_prefer)" == "linux" ]]; then
+    :
+  else
+    # Für „möglichst ohne Hürde“: auto = Windows-Pfad wenn kein Alias
+    save_prefer auto
+  fi
+  # Essentials für Wine-Fallback
+  if ! command -v wine >/dev/null 2>&1; then
+    echo "Hinweis: System-Wine optional via Image; Bottles reicht meist."
+  fi
+  notify-send "Silk Windows" "Windows-Programme können per Doppelklick gestartet werden." 2>/dev/null || true
+  cmd_status
+  echo
+  echo "Tipp: silk-windows prefer windows  → nie nach Flatpak fragen"
+}
+
+cmd_status() {
+  ensure_dirs
+  echo "=== Silk Windows ==="
+  echo "Präferenz:  $(load_prefer)"
+  echo "Flasche:    $BOTTLE_NAME"
+  if bottles_installed; then
+    echo "Bottles:    installiert ✓"
+  else
+    echo "Bottles:    fehlt – silk-windows setup"
+  fi
+  if bottle_exists 2>/dev/null; then
+    echo "Umgebung:   $BOTTLE_NAME vorhanden ✓"
+  elif [[ -f "${STATE_DIR}/.wine-fallback" ]]; then
+    echo "Umgebung:   Wine-Prefix (Fallback)"
+  else
+    echo "Umgebung:   noch nicht angelegt"
+  fi
+  if command -v wine >/dev/null 2>&1; then
+    echo "Wine:       $(wine --version 2>/dev/null || echo ja)"
+  else
+    echo "Wine:       (optional, Bottles bevorzugt)"
+  fi
+}
+
+run_with_bottles() {
+  local file="$1"
+  ensure_bottle || return 1
+  echo "Starte Windows-Programm: $file"
+  # Neuere bottles-cli
+  if bottles_cli run -b "$BOTTLE_NAME" -e "$file" 2>/dev/null; then
+    return 0
+  fi
+  if bottles_cli run -b "$BOTTLE_NAME" --executable "$file" 2>/dev/null; then
+    return 0
+  fi
+  # Ältere API / GUI
+  if flatpak run --command=bottles-cli "$BOTTLES_ID" run -e "$file" 2>/dev/null; then
+    return 0
+  fi
+  flatpak run "$BOTTLES_ID" -e "$file" 2>/dev/null && return 0
+  return 1
+}
+
+run_with_wine() {
+  local file="$1"
+  command -v wine >/dev/null 2>&1 || return 1
+  export WINEPREFIX="${WINEPREFIX:-${STATE_DIR}/prefix}"
+  mkdir -p "$WINEPREFIX"
+  echo "Starte mit Wine: $file"
+  (
+    cd "$(dirname "$file")"
+    wine "$file"
+  )
+}
+
+cmd_run() {
+  local file="${1:-}"
+  [[ -n "$file" && -f "$file" ]] || { echo "Usage: silk-windows run <datei.exe>" >&2; exit 1; }
+  file="$(realpath "$file")"
+  ensure_dirs
+
+  if run_with_bottles "$file"; then
+    # Nach Installer: Verknüpfung anbieten
+    local low="${file,,}"
+    if [[ "$low" == *setup* || "$low" == *install* || "$low" == *.msi ]]; then
+      echo "Installer beendet. Programme findest du oft unter:"
+      echo "  Bottles → $BOTTLE_NAME → Programme"
+      echo "Oder: silk-windows desktop /pfad/zum/Programm.exe"
+    else
+      create_desktop "$file" 2>/dev/null || true
+    fi
+    return 0
+  fi
+
+  if run_with_wine "$file"; then
+    return 0
+  fi
+
+  echo "Start fehlgeschlagen." >&2
+  echo "Nächste Schritte:" >&2
+  echo "  1) silk-windows setup" >&2
+  echo "  2) Bottles öffnen und Runner/Dependencies prüfen" >&2
+  echo "  3) Bei Anti-Cheat/Banking: silk-windows vm-setup" >&2
+  if command -v kdialog >/dev/null 2>&1; then
+    kdialog --error "Windows-Programm konnte nicht gestartet werden.\n\nsilk-windows doctor\noder silk-windows vm-setup" 2>/dev/null || true
+  fi
+  exit 1
+}
+
+create_desktop() {
+  local file="$1"
+  [[ -f "$file" ]] || return 1
+  ensure_dirs
+  local name stem desk
+  stem="$(basename "$file")"
+  stem="${stem%.*}"
+  name="$stem"
+  desk="${DESKTOP_DIR}/silk-win-${stem//[^a-zA-Z0-9]//-}.desktop"
+  cat > "$desk" <<EOF
+[Desktop Entry]
+Type=Application
+Name=${name}
+Comment=Windows-Programm (Silk)
+Exec=/usr/bin/silk-windows run $(printf '%q' "$file")
+Icon=application-x-ms-dos-executable
+Terminal=false
+Categories=Wine;
+StartupNotify=true
+EOF
+  chmod +x "$desk"
+  update-desktop-database "$DESKTOP_DIR" 2>/dev/null || true
+  echo "Verknüpfung: $desk"
+}
+
+cmd_desktop() {
+  local file="${1:-}"
+  [[ -n "$file" && -f "$file" ]] || { echo "Usage: silk-windows desktop <programm.exe>" >&2; exit 1; }
+  create_desktop "$(realpath "$file")"
+}
+
+cmd_vm_setup() {
+  cat <<'EOF'
+╔══════════════════════════════════════════════════════════════╗
+║  Echte Windows-VM (für Programme, die Wine nicht kann)        ║
+╚══════════════════════════════════════════════════════════════╝
+
+Wann nötig?
+  • Online-Spiele mit Anti-Cheat
+  • Banking / Smartcard / Kernel-Treiber
+  • Spezielle Hardware-Software
+
+Empfohlener Weg (WinApps / FreeRDP):
+
+  1) Windows 10/11 in einer VM installieren (GNOME Boxes / virt-manager)
+     flatpak install flathub org.gnome.Boxes
+
+  2) In der VM: RDP aktivieren, gleichen User anlegen
+
+  3) Auf Silk:
+     flatpak install flathub com.freerdp.FreeRDP
+     # oder: WinApps → https://github.com/winapps-org/winapps
+
+  4) Apps aus der VM erscheinen dann wie lokale Programme
+
+Einfacher Alltags-RDP:
+  xfreerdp /v:WINDOWS-IP /u:USER /dynamic-resolution /sound
+
+Silk bleibt dein Haupt-OS – Windows nur für Sonderfälle in der VM.
+EOF
+  flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
+  if command -v kdialog >/dev/null 2>&1; then
+    if kdialog --yesno "GNOME Boxes + FreeRDP jetzt installieren?" 2>/dev/null; then
+      flatpak install -y --user flathub org.gnome.Boxes 2>/dev/null || true
+      flatpak install -y --user flathub com.freerdp.FreeRDP 2>/dev/null || true
+      echo "Installiert. Windows-ISO in Boxes laden und RDP aktivieren."
+    fi
+  else
+    echo "Optional: flatpak install flathub org.gnome.Boxes com.freerdp.FreeRDP"
+  fi
+}
+
+cmd_doctor() {
+  cmd_status
+  echo
+  echo "=== Checks ==="
+  bottles_installed && echo "✓ Bottles" || echo "✗ Bottles – silk-windows setup"
+  bottle_exists 2>/dev/null && echo "✓ Flasche $BOTTLE_NAME" || echo "○ Flasche fehlt (wird bei run angelegt)"
+  flatpak info net.davidotek.pupgui2 &>/dev/null && echo "✓ ProtonUp-Qt" || echo "○ ProtonUp-Qt optional"
+  command -v wine >/dev/null && echo "✓ Wine Fallback" || echo "○ Wine Fallback"
+  [[ -x /usr/bin/silk-run-exe ]] && echo "✓ silk-run-exe" || echo "✗ silk-run-exe"
+  grep -q silk-run-exe /usr/share/applications/silk-open-exe.desktop 2>/dev/null \
+    && echo "✓ MIME .exe → Silk" || echo "○ MIME-Handler prüfen"
+  echo
+  echo "Test: silk-windows run ~/Downloads/irgendwas.exe"
+}
+
+cmd_prefer() {
+  case "${1:-}" in
+    windows|win|direct) save_prefer windows ;;
+    linux|flatpak) save_prefer linux ;;
+    auto|"") save_prefer auto ;;
+    *) echo "Erlaubt: windows | linux | auto" >&2; exit 1 ;;
+  esac
+}
+
+main() {
+  local cmd="${1:-}"
+  case "$cmd" in
+    ""|-h|--help) usage ;;
+    setup) cmd_setup ;;
+    status) cmd_status ;;
+    run|install) shift; cmd_run "${1:-}" ;;
+    prefer) shift; cmd_prefer "${1:-auto}" ;;
+    desktop) shift; cmd_desktop "${1:-}" ;;
+    vm-setup|vm) cmd_vm_setup ;;
+    doctor) cmd_doctor ;;
+    *)
+      if [[ -f "$cmd" ]]; then
+        cmd_run "$cmd"
+      else
+        echo "Unbekannt: $cmd" >&2
+        usage >&2
+        exit 1
+      fi
+      ;;
+  esac
+}
+
+main "$@"

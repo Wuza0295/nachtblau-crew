@@ -1,8 +1,8 @@
 [Desktop Entry]
 Name=Silk Installer (Windows)
 Name[de]=Silk-Installer (Windows)
-Comment=Installiert Linux-Äquivalent oder startet .exe mit Wine/Bottles
-Comment[de]=Sucht Flatpak-Gegenstück oder startet .exe mit Wine/Bottles
+Comment=Starts Windows .exe via Silk (Bottles) – auto-setup
+Comment[de]=Startet Windows-.exe über Silk (Bottles) – automatisch eingerichtet
 Exec=silk-install %f
 Icon=application-x-ms-dos-executable
 Terminal=false

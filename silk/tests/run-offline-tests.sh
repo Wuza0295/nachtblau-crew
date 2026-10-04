@@ -44,7 +44,9 @@ for f in \
   system_files/usr/bin/silk-asahi \
   system_files/usr/bin/silk-tablet \
   system_files/usr/bin/silk-mobile \
+  system_files/usr/bin/silk-windows \
   system_files/usr/libexec/silk/connect-server \
+  docs/WINDOWS.md \
   system_files/usr/share/silk/connect/index.html \
   system_files/usr/share/silk/connect/manifest.json \
   system_files/usr/share/silk/mobile-devices.txt \
@@ -300,6 +302,16 @@ grep -q 'silk-platform detect' "$ROOT/system_files/usr/bin/silk-setup" && ok "se
 WF_ROOT="$(cd "$ROOT/.." && pwd)/.github/workflows/silk-build.yml"
 grep -q 'silk-asahi' "$WF_ROOT" && ok "CI silk-asahi matrix" || bad "CI asahi"
 grep -q 'kdeconnect' "$ROOT/system_files/usr/bin/silk-connect" && ok "connect kdeconnect" || bad "connect kdeconnect"
+
+echo "== Windows ohne Hürde =="
+grep -q 'silk-windows run' "$ROOT/system_files/usr/bin/silk-run-exe" && ok "silk-run-exe → silk-windows" || bad "silk-run-exe"
+grep -q 'setup-windows' "$ROOT/system_files/usr/bin/silk-install" && ok "setup-windows" || bad "setup-windows"
+grep -q 'SILK_WINDOWS_PREFER\|windows_prefer\|prefer' "$ROOT/system_files/usr/bin/silk-install" && ok "windows prefer in install" || bad "windows prefer"
+grep -q 'ensure_bottle\|SilkWindows' "$ROOT/system_files/usr/bin/silk-windows" && ok "silk-windows bottle" || bad "silk-windows bottle"
+grep -q 'SILK_AUTO_WINDOWS\|setup-windows' "$ROOT/system_files/usr/bin/silk-setup" && ok "setup auto windows" || bad "setup windows"
+grep -q 'com.usebottles.bottles' "$ROOT/system_files/usr/share/silk/recommended-essentials.txt" && ok "bottles in essentials" || bad "bottles essentials"
+[[ -f "$ROOT/docs/WINDOWS.md" ]] && ok "WINDOWS.md" || bad "WINDOWS.md"
+bash -n "$ROOT/system_files/usr/bin/silk-windows" && ok "silk-windows syntax" || bad "silk-windows syntax"
 
 echo "== Markenname Aurora nicht in Nutzer-Text =="
 for f in README.md QUICKSTART.md ROADMAP.md LEGAL.md system_files/usr/share/silk/welcome.html docs/silk-produktuebersicht.html; do
