@@ -105,13 +105,8 @@ install_desktop() {
   fi
 
   log "Installiere leichtgewichtigen Desktop: XFCE + LightDM (ohne Empfehlungen) …"
-  # Raspberry Pi OS / Debian: policykit-1 ist durch polkitd + pkexec ersetzt
-  local polkit_pkgs=()
-  if apt-cache show policykit-1 >/dev/null 2>&1; then
-    polkit_pkgs+=(policykit-1)
-  else
-    polkit_pkgs+=(polkitd pkexec)
-  fi
+  # Raspberry Pi OS Bookworm+: policykit-1 hat keinen Installationskandidaten mehr
+  # (apt-cache show kann trotzdem noch Metadaten liefern → immer polkitd/pkexec).
   apt-get install -y --no-install-recommends \
     xserver-xorg \
     xserver-xorg-video-fbdev \
@@ -119,7 +114,8 @@ install_desktop() {
     lightdm \
     xfce4 \
     xfce4-terminal \
-    "${polkit_pkgs[@]}" \
+    polkitd \
+    pkexec \
     dbus-x11
 
   log "Graphical Target aktivieren …"
