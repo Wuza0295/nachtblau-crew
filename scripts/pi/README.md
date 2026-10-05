@@ -86,3 +86,12 @@ sudo ./scripts/pi/install-lightweight-desktop.sh --yes --upgrade
 | `--yes` | Nicht interaktiv nachfragen |
 
 Der Cloud-Agent hat **keinen SSH-Zugang** zu deinem Pi – dieses Skript musst du **auf dem Pi** (oder per `ssh pi@…`) ausführen.
+
+### Vom Windows-PC (Heimnetz)
+
+```powershell
+cd nachtblau-crew\scripts\pi
+.\run-lightweight-desktop-from-windows.ps1
+```
+
+Oder lokalen Cursor-Agent: Prompt in `LOCAL-AGENT-PROMPT.md` kopieren (**Run on: This Computer**).
