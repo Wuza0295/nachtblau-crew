@@ -1,0 +1,39 @@
+Options -MultiViews
+DirectoryIndex spa/index.html index.php
+RewriteEngine On
+
+# ALL-INKL: PHP 8.5 (CGI/FPM)
+AddHandler php85-cgi .php
+
+# Basic hardening
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+  Header set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+</IfModule>
+
+# www → apex
+RewriteCond %{HTTP_HOST} ^www\.hybrixon\.com$ [NC]
+RewriteRule ^(.*)$ https://hybrixon.com/$1 [R=301,L]
+
+# Protect runtime / source
+RewriteRule ^data/ - [F,L]
+RewriteRule ^includes/ - [F,L]
+
+# JSON API (PHP 8.5 engine)
+RewriteRule ^api(?:/(.*))?$ api/index.php [L,QSA]
+
+# Keep classic PHP endpoints & uploads reachable
+RewriteRule ^(admin|uploads|assets/img|assets/css|assets/js)(/|$) - [L]
+RewriteRule ^(media|messages|message|age-verify|profile|rules|terms|privacy|impressum|login|logout|register|compose)\.php$ - [L]
+RewriteRule ^manifest\.json$ - [L]
+
+# SPA build output
+RewriteRule ^spa/ - [L]
+RewriteRule ^spa-assets/ - [L]
+
+# Client routes → Vite SPA (React 19)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ spa/index.html [L]
