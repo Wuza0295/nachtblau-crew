@@ -6,6 +6,7 @@ on:
     branches: [cursor/hybrixon-topbar-fix-696c]
     paths:
       - "webspace/hybrixon.com/assets/css/style.css"
+      - "webspace/hybrixon.com/assets/js/app.js"
       - "scripts/deploy-hybrixon-css.py"
       - ".github/workflows/deploy-hybrixon-css.yml"
 
