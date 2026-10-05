@@ -1,3 +1,4 @@
+/* hx-csrf-fix-20261005 */
 document.addEventListener('DOMContentLoaded', () => {
   const adultToggle = document.querySelector('[data-adult-toggle]');
   const adultHint = document.querySelector('[data-adult-hint]');

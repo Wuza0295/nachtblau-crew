@@ -115,3 +115,6 @@ scripts/pi-nacht-install/.cache/
 # Manus version file (auto-generated, not part of source)
 client/public/__manus__/version.json
 .project-config.json
+
+.env.webspace
+.env.kas
