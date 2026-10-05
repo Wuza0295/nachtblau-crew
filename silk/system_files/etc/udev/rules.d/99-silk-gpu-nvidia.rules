@@ -1,2 +1,6 @@
-# NVIDIA GPU: Runtime-PM (nvidia-open Treiber)
+# NVIDIA GPU – Runtime-PM (nvidia / nvidia-open)
 ACTION=="add", SUBSYSTEM=="pci", DRIVER=="nvidia", ATTR{power/control}="auto"
+ACTION=="add", SUBSYSTEM=="drm", KERNEL=="card*", ATTRS{vendor}=="0x10de", TAG+="silk_nvidia_gpu"
+
+# NVIDIA Audio
+ACTION=="add", SUBSYSTEM=="sound", ATTRS{vendor}=="0x10de", TAG+="uaccess"

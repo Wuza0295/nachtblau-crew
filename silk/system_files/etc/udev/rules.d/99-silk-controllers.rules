@@ -1,0 +1,37 @@
+# Silk – Controller / Gamepads (USB + Bluetooth)
+# Xbox, DualSense/DualShock, Switch Pro, 8BitDo, generische HID
+# Ergänzt steam-devices; Regeln sind best-effort und idempotent.
+
+# Zugriff für Eingabe-Gruppe
+KERNEL=="hidraw*", ATTRS{idVendor}=="054c", MODE="0660", TAG+="uaccess"
+KERNEL=="hidraw*", ATTRS{idVendor}=="057e", MODE="0660", TAG+="uaccess"
+KERNEL=="hidraw*", ATTRS{idVendor}=="045e", MODE="0660", TAG+="uaccess"
+KERNEL=="hidraw*", ATTRS{idVendor}=="2dc8", MODE="0660", TAG+="uaccess"
+KERNEL=="hidraw*", ATTRS{idVendor}=="046d", MODE="0660", TAG+="uaccess"
+KERNEL=="hidraw*", ATTRS{idVendor}=="0e6f", MODE="0660", TAG+="uaccess"
+KERNEL=="hidraw*", ATTRS{idVendor}=="24c6", MODE="0660", TAG+="uaccess"
+KERNEL=="hidraw*", ATTRS{idVendor}=="1532", MODE="0660", TAG+="uaccess"
+KERNEL=="hidraw*", ATTRS{idVendor}=="0f0d", MODE="0660", TAG+="uaccess"
+KERNEL=="hidraw*", ATTRS{idVendor}=="2563", MODE="0660", TAG+="uaccess"
+KERNEL=="hidraw*", ATTRS{idVendor}=="0079", MODE="0660", TAG+="uaccess"
+
+# Joystick-Nodes
+KERNEL=="js[0-9]*", MODE="0660", TAG+="uaccess"
+KERNEL=="event*", ENV{ID_INPUT_JOYSTICK}=="1", MODE="0660", TAG+="uaccess"
+
+# Sony DualShock 4 / DualSense
+SUBSYSTEM=="usb", ATTR{idVendor}=="054c", ATTR{idProduct}=="05c4", MODE="0660", TAG+="uaccess"
+SUBSYSTEM=="usb", ATTR{idVendor}=="054c", ATTR{idProduct}=="09cc", MODE="0660", TAG+="uaccess"
+SUBSYSTEM=="usb", ATTR{idVendor}=="054c", ATTR{idProduct}=="0ce6", MODE="0660", TAG+="uaccess"
+SUBSYSTEM=="usb", ATTR{idVendor}=="054c", ATTR{idProduct}=="0df2", MODE="0660", TAG+="uaccess"
+
+# Nintendo Switch Pro / Joy-Con
+SUBSYSTEM=="usb", ATTR{idVendor}=="057e", ATTR{idProduct}=="2009", MODE="0660", TAG+="uaccess"
+SUBSYSTEM=="usb", ATTR{idVendor}=="057e", ATTR{idProduct}=="2006", MODE="0660", TAG+="uaccess"
+SUBSYSTEM=="usb", ATTR{idVendor}=="057e", ATTR{idProduct}=="2007", MODE="0660", TAG+="uaccess"
+
+# Xbox One / Series / 360
+SUBSYSTEM=="usb", ATTR{idVendor}=="045e", MODE="0660", TAG+="uaccess"
+
+# 8BitDo
+SUBSYSTEM=="usb", ATTR{idVendor}=="2dc8", MODE="0660", TAG+="uaccess"

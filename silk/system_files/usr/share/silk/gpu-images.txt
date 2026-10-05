@@ -1,9 +1,15 @@
 # Silk GPU-Image-Varianten (bootc switch)
 #
-# AMD + Intel (Open-Stack, Mesa):
+# AMD + Intel (Mesa / RADV / ANV):
 #   ghcr.io/<user>/silk:latest
 #
-# NVIDIA (nvidia-open, Turing/16xx+):
+# NVIDIA Turing / GTX 16xx+ / RTX (nvidia-open):
 #   ghcr.io/<user>/silk-nvidia-open:latest
 #
-# Ersetze <user> durch deine GitHub-Organisation (silk.env: REPO_ORGANIZATION).
+# NVIDIA älter (Pascal/Maxwell, GTX 9xx/10xx) – proprietär:
+#   ghcr.io/<user>/silk-nvidia:latest
+#
+# Automatisch wählen:
+#   silk-gpu switch
+#
+# Ersetze <user> durch REPO_ORGANIZATION in silk.env (Standard: wuza0295).

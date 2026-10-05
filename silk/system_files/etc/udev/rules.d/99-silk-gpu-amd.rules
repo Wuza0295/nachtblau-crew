@@ -1,2 +1,6 @@
-# AMD GPU: Runtime-PM freundlich
+# AMD GPU – Performance & Runtime-PM
 ACTION=="add", SUBSYSTEM=="pci", DRIVER=="amdgpu", ATTR{power/control}="auto"
+ACTION=="add", SUBSYSTEM=="drm", KERNEL=="card*", ATTRS{vendor}=="0x1002", TAG+="silk_amd_gpu"
+
+# HDA Audio an AMD-GPU (HDMI/DP)
+ACTION=="add", SUBSYSTEM=="sound", ATTRS{vendor}=="0x1002", TAG+="uaccess"

@@ -21,7 +21,8 @@ und wohin **Silk 2.0** langfristig gehen kann.
 | **Windows ohne Hürde** | ✅ | `silk-windows` – Bottles Auto-Setup, Doppelklick `.exe`, VM-Fallback |
 | **Erstlogin** | ✅ | `silk-setup`, Essentials auto, optional Gaming |
 | **Wechsler-Komfort** | ✅ | NTFS/exFAT, SMB, Fonts, MIME-Handler, `silk-welcome` |
-| **GPU** | ✅ | AMD/Intel/NVIDIA, `silk-gpu`, zwei Image-Varianten |
+| **GPU** | ✅ | AMD/Intel voll; NVIDIA open + proprietär (`silk-nvidia`) |
+| **Controller** | ✅ | `silk-controllers` – Xbox, DualSense, Switch, 8BitDo, HID |
 | **Hardware-Erkennung** | ✅ | `silk-hardware` (PC / Intel-Mac / Apple Silicon) |
 | **Hintergründe** | ✅ | 20× Desktop + 20× Sperrbild, `silk-wallpaper` |
 | **Updates** | ✅ | `silk-update`, `silk-sync-config`, bootc upgrade |

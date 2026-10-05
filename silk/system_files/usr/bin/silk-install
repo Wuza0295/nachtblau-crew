@@ -130,6 +130,8 @@ setup_essentials() {
 setup_gaming() {
   setup_list "$(silk_config recommended-flatpaks.txt)" "Gaming-Flatpaks"
   /usr/bin/silk-windows setup || true
+  /usr/bin/silk-controllers setup || true
+  /usr/bin/silk-gpu status || true
 }
 
 setup_windows() {

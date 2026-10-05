@@ -46,8 +46,9 @@ for f in \
   system_files/usr/bin/silk-mobile \
   system_files/usr/bin/silk-windows \
   system_files/usr/libexec/silk/connect-server \
-  system_files/usr/bin/silk-apply-habits \
-  docs/HABITS.md \
+  system_files/usr/bin/silk-controllers \
+  system_files/etc/udev/rules.d/99-silk-controllers.rules \
+  docs/GPU-CONTROLLERS.md \
   system_files/usr/share/silk/connect/index.html \
   system_files/usr/share/silk/connect/manifest.json \
   system_files/usr/share/silk/mobile-devices.txt \
@@ -322,6 +323,18 @@ grep -q 'org.kde.plasma.showdesktop' "$ROOT/system_files/usr/share/silk/plasma-w
 [[ -f "$ROOT/docs/HABITS.md" ]] && ok "HABITS.md" || bad "HABITS.md"
 bash -n "$ROOT/system_files/usr/bin/silk-apply-habits" && ok "habits syntax" || bad "habits syntax"
 grep -q 'Gewohnheiten nach Desktop-Stil' "$ROOT/system_files/usr/share/silk/welcome.html" && ok "welcome habits" || bad "welcome habits"
+
+echo "== GPU AMD/NVIDIA + Controller =="
+grep -q 'silk-nvidia' "$ROOT/silk.env" && ok "silk-nvidia env" || bad "silk-nvidia env"
+grep -q 'silk-nvidia' "$WF_ROOT" && ok "CI silk-nvidia" || bad "CI silk-nvidia"
+grep -q 'steam-devices' "$ROOT/build_files/03-gaming.sh" && ok "steam-devices package" || bad "steam-devices"
+grep -q 'mesa-vulkan-drivers.i686' "$ROOT/build_files/03-gaming.sh" && ok "32bit mesa steam" || bad "32bit mesa"
+grep -q 'silk-gpu switch' "$ROOT/system_files/usr/bin/silk-gpu" && ok "silk-gpu switch" || bad "silk-gpu switch"
+grep -q 'DualSense\|045e\|054c' "$ROOT/system_files/etc/udev/rules.d/99-silk-controllers.rules" && ok "controller udev" || bad "controller udev"
+grep -q 'silk-controllers' "$ROOT/system_files/usr/bin/silk-setup" && ok "setup controllers" || bad "setup controllers"
+[[ -f "$ROOT/docs/GPU-CONTROLLERS.md" ]] && ok "GPU-CONTROLLERS.md" || bad "GPU-CONTROLLERS.md"
+bash -n "$ROOT/system_files/usr/bin/silk-controllers" && ok "controllers syntax" || bad "controllers syntax"
+bash -n "$ROOT/system_files/usr/bin/silk-gpu" && ok "silk-gpu syntax" || bad "silk-gpu syntax"
 
 echo "== Markenname Aurora nicht in Nutzer-Text =="
 for f in README.md QUICKSTART.md ROADMAP.md LEGAL.md system_files/usr/share/silk/welcome.html docs/silk-produktuebersicht.html; do

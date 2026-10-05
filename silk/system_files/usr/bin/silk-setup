@@ -56,6 +56,17 @@ if [[ "${SILK_SKIP_WINDOWS:-0}" != "1" ]]; then
   fi
 fi
 
+# 3b) GPU + Controller
+/usr/bin/silk-gpu detect 2>/dev/null || true
+/usr/bin/silk-controllers setup 2>/dev/null || true
+if command -v kdialog >/dev/null 2>&1; then
+  gpu="$(/usr/bin/silk-gpu detect 2>/dev/null || true)"
+  if [[ "$gpu" == nvidia ]]; then
+    kdialog --yesno "NVIDIA erkannt. Zum empfohlenen Silk-NVIDIA-Image wechseln?\n(silk-gpu switch)" 2>/dev/null && \
+      /usr/bin/silk-gpu switch || true
+  fi
+fi
+
 # 4) Gaming optional
 if [[ "${SILK_AUTO_GAMING:-0}" == "1" ]]; then
   /usr/bin/silk-install --setup-gaming || true

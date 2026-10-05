@@ -120,17 +120,19 @@ Silk trackt **nur** die Universal-Blue-KDE-Basis (nie `FROM` Bazzite). Gaming-Fl
 
 | GPU | Silk-Image | Basis |
 |-----|------------|-------|
-| **AMD** | `ghcr.io/<user>/silk:latest` | Upstream KDE `:stable` (Mesa/RADV) |
-| **Intel** (iGPU/Arc) | `ghcr.io/<user>/silk:latest` | Upstream KDE `:stable` (Mesa/i915/Xe) |
-| **NVIDIA** (Turing/16xx+) | `ghcr.io/<user>/silk-nvidia-open:latest` | Upstream nvidia-open `:stable` |
+| **AMD** | `ghcr.io/<user>/silk:latest` | Mesa/RADV (voll) |
+| **Intel** (iGPU/Arc) | `ghcr.io/<user>/silk:latest` | Mesa (voll) |
+| **NVIDIA** Turing+ | `ghcr.io/<user>/silk-nvidia-open:latest` | nvidia-open |
+| **NVIDIA** GTX 9xx/10xx | `ghcr.io/<user>/silk-nvidia:latest` | proprietär |
 
 ```bash
 silk-gpu status          # erkannte GPU + empfohlenes Image
-silk-gpu hints           # Kernel-Args & Image-Hinweise
-sudo bootc switch --enforce-container-sigpolicy ghcr.io/<user>/silk-nvidia-open:latest
+silk-gpu switch          # Image wechseln
+silk-gpu hints           # Kernel-Args
+silk-controllers setup   # Xbox, DualSense, Switch, 8BitDo, …
 ```
 
-**Hinweis:** Ältere NVIDIA-GPUs (Pascal/Maxwell, GTX 9xx/10xx) werden von `nvidia-open` nicht unterstützt – dort ggf. [Bazzite](https://bazzite.gg/) mit Legacy-Treibern.
+Details: [`docs/GPU-CONTROLLERS.md`](docs/GPU-CONTROLLERS.md)
 
 ## Mac / MacBook (Hardware vs. Software)
 

@@ -1,0 +1,169 @@
+#!/usr/bin/env bash
+# silk-controllers – Gamepads & Controller (Xbox, DualSense, Switch, 8BitDo, …)
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+silk-controllers – Controller-Unterstützung
+
+Usage:
+  silk-controllers status     Erkannte Gamepads / Joysticks
+  silk-controllers list       Detaillierte USB/Bluetooth-Liste
+  silk-controllers setup      Rechte, udev, Bluetooth-Hinweise
+  silk-controllers test       Interaktiver Test (jstest falls vorhanden)
+  silk-controllers doctor     Diagnose
+
+Unterstützt (Ziel): Xbox, DualSense/DualShock, Switch Pro/Joy-Con,
+8BitDo, Logitech, generische HID – USB und Bluetooth.
+EOF
+}
+
+list_js() {
+  local f
+  shopt -s nullglob
+  for f in /dev/input/js*; do
+    echo "  $f"
+  done
+  for f in /sys/class/input/js*/device/name; do
+    [[ -r "$f" ]] || continue
+    echo "  $(cat "$f") ($(dirname "$(dirname "$f")"))"
+  done
+}
+
+list_evdev_joysticks() {
+  local d name
+  shopt -s nullglob
+  for d in /sys/class/input/event*/device; do
+    [[ -r "$d/name" ]] || continue
+    if [[ -e "$d/capabilities/abs" ]] || grep -q joystick "$d/../../id/input"* 2>/dev/null; then
+      name="$(cat "$d/name" 2>/dev/null || true)"
+      # Heuristik: typische Controller-Namen
+      if echo "$name" | grep -qiE 'xbox|x-box|dualsense|dualshock|wireless controller|switch|pro controller|8bitdo|gamepad|joystick|sony|microsoft'; then
+        echo "  $name"
+      fi
+    fi
+  done
+}
+
+cmd_status() {
+  echo "=== Silk Controller ==="
+  echo "Joystick-Geräte (/dev/input/js*):"
+  if compgen -G '/dev/input/js*' >/dev/null; then
+    list_js
+  else
+    echo "  (keine – Controller anschließen oder Bluetooth koppeln)"
+  fi
+  echo
+  echo "Bekannte Gamepads (Name):"
+  list_evdev_joysticks | sort -u || echo "  (keine erkannt)"
+  echo
+  if [[ -f /usr/lib/udev/rules.d/60-steam-input.rules ]] || [[ -f /usr/lib/udev/rules.d/60-steam-vr.rules ]] || rpm -q steam-devices &>/dev/null; then
+    echo "steam-devices: vorhanden ✓"
+  else
+    echo "steam-devices: prüfen – silk-controllers setup"
+  fi
+  if [[ -f /etc/udev/rules.d/99-silk-controllers.rules ]]; then
+    echo "Silk udev:     vorhanden ✓"
+  else
+    echo "Silk udev:     fehlt"
+  fi
+}
+
+cmd_list() {
+  echo "=== USB (lsusb, gefiltert) ==="
+  if command -v lsusb >/dev/null 2>&1; then
+    lsusb | grep -iE 'xbox|sony|nintendo|8bitdo|logitech|microsoft|controller|gamepad|dualsense|dualshock' || echo "(keine typischen Treffer – Gerät trotzdem ok möglich)"
+  else
+    echo "lsusb nicht installiert"
+  fi
+  echo
+  echo "=== Bluetooth (gekoppelt) ==="
+  if command -v bluetoothctl >/dev/null 2>&1; then
+    bluetoothctl devices 2>/dev/null || echo "(Bluetooth nicht bereit)"
+  else
+    echo "bluetoothctl fehlt"
+  fi
+  echo
+  cmd_status
+}
+
+cmd_setup() {
+  echo "Richte Controller-Unterstützung ein…"
+  # User in input-Gruppe (falls vorhanden)
+  if getent group input >/dev/null 2>&1; then
+    if command -v usermod >/dev/null 2>&1; then
+      sudo usermod -aG input "$USER" 2>/dev/null || true
+      echo "→ Gruppe input (nach Re-Login aktiv)"
+    fi
+  fi
+  # udev neu laden
+  if [[ -f /etc/udev/rules.d/99-silk-controllers.rules ]]; then
+    sudo udevadm control --reload-rules 2>/dev/null || true
+    sudo udevadm trigger 2>/dev/null || true
+    echo "→ udev Regeln neu geladen"
+  fi
+  # Bluetooth
+  if command -v systemctl >/dev/null 2>&1; then
+    sudo systemctl enable --now bluetooth 2>/dev/null || true
+  fi
+  # Steam Input empfohlen
+  if ! flatpak info com.valvesoftware.Steam &>/dev/null; then
+    echo "Tipp: Steam installieren für besten Controller-Support:"
+    echo "  silk-install --setup-gaming"
+  fi
+  echo
+  echo "Bluetooth koppeln:"
+  echo "  1) Controller in Pairing-Modus"
+  echo "  2) Systemeinstellungen → Bluetooth  oder: bluetoothctl"
+  echo "  3) silk-controllers status"
+  notify-send "Silk Controller" "Controller-Setup abgeschlossen" 2>/dev/null || true
+}
+
+cmd_test() {
+  if command -v jstest >/dev/null 2>&1; then
+    local js
+    js="$(echo /dev/input/js* | awk '{print $1}')"
+    if [[ -e "$js" ]]; then
+      echo "Teste $js – Strg+C zum Beenden"
+      jstest --normal "$js"
+    else
+      echo "Kein /dev/input/js* – Controller anschließen." >&2
+      exit 1
+    fi
+  elif command -v jstest-gtk >/dev/null 2>&1; then
+    jstest-gtk &
+  else
+    echo "jstest nicht gefunden. Status:"
+    cmd_status
+    echo
+    echo "In Steam: Einstellungen → Controller → Allgemeiner Controller-Support"
+  fi
+}
+
+cmd_doctor() {
+  cmd_list
+  echo
+  echo "=== Rechte ==="
+  ls -l /dev/input/js* 2>/dev/null || echo "keine js-Geräte"
+  echo
+  echo "=== Tipps ==="
+  echo "• Xbox Wireless: USB-Dongle oder Bluetooth (Series)"
+  echo "• DualSense: USB oder BT; Steam Input empfohlen"
+  echo "• Switch Pro: oft besser über Steam Input"
+  echo "• 8BitDo: Modus X-Input (Xbox) wählen"
+  echo "• silk-controllers setup && neu anmelden"
+}
+
+main() {
+  case "${1:-status}" in
+    status) cmd_status ;;
+    list) cmd_list ;;
+    setup) cmd_setup ;;
+    test) cmd_test ;;
+    doctor) cmd_doctor ;;
+    -h|--help) usage ;;
+    *) echo "Unbekannt: $1" >&2; usage; exit 1 ;;
+  esac
+}
+
+main "$@"

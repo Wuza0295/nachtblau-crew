@@ -1,4 +1,13 @@
 # AMD – empfohlene Kernel-Args (als root, einmalig):
 #   rpm-ostree kargs --append=amd_pstate=active
 #   rpm-ostree kargs --append=amdgpu.ppfeaturemask=0xffffffff
-# Silk setzt Sysctl/Udev-Defaults; Kargs bleiben user-gesteuert.
+#
+# Silk enthält: amd-gpu-firmware, Mesa RADV, 32-Bit Mesa für Steam,
+# VAAPI (libva-mesa), radeontop, optional amdvlk.
+#
+# Prüfen:
+#   silk-gpu status
+#   silk-gpu vulkan
+#   glxinfo | grep renderer   # erwartet: AMD RADV / radeonsi
+#
+# Hybrid-Laptops (AMD + NVIDIA): silk-gpu switch für die diskrete Karte.
