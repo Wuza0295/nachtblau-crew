@@ -62,7 +62,7 @@ Beim ersten Login: Stil wählen → **Alltags-Apps automatisch** → optional Ga
 - **Fonts:** Liberation + Noto (+ MS-Core wo verfügbar)
 - **Defaults:** PDF/Office/Medien + Installer-MIME
 - **Hintergrund:** 20 Desktop- + 20 Sperrbild-Varianten (Mac 01–10, Windows 11–20), `silk-wallpaper list/set/random`
-- **Hilfe:** `silk-welcome`
+- **Hilfe:** `silk-welcome` · **Windows-VM:** [`windows/Install-SilkVM.cmd`](windows/Install-SilkVM.cmd)
 
 ## Verteilung & Updates (wichtig)
 

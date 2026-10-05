@@ -50,6 +50,7 @@ for f in \
   system_files/usr/bin/silk-ready \
   system_files/usr/bin/silk-tour \
   system_files/usr/bin/silk-tips \
+  system_files/usr/bin/silk-vm \
   system_files/usr/libexec/silk/ux-helpers \
   system_files/usr/libexec/silk/firstboot \
   system_files/usr/libexec/silk/plug-ready \
@@ -402,6 +403,21 @@ bash "$ROOT/system_files/usr/bin/silk-tips" --list >/dev/null && ok "silk-tips l
 # Tipps ohne Display
 bash -n "$ROOT/system_files/usr/libexec/silk/ux-helpers" && ok "ux-helpers bash -n" || bad "ux-helpers bash -n"
 bash -c 'source "'"$ROOT"'/system_files/usr/libexec/silk/ux-helpers"; silk_notify "t" "b"; true' && ok "ux-helpers source" || bad "ux-helpers source"
+
+echo "== Windows VM Tool =="
+[[ -f "$ROOT/windows/Install-SilkVM.ps1" ]] && ok "Install-SilkVM.ps1" || bad "Install-SilkVM.ps1"
+[[ -f "$ROOT/windows/Install-SilkVM.cmd" ]] && ok "Install-SilkVM.cmd" || bad "Install-SilkVM.cmd"
+grep -q 'HyperV\|VirtualBox' "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 HyperV+VBox" || bad "PS1 backends"
+grep -q 'Silk-Installer-x86_64.iso' "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 ISO download" || bad "PS1 ISO"
+grep -q 'silk-media-latest' "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 release tag" || bad "PS1 release"
+[[ -f "$ROOT/docs/VM-WINDOWS.md" ]] && ok "VM-WINDOWS.md" || bad "VM-WINDOWS.md"
+[[ -f "$ROOT/scripts/go-virtualbox.sh" ]] && ok "go-virtualbox.sh" || bad "go-virtualbox.sh"
+[[ -f "$ROOT/scripts/test-silk-virtualbox.sh" ]] && ok "test-silk-virtualbox.sh" || bad "test-silk-vbox"
+[[ -x "$ROOT/system_files/usr/bin/silk-vm" ]] && ok "silk-vm executable" || bad "silk-vm exec"
+bash -n "$ROOT/system_files/usr/bin/silk-vm" && ok "silk-vm syntax" || bad "silk-vm syntax"
+bash "$ROOT/system_files/usr/bin/silk-vm" --help >/dev/null && ok "silk-vm help" || bad "silk-vm help"
+grep -q 'Install-SilkVM' "$ROOT/QUICKSTART.md" && ok "QUICKSTART Windows VM" || bad "QUICKSTART VM"
+
 
 echo "== Markenname Aurora nicht in Nutzer-Text =="
 for f in README.md QUICKSTART.md ROADMAP.md LEGAL.md system_files/usr/share/silk/welcome.html docs/silk-produktuebersicht.html; do

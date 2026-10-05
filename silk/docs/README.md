@@ -13,6 +13,7 @@ Alternativ im Repo-Root: [`../silk-zusammenfassung.pdf`](../silk-zusammenfassung
 | Dokument | Inhalt |
 |----------|--------|
 | [`OUT-OF-BOX.md`](OUT-OF-BOX.md) | Auspacken und loslegen – GPU + Controller on the fly |
+| [`VM-WINDOWS.md`](VM-WINDOWS.md) | Silk-VM unter Windows (Hyper-V / VirtualBox) |
 | [`UX.md`](UX.md) | User Experience – Tour, Startzentrum, Menü |
 | [`GPU-CONTROLLERS.md`](GPU-CONTROLLERS.md) | AMD / Intel / NVIDIA + Gamepads |
 | [`CONNECT.md`](CONNECT.md) | Silk Connect – iPhone/iPad Begleitgeräte |

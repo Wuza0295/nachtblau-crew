@@ -19,6 +19,15 @@ silk-ready status
 AMD/Intel: sofort. NVIDIA: Auto zum passenden Image (`silk-nvidia-open` oder `silk-nvidia`).  
 Controller: stecken / Bluetooth – on the fly.
 
+### Unter Windows testen (VM)
+
+```text
+silk\windows\Install-SilkVM.cmd
+```
+
+Hyper-V oder VirtualBox – lädt Silk-Medium, legt VM an, startet.  
+Details: [`docs/VM-WINDOWS.md`](docs/VM-WINDOWS.md)
+
 ---
 
 ## Tablet / 2-in-1

@@ -1,0 +1,178 @@
+#!/usr/bin/env bash
+# silk-vm – Silk in einer VM starten (Linux: QEMU/KVM oder VirtualBox)
+set -euo pipefail
+
+VM_NAME="${SILK_VM_NAME:-Silk}"
+MEDIA_DIR="${SILK_MEDIA_DIR:-$HOME/Silk-VMs}"
+RELEASE_REPO="${SILK_RELEASE_REPO:-Wuza0295/nachtblau-crew}"
+RELEASE_TAG="${SILK_RELEASE_TAG:-silk-media-latest}"
+MEM_MB="${SILK_VM_MEM:-4096}"
+CPUS="${SILK_VM_CPUS:-2}"
+BASE_URL="https://github.com/${RELEASE_REPO}/releases/download/${RELEASE_TAG}"
+
+usage() {
+  cat <<'EOF'
+silk-vm – Silk-VM herunterladen & starten
+
+  silk-vm                  Auto (QEMU wenn möglich, sonst VirtualBox-Hinweis)
+  silk-vm qemu             Fertige QCOW2-Disk mit QEMU/KVM starten
+  silk-vm iso              Installer-ISO laden (+ QEMU booten)
+  silk-vm vbox             VirtualBox-Pfad (go-virtualbox)
+  silk-vm download         Nur Medien laden / zusammenfügen
+  silk-vm status           Was liegt in ~/Silk-VMs
+
+Windows: siehe silk/windows/Install-SilkVM.cmd
+EOF
+}
+
+info() { printf '\n==> %s\n' "$*"; }
+die() { printf 'Fehler: %s\n' "$*" >&2; exit 1; }
+have() { command -v "$1" >/dev/null 2>&1; }
+
+download_file() {
+  local url="$1" dest="$2"
+  [[ -f "$dest" ]] && return 0
+  info "↓ $(basename "$dest")"
+  if have curl; then
+    curl -fL --retry 5 --retry-delay 3 -C - -o "$dest" "$url"
+  else
+    wget -c -O "$dest" "$url"
+  fi
+}
+
+join_parts() {
+  local base="$1" dir="$2"
+  local out="$dir/$base"
+  [[ -f "$out" ]] && { echo "$out"; return 0; }
+  local parts=( "$dir/$base.part"* )
+  [[ -e "${parts[0]:-}" ]] || die "Keine Teile für $base"
+  info "Setze $base zusammen …"
+  cat "$dir/$base.part"* > "$out"
+  if [[ -f "$dir/$base.sha256" ]]; then
+    (cd "$dir" && sha256sum -c "$base.sha256")
+  fi
+  echo "$out"
+}
+
+download_iso() {
+  mkdir -p "$MEDIA_DIR"
+  for f in \
+    Silk-Installer-x86_64.iso.sha256 \
+    Silk-Installer-x86_64.iso.part00 \
+    Silk-Installer-x86_64.iso.part01 \
+    Silk-Installer-x86_64.iso.part02 \
+    Silk-Installer-x86_64.iso.part03
+  do
+    download_file "$BASE_URL/$f" "$MEDIA_DIR/$f"
+  done
+  join_parts Silk-Installer-x86_64.iso "$MEDIA_DIR"
+}
+
+download_qcow() {
+  mkdir -p "$MEDIA_DIR"
+  for f in \
+    Silk-VM-x86_64.qcow2.sha256 \
+    Silk-VM-x86_64.qcow2.part00 \
+    Silk-VM-x86_64.qcow2.part01 \
+    Silk-VM-x86_64.qcow2.part02
+  do
+    download_file "$BASE_URL/$f" "$MEDIA_DIR/$f"
+  done
+  join_parts Silk-VM-x86_64.qcow2 "$MEDIA_DIR"
+}
+
+run_qemu_qcow() {
+  have qemu-system-x86_64 || die "qemu-system-x86_64 fehlt"
+  local disk
+  disk="$(download_qcow)"
+  local port="${SILK_VNC_PORT:-5901}"
+  info "Starte QEMU/KVM – VNC :${port} (vnc://127.0.0.1:${port})"
+  local kvm=()
+  [[ -r /dev/kvm ]] && kvm=(-enable-kvm -cpu host)
+  exec qemu-system-x86_64 \
+    "${kvm[@]}" \
+    -m "$MEM_MB" -smp "$CPUS" \
+    -drive "file=${disk},if=virtio,format=qcow2" \
+    -netdev user,id=net0 -device virtio-net-pci,netdev=net0 \
+    -device virtio-vga \
+    -usb -device usb-tablet \
+    -display none \
+    -vnc "127.0.0.1:$((port - 5900))" \
+    -name "$VM_NAME"
+}
+
+run_qemu_iso() {
+  have qemu-system-x86_64 || die "qemu-system-x86_64 fehlt"
+  local iso disk
+  iso="$(download_iso)"
+  disk="$MEDIA_DIR/${VM_NAME}-install.qcow2"
+  if [[ ! -f "$disk" ]]; then
+    qemu-img create -f qcow2 "$disk" 50G
+  fi
+  local port="${SILK_VNC_PORT:-5901}"
+  info "Starte QEMU Installer – VNC :${port}"
+  local kvm=()
+  [[ -r /dev/kvm ]] && kvm=(-enable-kvm -cpu host)
+  exec qemu-system-x86_64 \
+    "${kvm[@]}" \
+    -m "$MEM_MB" -smp "$CPUS" \
+    -drive "file=${disk},if=virtio,format=qcow2" \
+    -cdrom "$iso" \
+    -boot d \
+    -netdev user,id=net0 -device virtio-net-pci,netdev=net0 \
+    -device virtio-vga \
+    -usb -device usb-tablet \
+    -display none \
+    -vnc "127.0.0.1:$((port - 5900))" \
+    -name "$VM_NAME"
+}
+
+cmd_status() {
+  echo "Medien: $MEDIA_DIR"
+  ls -lh "$MEDIA_DIR" 2>/dev/null || echo "(leer)"
+}
+
+cmd_vbox() {
+  local script_dir
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  if [[ -x "$script_dir/test-silk-virtualbox.sh" ]]; then
+    exec "$script_dir/test-silk-virtualbox.sh" go "$@"
+  fi
+  die "VirtualBox-Skript fehlt – unter Windows: silk/windows/Install-SilkVM.cmd"
+}
+
+main() {
+  case "${1:-auto}" in
+    -h|--help) usage ;;
+    status) cmd_status ;;
+    download|dl)
+      download_iso >/dev/null
+      download_qcow >/dev/null || true
+      cmd_status
+      ;;
+    qemu|qcow|ready) run_qemu_qcow ;;
+    iso|installer) run_qemu_iso ;;
+    vbox|virtualbox) shift; cmd_vbox "$@" ;;
+    auto)
+      if have qemu-system-x86_64 && [[ -r /dev/kvm ]]; then
+        run_qemu_qcow
+      elif have VBoxManage; then
+        cmd_vbox
+      else
+        cat <<'EOF'
+Kein QEMU/KVM und kein VirtualBox.
+
+Linux:  sudo apt install qemu-system-x86
+        silk-vm qemu
+
+Windows:
+  silk\windows\Install-SilkVM.cmd
+EOF
+        exit 1
+      fi
+      ;;
+    *) die "Unbekannt: $1" ;;
+  esac
+}
+
+main "$@"

@@ -25,6 +25,7 @@ und wohin **Silk 2.0** langfristig gehen kann.
 | **Controller** | ✅ | on the fly – `silk-plug` + `silk-controllers` (Xbox, DualSense, Switch, 8BitDo, …) |
 | **Auspacken & loslegen** | ✅ | `silk-ready`, Firstboot-GPU, Autostart User-Ready |
 | **User Experience** | ✅ | `silk-tour`, Startzentrum, Menü-Apps, Tipps, Progress |
+| **Windows-VM-Tool** | ✅ | `windows/Install-SilkVM.cmd` – Hyper-V/VirtualBox, ein Klick |
 | **Hardware-Erkennung** | ✅ | `silk-hardware` (PC / Intel-Mac / Apple Silicon) |
 | **Hintergründe** | ✅ | 20× Desktop + 20× Sperrbild, `silk-wallpaper` |
 | **Updates** | ✅ | `silk-update`, `silk-sync-config`, bootc upgrade |
