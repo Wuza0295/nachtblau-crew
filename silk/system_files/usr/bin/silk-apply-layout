@@ -51,8 +51,7 @@ apply_mac() {
   apply_first plasma-apply-cursortheme WhiteSur-cursors WhiteSur
   set_icons WhiteSur WhiteSur-light WhiteSur-dark
   run_plasma_script /usr/share/silk/plasma-mac-layout.js
-  kwriteconfig6 --file kwinrc --group ModifierOnlyShortcuts --key Meta \
-    "org.kde.plasmashell,/PlasmaShell,org.kde.PlasmaShell,activateLauncherMenu" 2>/dev/null || true
+  /usr/bin/silk-apply-habits mac || true
 }
 
 apply_windows11() {
@@ -62,8 +61,7 @@ apply_windows11() {
   apply_first plasma-apply-cursortheme Fluent-cursors Bibata-Modern-Classic
   set_icons Fluent Fluent-light Win11-icons
   run_plasma_script /usr/share/silk/plasma-windows11-layout.js
-  kwriteconfig6 --file kwinrc --group ModifierOnlyShortcuts --key Meta \
-    "org.kde.plasmashell,/PlasmaShell,org.kde.PlasmaShell,activateLauncherMenu" 2>/dev/null || true
+  /usr/bin/silk-apply-habits windows11 || true
 }
 
 apply_windows10() {
@@ -73,8 +71,7 @@ apply_windows10() {
   apply_first plasma-apply-cursortheme Fluent-cursors
   set_icons Fluent Fluent-light
   run_plasma_script /usr/share/silk/plasma-windows10-layout.js
-  kwriteconfig6 --file kwinrc --group ModifierOnlyShortcuts --key Meta \
-    "org.kde.plasmashell,/PlasmaShell,org.kde.PlasmaShell,activateLauncherMenu" 2>/dev/null || true
+  /usr/bin/silk-apply-habits windows10 || true
 }
 
 apply_tablet() {
@@ -85,8 +82,7 @@ apply_tablet() {
   set_icons Fluent Fluent-light
   run_plasma_script /usr/share/silk/plasma-tablet-layout.js
   kwriteconfig6 --file kwinrc --group Tablets --key mode 1 2>/dev/null || true
-  kwriteconfig6 --file kwinrc --group ModifierOnlyShortcuts --key Meta \
-    "org.kde.plasmashell,/PlasmaShell,org.kde.PlasmaShell,activateLauncherMenu" 2>/dev/null || true
+  /usr/bin/silk-apply-habits tablet || true
 }
 
 case "$STYLE" in

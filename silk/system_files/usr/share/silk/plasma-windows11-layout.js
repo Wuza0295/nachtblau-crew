@@ -1,4 +1,4 @@
-// Silk – Windows-11-inspiriertes Layout (zentrierte Taskleiste)
+// Silk – Windows-11-inspiriertes Layout (zentrierte Taskleiste + Suche)
 var allDesktops = desktops();
 for (var i = 0; i < allDesktops.length; i++) {
   allDesktops[i].wallpaperPlugin = "org.kde.image";
@@ -15,8 +15,9 @@ bar.height = 48;
 bar.hiding = "none";
 bar.alignment = "center";
 bar.maximumLength = 1400;
-bar.minimumLength = 600;
+bar.minimumLength = 700;
 bar.addWidget("org.kde.plasma.kickoff");
+try { bar.addWidget("org.kde.plasma.pager"); } catch (e) {}
 bar.addWidget("org.kde.plasma.icontasks");
 bar.addWidget("org.kde.plasma.panelspacer");
 bar.addWidget("org.kde.plasma.systemtray");

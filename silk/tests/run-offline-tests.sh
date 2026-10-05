@@ -46,7 +46,8 @@ for f in \
   system_files/usr/bin/silk-mobile \
   system_files/usr/bin/silk-windows \
   system_files/usr/libexec/silk/connect-server \
-  docs/WINDOWS.md \
+  system_files/usr/bin/silk-apply-habits \
+  docs/HABITS.md \
   system_files/usr/share/silk/connect/index.html \
   system_files/usr/share/silk/connect/manifest.json \
   system_files/usr/share/silk/mobile-devices.txt \
@@ -312,6 +313,15 @@ grep -q 'SILK_AUTO_WINDOWS\|setup-windows' "$ROOT/system_files/usr/bin/silk-setu
 grep -q 'com.usebottles.bottles' "$ROOT/system_files/usr/share/silk/recommended-essentials.txt" && ok "bottles in essentials" || bad "bottles essentials"
 [[ -f "$ROOT/docs/WINDOWS.md" ]] && ok "WINDOWS.md" || bad "WINDOWS.md"
 bash -n "$ROOT/system_files/usr/bin/silk-windows" && ok "silk-windows syntax" || bad "silk-windows syntax"
+
+echo "== Desktop-Gewohnheiten (Mac/Windows) =="
+grep -q 'silk-apply-habits' "$ROOT/system_files/usr/bin/silk-apply-layout" && ok "layout calls habits" || bad "layout habits"
+grep -q 'Meta+Space\|Meta+E\|Hot Corner\|NaturalScroll\|ButtonsOnLeft' "$ROOT/system_files/usr/bin/silk-apply-habits" && ok "habits shortcuts" || bad "habits shortcuts"
+grep -q 'org.kde.plasma.appmenu' "$ROOT/system_files/usr/share/silk/plasma-mac-layout.js" && ok "mac appmenu" || bad "mac appmenu"
+grep -q 'org.kde.plasma.showdesktop' "$ROOT/system_files/usr/share/silk/plasma-windows11-layout.js" && ok "win11 showdesktop" || bad "win11 showdesktop"
+[[ -f "$ROOT/docs/HABITS.md" ]] && ok "HABITS.md" || bad "HABITS.md"
+bash -n "$ROOT/system_files/usr/bin/silk-apply-habits" && ok "habits syntax" || bad "habits syntax"
+grep -q 'Gewohnheiten nach Desktop-Stil' "$ROOT/system_files/usr/share/silk/welcome.html" && ok "welcome habits" || bad "welcome habits"
 
 echo "== Markenname Aurora nicht in Nutzer-Text =="
 for f in README.md QUICKSTART.md ROADMAP.md LEGAL.md system_files/usr/share/silk/welcome.html docs/silk-produktuebersicht.html; do

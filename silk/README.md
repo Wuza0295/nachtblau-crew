@@ -26,6 +26,9 @@ Beim ersten Login fragt Silk, woher du kommst:
 | `silk-desktop tablet` | Touch / 2-in-1 (große Taskleiste) |
 | `silk-desktop --ask` | Dialog erneut |
 
+Zusätzlich zum Look setzt Silk **Gewohnheiten** (Tasten, Hot Corners, Dateimanager): siehe [`docs/HABITS.md`](docs/HABITS.md).
+`silk-apply-habits` läuft automatisch mit `silk-desktop`.
+
 ## Programme „wie vorher“
 
 `silk-install` / Doppelklick:

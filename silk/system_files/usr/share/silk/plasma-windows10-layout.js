@@ -1,4 +1,4 @@
-// Silk – Windows-10-inspiriertes Layout (linke Taskleiste)
+// Silk – Windows-10-inspiriertes Layout (Taskleiste links + Suche/Tray)
 var allDesktops = desktops();
 for (var i = 0; i < allDesktops.length; i++) {
   allDesktops[i].wallpaperPlugin = "org.kde.image";
@@ -15,6 +15,7 @@ bar.height = 44;
 bar.hiding = "none";
 bar.alignment = "left";
 bar.addWidget("org.kde.plasma.kickoff");
+try { bar.addWidget("org.kde.plasma.pager"); } catch (e) {}
 bar.addWidget("org.kde.plasma.icontasks");
 bar.addWidget("org.kde.plasma.panelspacer");
 bar.addWidget("org.kde.plasma.systemtray");
