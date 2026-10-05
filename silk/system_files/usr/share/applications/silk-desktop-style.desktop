@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Silk Desktop-Stil
+Name[de]=Silk Desktop-Stil
+Comment=Mac- oder Windows-Optik wählen
+Exec=silk-desktop --ask
+Icon=preferences-desktop-theme
+Terminal=false
+Type=Application
+Categories=Settings;DesktopSettings;
+StartupNotify=true
+Keywords=silk;mac;windows;desktop;

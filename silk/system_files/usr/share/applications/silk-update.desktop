@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Silk Updates
+Name[de]=Silk Updates
+Comment=Apps und Listen aktualisieren
+Exec=silk-update
+Icon=system-software-update
+Terminal=true
+Type=Application
+Categories=System;PackageManager;
+StartupNotify=true
+Keywords=silk;update;flatpak;

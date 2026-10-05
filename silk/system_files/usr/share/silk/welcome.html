@@ -7,10 +7,15 @@
 <style>
   :root { --bg:#0f1419; --card:#1a2332; --text:#e8eef7; --muted:#9aadc2; --accent:#5eb1ff; --ok:#3dd68c; }
   * { box-sizing: border-box; }
-  body { margin:0; font-family: "Segoe UI", "Inter", system-ui, sans-serif; background:linear-gradient(160deg,#0f1419,#1a2740); color:var(--text); line-height:1.5; }
+  body { margin:0; font-family: "Segoe UI", "IBM Plex Sans", system-ui, sans-serif; background:linear-gradient(160deg,#0f1419,#1a2740); color:var(--text); line-height:1.5; }
   main { max-width:720px; margin:0 auto; padding:2.5rem 1.25rem 4rem; }
   h1 { font-size:1.85rem; margin:0 0 .4rem; letter-spacing:-.02em; }
-  .lead { color:var(--muted); margin-bottom:1.75rem; }
+  .lead { color:var(--muted); margin-bottom:1.25rem; }
+  .quick {
+    display:grid; gap:.45rem; margin-bottom:1.35rem; padding:1rem 1.1rem;
+    border-radius:14px; border:1px solid #2a3a52; background:#152033;
+  }
+  .quick strong { color: var(--ok); }
   section { background:var(--card); border-radius:14px; padding:1.1rem 1.25rem; margin-bottom:1rem; border:1px solid #2a3a52; }
   h2 { font-size:1.05rem; margin:0 0 .65rem; color:var(--accent); }
   ul { margin:.2rem 0 0; padding-left:1.15rem; }
@@ -19,12 +24,19 @@
   code { background:#0d121a; padding:.1rem .35rem; border-radius:4px; font-size:.9em; }
   .ok { color:var(--ok); }
   footer { color:var(--muted); font-size:.85rem; margin-top:1.5rem; }
+  a { color: var(--accent); }
 </style>
 </head>
 <body>
 <main>
   <h1>Willkommen bei Silk</h1>
-  <p class="lead">Kurzhilfe für den Umstieg von Windows oder macOS. Du kannst dieses Fenster jederzeit mit <code>silk-welcome</code> öffnen.</p>
+  <p class="lead">Kurzhilfe für den Umstieg von Windows oder macOS. Startzentrum: <code>silk-tour --center</code> · jederzeit erneut: <code>silk-welcome</code>.</p>
+
+  <div class="quick">
+    <div><strong>Loslegen:</strong> .exe doppelklicken · Controller stecken · <code>silk-update</code></div>
+    <div><strong>Stil ändern:</strong> <code>silk-desktop --ask</code> (auch im Startmenü)</div>
+    <div><strong>Status:</strong> <code>silk-ready status</code> · <strong>Hilfe-Tipp:</strong> <code>silk-tips</code></div>
+  </div>
 
   <section>
     <h2>Gewohnheiten nach Desktop-Stil</h2>
@@ -37,21 +49,12 @@
   </section>
 
   <section>
-    <h2>Mac / MacBook</h2>
-    <ul>
-      <li><code>silk-hardware status</code> – PC vs. Intel-Mac vs. Apple Silicon</li>
-      <li><code>silk-hardware hints</code> – was geht, was nicht</li>
-      <li>Wechsel von macOS auf <strong>PC</strong>: <code>silk-desktop mac</code>, <code>silk-install datei.dmg</code></li>
-      <li>Linux <strong>auf dem MacBook</strong>: Fedora Asahi Remix (nicht Silk)</li>
-    </ul>
-  </section>
-
-  <section>
     <h2>Auspacken und loslegen</h2>
     <ul>
       <li>GPU (AMD / Intel / NVIDIA) wird beim ersten Boot erkannt – NVIDIA wechselt automatisch das Image</li>
       <li>Controller stecken oder per Bluetooth koppeln – on the fly</li>
       <li><code>silk-ready</code> / <code>silk-ready status</code> – alles prüfen</li>
+      <li><code>silk-tour</code> – geführte Erst-Einrichtung mit Fortschritt</li>
     </ul>
   </section>
 
@@ -117,11 +120,11 @@
   </section>
 
   <section>
-    <h2>Updates</h2>
+    <h2>Updates &amp; Diagnose</h2>
     <ul>
       <li>Alles bequem: <code>silk-update</code> (Apps + Listen vom Git-Repo)</li>
       <li>System komplett: <code>silk-update --full</code> (danach neu starten)</li>
-      <li>Manuell: <code>sudo bootc upgrade</code> · <code>flatpak update</code></li>
+      <li>Probleme: <code>silk-doctor</code> · Tipp: <code>silk-tips</code></li>
     </ul>
   </section>
 

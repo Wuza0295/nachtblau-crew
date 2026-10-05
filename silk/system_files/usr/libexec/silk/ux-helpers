@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+# Gemeinsame UX-Helfer (notify, Dialoge, Progress) – sourcebar
+# shellcheck disable=SC2034
+
+silk_notify() {
+  local title="${1:-Silk}" body="${2:-}"
+  notify-send -a "Silk" -i preferences-desktop "$title" "$body" 2>/dev/null || true
+}
+
+silk_has_gui() {
+  [[ -n "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ]] && command -v kdialog >/dev/null 2>&1
+}
+
+silk_msg() {
+  local msg="$1"
+  if silk_has_gui; then
+    kdialog --title "Silk" --msgbox "$msg" 2>/dev/null || silk_notify "Silk" "$msg"
+  else
+    echo "$msg"
+  fi
+}
+
+silk_yesno() {
+  local msg="$1"
+  if silk_has_gui; then
+    kdialog --title "Silk" --yesno "$msg" 2>/dev/null
+  else
+    return 1
+  fi
+}
+
+# Progress: speichert dbus-ref in SILK_PROGRESS_REF
+silk_progress_start() {
+  local label="${1:-Silk richtet ein…}"
+  SILK_PROGRESS_REF=""
+  if silk_has_gui; then
+    SILK_PROGRESS_REF="$(kdialog --title "Silk" --progressbar "$label" 100 2>/dev/null || true)"
+  fi
+  silk_notify "Silk" "$label"
+}
+
+silk_progress() {
+  local pct="${1:-0}" label="${2:-}"
+  if [[ -n "${SILK_PROGRESS_REF:-}" ]]; then
+    qdbus "$SILK_PROGRESS_REF" Set "" value "$pct" 2>/dev/null || true
+    [[ -n "$label" ]] && qdbus "$SILK_PROGRESS_REF" setLabelText "$label" 2>/dev/null || true
+  elif [[ -n "$label" ]]; then
+    silk_notify "Silk" "$label"
+  fi
+}
+
+silk_progress_done() {
+  if [[ -n "${SILK_PROGRESS_REF:-}" ]]; then
+    qdbus "$SILK_PROGRESS_REF" close 2>/dev/null || true
+    SILK_PROGRESS_REF=""
+  fi
+}
+
+silk_config_dir() {
+  echo "${XDG_CONFIG_HOME:-$HOME/.config}/silk"
+}
+
+silk_desktop_dir() {
+  local d="${XDG_DESKTOP_DIR:-}"
+  if [[ -z "$d" && -f "${XDG_CONFIG_HOME:-$HOME/.config}/user-dirs.dirs" ]]; then
+    # shellcheck disable=SC1090
+    . "${XDG_CONFIG_HOME:-$HOME/.config}/user-dirs.dirs" 2>/dev/null || true
+    d="${XDG_DESKTOP_DIR:-}"
+  fi
+  d="${d:-$HOME/Desktop}"
+  d="${d/#\~/$HOME}"
+  mkdir -p "$d" 2>/dev/null || true
+  echo "$d"
+}

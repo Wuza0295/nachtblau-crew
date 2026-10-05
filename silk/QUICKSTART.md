@@ -11,7 +11,8 @@ silk-installer switch    # von Universal Blue / Bazzite
 # oder USB-ISO: silk-installer iso
 sudo systemctl reboot
 # Firstboot: GPU erkennen, bei NVIDIA Image wechseln (+ ggf. 1× Reboot)
-# Login: silk-ready richtet Windows-.exe + Controller ein
+# Login: silk-tour richtet Stil, Apps, Windows-.exe + Controller ein
+silk-tour --center     # Startzentrum
 silk-ready status
 ```
 

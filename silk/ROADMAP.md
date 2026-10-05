@@ -24,6 +24,7 @@ und wohin **Silk 2.0** langfristig gehen kann.
 | **GPU** | ✅ | AMD/Intel sofort; NVIDIA Auto-Switch (`silk-nvidia` / `-open`) on firstboot |
 | **Controller** | ✅ | on the fly – `silk-plug` + `silk-controllers` (Xbox, DualSense, Switch, 8BitDo, …) |
 | **Auspacken & loslegen** | ✅ | `silk-ready`, Firstboot-GPU, Autostart User-Ready |
+| **User Experience** | ✅ | `silk-tour`, Startzentrum, Menü-Apps, Tipps, Progress |
 | **Hardware-Erkennung** | ✅ | `silk-hardware` (PC / Intel-Mac / Apple Silicon) |
 | **Hintergründe** | ✅ | 20× Desktop + 20× Sperrbild, `silk-wallpaper` |
 | **Updates** | ✅ | `silk-update`, `silk-sync-config`, bootc upgrade |
@@ -65,7 +66,7 @@ Ihr dürft es **marketing-tauglich** als eigenes Produkt bewerben (mit Disclaime
 ### Should-Have (Launch-Qualität)
 
 - [ ] **ISO oder Anaconda-Image** (`just build-iso`) für USB-Installation
-- [ ] **Erstlogin polieren** – Stil-Wahl, Essentials, Welcome ohne Fehler
+- [x] **Erstlogin polieren** – `silk-tour` mit Progress, Startzentrum, Menü-Apps, Tipps
 - [ ] **Fehlerseiten** – was tun wenn `bootc switch` scheitert
 - [x] **FAQ** – `Silk-Website/faq.html` (Plattformen, iPad, Connect)
 - [ ] **Screenshots/Video** – Mac-Layout, Win11-Layout, silk-install Demo

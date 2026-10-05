@@ -15,18 +15,21 @@ Silk soll **ohne Basteln** starten: GPU erkennen, Controller stecken, Spielen.
 - Bluetooth an
 - udev-Trigger → Controller **on the fly** (USB stecken / BT koppeln)
 
-### 3. Erster Login (`silk-ready` Autostart)
-- Windows-.exe-Schicht (Bottles)
-- Alltag/Stil (`silk-setup`)
-- Controller-Feinschliff
+### 3. Erster Login (`silk-tour`)
+- geführte Tour mit Fortschrittsanzeige
+- Stil, Alltag-Apps, Windows-.exe, Controller
+- Desktop-Verknüpfungen + Startzentrum
+- weitere Logins: sanfter Tipp (`silk-tips`)
 
 ## Manuell (falls nötig)
 
 ```bash
-silk-ready           # alles prüfen / nachziehen
+silk-tour              # Tour / Tipps
+silk-tour --center     # Startzentrum
 silk-ready status
-silk-gpu status      # GPU
+silk-gpu status
 silk-controllers status
+silk-tips --dialog
 ```
 
 ## GPU – „einfach stecken“

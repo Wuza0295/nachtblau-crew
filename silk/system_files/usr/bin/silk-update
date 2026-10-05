@@ -48,7 +48,7 @@ update_system() {
 }
 
 notify_done() {
-  notify-send "Silk" "${1:-Updates abgeschlossen.}" 2>/dev/null || true
+  notify-send -a "Silk" "Silk" "${1:-Updates abgeschlossen.}" 2>/dev/null || true
 }
 
 main() {
@@ -56,12 +56,22 @@ main() {
   case "$mode" in
     -h|--help) usage; exit 0 ;;
     --sync-only) sync_config; exit 0 ;;
-    --apps-only) sync_config; update_flatpaks; notify_done "Apps aktualisiert."; exit 0 ;;
+    --apps-only)
+      sync_config; update_flatpaks; notify_done "Apps aktualisiert."
+      if command -v kdialog >/dev/null 2>&1 && [[ -n "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ]]; then
+        kdialog --title "Silk" --msgbox "Apps & Listen aktualisiert." 2>/dev/null || true
+      fi
+      exit 0
+      ;;
     --full)
       sync_config
       update_flatpaks
       update_system
       notify_done "System-Update bereit – neu starten."
+      if command -v kdialog >/dev/null 2>&1 && [[ -n "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ]]; then
+        kdialog --title "Silk" --yesno "System-Update fertig. Jetzt neu starten?" 2>/dev/null && \
+          systemctl reboot || true
+      fi
       exit 0
       ;;
     "")

@@ -131,11 +131,13 @@ Controller (Xbox, DualSense, Switch, 8BitDo, …): stecken oder Bluetooth – **
 
 ```bash
 silk-ready               # Status & Nachziehen
+silk-tour --center      # Startzentrum (Hilfe + Aktionen)
 silk-gpu status          # erkannte GPU
 silk-controllers status  # Gamepads
+silk-tips                # Alltagstipp
 ```
 
-Details: [`docs/OUT-OF-BOX.md`](docs/OUT-OF-BOX.md) · [`docs/GPU-CONTROLLERS.md`](docs/GPU-CONTROLLERS.md)
+Details: [`docs/OUT-OF-BOX.md`](docs/OUT-OF-BOX.md) · [`docs/UX.md`](docs/UX.md) · [`docs/GPU-CONTROLLERS.md`](docs/GPU-CONTROLLERS.md)
 
 ## Mac / MacBook (Hardware vs. Software)
 

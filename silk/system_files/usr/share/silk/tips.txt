@@ -1,0 +1,12 @@
+Doppelklick auf .exe startet Windows-Programme – silk-windows richtet alles ein.
+Desktop-Stil ändern: Silk → Desktop-Stil im Startmenü, oder silk-desktop --ask.
+Controller einfach stecken oder per Bluetooth koppeln – on the fly.
+Updates: silk-update hält Apps frisch; silk-update --full fürs System-Image.
+Hilfe jederzeit: silk-welcome oder „Silk Hilfe“ im Startmenü.
+Tastenkürzel wie gewohnt: siehe ~/.config/silk/habits-cheatsheet.txt
+iPhone/iPad anbinden: silk-connect setup (Silk Connect).
+Gaming: silk-install --setup-gaming installiert Steam, Epic, Discord, …
+Hintergründe wechseln: silk-wallpaper random mac  oder  random win
+Status prüfen: silk-ready status – GPU, Controller, Windows-Schicht.
+Probleme? silk-doctor zeigt, was fehlt.
+USB-Sticks (NTFS/exFAT) mounten automatisch – Dolphin öffnen und los.

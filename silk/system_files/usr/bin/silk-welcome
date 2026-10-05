@@ -1,20 +1,38 @@
 #!/usr/bin/env bash
-# silk-welcome – Wechsler-Checkliste / Kurzhilfe
+# silk-welcome – Wechsler-Hilfe / Startzentrum
 set -euo pipefail
 
 PAGE="/usr/share/silk/welcome.html"
+CENTER="/usr/share/silk/center.html"
 [[ -f "$PAGE" ]] || { echo "Welcome-Seite fehlt: $PAGE" >&2; exit 1; }
 
-if command -v xdg-open >/dev/null 2>&1; then
-  xdg-open "$PAGE" >/dev/null 2>&1 &
-elif command -v firefox >/dev/null 2>&1; then
-  firefox "$PAGE" >/dev/null 2>&1 &
-else
-  # Fallback: Textauszug
-  if command -v kdialog >/dev/null 2>&1; then
-    kdialog --msgbox "Silk-Hilfe: öffne $PAGE im Browser\n\nTipps:\n• silk-desktop --ask\n• silk-install --setup-essentials\n• silk-install --setup-gaming\n• sudo bootc upgrade"
+open_page() {
+  local target="$1"
+  if command -v xdg-open >/dev/null 2>&1; then
+    xdg-open "$target" >/dev/null 2>&1 &
+  elif command -v firefox >/dev/null 2>&1; then
+    firefox "$target" >/dev/null 2>&1 &
   else
-    echo "Öffne: $PAGE"
-    cat "$PAGE"
+    if command -v kdialog >/dev/null 2>&1; then
+      kdialog --msgbox "Silk-Hilfe: öffne $target im Browser\n\nTipps:\n• silk-tour\n• silk-desktop --ask\n• silk-ready status\n• silk-update" 2>/dev/null || true
+    else
+      echo "Öffne: $target"
+    fi
   fi
-fi
+}
+
+case "${1:-}" in
+  --center|-c)
+    if [[ -f "$CENTER" ]]; then
+      open_page "$CENTER"
+    else
+      open_page "$PAGE"
+    fi
+    ;;
+  -h|--help)
+    echo "silk-welcome [--center]  – Hilfe / Startzentrum öffnen"
+    ;;
+  *)
+    open_page "$PAGE"
+    ;;
+esac

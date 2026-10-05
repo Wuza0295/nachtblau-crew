@@ -4,9 +4,7 @@ Name=Silk Welcome
 Exec=silk-welcome
 Icon=help-about
 X-KDE-autostart-phase=2
-X-GNOME-Autostart-enabled=true
-OnlyShowIn=KDE;GNOME;
-# Markierung verhindert Wiederholung – silk-welcome selbst ist idempotent genug;
-# Setup setzt zusätzlich eine Config-Flag.
-X-Silk-Once=true
+X-GNOME-Autostart-enabled=false
+Hidden=true
 NoDisplay=true
+OnlyShowIn=KDE;GNOME;

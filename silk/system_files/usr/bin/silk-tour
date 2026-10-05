@@ -1,0 +1,175 @@
+#!/usr/bin/env bash
+# silk-tour – geführte Erst-Erfahrung (ein Einstieg, klare Schritte)
+set -euo pipefail
+
+if [[ -f /usr/libexec/silk/ux-helpers ]]; then
+  # shellcheck source=/dev/null
+  source /usr/libexec/silk/ux-helpers
+else
+  silk_notify() { notify-send -a "Silk" "${1:-Silk}" "${2:-}" 2>/dev/null || true; }
+  silk_has_gui() { [[ -n "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ]] && command -v kdialog >/dev/null 2>&1; }
+  silk_msg() { echo "$1"; }
+  silk_yesno() { return 1; }
+  silk_progress_start() { silk_notify "Silk" "${1:-…}"; }
+  silk_progress() { :; }
+  silk_progress_done() { :; }
+  silk_config_dir() { echo "${XDG_CONFIG_HOME:-$HOME/.config}/silk"; }
+  silk_desktop_dir() { echo "${XDG_DESKTOP_DIR:-$HOME/Desktop}"; }
+fi
+
+CFG="$(silk_config_dir)"
+MARKER="$CFG/.tour-done"
+SETUP_MARKER="$CFG/.setup-done"
+READY_MARKER="$CFG/.user-ready-done"
+WELCOME_FLAG="$CFG/.welcome-shown"
+mkdir -p "$CFG" "$HOME/Applications" "$HOME/.local/share/silk/appimages"
+
+usage() {
+  cat <<'EOF'
+silk-tour – Silk Erst-Erfahrung
+
+  silk-tour              Geführte Einrichtung (einmalig)
+  silk-tour --force      Erneut durchlaufen
+  silk-tour --center     Startzentrum öffnen (Hilfe + Aktionen)
+  silk-tour --shortcuts  Desktop-Verknüpfungen anlegen
+EOF
+}
+
+install_shortcuts() {
+  local desk appdir name cmd icon f term
+  desk="$(silk_desktop_dir)"
+  appdir="$HOME/.local/share/applications"
+  mkdir -p "$appdir"
+
+  cat >"$appdir/silk-center.desktop" <<'EOF'
+[Desktop Entry]
+Name=Silk Startzentrum
+Name[de]=Silk Startzentrum
+Comment=Hilfe, Stil, Status, Updates
+Exec=silk-tour --center
+Icon=preferences-desktop
+Terminal=false
+Type=Application
+Categories=Utility;Settings;
+StartupNotify=true
+EOF
+
+  while IFS='|' read -r name cmd icon term; do
+    [[ -z "$name" ]] && continue
+    f="$desk/${name}.desktop"
+    cat >"$f" <<EOF
+[Desktop Entry]
+Type=Application
+Name=$name
+Exec=$cmd
+Icon=$icon
+Terminal=$term
+EOF
+    chmod 755 "$f" 2>/dev/null || true
+    gio set "$f" metadata::trusted true 2>/dev/null || true
+  done <<'EOF'
+Silk Hilfe|silk-welcome|help-about|false
+Silk Desktop-Stil|silk-desktop --ask|preferences-desktop-theme|false
+Silk Status|silk-ready status|dialog-information|true
+EOF
+  silk_notify "Silk" "Verknüpfungen auf dem Schreibtisch angelegt."
+}
+
+open_center() {
+  /usr/bin/silk-welcome --center 2>/dev/null || /usr/bin/silk-welcome || true
+}
+
+run_tour() {
+  if [[ -f "$MARKER" && "${1:-}" != "--force" ]]; then
+    # Folge-Logins: sanfter Tipp, kein Setup nochmal
+    if [[ "${SILK_TOUR_TIPS:-1}" == "1" ]]; then
+      /usr/bin/silk-tips 2>/dev/null || true
+    fi
+    exit 0
+  fi
+
+  silk_progress_start "Willkommen bei Silk – Einrichtung startet…"
+  silk_progress 5 "Vorbereitung…"
+
+  flatpak remote-add --if-not-exists --user flathub \
+    https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
+
+  # 1) Stil
+  silk_progress 15 "Desktop-Stil wählen…"
+  if [[ "${SILK_SKIP_STYLE:-0}" != "1" ]]; then
+    /usr/bin/silk-desktop --ask || /usr/bin/silk-apply-layout mac || true
+    /usr/bin/silk-apply-wallpaper || true
+  fi
+
+  # 2) Alltag
+  silk_progress 35 "Alltags-Apps (Office, Browser, VLC, …)…"
+  if [[ "${SILK_SKIP_ESSENTIALS:-0}" != "1" ]]; then
+    /usr/bin/silk-install --setup-essentials >/tmp/silk-tour-essentials.log 2>&1 || true
+  fi
+
+  # 3) Windows
+  silk_progress 55 "Windows-Programme (.exe) vorbereiten…"
+  if [[ "${SILK_SKIP_WINDOWS:-0}" != "1" ]]; then
+    /usr/bin/silk-install --setup-windows >/tmp/silk-tour-windows.log 2>&1 \
+      || /usr/bin/silk-windows setup >/tmp/silk-tour-windows.log 2>&1 || true
+  fi
+
+  # 4) GPU / Controller
+  silk_progress 70 "GPU & Controller…"
+  /usr/bin/silk-gpu detect >/tmp/silk-tour-gpu.log 2>&1 || true
+  /usr/bin/silk-controllers setup >/tmp/silk-tour-controllers.log 2>&1 || true
+
+  # 5) Optional Gaming
+  silk_progress 80 "Optional: Gaming…"
+  if [[ "${SILK_AUTO_GAMING:-0}" == "1" ]]; then
+    /usr/bin/silk-install --setup-gaming >/tmp/silk-tour-gaming.log 2>&1 || true
+  elif silk_yesno "Auch Gaming-Apps installieren (Steam, Epic, Discord, …)?"; then
+    /usr/bin/silk-install --setup-gaming >/tmp/silk-tour-gaming.log 2>&1 || true
+  fi
+
+  # 6) Distrobox / Connect
+  silk_progress 88 "Zusatzwerkzeuge…"
+  /usr/bin/silk-ensure-boxes >/tmp/silk-tour-boxes.log 2>&1 || true
+  if [[ "${SILK_AUTO_CONNECT:-0}" == "1" ]]; then
+    /usr/bin/silk-connect setup >/tmp/silk-tour-connect.log 2>&1 || true
+  elif silk_yesno "Altes iPhone/iPad mit Silk verbinden? (Silk Connect)"; then
+    /usr/bin/silk-connect setup >/tmp/silk-tour-connect.log 2>&1 || true
+  fi
+
+  # 7) Shortcuts + Willkommen
+  silk_progress 94 "Desktop-Verknüpfungen…"
+  install_shortcuts || true
+
+  silk_progress 98 "Willkommen öffnen…"
+  if [[ ! -f "$WELCOME_FLAG" ]] || [[ "${1:-}" == "--force" ]]; then
+    /usr/bin/silk-welcome --center >/dev/null 2>&1 || /usr/bin/silk-welcome || true
+    touch "$WELCOME_FLAG"
+  fi
+
+  touch "$MARKER" "$SETUP_MARKER" "$READY_MARKER"
+  silk_progress_done
+
+  local finish="Fertig – auspacken und loslegen!
+
+• .exe doppelklicken → Windows-Programme
+• Controller stecken oder Bluetooth
+• Hilfe: Silk Startzentrum / silk-welcome
+• Updates: silk-update
+
+Tipp: Tastenkürzel stehen in
+~/.config/silk/habits-cheatsheet.txt"
+  silk_msg "$finish"
+  silk_notify "Silk" "Fertig – auspacken und loslegen."
+}
+
+main() {
+  case "${1:-}" in
+    -h|--help) usage ;;
+    --center) open_center ;;
+    --shortcuts) install_shortcuts ;;
+    --force) run_tour --force ;;
+    *) run_tour ;;
+  esac
+}
+
+main "$@"

@@ -1,9 +1,10 @@
 [Desktop Entry]
 Type=Application
 Name=Silk Ready
-Comment=Einmalige Einrichtung – GPU, Controller, Windows-Apps
+Comment=Legacy – Tour übernimmt Einrichtung
 Exec=/usr/libexec/silk/user-ready
-X-GNOME-Autostart-enabled=true
+Icon=dialog-ok
+X-GNOME-Autostart-enabled=false
 X-KDE-autostart-phase=2
-Hidden=false
+Hidden=true
 NoDisplay=true

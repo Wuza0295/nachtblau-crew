@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Silk Diagnose
+Name[de]=Silk Diagnose
+Comment=System prüfen und Tipps anzeigen
+Exec=silk-doctor --gui
+Icon=tools-report-bug
+Terminal=false
+Type=Application
+Categories=System;Monitor;
+StartupNotify=true
+Keywords=silk;doctor;diagnose;

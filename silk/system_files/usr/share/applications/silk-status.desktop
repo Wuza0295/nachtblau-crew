@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Silk Status
+Name[de]=Silk Status
+Comment=GPU, Controller und Windows-Schicht prüfen
+Exec=silk-ready status
+Icon=dialog-information
+Terminal=true
+Type=Application
+Categories=System;Monitor;
+StartupNotify=true
+Keywords=silk;gpu;controller;status;

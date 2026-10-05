@@ -16,7 +16,7 @@ while IFS= read -r -d '' f; do
   else
     bad "bash -n $f"
   fi
-done < <(find "$ROOT/build_files" "$ROOT/system_files/usr/bin" "$ROOT/system_files/usr/libexec" -type f \( -name '*.sh' -o -name 'silk-*' -o -name 'firstboot' -o -name 'set-icon-theme' -o -name 'plug-ready' -o -name 'user-ready' \) -print0)
+done < <(find "$ROOT/build_files" "$ROOT/system_files/usr/bin" "$ROOT/system_files/usr/libexec" -type f \( -name '*.sh' -o -name 'silk-*' -o -name 'firstboot' -o -name 'set-icon-theme' -o -name 'plug-ready' -o -name 'user-ready' -o -name 'ux-helpers' \) -print0)
 
 echo "== Pflicht-Dateien =="
 for f in \
@@ -48,15 +48,27 @@ for f in \
   system_files/usr/libexec/silk/connect-server \
   system_files/usr/bin/silk-controllers \
   system_files/usr/bin/silk-ready \
+  system_files/usr/bin/silk-tour \
+  system_files/usr/bin/silk-tips \
+  system_files/usr/libexec/silk/ux-helpers \
   system_files/usr/libexec/silk/firstboot \
   system_files/usr/libexec/silk/plug-ready \
   system_files/usr/libexec/silk/user-ready \
   system_files/usr/lib/systemd/system/silk-firstboot.service \
   system_files/usr/lib/systemd/system/silk-plug.service \
+  system_files/etc/skel/.config/autostart/silk-tour.desktop \
   system_files/etc/skel/.config/autostart/silk-ready.desktop \
+  system_files/usr/share/applications/silk-center.desktop \
+  system_files/usr/share/applications/silk-desktop-style.desktop \
+  system_files/usr/share/applications/silk-status.desktop \
+  system_files/usr/share/applications/silk-update.desktop \
+  system_files/usr/share/applications/silk-doctor.desktop \
+  system_files/usr/share/silk/center.html \
+  system_files/usr/share/silk/tips.txt \
   system_files/etc/udev/rules.d/99-silk-controllers.rules \
   docs/GPU-CONTROLLERS.md \
   docs/OUT-OF-BOX.md \
+  docs/UX.md \
   system_files/usr/share/silk/connect/index.html \
   system_files/usr/share/silk/connect/manifest.json \
   system_files/usr/share/silk/mobile-devices.txt \
@@ -353,7 +365,7 @@ grep -q 'silk-plug.service' "$ROOT/build_files/05-finalize.sh" && ok "finalize e
 grep -q 'bluetooth.service' "$ROOT/build_files/05-finalize.sh" && ok "finalize enables bluetooth" || bad "finalize bluetooth"
 grep -q 'plug-ready' "$ROOT/system_files/usr/lib/systemd/system/silk-plug.service" && ok "silk-plug service" || bad "silk-plug service"
 grep -q 'user-ready' "$ROOT/system_files/etc/skel/.config/autostart/silk-ready.desktop" && ok "skel silk-ready autostart" || bad "skel autostart"
-grep -q 'silk-windows setup\|silk-controllers setup' "$ROOT/system_files/usr/libexec/silk/user-ready" && ok "user-ready windows+controllers" || bad "user-ready"
+grep -q 'X-GNOME-Autostart-enabled=false' "$ROOT/system_files/etc/skel/.config/autostart/silk-ready.desktop" && ok "ready autostart off (tour)" || bad "ready autostart"
 grep -q 'Auspacken und loslegen' "$ROOT/docs/OUT-OF-BOX.md" && ok "OUT-OF-BOX.md" || bad "OUT-OF-BOX.md"
 grep -q 'silk-ready' "$ROOT/README.md" && ok "README silk-ready" || bad "README silk-ready"
 grep -q 'on the fly\|Auto-Switch' "$ROOT/docs/GPU-CONTROLLERS.md" && ok "GPU-CONTROLLERS OOB" || bad "GPU-CONTROLLERS OOB"
@@ -363,6 +375,33 @@ grep -q 'Auspacken und loslegen' "$ROOT/system_files/usr/share/silk/welcome.html
 [[ -x "$ROOT/system_files/usr/libexec/silk/user-ready" ]] && ok "user-ready executable" || bad "user-ready exec"
 bash -n "$ROOT/system_files/usr/bin/silk-ready" && ok "silk-ready syntax" || bad "silk-ready syntax"
 bash "$ROOT/system_files/usr/bin/silk-ready" --help >/dev/null && ok "silk-ready help" || bad "silk-ready help"
+
+echo "== User Experience (Tour / Startzentrum) =="
+grep -q 'silk_progress_start\|install_shortcuts' "$ROOT/system_files/usr/bin/silk-tour" && ok "silk-tour progress+shortcuts" || bad "silk-tour"
+grep -q 'silk-tour' "$ROOT/system_files/etc/skel/.config/autostart/silk-tour.desktop" && ok "skel silk-tour autostart" || bad "skel tour"
+grep -q 'X-GNOME-Autostart-enabled=false' "$ROOT/system_files/etc/skel/.config/autostart/silk-setup.desktop" && ok "setup autostart off" || bad "setup autostart"
+grep -q 'X-GNOME-Autostart-enabled=false' "$ROOT/system_files/etc/skel/.config/autostart/silk-welcome.desktop" && ok "welcome autostart off" || bad "welcome autostart"
+grep -q 'Startzentrum\|silk-tour --center' "$ROOT/system_files/usr/share/silk/center.html" && ok "center.html" || bad "center.html"
+grep -q 'silk-tips' "$ROOT/system_files/usr/bin/silk-tips" && ok "silk-tips cmd" || bad "silk-tips"
+grep -q 'Doppelklick auf .exe' "$ROOT/system_files/usr/share/silk/tips.txt" && ok "tips.txt" || bad "tips.txt"
+grep -q 'silk_notify\|silk_progress' "$ROOT/system_files/usr/libexec/silk/ux-helpers" && ok "ux-helpers" || bad "ux-helpers"
+grep -q 'Exec=silk-tour --center' "$ROOT/system_files/usr/share/applications/silk-center.desktop" && ok "menu silk-center" || bad "menu center"
+grep -q 'Exec=silk-desktop --ask' "$ROOT/system_files/usr/share/applications/silk-desktop-style.desktop" && ok "menu desktop-style" || bad "menu style"
+grep -q 'Exec=silk-doctor --gui' "$ROOT/system_files/usr/share/applications/silk-doctor.desktop" && ok "menu doctor" || bad "menu doctor"
+grep -q '\-\-gui' "$ROOT/system_files/usr/bin/silk-doctor" && ok "doctor --gui" || bad "doctor gui"
+grep -q 'silk-tour' "$ROOT/system_files/usr/libexec/silk/user-ready" && ok "user-ready → tour" || bad "user-ready tour"
+grep -q 'User Experience' "$ROOT/docs/UX.md" && ok "UX.md" || bad "UX.md"
+grep -q 'silk-tour' "$ROOT/README.md" && ok "README tour" || bad "README tour"
+grep -q 'silk-tour' "$ROOT/system_files/usr/share/silk/welcome.html" && ok "welcome mentions tour" || bad "welcome tour"
+[[ -x "$ROOT/system_files/usr/bin/silk-tour" ]] && ok "silk-tour executable" || bad "silk-tour exec"
+[[ -x "$ROOT/system_files/usr/bin/silk-tips" ]] && ok "silk-tips executable" || bad "silk-tips exec"
+bash -n "$ROOT/system_files/usr/bin/silk-tour" && ok "silk-tour syntax" || bad "silk-tour syntax"
+bash -n "$ROOT/system_files/usr/bin/silk-tips" && ok "silk-tips syntax" || bad "silk-tips syntax"
+bash "$ROOT/system_files/usr/bin/silk-tour" --help >/dev/null && ok "silk-tour help" || bad "silk-tour help"
+bash "$ROOT/system_files/usr/bin/silk-tips" --list >/dev/null && ok "silk-tips list" || bad "silk-tips list"
+# Tipps ohne Display
+bash -n "$ROOT/system_files/usr/libexec/silk/ux-helpers" && ok "ux-helpers bash -n" || bad "ux-helpers bash -n"
+bash -c 'source "'"$ROOT"'/system_files/usr/libexec/silk/ux-helpers"; silk_notify "t" "b"; true' && ok "ux-helpers source" || bad "ux-helpers source"
 
 echo "== Markenname Aurora nicht in Nutzer-Text =="
 for f in README.md QUICKSTART.md ROADMAP.md LEGAL.md system_files/usr/share/silk/welcome.html docs/silk-produktuebersicht.html; do

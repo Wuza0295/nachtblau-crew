@@ -1,42 +1,35 @@
 #!/usr/bin/env bash
-# Silk User-Ready – einmalig nach Login: Apps/Controller/Windows „loslegen“
+# Silk User-Ready – leitet an silk-tour (geführte UX)
 set -euo pipefail
 
 MARKER="${XDG_CONFIG_HOME:-$HOME/.config}/silk/.user-ready-done"
+TOUR="${XDG_CONFIG_HOME:-$HOME/.config}/silk/.tour-done"
 mkdir -p "$(dirname "$MARKER")"
 
+# Tour übernimmt die komplette Erst-UX
+if [[ -x /usr/bin/silk-tour ]]; then
+  if [[ "${1:-}" == "--force" ]]; then
+    exec /usr/bin/silk-tour --force
+  fi
+  # Noch keine Tour → Tour starten (setzt auch user-ready)
+  if [[ ! -f "$TOUR" ]]; then
+    exec /usr/bin/silk-tour
+  fi
+  # Tour schon gelaufen → fertig / Tipps
+  [[ -f "$MARKER" ]] || touch "$MARKER"
+  exit 0
+fi
+
+# Fallback ohne silk-tour
 [[ -f "$MARKER" && "${1:-}" != "--force" ]] && exit 0
-
-notify-send "Silk" "Richte dein System ein – gleich kann’s losgehen…" 2>/dev/null || true
-
-# Flatpak
+notify-send "Silk" "Richte dein System ein…" 2>/dev/null || true
 flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
-
-# Controller-Rechte Hinweis / Gruppe
-if ! id -nG 2>/dev/null | grep -qw input; then
-  # System-Firstboot sollte usermod schon gemacht haben; sonst Hinweis
-  echo "Tipp: Abmelden/Anmelden falls Controller fehlen (Gruppe input)."
-fi
-
-# Windows-Schicht still im Hintergrund
-if [[ "${SILK_SKIP_WINDOWS:-0}" != "1" ]]; then
-  /usr/bin/silk-windows setup >/tmp/silk-windows-setup.log 2>&1 || true
-fi
-
-# Essentials nur wenn noch nicht
+[[ "${SILK_SKIP_WINDOWS:-0}" != "1" ]] && /usr/bin/silk-windows setup >/tmp/silk-windows-setup.log 2>&1 || true
 if [[ ! -f "${XDG_CONFIG_HOME:-$HOME/.config}/silk/.setup-done" ]]; then
-  # Stil einmal fragen, Rest auto
-  export SILK_SKIP_PLATFORM=1
-  export SILK_AUTO_WINDOWS=0
-  /usr/bin/silk-setup --force >/tmp/silk-setup.log 2>&1 || /usr/bin/silk-setup >/tmp/silk-setup.log 2>&1 || true
+  export SILK_SKIP_PLATFORM=1 SILK_AUTO_WINDOWS=0
+  /usr/bin/silk-setup --force >/tmp/silk-setup.log 2>&1 || true
 fi
-
-# Controller user-seitig
 /usr/bin/silk-controllers setup >/tmp/silk-controllers.log 2>&1 || true
-
-# GPU-Info (kein Blockieren)
-/usr/bin/silk-gpu status >/tmp/silk-gpu.log 2>&1 || true
-
 touch "$MARKER"
-notify-send "Silk" "Fertig – auspacken und loslegen. Controller stecken & zocken." 2>/dev/null || true
+notify-send "Silk" "Fertig – auspacken und loslegen." 2>/dev/null || true
 exit 0
