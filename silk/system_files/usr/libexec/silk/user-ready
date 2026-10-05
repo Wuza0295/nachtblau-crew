@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# Silk User-Ready – einmalig nach Login: Apps/Controller/Windows „loslegen“
+set -euo pipefail
+
+MARKER="${XDG_CONFIG_HOME:-$HOME/.config}/silk/.user-ready-done"
+mkdir -p "$(dirname "$MARKER")"
+
+[[ -f "$MARKER" && "${1:-}" != "--force" ]] && exit 0
+
+notify-send "Silk" "Richte dein System ein – gleich kann’s losgehen…" 2>/dev/null || true
+
+# Flatpak
+flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
+
+# Controller-Rechte Hinweis / Gruppe
+if ! id -nG 2>/dev/null | grep -qw input; then
+  # System-Firstboot sollte usermod schon gemacht haben; sonst Hinweis
+  echo "Tipp: Abmelden/Anmelden falls Controller fehlen (Gruppe input)."
+fi
+
+# Windows-Schicht still im Hintergrund
+if [[ "${SILK_SKIP_WINDOWS:-0}" != "1" ]]; then
+  /usr/bin/silk-windows setup >/tmp/silk-windows-setup.log 2>&1 || true
+fi
+
+# Essentials nur wenn noch nicht
+if [[ ! -f "${XDG_CONFIG_HOME:-$HOME/.config}/silk/.setup-done" ]]; then
+  # Stil einmal fragen, Rest auto
+  export SILK_SKIP_PLATFORM=1
+  export SILK_AUTO_WINDOWS=0
+  /usr/bin/silk-setup --force >/tmp/silk-setup.log 2>&1 || /usr/bin/silk-setup >/tmp/silk-setup.log 2>&1 || true
+fi
+
+# Controller user-seitig
+/usr/bin/silk-controllers setup >/tmp/silk-controllers.log 2>&1 || true
+
+# GPU-Info (kein Blockieren)
+/usr/bin/silk-gpu status >/tmp/silk-gpu.log 2>&1 || true
+
+touch "$MARKER"
+notify-send "Silk" "Fertig – auspacken und loslegen. Controller stecken & zocken." 2>/dev/null || true
+exit 0

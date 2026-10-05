@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Silk Ready
+Comment=Einmalige Einrichtung – GPU, Controller, Windows-Apps
+Exec=/usr/libexec/silk/user-ready
+X-GNOME-Autostart-enabled=true
+X-KDE-autostart-phase=2
+Hidden=false
+NoDisplay=true

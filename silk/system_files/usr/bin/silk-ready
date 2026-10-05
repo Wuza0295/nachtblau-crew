@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# silk-ready – Auspacken und loslegen (GPU + Controller + Alltag)
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+silk-ready – Silk sofort nutzbar machen
+
+  silk-ready              Alles prüfen & einrichten
+  silk-ready status       Kurzstatus GPU / Controller / Windows
+  silk-ready --force      Einrichtung erneut
+
+Automatisch:
+  • System-Firstboot: GPU erkennen, bei NVIDIA Image wechseln + Reboot
+  • Controller/Bluetooth on-the-fly (udev + steam-devices)
+  • Beim ersten Login: Windows-.exe-Schicht, Essentials, Stil
+EOF
+}
+
+cmd_status() {
+  echo "=== Silk Ready ==="
+  if [[ -f /var/lib/silk/gpu ]]; then
+    echo "GPU:         $(cat /var/lib/silk/gpu) → $(cat /var/lib/silk/recommended-image 2>/dev/null || echo '?')"
+  else
+    echo "GPU:         (noch nicht erkannt – Reboot/firstboot)"
+  fi
+  [[ -f /var/lib/silk/gpu-switch-done ]] && echo "GPU-Image:   abgestimmt ✓" || echo "GPU-Image:   prüfen mit silk-gpu status"
+  [[ -f /var/lib/silk/controllers-ready ]] && echo "Controller:  System bereit ✓" || echo "Controller:  silk-controllers setup"
+  [[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/silk/.user-ready-done" ]] && echo "User-Setup:  erledigt ✓" || echo "User-Setup:  läuft beim Login / silk-ready"
+  /usr/bin/silk-controllers status 2>/dev/null | head -12 || true
+}
+
+cmd_run() {
+  echo "Silk Ready…"
+  if [[ "$(id -u)" -eq 0 ]]; then
+    /usr/libexec/silk/firstboot || true
+  else
+    # User-Kontext
+    /usr/libexec/silk/user-ready ${1:-} || true
+    /usr/bin/silk-controllers setup || true
+    /usr/bin/silk-gpu status || true
+  fi
+  cmd_status
+  echo
+  echo "Loslegen: Controller anschließen, Spiele via Steam, .exe doppelklicken."
+}
+
+main() {
+  case "${1:-}" in
+    -h|--help) usage ;;
+    status) cmd_status ;;
+    --force) shift; cmd_run --force ;;
+    *) cmd_run ;;
+  esac
+}
+
+main "$@"

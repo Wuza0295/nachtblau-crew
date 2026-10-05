@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Jeder Boot: Controller hotplug / Bluetooth – „on the fly“
+set -euo pipefail
+systemctl start bluetooth.service 2>/dev/null || true
+udevadm trigger --subsystem-match=usb --subsystem-match=input --subsystem-match=hidraw 2>/dev/null || true
+# Neue Home-User in input
+if getent group input >/dev/null 2>&1; then
+  for u in $(ls /home 2>/dev/null || true); do
+    id "$u" &>/dev/null || continue
+    usermod -aG input "$u" 2>/dev/null || true
+  done
+fi
+exit 0

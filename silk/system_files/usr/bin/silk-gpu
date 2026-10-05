@@ -16,10 +16,12 @@ silk-gpu – AMD / Intel / NVIDIA voll unterstützen
   silk-gpu vulkan          Vulkan-Info (vulkaninfo Kurz)
   silk-gpu doctor          Diagnose AMD/NVIDIA/Intel
 
-Images:
-  AMD / Intel     → silk:latest
+Images (Firstboot wechselt NVIDIA automatisch):
+  AMD / Intel     → silk:latest              (sofort)
   NVIDIA Turing+  → silk-nvidia-open:latest  (RTX / GTX 16xx+)
   NVIDIA älter    → silk-nvidia:latest       (GTX 9xx/10xx, proprietär)
+
+Siehe auch: silk-ready · docs/OUT-OF-BOX.md
 EOF
 }
 
@@ -171,7 +173,7 @@ status_cmd() {
     fi
     if [[ "$current" != *nvidia* ]]; then
       echo
-      echo "→ Bitte Image wechseln: silk-gpu switch"
+      echo "→ Firstboot wechselt automatisch (oder: silk-gpu switch)"
     fi
   fi
   echo

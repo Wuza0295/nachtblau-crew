@@ -1,0 +1,12 @@
+[Unit]
+Description=Silk plug-and-play (Controller/BT on each boot)
+After=local-fs.target bluetooth.target
+Wants=bluetooth.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/silk/plug-ready
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

@@ -5,6 +5,8 @@ chmod 755 /usr/bin/silk-* 2>/dev/null || true
 chmod 755 /usr/libexec/silk/* 2>/dev/null || true
 chmod 755 /usr/libexec/silk/connect-server 2>/dev/null || true
 systemctl enable silk-firstboot.service 2>/dev/null || true
+systemctl enable silk-plug.service 2>/dev/null || true
+systemctl enable bluetooth.service 2>/dev/null || true
 
 # Podman socket für Distrobox/Dev
 systemctl enable podman.socket 2>/dev/null || true

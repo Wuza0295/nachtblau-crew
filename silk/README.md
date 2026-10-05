@@ -116,23 +116,26 @@ sudo bootc upgrade && sudo systemctl reboot
 
 Silk trackt **nur** die Universal-Blue-KDE-Basis (nie `FROM` Bazzite). Gaming-Flatpaks/Tools können Bazzite-*ähnlich* sein; wer maximale Gaming-Integration will, nimmt ggf. direkt [Bazzite](https://bazzite.gg/).
 
-## GPU-Unterstützung (AMD / Intel / NVIDIA)
+## GPU & Controller – auspacken und loslegen
 
-| GPU | Silk-Image | Basis |
-|-----|------------|-------|
-| **AMD** | `ghcr.io/<user>/silk:latest` | Mesa/RADV (voll) |
-| **Intel** (iGPU/Arc) | `ghcr.io/<user>/silk:latest` | Mesa (voll) |
-| **NVIDIA** Turing+ | `ghcr.io/<user>/silk-nvidia-open:latest` | nvidia-open |
-| **NVIDIA** GTX 9xx/10xx | `ghcr.io/<user>/silk-nvidia:latest` | proprietär |
+AMD, Intel und NVIDIA (inkl. älterer GTX) sowie gängige Controller – **ohne Basteln**:
+
+| GPU | Silk-Image | Verhalten |
+|-----|------------|-----------|
+| **AMD** | `ghcr.io/<user>/silk:latest` | Sofort (Mesa/RADV) |
+| **Intel** (iGPU/Arc) | `ghcr.io/<user>/silk:latest` | Sofort (Mesa) |
+| **NVIDIA** Turing+ | `…/silk-nvidia-open:latest` | Auto-Switch + Reboot |
+| **NVIDIA** GTX 9xx/10xx | `…/silk-nvidia:latest` | Auto-Switch + Reboot |
+
+Controller (Xbox, DualSense, Switch, 8BitDo, …): stecken oder Bluetooth – **on the fly**.
 
 ```bash
-silk-gpu status          # erkannte GPU + empfohlenes Image
-silk-gpu switch          # Image wechseln
-silk-gpu hints           # Kernel-Args
-silk-controllers setup   # Xbox, DualSense, Switch, 8BitDo, …
+silk-ready               # Status & Nachziehen
+silk-gpu status          # erkannte GPU
+silk-controllers status  # Gamepads
 ```
 
-Details: [`docs/GPU-CONTROLLERS.md`](docs/GPU-CONTROLLERS.md)
+Details: [`docs/OUT-OF-BOX.md`](docs/OUT-OF-BOX.md) · [`docs/GPU-CONTROLLERS.md`](docs/GPU-CONTROLLERS.md)
 
 ## Mac / MacBook (Hardware vs. Software)
 

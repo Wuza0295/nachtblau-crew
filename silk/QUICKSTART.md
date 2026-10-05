@@ -10,10 +10,13 @@
 silk-installer switch    # von Universal Blue / Bazzite
 # oder USB-ISO: silk-installer iso
 sudo systemctl reboot
-silk-setup
+# Firstboot: GPU erkennen, bei NVIDIA Image wechseln (+ ggf. 1× Reboot)
+# Login: silk-ready richtet Windows-.exe + Controller ein
+silk-ready status
 ```
 
-NVIDIA: automatisch `silk-nvidia-open`-Image.
+AMD/Intel: sofort. NVIDIA: Auto zum passenden Image (`silk-nvidia-open` oder `silk-nvidia`).  
+Controller: stecken / Bluetooth – on the fly.
 
 ---
 

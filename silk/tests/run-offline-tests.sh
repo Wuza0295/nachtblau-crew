@@ -16,7 +16,7 @@ while IFS= read -r -d '' f; do
   else
     bad "bash -n $f"
   fi
-done < <(find "$ROOT/build_files" "$ROOT/system_files/usr/bin" "$ROOT/system_files/usr/libexec" -type f \( -name '*.sh' -o -name 'silk-*' -o -name 'firstboot' -o -name 'set-icon-theme' \) -print0)
+done < <(find "$ROOT/build_files" "$ROOT/system_files/usr/bin" "$ROOT/system_files/usr/libexec" -type f \( -name '*.sh' -o -name 'silk-*' -o -name 'firstboot' -o -name 'set-icon-theme' -o -name 'plug-ready' -o -name 'user-ready' \) -print0)
 
 echo "== Pflicht-Dateien =="
 for f in \
@@ -47,8 +47,16 @@ for f in \
   system_files/usr/bin/silk-windows \
   system_files/usr/libexec/silk/connect-server \
   system_files/usr/bin/silk-controllers \
+  system_files/usr/bin/silk-ready \
+  system_files/usr/libexec/silk/firstboot \
+  system_files/usr/libexec/silk/plug-ready \
+  system_files/usr/libexec/silk/user-ready \
+  system_files/usr/lib/systemd/system/silk-firstboot.service \
+  system_files/usr/lib/systemd/system/silk-plug.service \
+  system_files/etc/skel/.config/autostart/silk-ready.desktop \
   system_files/etc/udev/rules.d/99-silk-controllers.rules \
   docs/GPU-CONTROLLERS.md \
+  docs/OUT-OF-BOX.md \
   system_files/usr/share/silk/connect/index.html \
   system_files/usr/share/silk/connect/manifest.json \
   system_files/usr/share/silk/mobile-devices.txt \
@@ -335,6 +343,26 @@ grep -q 'silk-controllers' "$ROOT/system_files/usr/bin/silk-setup" && ok "setup 
 [[ -f "$ROOT/docs/GPU-CONTROLLERS.md" ]] && ok "GPU-CONTROLLERS.md" || bad "GPU-CONTROLLERS.md"
 bash -n "$ROOT/system_files/usr/bin/silk-controllers" && ok "controllers syntax" || bad "controllers syntax"
 bash -n "$ROOT/system_files/usr/bin/silk-gpu" && ok "silk-gpu syntax" || bad "silk-gpu syntax"
+
+echo "== Auspacken und loslegen (OOB) =="
+grep -q 'SILK_AUTO_GPU_SWITCH' "$ROOT/system_files/usr/libexec/silk/firstboot" && ok "firstboot auto GPU switch" || bad "firstboot auto GPU"
+grep -q 'maybe_switch_gpu_image\|recommended_image' "$ROOT/system_files/usr/libexec/silk/firstboot" && ok "firstboot image switch" || bad "firstboot image switch"
+grep -q 'gpu-switch-pending' "$ROOT/system_files/usr/libexec/silk/firstboot" && ok "firstboot pending reboot" || bad "firstboot pending"
+grep -q 'setup_controllers_system' "$ROOT/system_files/usr/libexec/silk/firstboot" && ok "firstboot controllers" || bad "firstboot controllers"
+grep -q 'silk-plug.service' "$ROOT/build_files/05-finalize.sh" && ok "finalize enables silk-plug" || bad "finalize silk-plug"
+grep -q 'bluetooth.service' "$ROOT/build_files/05-finalize.sh" && ok "finalize enables bluetooth" || bad "finalize bluetooth"
+grep -q 'plug-ready' "$ROOT/system_files/usr/lib/systemd/system/silk-plug.service" && ok "silk-plug service" || bad "silk-plug service"
+grep -q 'user-ready' "$ROOT/system_files/etc/skel/.config/autostart/silk-ready.desktop" && ok "skel silk-ready autostart" || bad "skel autostart"
+grep -q 'silk-windows setup\|silk-controllers setup' "$ROOT/system_files/usr/libexec/silk/user-ready" && ok "user-ready windows+controllers" || bad "user-ready"
+grep -q 'Auspacken und loslegen' "$ROOT/docs/OUT-OF-BOX.md" && ok "OUT-OF-BOX.md" || bad "OUT-OF-BOX.md"
+grep -q 'silk-ready' "$ROOT/README.md" && ok "README silk-ready" || bad "README silk-ready"
+grep -q 'on the fly\|Auto-Switch' "$ROOT/docs/GPU-CONTROLLERS.md" && ok "GPU-CONTROLLERS OOB" || bad "GPU-CONTROLLERS OOB"
+grep -q 'Auspacken und loslegen' "$ROOT/system_files/usr/share/silk/welcome.html" && ok "welcome OOB" || bad "welcome OOB"
+[[ -x "$ROOT/system_files/usr/bin/silk-ready" ]] && ok "silk-ready executable" || bad "silk-ready exec"
+[[ -x "$ROOT/system_files/usr/libexec/silk/plug-ready" ]] && ok "plug-ready executable" || bad "plug-ready exec"
+[[ -x "$ROOT/system_files/usr/libexec/silk/user-ready" ]] && ok "user-ready executable" || bad "user-ready exec"
+bash -n "$ROOT/system_files/usr/bin/silk-ready" && ok "silk-ready syntax" || bad "silk-ready syntax"
+bash "$ROOT/system_files/usr/bin/silk-ready" --help >/dev/null && ok "silk-ready help" || bad "silk-ready help"
 
 echo "== Markenname Aurora nicht in Nutzer-Text =="
 for f in README.md QUICKSTART.md ROADMAP.md LEGAL.md system_files/usr/share/silk/welcome.html docs/silk-produktuebersicht.html; do
