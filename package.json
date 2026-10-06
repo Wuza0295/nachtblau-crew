@@ -9,7 +9,11 @@
     "start": "NODE_ENV=production node dist/index.js",
     "check": "tsc --noEmit",
     "format": "prettier --write .",
-    "test": "vitest run",
+    "test": "vitest run && python3 scripts/test_hub_sync.py && node --test apps/nachtblau-hub/resolve-hub-url.test.cjs",
+    "hub:sync": "python3 scripts/hub-sync.py sync",
+    "hub:push": "python3 scripts/hub-sync.py push",
+    "hub:pull": "python3 scripts/hub-sync.py pull",
+    "hub:status": "python3 scripts/hub-sync.py status",
     "db:push": "drizzle-kit generate && drizzle-kit migrate",
     "db:seed": "tsx server/seed.ts"
   },

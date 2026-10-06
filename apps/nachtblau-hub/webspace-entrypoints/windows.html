@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="nacht">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#02040a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="description" content="NachtBlau — Twilight Crown, Bluepole, Lumina und Symbiose.">
+  <meta property="og:title" content="NachtBlau">
+  <meta property="og:description" content="Twilight Crown, Bluepole, Lumina und Symbiose.">
+  <meta property="og:type" content="website">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https:; frame-src 'self' https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self'; connect-src 'self' https://www.paypal.com">
+  <title>NachtBlau</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/hub.css?v=36">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+</head>
+<body class="platform-windows">
+  <div class="shell">
+    <header class="topbar">
+      <a class="mark" href="./" aria-label="NachtBlau">
+        <img src="assets/logo.svg" width="40" height="40" alt="">
+        <span class="mark-name">NachtBlau</span>
+      </a>
+      <div class="topbar-end">
+        <div class="theme-picker" id="theme-picker" role="listbox" aria-label="Farbschema"></div>
+        <button type="button" class="account-chip is-guest" id="btn-account" aria-haspopup="dialog">
+          <span aria-hidden="true">◇</span>
+          <span class="account-chip-label" id="account-label">Anmelden</span>
+        </button>
+        <a class="ghost-link" id="link-main-site" href="https://nachtblau-interactive.com" target="_blank" rel="noopener">Studio</a>
+        <button type="button" class="icon-btn" id="btn-fullscreen" title="Vollbild" aria-label="Vollbild">⛶</button>
+      </div>
+    </header>
+
+    <section class="feature" id="hero" aria-label="Aktueller Titel">
+      <div class="feature-atmosphere" aria-hidden="true">
+        <img class="feature-bg" id="atmosphere-img" src="assets/games/default-cover.svg" alt="">
+      </div>
+      <div class="feature-inner">
+        <div class="feature-copy">
+          <p class="hero-kicker" id="hero-kicker">Ausgewählt</p>
+          <h1 class="hero-title">
+            <span id="detail-title">NachtBlau</span>
+            <span class="hero-sub" id="detail-subtitle"></span>
+          </h1>
+          <p class="hero-desc" id="detail-desc"></p>
+          <div class="hero-meta">
+            <span class="chip" id="detail-status"></span>
+            <span class="chip chip-quiet" id="detail-genre"></span>
+            <span class="chip chip-quiet" id="detail-category"></span>
+            <span class="chip chip-quiet" id="detail-version"></span>
+          </div>
+          <div class="hero-actions">
+            <button type="button" class="cta" id="btn-play">
+              <span id="btn-play-icon" aria-hidden="true">▶</span>
+              <span id="btn-play-label">Starten</span>
+            </button>
+            <button type="button" class="cta cta-soft hidden" id="btn-tip">Trinkgeld</button>
+            <button type="button" class="cta cta-ghost" id="btn-website" hidden>Link</button>
+            <button type="button" class="cta cta-ghost" id="btn-itch" hidden>itch.io</button>
+            <button type="button" class="cta cta-ghost" id="btn-fav" aria-label="Favorit">☆</button>
+          </div>
+          <p class="hero-note" id="detail-path-status"></p>
+          <p class="hero-note hero-note-accent" id="detail-controls-hint"></p>
+        </div>
+        <div class="feature-poster-wrap">
+          <img class="feature-poster" id="hero-cover" src="assets/games/default-cover.svg" alt="">
+        </div>
+      </div>
+    </section>
+
+    <section class="catalog" aria-label="Bibliothek">
+      <header class="catalog-head">
+        <h2 class="catalog-title">NachtBlau-Bibliothek</h2>
+      </header>
+      <div class="catalog-bar">
+        <div class="search-field">
+          <input type="search" id="hub-search" placeholder="Suchen…" autocomplete="off" spellcheck="false" enterkeyhint="search">
+          <button type="button" class="search-clear hidden" id="btn-clear-search" aria-label="Suche leeren">×</button>
+        </div>
+        <div class="catalog-tools">
+          <button type="button" class="pill" id="btn-favorites" aria-pressed="false">★ <span class="btn-count">0</span></button>
+          <button type="button" class="pill" id="btn-random">Zufall</button>
+        </div>
+      </div>
+
+      <div class="recent-wrap hidden" id="recent-wrap">
+        <span class="recent-label">Zuletzt</span>
+        <div class="recent-list" id="recent-list"></div>
+      </div>
+
+      <nav class="filters" id="category-tabs" aria-label="Kategorien"></nav>
+      <nav class="filters filters-sub hidden" id="category-subtabs" aria-label="Unterkategorien"></nav>
+      <ul class="grid" id="library-list" role="list"></ul>
+    </section>
+
+    <section class="reader hidden" id="reader" aria-label="Inhalt">
+      <header class="reader-head">
+        <div>
+          <p class="reader-kicker" id="reader-kicker"></p>
+          <h2 class="reader-title" id="reader-title"></h2>
+          <p class="reader-author" id="reader-author"></p>
+        </div>
+        <button type="button" class="icon-btn" id="btn-reader-close" aria-label="Schließen">×</button>
+      </header>
+      <div class="reader-body" id="reader-body"></div>
+    </section>
+
+    <details class="tip-sheet hidden" id="detail-tip">
+      <summary>Trinkgeld wählen</summary>
+      <p id="tip-panel-text">Unterstütze NachtBlau Interactive — freiwillig.</p>
+      <form id="tip-form">
+        <label for="tip-amount">Betrag (EUR)</label>
+        <input type="number" id="tip-amount" min="1" step="0.01" value="2.00" inputmode="decimal">
+        <div class="tip-presets" id="tip-presets"></div>
+        <button type="submit" class="cta cta-soft">Weiter zu PayPal</button>
+        <p id="tip-status" role="status"></p>
+      </form>
+    </details>
+
+    <footer class="foot">
+      <span id="platform-label">Windows Desktop</span>
+      <span id="hub-version">v32</span>
+      <span id="studio-tagline">NachtBlau Interactive © 2026</span>
+      <span id="controller-pill" class="hidden">Pad verbunden</span>
+    </footer>
+  </div>
+
+  <div class="dock" id="mobile-dock">
+    <button type="button" class="cta dock-cta" id="btn-dock-play">
+      <span aria-hidden="true">▶</span>
+      <span id="btn-dock-label">Starten</span>
+    </button>
+  </div>
+
+  <div class="toast hidden" id="toast" role="status"></div>
+  <canvas id="particles" aria-hidden="true"></canvas>
+
+  <div class="auth-modal hidden" id="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+    <div class="auth-card">
+      <button type="button" class="icon-btn auth-close" id="btn-auth-close" aria-label="Schließen">×</button>
+      <div class="auth-brand">
+        <img src="assets/logo.svg" width="44" height="44" alt="">
+        <div class="auth-brand-text">
+          <span class="auth-brand-name">NachtBlau</span>
+          <span class="auth-brand-sub">Konto für den Launcher</span>
+        </div>
+      </div>
+      <h2 class="auth-title" id="auth-title">Anmelden</h2>
+      <p class="auth-lead" id="auth-lead">Melde dich an, um Spiele zu starten. Bücher &amp; Galerie bleiben frei lesbar.</p>
+      <form class="auth-form" id="auth-form" autocomplete="on">
+        <input type="hidden" id="auth-mode" value="login">
+        <label>
+          E-Mail
+          <input type="email" id="auth-email" name="email" required autocomplete="email" inputmode="email" placeholder="name@beispiel.de">
+        </label>
+        <label id="auth-name-wrap" class="hidden">
+          Anzeigename (optional)
+          <input type="text" id="auth-display-name" name="displayName" maxlength="40" autocomplete="nickname" placeholder="Dein Name">
+        </label>
+        <label>
+          Passwort
+          <input type="password" id="auth-password" name="password" required minlength="8" autocomplete="current-password" placeholder="Mindestens 8 Zeichen">
+        </label>
+        <p class="auth-error" id="auth-error" role="alert"></p>
+        <div class="auth-actions">
+          <button type="submit" class="cta" id="auth-submit">Anmelden</button>
+        </div>
+      </form>
+      <p class="auth-switch" id="auth-switch">
+        Noch kein Konto?
+        <button type="button" id="btn-auth-toggle">Konto erstellen</button>
+      </p>
+      <p class="auth-switch hidden" id="auth-logout-wrap">
+        <button type="button" id="btn-auth-logout">Abmelden</button>
+      </p>
+    </div>
+  </div>
+
+  <script src="windows-bridge.js?v=36"></script>
+  <script type="module" src="js/hub/main.js?v=36"></script>
+</body>
+</html>

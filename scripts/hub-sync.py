@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
 """Sync NachtBlau Hub — Webspace is always the live source of truth.
 
-Linux (Electron) and Android (Capacitor) load
+Bazzite/Linux (Electron), Windows (Electron) and Android (Capacitor) load
 https://launcher.nachtblau-interactive.com/ directly.
 These scripts only pull/push the FTPS mirror for edits & backup;
 day-to-day use does not need local www/ copies.
+
+Platform entrypoints on the launcher domain:
+  /linux.html    Bazzite / Aurora / Desktop-Linux
+  /windows.html  Windows-Notebook
+  /android.html  Android
+  /              Browser (index.html)
 """
 
 from __future__ import annotations
@@ -12,37 +18,29 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import shutil
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-
-from webspace_config import (  # noqa: E402
-    WEBSPACE_ROOT,
-    connect_ftp,
-    cwd_makedirs,
-    download_tree,
-    mirror_index_htm,
-    require_credentials,
-    upload_tree,
-)
-
 ROOT = Path(__file__).resolve().parents[1]
 HUB = ROOT / "apps" / "nachtblau-hub"
 SHARED = HUB / "shared"
 LINUX_WWW = HUB / "linux" / "www"
+WINDOWS_WWW = HUB / "windows" / "www"
 ANDROID_WWW = HUB / "android" / "www"
 BRIDGES = HUB / "bridges"
+WEBSPACE_ROOT = ROOT / "webspace"
 WEBSPACE_LAUNCHER = WEBSPACE_ROOT / "launcher.nachtblau-interactive.com"
+ENTRYPOINTS = HUB / "webspace-entrypoints"
 REMOTE_LAUNCHER = "/launcher.nachtblau-interactive.com"
 MANIFEST = HUB / "sync-manifest.json"
 
-# Files owned by a platform shell (not overwritten from shared)
 PLATFORM_OWNED = {
-    "site-bridge.js",  # web bridge name used by index.html on web
+    "site-bridge.js",
     "linux-bridge.js",
+    "windows-bridge.js",
     "android-bridge.js",
 }
 
@@ -53,6 +51,64 @@ SKIP_COPY_NAMES = {
     ".DS_Store",
     "launcher.nachtblau-interactive.com.zip",
 }
+
+BRIDGE_SRC_RE = re.compile(
+    r'src="(?:site|linux|android|windows)-bridge\.js[^"]*"'
+)
+PLATFORM_CLASS_RE = re.compile(
+    r'class="platform-(?:web|linux|android|windows)"'
+)
+
+PLATFORMS = (
+    (
+        "linux",
+        LINUX_WWW,
+        BRIDGES / "linux-bridge.js",
+        "linux-bridge.js",
+        "Linux Desktop",
+        HUB / "linux" / "styles-linux.css",
+        "styles-linux.css",
+    ),
+    (
+        "windows",
+        WINDOWS_WWW,
+        BRIDGES / "windows-bridge.js",
+        "windows-bridge.js",
+        "Windows Desktop",
+        HUB / "windows" / "styles-windows.css",
+        "styles-windows.css",
+    ),
+    (
+        "android",
+        ANDROID_WWW,
+        BRIDGES / "android-bridge.js",
+        "android-bridge.js",
+        "Android App",
+        HUB / "android" / "styles-android.css",
+        "styles-android.css",
+    ),
+)
+
+
+def _ftp():
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from webspace_config import (  # noqa: E402
+        connect_ftp,
+        cwd_makedirs,
+        download_tree,
+        mirror_index_htm,
+        require_credentials,
+        upload_tree,
+    )
+
+    return {
+        "connect_ftp": connect_ftp,
+        "cwd_makedirs": cwd_makedirs,
+        "download_tree": download_tree,
+        "mirror_index_htm": mirror_index_htm,
+        "require_credentials": require_credentials,
+        "upload_tree": upload_tree,
+    }
 
 
 def _sha256(path: Path) -> str:
@@ -83,6 +139,25 @@ def _copy_tree(src: Path, dst: Path, *, skip_names: set[str] | None = None) -> i
     return count
 
 
+def rewrite_platform_html(
+    html: str,
+    *,
+    platform: str,
+    bridge: str,
+    extra_css: str | None = None,
+) -> str:
+    """Patch a hub index.html to a platform entry (linux / windows / android)."""
+    html = PLATFORM_CLASS_RE.sub(f'class="platform-{platform}"', html, count=1)
+    html = html.replace(">Web Hub<", f">{platform.title()} Hub<")
+    html = BRIDGE_SRC_RE.sub(f'src="{bridge}"', html, count=1)
+    if extra_css and f'href="{extra_css}"' not in html:
+        html = html.replace(
+            'href="styles-web.css">',
+            f'href="styles-web.css">\n  <link rel="stylesheet" href="{extra_css}">',
+        )
+    return html
+
+
 def _write_platform_index(
     template: Path,
     out: Path,
@@ -91,30 +166,35 @@ def _write_platform_index(
     label: str,
     extra_css: str | None = None,
 ) -> None:
-    html = template.read_text(encoding="utf-8")
-    html = html.replace('class="platform-web"', f'class="platform-{platform}"')
-    html = html.replace(">Web Hub<", f">{label}<")
-    html = html.replace('src="site-bridge.js"', f'src="{bridge}"')
-    if extra_css and f'href="{extra_css}"' not in html:
+    html = rewrite_platform_html(
+        template.read_text(encoding="utf-8"),
+        platform=platform,
+        bridge=bridge,
+        extra_css=extra_css,
+    )
+    # Keep the visible footer label in sync if the template still says "Web"
+    if ">Web<" in html and label:
         html = html.replace(
-            'href="styles-web.css">',
-            f'href="styles-web.css">\n  <link rel="stylesheet" href="{extra_css}">',
+            '<span id="platform-label">Web</span>',
+            f'<span id="platform-label">{label}</span>',
+            1,
         )
     out.write_text(html, encoding="utf-8")
 
 
 def pull_webspace_launcher() -> int:
-    require_credentials()
+    ftp = _ftp()
+    ftp["require_credentials"]()
     print(f"↓ Pull {REMOTE_LAUNCHER} → {WEBSPACE_LAUNCHER}")
-    ftp = connect_ftp()
+    client = ftp["connect_ftp"]()
     try:
-        cwd_makedirs(ftp, REMOTE_LAUNCHER)
-        n = download_tree(ftp, WEBSPACE_LAUNCHER)
+        ftp["cwd_makedirs"](client, REMOTE_LAUNCHER)
+        n = ftp["download_tree"](client, WEBSPACE_LAUNCHER)
     finally:
         try:
-            ftp.quit()
+            client.quit()
         except Exception:
-            ftp.close()
+            client.close()
     print(f"  → {n} Dateien")
     return n
 
@@ -125,7 +205,6 @@ def materialize_shared_from_webspace() -> int:
             f"Fehlt: {WEBSPACE_LAUNCHER}\nZuerst: pnpm webspace:pull launcher.nachtblau-interactive.com"
         )
     SHARED.mkdir(parents=True, exist_ok=True)
-    # Wipe shared (keep directory) then copy fresh mirror
     for child in SHARED.iterdir():
         if child.is_dir():
             shutil.rmtree(child)
@@ -143,28 +222,7 @@ def apply_platforms() -> dict[str, int]:
     template = SHARED / "index.html"
     counts: dict[str, int] = {}
 
-    # Web bridge lives in shared as site-bridge.js (from webspace)
-    # Linux / Android get a full copy of shared + their bridge + patched index
-    for platform, www, bridge_src, bridge_name, label, css_src, css_name in (
-        (
-            "linux",
-            LINUX_WWW,
-            BRIDGES / "linux-bridge.js",
-            "linux-bridge.js",
-            "Linux Desktop",
-            HUB / "linux" / "styles-linux.css",
-            "styles-linux.css",
-        ),
-        (
-            "android",
-            ANDROID_WWW,
-            BRIDGES / "android-bridge.js",
-            "android-bridge.js",
-            "Android App",
-            HUB / "android" / "styles-android.css",
-            "styles-android.css",
-        ),
-    ):
+    for platform, www, bridge_src, bridge_name, label, css_src, css_name in PLATFORMS:
         if www.exists():
             shutil.rmtree(www)
         www.mkdir(parents=True, exist_ok=True)
@@ -174,40 +232,66 @@ def apply_platforms() -> dict[str, int]:
         shutil.copy2(bridge_src, www / bridge_name)
         if css_src.is_file():
             shutil.copy2(css_src, www / css_name)
-        # Remove web-only bridge from native packages to avoid confusion
         web_bridge = www / "site-bridge.js"
         if web_bridge.exists():
             web_bridge.unlink()
+        # Keep cache-buster if the template used one
+        bridge_ref = bridge_name
+        sample = template.read_text(encoding="utf-8")
+        match = BRIDGE_SRC_RE.search(sample)
+        if match and "?v=" in match.group(0):
+            ver = match.group(0).split("?v=", 1)[-1].rstrip('"')
+            bridge_ref = f"{bridge_name}?v={ver}"
         _write_platform_index(
             template,
             www / "index.html",
             platform,
-            bridge_name,
+            bridge_ref,
             label,
             extra_css=css_name if css_src.is_file() else None,
         )
-        # Mirror index.htm for local static servers / ALL-INKL habit
         shutil.copy2(www / "index.html", www / "index.htm")
         n += 2
         counts[platform] = n
         print(f"✓ {platform}: {www} ({n} Dateien, Bridge={bridge_name})")
 
-    # Ensure webspace launcher keeps web bridge + platform-web index
-    # (shared is already the web copy)
     if (SHARED / "site-bridge.js").is_file():
         print("✓ web: shared/ = Webspace-Launcher-Spiegel (site-bridge.js)")
     counts["web"] = sum(1 for _ in SHARED.rglob("*") if _.is_file())
     return counts
 
 
+def publish_webspace_entrypoints() -> dict[str, str]:
+    """Copy platform indexes to ALL-INKL MultiViews names (linux.html, windows.html, …)."""
+    written: dict[str, str] = {}
+    ENTRYPOINTS.mkdir(parents=True, exist_ok=True)
+    dest_roots = [ENTRYPOINTS]
+    if WEBSPACE_LAUNCHER.is_dir() or (SHARED / "index.html").is_file():
+        WEBSPACE_LAUNCHER.mkdir(parents=True, exist_ok=True)
+        dest_roots.append(WEBSPACE_LAUNCHER)
+
+    for platform, www, bridge_src, bridge_name, _label, _css_src, _css_name in PLATFORMS:
+        src = www / "index.html"
+        if not src.is_file():
+            continue
+        for dest_root in dest_roots:
+            html_path = dest_root / f"{platform}.html"
+            htm_path = dest_root / f"{platform}.htm"
+            shutil.copy2(src, html_path)
+            shutil.copy2(src, htm_path)
+            if bridge_src.is_file():
+                shutil.copy2(bridge_src, dest_root / bridge_name)
+            written[str(html_path.relative_to(ROOT))] = platform
+            print(f"✓ Einstieg {platform}: {html_path.relative_to(ROOT)}")
+    return written
+
+
 def push_shared_to_webspace() -> int:
-    """Push shared (web) UI back to launcher domain on ALL-INKL."""
-    require_credentials()
+    ftp = _ftp()
+    ftp["require_credentials"]()
     if not SHARED.is_dir():
         raise SystemExit("shared/ fehlt")
-    # Stage into webspace mirror first
     WEBSPACE_LAUNCHER.mkdir(parents=True, exist_ok=True)
-    # Preserve remote-only large zip if present locally
     zip_name = "launcher.nachtblau-interactive.com.zip"
     preserved = None
     zip_path = WEBSPACE_LAUNCHER / zip_name
@@ -225,19 +309,19 @@ def push_shared_to_webspace() -> int:
     if preserved is not None:
         zip_path.write_bytes(preserved)
 
-    print(f"↑ Push shared → {REMOTE_LAUNCHER}")
-    ftp = connect_ftp()
+    publish_webspace_entrypoints()
+
+    print(f"↑ Push shared + Einstiege → {REMOTE_LAUNCHER}")
+    client = ftp["connect_ftp"]()
     try:
-        cwd_makedirs(ftp, REMOTE_LAUNCHER)
-        # Upload shared tree into remote launcher root
-        # Start from remote root of launcher
-        n = upload_tree(ftp, SHARED)
-        n += mirror_index_htm(ftp, SHARED)
+        ftp["cwd_makedirs"](client, REMOTE_LAUNCHER)
+        n = ftp["upload_tree"](client, WEBSPACE_LAUNCHER)
+        n += ftp["mirror_index_htm"](client, WEBSPACE_LAUNCHER)
     finally:
         try:
-            ftp.quit()
+            client.quit()
         except Exception:
-            ftp.close()
+            client.close()
     print(f"  → {n} Dateien hochgeladen (lokal gespiegelt: {n_local})")
     return n
 
@@ -247,7 +331,7 @@ def write_manifest(counts: dict[str, int], action: str) -> None:
         str(p.relative_to(SHARED))
         for p in SHARED.rglob("*")
         if p.is_file() and p.name not in SKIP_COPY_NAMES
-    )
+    ) if SHARED.is_dir() else []
     digest_parts = []
     for rel in files:
         digest_parts.append(f"{rel}:{_sha256(SHARED / rel)}")
@@ -261,21 +345,28 @@ def write_manifest(counts: dict[str, int], action: str) -> None:
         "paths": {
             "shared": str(SHARED.relative_to(ROOT)),
             "linux": str(LINUX_WWW.relative_to(ROOT)),
+            "windows": str(WINDOWS_WWW.relative_to(ROOT)),
             "android": str(ANDROID_WWW.relative_to(ROOT)),
+            "entrypoints": str(ENTRYPOINTS.relative_to(ROOT)),
             "webspace": str(WEBSPACE_LAUNCHER.relative_to(ROOT)),
         },
+        "linuxUrl": "https://launcher.nachtblau-interactive.com/linux.html",
+        "windowsUrl": "https://launcher.nachtblau-interactive.com/windows.html",
+        "androidUrl": "https://launcher.nachtblau-interactive.com/android.html",
     }
     MANIFEST.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     print(f"✓ Manifest: {MANIFEST.relative_to(ROOT)} (hash={content_hash})")
 
 
 def status() -> None:
-    print("NachtBlau Hub — Sync-Status\n")
+    print("NachtBlau Hub — Sync-Status (Bazzite + Windows + Android + Web)\n")
     for label, path in (
         ("Webspace launcher", WEBSPACE_LAUNCHER),
         ("shared", SHARED),
-        ("Linux www", LINUX_WWW),
+        ("Linux/Bazzite www", LINUX_WWW),
+        ("Windows www", WINDOWS_WWW),
         ("Android www", ANDROID_WWW),
+        ("Einstiege", ENTRYPOINTS),
     ):
         if not path.exists():
             print(f"  · {label}: fehlt ({path})")
@@ -288,12 +379,16 @@ def status() -> None:
             f"\nLetzter Sync: {data.get('updatedAt')}  hash={data.get('contentHash')}  "
             f"action={data.get('action')}"
         )
+        plats = data.get("platforms") or {}
+        print(f"Plattformen: {', '.join(sorted(plats)) or '—'}")
     else:
         print("\nNoch kein sync-manifest.json")
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Sync Hub across Linux / Android / Webspace")
+    parser = argparse.ArgumentParser(
+        description="Sync Hub across Bazzite/Linux, Windows, Android und Webspace"
+    )
     parser.add_argument(
         "command",
         choices=["pull", "sync", "push", "status"],
@@ -309,19 +404,22 @@ def main() -> None:
         pull_webspace_launcher()
         materialize_shared_from_webspace()
         counts = apply_platforms()
+        publish_webspace_entrypoints()
         write_manifest(counts, "pull")
-        print("\n✓ Pull+Sync fertig — Linux, Android und Webspace-Spiegel sind identisch.")
+        print("\n✓ Pull+Sync fertig — Bazzite, Windows, Android und Webspace sind identisch.")
         return
 
     if args.command == "sync":
-        # Prefer existing webspace mirror; else shared; else error
         if WEBSPACE_LAUNCHER.is_dir() and (WEBSPACE_LAUNCHER / "index.html").is_file():
             materialize_shared_from_webspace()
         elif not (SHARED / "index.html").is_file():
             raise SystemExit("Weder Webspace-Spiegel noch shared/ vorhanden. Nutze: pnpm hub:pull")
         counts = apply_platforms()
+        publish_webspace_entrypoints()
         write_manifest(counts, "sync")
-        print("\n✓ Sync fertig — Linux- und Android-App nutzen denselben Stand wie der Web-Launcher.")
+        print(
+            "\n✓ Sync fertig — Bazzite- und Windows-Hub nutzen denselben Stand wie der Web-Launcher."
+        )
         return
 
     if args.command == "push":
@@ -331,9 +429,10 @@ def main() -> None:
             else:
                 raise SystemExit("Nichts zum Pushen — zuerst pnpm hub:pull")
         counts = apply_platforms()
+        publish_webspace_entrypoints()
         push_shared_to_webspace()
         write_manifest(counts, "push")
-        print("\n✓ Push fertig — Webspace-Launcher entspricht shared / Linux / Android.")
+        print("\n✓ Push fertig — Webspace-Launcher entspricht shared / Bazzite / Windows / Android.")
 
 
 if __name__ == "__main__":

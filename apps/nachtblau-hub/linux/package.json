@@ -2,7 +2,7 @@
   "name": "nachtblau-hub-linux",
   "version": "1.0.0",
   "private": true,
-  "description": "NachtBlau Hub — Linux Desktop (Electron), synced with Webspace & Android",
+  "description": "NachtBlau Hub — Bazzite/Linux Desktop (Electron), synced with Windows, Webspace & Android",
   "main": "main.js",
   "scripts": {
     "start": "electron .",

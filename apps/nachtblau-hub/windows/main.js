@@ -1,26 +1,33 @@
 const { app, BrowserWindow, ipcMain, shell } = require("electron");
 const path = require("path");
 const fs = require("fs");
+const { resolveHubUrl, isWindowsEntrypoint } = require("../resolve-hub-url.cjs");
 
-/** Immer Webspace — Windows-Einstieg (gleiche Quelle wie Linux/Android/Browser). */
-function hubUrl() {
-  if (process.env.NACHTBLAU_HUB_URL) return process.env.NACHTBLAU_HUB_URL;
+function readHubConfig() {
   try {
-    const cfg = JSON.parse(
+    return JSON.parse(
       fs.readFileSync(path.join(__dirname, "..", "hub-url.json"), "utf8"),
     );
-    if (cfg.windowsUrl) return cfg.windowsUrl;
-    if (cfg.url) return cfg.url;
   } catch {
-    /* fall through */
+    return {};
   }
-  return "https://launcher.nachtblau-interactive.com/windows.html";
+}
+
+/** Immer Webspace — Windows-Einstieg (gleiche Quelle wie Bazzite/Android/Browser). */
+function hubUrl(failedPreferred = false) {
+  return resolveHubUrl({
+    platform: "windows",
+    envUrl: process.env.NACHTBLAU_HUB_URL,
+    cfg: readHubConfig(),
+    failedPreferred,
+  });
 }
 
 let mainWindow;
+let usedFallback = false;
 
 function createWindow() {
-  const url = hubUrl();
+  const url = hubUrl(false);
   mainWindow = new BrowserWindow({
     width: 1440,
     height: 900,
@@ -34,6 +41,24 @@ function createWindow() {
       webviewTag: true,
     },
   });
+
+  mainWindow.webContents.on(
+    "did-fail-load",
+    (_event, errorCode, _desc, validatedURL) => {
+      if (usedFallback) return;
+      if (errorCode === -3) return; // aborted
+      if (!isWindowsEntrypoint(validatedURL) && !/\/windows/i.test(validatedURL || "")) {
+        return;
+      }
+      const fallback = hubUrl(true);
+      if (!fallback || fallback === validatedURL) return;
+      usedFallback = true;
+      console.warn(
+        `[NachtBlau Hub] ${validatedURL} nicht erreichbar (${errorCode}) — Fallback ${fallback}`,
+      );
+      mainWindow.loadURL(fallback);
+    },
+  );
 
   mainWindow.loadURL(url);
 }

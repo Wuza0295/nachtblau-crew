@@ -1,20 +1,25 @@
 const { app, BrowserWindow, ipcMain, shell } = require("electron");
 const path = require("path");
 const fs = require("fs");
+const { resolveHubUrl } = require("../resolve-hub-url.cjs");
 
-/** Immer Webspace — Linux-Einstieg (gleiche Quelle wie Android/Browser). */
-function hubUrl() {
-  if (process.env.NACHTBLAU_HUB_URL) return process.env.NACHTBLAU_HUB_URL;
+function readHubConfig() {
   try {
-    const cfg = JSON.parse(
+    return JSON.parse(
       fs.readFileSync(path.join(__dirname, "..", "hub-url.json"), "utf8"),
     );
-    if (cfg.linuxUrl) return cfg.linuxUrl;
-    if (cfg.url) return cfg.url;
   } catch {
-    /* fall through */
+    return {};
   }
-  return "https://launcher.nachtblau-interactive.com/linux.html";
+}
+
+/** Immer Webspace — Linux/Bazzite-Einstieg (gleiche Quelle wie Windows/Android/Browser). */
+function hubUrl() {
+  return resolveHubUrl({
+    platform: "linux",
+    envUrl: process.env.NACHTBLAU_HUB_URL,
+    cfg: readHubConfig(),
+  });
 }
 
 let mainWindow;

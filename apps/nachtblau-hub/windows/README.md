@@ -10,11 +10,11 @@ Voraussetzungen: **Node.js LTS** und **pnpm** (kein Admin für den Hub selbst).
 ```powershell
 # Repo holen / Branch aktualisieren
 cd $HOME\Documents   # oder dein Clone-Ordner
-git clone -b cursor/pi-lightweight-desktop-3ddb https://github.com/Wuza0295/nachtblau-crew.git
+git clone -b cursor/bazzite-windows-sync-8c11 https://github.com/Wuza0295/nachtblau-crew.git
 # Falls schon geclonet:
 #   cd nachtblau-crew
-#   git fetch origin cursor/pi-lightweight-desktop-3ddb
-#   git checkout cursor/pi-lightweight-desktop-3ddb
+#   git fetch origin cursor/bazzite-windows-sync-8c11
+#   git checkout cursor/bazzite-windows-sync-8c11
 #   git pull
 
 cd nachtblau-crew\apps\nachtblau-hub\windows
@@ -42,9 +42,9 @@ Optionen:
 
 ```powershell
 cd $HOME\Documents\nachtblau-crew   # ggf. dein Clone-Pfad
-git fetch origin cursor/pi-lightweight-desktop-3ddb
-git checkout cursor/pi-lightweight-desktop-3ddb
-git pull origin cursor/pi-lightweight-desktop-3ddb
+git fetch origin cursor/bazzite-windows-sync-8c11
+git checkout cursor/bazzite-windows-sync-8c11
+git pull origin cursor/bazzite-windows-sync-8c11
 cd apps\nachtblau-hub\windows
 powershell -ExecutionPolicy Bypass -File .\Install-NachtBlauHub.ps1 -SkipInstall
 ```
