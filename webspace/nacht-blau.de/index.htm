@@ -16,7 +16,7 @@
   <script>
     (function () {
       var m = localStorage.getItem('nb-gbr-theme');
-      if (!m) m = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      // Marke NachtBlau: Dark ist Standard, Light nur bei expliziter Wahl
       var mode = m === 'light' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', mode);
       var meta = document.querySelector('meta[name="theme-color"]');

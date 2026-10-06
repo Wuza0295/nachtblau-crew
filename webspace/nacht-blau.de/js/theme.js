@@ -16,8 +16,9 @@ export function toggleTheme() {
 
 function init() {
   let mode = localStorage.getItem(STORAGE_KEY);
+  // Dark ist Marken-Standard; Light nur nach manueller Wahl
   if (mode !== 'light' && mode !== 'dark') {
-    mode = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    mode = 'dark';
   }
   applyTheme(mode);
   document.getElementById('theme-toggle')?.addEventListener('click', toggleTheme);

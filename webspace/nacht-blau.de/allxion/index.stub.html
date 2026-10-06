@@ -8,7 +8,6 @@
   <script>
     (function () {
       var m = localStorage.getItem('nb-gbr-theme');
-      if (!m) m = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', m === 'light' ? 'light' : 'dark');
     })();
   </script>
