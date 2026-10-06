@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Sync NachtBlau Hub — Webspace is always the live source of truth.
 
-Linux (Electron) and Android (Capacitor) load
+Linux/Bazzite and Windows (Electron) and Android (Capacitor) load
 https://launcher.nachtblau-interactive.com/ directly.
 These scripts only pull/push the FTPS mirror for edits & backup;
 day-to-day use does not need local www/ copies.
@@ -12,8 +12,11 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import shutil
 import sys
+import urllib.error
+import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -33,16 +36,27 @@ ROOT = Path(__file__).resolve().parents[1]
 HUB = ROOT / "apps" / "nachtblau-hub"
 SHARED = HUB / "shared"
 LINUX_WWW = HUB / "linux" / "www"
+WINDOWS_WWW = HUB / "windows" / "www"
 ANDROID_WWW = HUB / "android" / "www"
 BRIDGES = HUB / "bridges"
 WEBSPACE_LAUNCHER = WEBSPACE_ROOT / "launcher.nachtblau-interactive.com"
 REMOTE_LAUNCHER = "/launcher.nachtblau-interactive.com"
 MANIFEST = HUB / "sync-manifest.json"
+HUB_URL_FILE = HUB / "hub-url.json"
+
+# (platform, www, label) — each platform gets <platform>.html + <platform>-bridge.js
+# on the webspace and a full local www/ copy for the native shell.
+PLATFORMS = (
+    ("linux", LINUX_WWW, "Linux (Bazzite)"),
+    ("windows", WINDOWS_WWW, "Windows"),
+    ("android", ANDROID_WWW, "Android"),
+)
 
 # Files owned by a platform shell (not overwritten from shared)
 PLATFORM_OWNED = {
     "site-bridge.js",  # web bridge name used by index.html on web
     "linux-bridge.js",
+    "windows-bridge.js",
     "android-bridge.js",
 }
 
@@ -83,24 +97,13 @@ def _copy_tree(src: Path, dst: Path, *, skip_names: set[str] | None = None) -> i
     return count
 
 
-def _write_platform_index(
-    template: Path,
-    out: Path,
-    platform: str,
-    bridge: str,
-    label: str,
-    extra_css: str | None = None,
-) -> None:
-    html = template.read_text(encoding="utf-8")
+def render_platform_index(html: str, platform: str, extra_css: str | None = None) -> str:
+    """Derive <platform>.html from the web index (body class, bridge script, CSS)."""
     html = html.replace('class="platform-web"', f'class="platform-{platform}"')
-    html = html.replace(">Web Hub<", f">{label}<")
-    html = html.replace('src="site-bridge.js"', f'src="{bridge}"')
+    html = re.sub(r'src="site-bridge\.js(\?[^"]*)?"', lambda m: f'src="{platform}-bridge.js{m.group(1) or ""}"', html)
     if extra_css and f'href="{extra_css}"' not in html:
-        html = html.replace(
-            'href="styles-web.css">',
-            f'href="styles-web.css">\n  <link rel="stylesheet" href="{extra_css}">',
-        )
-    out.write_text(html, encoding="utf-8")
+        html = html.replace("</head>", f'  <link rel="stylesheet" href="{extra_css}">\n</head>', 1)
+    return html
 
 
 def pull_webspace_launcher() -> int:
@@ -136,66 +139,51 @@ def materialize_shared_from_webspace() -> int:
     return n
 
 
+def _platform_css(platform: str) -> Path:
+    return HUB / platform / f"styles-{platform}.css"
+
+
 def apply_platforms() -> dict[str, int]:
     if not (SHARED / "index.html").is_file():
         raise SystemExit("shared/index.html fehlt — zuerst pull/materialize")
 
-    template = SHARED / "index.html"
+    template = (SHARED / "index.html").read_text(encoding="utf-8")
+    if 'class="platform-web"' not in template:
+        raise SystemExit("shared/index.html ist keine Web-Vorlage (platform-web fehlt)")
     counts: dict[str, int] = {}
 
-    # Web bridge lives in shared as site-bridge.js (from webspace)
-    # Linux / Android get a full copy of shared + their bridge + patched index
-    for platform, www, bridge_src, bridge_name, label, css_src, css_name in (
-        (
-            "linux",
-            LINUX_WWW,
-            BRIDGES / "linux-bridge.js",
-            "linux-bridge.js",
-            "Linux Desktop",
-            HUB / "linux" / "styles-linux.css",
-            "styles-linux.css",
-        ),
-        (
-            "android",
-            ANDROID_WWW,
-            BRIDGES / "android-bridge.js",
-            "android-bridge.js",
-            "Android App",
-            HUB / "android" / "styles-android.css",
-            "styles-android.css",
-        ),
-    ):
+    # shared/ is the webspace copy: it gets every <platform>.html + bridge so a push
+    # deploys all entry points; native www/ copies get the same files plus index.html.
+    for platform, _www, _label in PLATFORMS:
+        bridge_src = BRIDGES / f"{platform}-bridge.js"
+        if not bridge_src.is_file():
+            raise SystemExit(f"Bridge fehlt: {bridge_src}")
+        css_src = _platform_css(platform)
+        shutil.copy2(bridge_src, SHARED / bridge_src.name)
+        if css_src.is_file():
+            shutil.copy2(css_src, SHARED / css_src.name)
+        page = render_platform_index(
+            template, platform, extra_css=css_src.name if css_src.is_file() else None
+        )
+        (SHARED / f"{platform}.html").write_text(page, encoding="utf-8")
+        print(f"✓ web: {platform}.html + {bridge_src.name}")
+
+    for platform, www, _label in PLATFORMS:
         if www.exists():
             shutil.rmtree(www)
         www.mkdir(parents=True, exist_ok=True)
-        n = _copy_tree(SHARED, www)
-        if not bridge_src.is_file():
-            raise SystemExit(f"Bridge fehlt: {bridge_src}")
-        shutil.copy2(bridge_src, www / bridge_name)
-        if css_src.is_file():
-            shutil.copy2(css_src, www / css_name)
+        _copy_tree(SHARED, www)
         # Remove web-only bridge from native packages to avoid confusion
         web_bridge = www / "site-bridge.js"
         if web_bridge.exists():
             web_bridge.unlink()
-        _write_platform_index(
-            template,
-            www / "index.html",
-            platform,
-            bridge_name,
-            label,
-            extra_css=css_name if css_src.is_file() else None,
-        )
+        shutil.copy2(www / f"{platform}.html", www / "index.html")
         # Mirror index.htm for local static servers / ALL-INKL habit
         shutil.copy2(www / "index.html", www / "index.htm")
-        n += 2
+        n = sum(1 for p in www.rglob("*") if p.is_file())
         counts[platform] = n
-        print(f"✓ {platform}: {www} ({n} Dateien, Bridge={bridge_name})")
+        print(f"✓ {platform}: {www.relative_to(ROOT)} ({n} Dateien, Bridge={platform}-bridge.js)")
 
-    # Ensure webspace launcher keeps web bridge + platform-web index
-    # (shared is already the web copy)
-    if (SHARED / "site-bridge.js").is_file():
-        print("✓ web: shared/ = Webspace-Launcher-Spiegel (site-bridge.js)")
     counts["web"] = sum(1 for _ in SHARED.rglob("*") if _.is_file())
     return counts
 
@@ -252,7 +240,11 @@ def write_manifest(counts: dict[str, int], action: str) -> None:
     for rel in files:
         digest_parts.append(f"{rel}:{_sha256(SHARED / rel)}")
     content_hash = hashlib.sha256("\n".join(digest_parts).encode()).hexdigest()[:16]
-    payload = {
+    try:
+        payload = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        payload = {}
+    payload |= {
         "action": action,
         "updatedAt": datetime.now(timezone.utc).isoformat(),
         "contentHash": content_hash,
@@ -260,8 +252,7 @@ def write_manifest(counts: dict[str, int], action: str) -> None:
         "platforms": counts,
         "paths": {
             "shared": str(SHARED.relative_to(ROOT)),
-            "linux": str(LINUX_WWW.relative_to(ROOT)),
-            "android": str(ANDROID_WWW.relative_to(ROOT)),
+            **{name: str(www.relative_to(ROOT)) for name, www, _label in PLATFORMS},
             "webspace": str(WEBSPACE_LAUNCHER.relative_to(ROOT)),
         },
     }
@@ -274,8 +265,7 @@ def status() -> None:
     for label, path in (
         ("Webspace launcher", WEBSPACE_LAUNCHER),
         ("shared", SHARED),
-        ("Linux www", LINUX_WWW),
-        ("Android www", ANDROID_WWW),
+        *((f"{label} www", www) for _name, www, label in PLATFORMS),
     ):
         if not path.exists():
             print(f"  · {label}: fehlt ({path})")
@@ -292,12 +282,70 @@ def status() -> None:
         print("\nNoch kein sync-manifest.json")
 
 
+def _fetch(url: str) -> tuple[int, str]:
+    req = urllib.request.Request(url, headers={"User-Agent": "nachtblau-hub-sync", "Cache-Control": "no-cache"})
+    try:
+        with urllib.request.urlopen(req, timeout=20) as res:
+            return res.status, res.read().decode("utf-8", errors="replace")
+    except urllib.error.HTTPError as exc:
+        return exc.code, ""
+
+
+def _hub_base() -> str:
+    try:
+        url = json.loads(HUB_URL_FILE.read_text(encoding="utf-8")).get("url")
+    except (OSError, ValueError):
+        url = None
+    return (url or "https://launcher.nachtblau-interactive.com/").rstrip("/") + "/"
+
+
+def check_live() -> bool:
+    """HTTPS check (no FTPS needed): every platform entry page and bridge is live and matches the repo."""
+    base = _hub_base()
+    print(f"NachtBlau Hub — Live-Check {base}\n")
+    ok = True
+    entries = [("web", "index.html", "site-bridge.js")] + [
+        (name, f"{name}.html", f"{name}-bridge.js") for name, _www, _label in PLATFORMS
+    ]
+    for platform, page, bridge in entries:
+        code, html = _fetch(base + page)
+        problems = []
+        if code != 200:
+            problems.append(f"{page} HTTP {code}")
+        else:
+            if f'class="platform-{platform}"' not in html:
+                problems.append(f"{page} ohne platform-{platform}")
+            if not re.search(rf'src="{re.escape(bridge)}(\?[^"]*)?"', html):
+                problems.append(f"{page} lädt {bridge} nicht")
+        bcode, bjs = _fetch(base + bridge)
+        if bcode != 200:
+            problems.append(f"{bridge} HTTP {bcode}")
+        elif platform != "web":
+            if f"const PLATFORM = '{platform}';" not in bjs:
+                problems.append(f"{bridge} hat falsche PLATFORM")
+            local = BRIDGES / bridge
+            if local.is_file() and local.read_text(encoding="utf-8") != bjs:
+                problems.append(f"{bridge} weicht vom Repo ab")
+        if problems:
+            ok = False
+            print(f"  ✗ {platform:8} " + "; ".join(problems))
+        else:
+            print(f"  ✓ {platform:8} {page} + {bridge}")
+    print("\n✓ Alle Plattformen synchron." if ok else "\n✗ Nicht synchron — pnpm hub:push (FTPS-Zugang nötig).")
+    return ok
+
+
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Sync Hub across Linux / Android / Webspace")
+    parser = argparse.ArgumentParser(
+        description="Sync Hub across Linux (Bazzite) / Windows / Android / Webspace"
+    )
     parser.add_argument(
         "command",
-        choices=["pull", "sync", "push", "status"],
-        help="pull=FTPS→shared+platforms; sync=webspace mirror→platforms; push=shared→FTPS",
+        choices=["pull", "sync", "push", "status", "check"],
+        help=(
+            "pull=FTPS→shared+platforms; sync=webspace mirror→platforms; push=shared→FTPS; "
+            "check=HTTPS-Live-Prüfung aller Plattform-Einstiege"
+        ),
     )
     args = parser.parse_args()
 
@@ -305,12 +353,15 @@ def main() -> None:
         status()
         return
 
+    if args.command == "check":
+        sys.exit(0 if check_live() else 1)
+
     if args.command == "pull":
         pull_webspace_launcher()
         materialize_shared_from_webspace()
         counts = apply_platforms()
         write_manifest(counts, "pull")
-        print("\n✓ Pull+Sync fertig — Linux, Android und Webspace-Spiegel sind identisch.")
+        print("\n✓ Pull+Sync fertig — Bazzite/Linux, Windows, Android und Webspace-Spiegel sind identisch.")
         return
 
     if args.command == "sync":
@@ -321,7 +372,7 @@ def main() -> None:
             raise SystemExit("Weder Webspace-Spiegel noch shared/ vorhanden. Nutze: pnpm hub:pull")
         counts = apply_platforms()
         write_manifest(counts, "sync")
-        print("\n✓ Sync fertig — Linux- und Android-App nutzen denselben Stand wie der Web-Launcher.")
+        print("\n✓ Sync fertig — Bazzite/Linux-, Windows- und Android-App nutzen denselben Stand wie der Web-Launcher.")
         return
 
     if args.command == "push":
@@ -333,7 +384,7 @@ def main() -> None:
         counts = apply_platforms()
         push_shared_to_webspace()
         write_manifest(counts, "push")
-        print("\n✓ Push fertig — Webspace-Launcher entspricht shared / Linux / Android.")
+        print("\n✓ Push fertig — Webspace-Launcher entspricht shared / Bazzite / Windows / Android.")
 
 
 if __name__ == "__main__":

@@ -1,9 +1,9 @@
 /**
- * Linux-Bridge für launcher.nachtblau-interactive.com
- * Gleiche Katalog-/Content-Quelle wie Web — Platform: linux
+ * Windows-Bridge für launcher.nachtblau-interactive.com
+ * Gleiche Katalog-/Content-Quelle wie Web — Platform: windows
  */
-(function initLinuxBridge() {
-  const PLATFORM = 'linux';
+(function initWindowsBridge() {
+  const PLATFORM = 'windows';
   const REMOTE_HUB = 'https://launcher.nachtblau-interactive.com/';
   const UNLOCKS_KEY = 'nachtblau_hub_unlocks';
 
