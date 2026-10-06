@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Allxion — NachtBlau</title>
+  <meta name="theme-color" content="#0a1220">
+  <script>
+    (function () {
+      var m = localStorage.getItem('nb-gbr-theme');
+      if (!m) m = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', m === 'light' ? 'light' : 'dark');
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <main class="legal-page">
+    <div class="container">
+      <h1>Allxion</h1>
+      <p class="legal-updated">Hybrid-Social-Hub · NachtBlau Crew</p>
+      <article class="legal-content">
+        <p>
+          Die App-Oberfläche wird hier bereitgestellt, sobald das Frontend gebaut und
+          synchronisiert wurde.
+        </p>
+        <p>
+          Im Projekt: <code>pnpm webspace:build-allxion</code>, danach
+          <code>pnpm webspace:sync:nacht-blau</code>
+        </p>
+        <p style="margin-top: 1rem;">
+          <a class="btn btn-ghost" href="../index.html">← Zurück zur NachtBlau GbR</a>
+        </p>
+      </article>
+    </div>
+  </main>
+</body>
+</html>

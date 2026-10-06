@@ -1,0 +1,26 @@
+{
+  "updated": "2026-10-06",
+  "links": [
+    {
+      "id": "hybrixon",
+      "title": "Hybrixon",
+      "subtitle": "Social · Closer. Freer.",
+      "url": "https://hybrixon.com/",
+      "note": "Eigenständige Social-Plattform auf dem NachtBlau-Webspace."
+    },
+    {
+      "id": "allxion",
+      "title": "Allxion",
+      "subtitle": "Hybrid-Social-Hub · NachtBlau Crew",
+      "url": "/allxion/",
+      "note": "Unterseite auf nacht-blau.de"
+    },
+    {
+      "id": "crew",
+      "title": "NachtBlau Crew",
+      "subtitle": "Gaming Community · News, Free Games, Forum",
+      "url": "https://github.com/Wuza0295/nachtblau-crew",
+      "note": "Quellcode und Weiterentwicklung der Crew-App."
+    }
+  ]
+}
