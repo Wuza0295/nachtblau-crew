@@ -34,6 +34,13 @@ Shortcuts nachziehen ohne erneutes Install: `-SkipInstall` — Details: [windows
 
 Pi-Desktop / Updates vom Heimnetz: `scripts/pi/run-lightweight-desktop-from-windows.ps1`.
 
+## Minecraft Client (Lumina Launcher)
+
+Der **NachtBlau Lumina Launcher** (Minecraft Java, RAM-Slider, Microsoft-Login) liegt unter
+[`apps/nachtblau-lumina-launcher/`](../nachtblau-lumina-launcher/). Downloads: [`/downloads/`](https://launcher.nachtblau-interactive.com/downloads/).
+
+Laptop-RAM: **6–8 GB** empfohlen — nicht den Slider auf Maximum (bei 32‑GB-PCs zeigte ≤1.0.10 fälschlich „29 GB“ als Cap). Details: [LAPTOP-OPTIMIERUNG.md](../nachtblau-lumina-launcher/LAPTOP-OPTIMIERUNG.md).
+
 ## Linux (Bazzite / Aurora)
 
 ```bash
