@@ -18,15 +18,17 @@ git clone -b cursor/pi-lightweight-desktop-3ddb https://github.com/Wuza0295/nach
 #   git pull
 
 cd nachtblau-crew\apps\nachtblau-hub\windows
-.\Install-NachtBlauHub.ps1
+powershell -ExecutionPolicy Bypass -File .\Install-NachtBlauHub.ps1
 ```
 
-Oder Doppelklick auf `Install-NachtBlauHub.cmd`.
+Oder Doppelklick auf `Install-NachtBlauHub.cmd` (empfohlen — umgeht ExecutionPolicy).
 
-Das Skript prüft Node/pnpm, führt `pnpm install` aus und legt **ohne Admin** Shortcuts an:
+Das Skript prüft Node/pnpm, führt `pnpm install` aus und legt **standardmäßig** (ohne Admin) Shortcuts an:
 
-- Desktop: `NachtBlau Hub.lnk`
+- Desktop: `NachtBlau Hub.lnk` (Known Folder + klassischer Desktop + OneDrive-Desktop, falls vorhanden)
 - Startmenü: `NachtBlau` → `NachtBlau Hub`
+
+Am Ende zeigt das Skript die **vollen Pfade** der erzeugten `.lnk`-Dateien.
 
 Optionen:
 
@@ -36,7 +38,20 @@ Optionen:
 | `-NoShortcut` | Keine Shortcuts |
 | `-SkipInstall` | Nur Shortcuts / Checks, kein `pnpm install` |
 
-Falls die Execution Policy blockiert:
+### Shortcuts nachziehen (Repo schon da, nichts auf dem Desktop)
+
+```powershell
+cd $HOME\Documents\nachtblau-crew   # ggf. dein Clone-Pfad
+git fetch origin cursor/pi-lightweight-desktop-3ddb
+git checkout cursor/pi-lightweight-desktop-3ddb
+git pull origin cursor/pi-lightweight-desktop-3ddb
+cd apps\nachtblau-hub\windows
+powershell -ExecutionPolicy Bypass -File .\Install-NachtBlauHub.ps1 -SkipInstall
+```
+
+Nur Shortcuts, ohne erneutes `pnpm install`. Danach Desktop / Startmenü auf „NachtBlau Hub“ prüfen (Pfad steht in der Skript-Ausgabe).
+
+Falls die Execution Policy blockiert (direktes `.\Install-…ps1`):
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\Install-NachtBlauHub.ps1

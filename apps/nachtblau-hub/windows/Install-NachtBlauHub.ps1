@@ -1,11 +1,12 @@
 # NachtBlau Hub — Installation auf dem Windows-Notebook
-# Kein Admin nötig. Legt optional Desktop- und Startmenü-Shortcuts an.
+# Kein Admin nötig. Legt standardmäßig Desktop- und Startmenü-Shortcuts an.
 #
 # Nutzung (PowerShell im Repo oder Doppelklick auf Install-NachtBlauHub.cmd):
 #   .\Install-NachtBlauHub.ps1
 #   .\Install-NachtBlauHub.ps1 -Start
+#   .\Install-NachtBlauHub.ps1 -SkipInstall          # nur Shortcuts nachziehen
 #   .\Install-NachtBlauHub.ps1 -NoShortcut
-#   .\Install-NachtBlauHub.ps1 -SkipInstall
+#   powershell -ExecutionPolicy Bypass -File .\Install-NachtBlauHub.ps1
 
 [CmdletBinding()]
 param(
@@ -17,6 +18,9 @@ param(
 $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $ScriptDir
+
+$ShortcutName = "NachtBlau Hub.lnk"
+$CreatedShortcutPaths = [System.Collections.Generic.List[string]]::new()
 
 Write-Host ""
 Write-Host "=== NachtBlau Hub — Windows Install ===" -ForegroundColor Cyan
@@ -61,6 +65,33 @@ function Ensure-Pnpm {
     exit 1
 }
 
+function Get-NachtBlauDesktopFolders {
+    # Known Folder (folgt OneDrive-Umleitung) + klassischer Desktop + OneDrive*\Desktop
+    $candidates = [System.Collections.Generic.List[string]]::new()
+    $known = [Environment]::GetFolderPath("Desktop")
+    if (-not [string]::IsNullOrWhiteSpace($known)) {
+        $candidates.Add($known)
+    }
+    foreach ($rel in @("Desktop", "OneDrive\Desktop")) {
+        $p = Join-Path $env:USERPROFILE $rel
+        if (-not [string]::IsNullOrWhiteSpace($p)) {
+            $candidates.Add($p)
+        }
+    }
+    Get-ChildItem -Path $env:USERPROFILE -Directory -Filter "OneDrive*" -ErrorAction SilentlyContinue |
+        ForEach-Object {
+            $candidates.Add((Join-Path $_.FullName "Desktop"))
+        }
+
+    $resolved = foreach ($c in ($candidates | Select-Object -Unique)) {
+        if ([string]::IsNullOrWhiteSpace($c)) { continue }
+        if (Test-Path -LiteralPath $c) {
+            (Resolve-Path -LiteralPath $c).Path
+        }
+    }
+    return @($resolved | Select-Object -Unique)
+}
+
 function New-NachtBlauShortcut {
     param(
         [Parameter(Mandatory = $true)][string]$LinkPath,
@@ -70,18 +101,37 @@ function New-NachtBlauShortcut {
         [string]$Description = "NachtBlau Hub Launcher"
     )
     $parent = Split-Path -Parent $LinkPath
-    if (-not (Test-Path $parent)) {
+    if (-not (Test-Path -LiteralPath $parent)) {
         New-Item -ItemType Directory -Path $parent -Force | Out-Null
     }
+
+    # .cmd zuverlässig über cmd.exe starten (Explorer-Doppelklick)
+    $cmdExe = Join-Path $env:SystemRoot "System32\cmd.exe"
+    if (-not (Test-Path -LiteralPath $cmdExe)) {
+        $cmdExe = "cmd.exe"
+    }
+    $shortcutArgs = "/c `"$TargetPath`""
+    if (-not [string]::IsNullOrWhiteSpace($Arguments)) {
+        $shortcutArgs = "/c `"$TargetPath`" $Arguments"
+    }
+
     $wsh = New-Object -ComObject WScript.Shell
     $sc = $wsh.CreateShortcut($LinkPath)
-    $sc.TargetPath = $TargetPath
-    $sc.Arguments = $Arguments
+    $sc.TargetPath = $cmdExe
+    $sc.Arguments = $shortcutArgs
     $sc.WorkingDirectory = $WorkingDirectory
     $sc.Description = $Description
     $sc.WindowStyle = 1
+    if (Test-Path -LiteralPath $TargetPath) {
+        $sc.IconLocation = "$TargetPath,0"
+    }
     $sc.Save()
+
+    if (-not (Test-Path -LiteralPath $LinkPath)) {
+        throw "Shortcut wurde nicht geschrieben: $LinkPath"
+    }
     Write-Host "[OK] Shortcut: $LinkPath" -ForegroundColor Green
+    $script:CreatedShortcutPaths.Add($LinkPath)
 }
 
 Ensure-Node
@@ -93,6 +143,7 @@ if (-not $SkipInstall) {
     pnpm install
     if ($LASTEXITCODE -ne 0) {
         Write-Host "[FEHLER] pnpm install fehlgeschlagen (Exit $LASTEXITCODE)." -ForegroundColor Red
+        Write-Host "Keine Shortcuts angelegt — zuerst Install-Fehler beheben, dann erneut ausführen."
         exit $LASTEXITCODE
     }
     Write-Host "[OK] Abhängigkeiten installiert." -ForegroundColor Green
@@ -105,20 +156,32 @@ if (-not $NoShortcut) {
     Write-Host "Shortcuts anlegen (ohne Admin) …" -ForegroundColor Cyan
 
     $startCmd = Join-Path $ScriptDir "Start-NachtBlauHub.cmd"
-    if (-not (Test-Path $startCmd)) {
+    if (-not (Test-Path -LiteralPath $startCmd)) {
         Write-Host "[FEHLER] Start-NachtBlauHub.cmd fehlt neben dem Install-Skript." -ForegroundColor Red
         exit 1
     }
-    $desktop = [Environment]::GetFolderPath("Desktop")
+
+    $desktopFolders = @(Get-NachtBlauDesktopFolders)
+    if ($desktopFolders.Count -eq 0) {
+        Write-Host "[FEHLER] Kein Desktop-Ordner gefunden (weder Known Folder noch %USERPROFILE%\Desktop)." -ForegroundColor Red
+        exit 1
+    }
+
+    Write-Host "Desktop-Ordner:"
+    foreach ($d in $desktopFolders) {
+        Write-Host "  - $d"
+    }
+
+    foreach ($desktop in $desktopFolders) {
+        New-NachtBlauShortcut `
+            -LinkPath (Join-Path $desktop $ShortcutName) `
+            -TargetPath $startCmd `
+            -WorkingDirectory $ScriptDir
+    }
+
     $startMenu = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs\NachtBlau"
-
     New-NachtBlauShortcut `
-        -LinkPath (Join-Path $desktop "NachtBlau Hub.lnk") `
-        -TargetPath $startCmd `
-        -WorkingDirectory $ScriptDir
-
-    New-NachtBlauShortcut `
-        -LinkPath (Join-Path $startMenu "NachtBlau Hub.lnk") `
+        -LinkPath (Join-Path $startMenu $ShortcutName) `
         -TargetPath $startCmd `
         -WorkingDirectory $ScriptDir
 } else {
@@ -127,11 +190,28 @@ if (-not $NoShortcut) {
 
 Write-Host ""
 Write-Host "=== Fertig ===" -ForegroundColor Cyan
-Write-Host "Start manuell:"
-Write-Host "  cd `"$ScriptDir`""
-Write-Host "  pnpm start"
+if ($CreatedShortcutPaths.Count -gt 0) {
+    Write-Host "Shortcuts erstellt (Doppelklick startet den Hub):" -ForegroundColor Green
+    foreach ($p in $CreatedShortcutPaths) {
+        Write-Host "  $p"
+    }
+    Write-Host ""
+    Write-Host "So starten:"
+    Write-Host "  1) Desktop: Doppelklick auf „NachtBlau Hub“"
+    Write-Host "  2) Startmenü: NachtBlau → NachtBlau Hub"
+    Write-Host "  3) Manuell:"
+    Write-Host "       cd `"$ScriptDir`""
+    Write-Host "       pnpm start"
+} else {
+    Write-Host "Keine Shortcuts angelegt."
+    Write-Host "Start manuell:"
+    Write-Host "  cd `"$ScriptDir`""
+    Write-Host "  pnpm start"
+    Write-Host ""
+    Write-Host "Shortcuts nachziehen:"
+    Write-Host "  powershell -ExecutionPolicy Bypass -File `"$PSCommandPath`" -SkipInstall"
+}
 Write-Host ""
-Write-Host "Oder Desktop-/Startmenü-Shortcut „NachtBlau Hub“."
 Write-Host "Hub-URL: https://launcher.nachtblau-interactive.com/windows.html"
 Write-Host ""
 
