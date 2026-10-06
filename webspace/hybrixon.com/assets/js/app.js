@@ -1,5 +1,442 @@
-/* hx-csrf-fix-20261005 */
+/* CSRF field is _csrf (helpers.php / api-media-stage.php) */
 document.addEventListener('DOMContentLoaded', () => {
+  const root = document.querySelector('.app');
+  const i18n = window.HYBRIXON_I18N || {};
+  const inApp = !!(root && root.getAttribute('data-in-app') === '1')
+    || /HybrixonApp/i.test(navigator.userAgent || '');
+  // Clear legacy localStorage trap from older builds (!== prefer_web).
+  try { localStorage.removeItem('hybrixon_stay_web'); } catch (_) {}
+  const stayWebPref = !!(root && root.getAttribute('data-stay-web') === '1')
+    || localStorage.getItem('hybrixon_prefer_web') === '1';
+  const fromAppFallback = !!(root && root.getAttribute('data-from-app') === '1')
+    || /[?&](?:from_app|web)=1(?:&|$)/.test(location.search);
+  const isAndroid = /Android/i.test(navigator.userAgent || '');
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+  const reducedMotion = typeof matchMedia === 'function'
+    && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Elevate the sticky chrome once content starts moving beneath it.
+  const topbar = document.querySelector('.topbar');
+  if (topbar) {
+    let scrollFrame = 0;
+    const syncTopbarDepth = () => {
+      scrollFrame = 0;
+      topbar.classList.toggle('topbar-scrolled', window.scrollY > 14);
+    };
+    window.addEventListener('scroll', () => {
+      if (scrollFrame) return;
+      scrollFrame = requestAnimationFrame(syncTopbarDepth);
+    }, { passive: true });
+    syncTopbarDepth();
+  }
+
+  // Progressive reveal keeps first paint functional and adds motion only when
+  // supported. Reduced-motion users always receive the static layout.
+  const revealTargets = Array.from(document.querySelectorAll(
+    '.hero, .main > .panel, .feed > .post, .story-tray-wrap, .age-gate'
+  ));
+  if (!reducedMotion && 'IntersectionObserver' in window) {
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('ui-visible');
+        revealObserver.unobserve(entry.target);
+      });
+    }, { rootMargin: '0px 0px -6% 0px', threshold: 0.04 });
+    revealTargets.forEach((element, index) => {
+      element.classList.add('ui-reveal');
+      element.style.setProperty('--ui-delay', Math.min(index % 5, 4) * 35 + 'ms');
+      revealObserver.observe(element);
+    });
+  }
+
+  // Fine-pointer devices get a subtle cursor spotlight without affecting
+  // touch performance or the semantic structure of cards.
+  const finePointer = typeof matchMedia === 'function'
+    && matchMedia('(hover: hover) and (pointer: fine)').matches;
+  if (finePointer && !reducedMotion) {
+    document.querySelectorAll('.panel, .post, .hero, .age-gate').forEach((surface) => {
+      surface.classList.add('ui-spotlight');
+      surface.addEventListener('pointermove', (event) => {
+        const rect = surface.getBoundingClientRect();
+        surface.style.setProperty('--spot-x', (event.clientX - rect.left) + 'px');
+        surface.style.setProperty('--spot-y', (event.clientY - rect.top) + 'px');
+      }, { passive: true });
+    });
+  }
+
+  const downloadUrl = i18n.appDownloadUrl || '/app.php';
+
+  const setPreferWebCookie = () => {
+    const maxAge = 60 * 60 * 24 * 7;
+    const secure = location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie = 'hybrixon_prefer_web=1; Path=/; Max-Age=' + maxAge + '; SameSite=Lax' + secure;
+  };
+
+  /**
+   * Open the native Android app when installed.
+   * On user tap: Intent with download fallback.
+   * On auto: never force-download / never set stay-web — keep the banner.
+   */
+  const openInHybrixonApp = (opts = {}) => {
+    const goDownloadOnMiss = !!opts.goDownloadOnMiss;
+    const path = location.pathname + location.search + location.hash;
+    // Strip fallback flags so the app opens the clean URL.
+    let httpsUrl = location.origin + path;
+    try {
+      const u = new URL(httpsUrl);
+      u.searchParams.delete('from_app');
+      u.searchParams.delete('web');
+      u.searchParams.delete('stay');
+      httpsUrl = u.toString();
+    } catch (_) {}
+    const fallback = downloadUrl;
+
+    if (!isAndroid) {
+      location.href = downloadUrl;
+      return;
+    }
+
+    const pkg = i18n.appPackage || 'com.hybrixon.app';
+    let intentUrl = 'intent://open?url='
+      + encodeURIComponent(httpsUrl)
+      + '#Intent;scheme=hybrixon;package='
+      + encodeURIComponent(pkg);
+    if (goDownloadOnMiss) {
+      intentUrl += ';S.browser_fallback_url=' + encodeURIComponent(fallback);
+    }
+    intentUrl += ';end';
+
+    let leftPage = false;
+    const onHide = () => { leftPage = true; };
+    document.addEventListener('visibilitychange', onHide);
+    window.addEventListener('pagehide', onHide);
+
+    location.href = intentUrl;
+
+    if (goDownloadOnMiss) {
+      setTimeout(() => {
+        document.removeEventListener('visibilitychange', onHide);
+        window.removeEventListener('pagehide', onHide);
+        if (!leftPage && !document.hidden) {
+          location.href = fallback;
+        }
+      }, 1600);
+    }
+  };
+
+  const banner = document.querySelector('[data-app-open-banner]');
+  if (banner && isMobile && !inApp) {
+    if (stayWebPref) {
+      banner.hidden = true;
+    } else {
+      banner.hidden = false;
+      const openBtn = banner.querySelector('[data-app-open]');
+      const stayBtn = banner.querySelector('[data-app-stay-web]');
+      if (openBtn) openBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openInHybrixonApp({ goDownloadOnMiss: true });
+      });
+      if (stayBtn) stayBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        try { localStorage.setItem('hybrixon_prefer_web', '1'); } catch (_) {}
+        setPreferWebCookie();
+        banner.hidden = true;
+      });
+    }
+
+    // Auto handoff backup (head script usually runs first). Keep banner visible.
+    // Skip when we just came back from an Intent miss (?from_app=1).
+    if (!stayWebPref && !fromAppFallback && isAndroid
+      && sessionStorage.getItem('hybrixon_app_autolaunch') !== '1') {
+      sessionStorage.setItem('hybrixon_app_autolaunch', '1');
+
+      // 1) Custom-scheme iframe: opens the app when installed, no navigation if missing.
+      try {
+        let httpsUrl = location.origin + location.pathname + location.search + location.hash;
+        const u = new URL(httpsUrl);
+        u.searchParams.delete('from_app');
+        u.searchParams.delete('web');
+        u.searchParams.delete('stay');
+        httpsUrl = u.toString();
+        const iframe = document.createElement('iframe');
+        iframe.style.cssText = 'display:none;width:0;height:0;border:0';
+        iframe.setAttribute('aria-hidden', 'true');
+        iframe.src = 'hybrixon://open?url=' + encodeURIComponent(httpsUrl);
+        document.body.appendChild(iframe);
+        setTimeout(() => { try { iframe.remove(); } catch (_) {} }, 2500);
+      } catch (_) {}
+
+      // 2) Intent with same-page fallback (keeps banner) — not download.
+      try {
+        let httpsUrl = location.origin + location.pathname + location.search + location.hash;
+        const u = new URL(httpsUrl);
+        u.searchParams.delete('from_app');
+        u.searchParams.delete('web');
+        u.searchParams.delete('stay');
+        httpsUrl = u.toString();
+        const fallback = httpsUrl + (httpsUrl.indexOf('?') >= 0 ? '&' : '?') + 'from_app=1';
+        const pkg = i18n.appPackage || 'com.hybrixon.app';
+        const intentUrl = 'intent://open?url='
+          + encodeURIComponent(httpsUrl)
+          + '#Intent;scheme=hybrixon;package='
+          + encodeURIComponent(pkg)
+          + ';S.browser_fallback_url='
+          + encodeURIComponent(fallback)
+          + ';end';
+        setTimeout(() => {
+          if (!document.hidden) location.href = intentUrl;
+        }, 120);
+      } catch (_) {}
+
+      // 3) If Chrome reports the related app, retry Intent once more.
+      if (typeof navigator.getInstalledRelatedApps === 'function') {
+        navigator.getInstalledRelatedApps().then((apps) => {
+          const found = (apps || []).some((a) =>
+            (a.id || a.url || '').indexOf('com.hybrixon.app') !== -1
+            || a.id === 'com.hybrixon.app'
+          );
+          if (found && !document.hidden) {
+            openInHybrixonApp({ goDownloadOnMiss: false });
+          }
+        }).catch(() => {});
+      }
+    }
+  }
+
+  /**
+   * Load posted-video previews in a small priority queue.
+   *
+   * A post may contain 15 large MP4 files whose `moov` metadata is at EOF.
+   * Starting all of them at once splits mobile bandwidth 15 ways and leaves
+   * every tile black. Near-viewport videos now load first, 1–3 at a time.
+   * A tap always bypasses the queue and retains normal full video playback.
+   */
+  const previewVideos = Array.from(document.querySelectorAll('video[data-video-preview][data-video-src]'));
+  if (previewVideos.length) {
+    const autoplayVideos = i18n.autoplayVideos === true;
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection || null;
+    const effectiveType = connection && connection.effectiveType ? connection.effectiveType : '';
+    const previewConcurrency = connection && connection.saveData
+      ? 1
+      : (/^(slow-2g|2g|3g)$/.test(effectiveType) || isMobile ? 1 : 3);
+    const previewQueue = [];
+    let activePreviews = 0;
+
+    const showVideoPoster = (video) => {
+      const poster = video ? (video.getAttribute('data-video-poster') || '') : '';
+      if (!poster) return false;
+      if (!video.getAttribute('poster')) {
+        video.setAttribute('poster', poster);
+      }
+      video.closest('.post-video')?.classList.add('preview-ready');
+      return true;
+    };
+
+    const previewUrl = (video) => {
+      const src = video.getAttribute('data-video-src') || '';
+      if (!src) return '';
+      return src.split('#')[0] + '#t=0.1';
+    };
+
+    const removeQueuedPreview = (video) => {
+      const i = previewQueue.indexOf(video);
+      if (i >= 0) previewQueue.splice(i, 1);
+      delete video.dataset.videoQueued;
+    };
+
+    const pumpVideoPreviews = () => {
+      while (activePreviews < previewConcurrency && previewQueue.length) {
+        const video = previewQueue.shift();
+        if (!video || video.dataset.videoLoaded === '1' || video.dataset.videoLoading === '1') {
+          continue;
+        }
+        const warmPlayback = video.dataset.videoWarm === '1';
+        delete video.dataset.videoQueued;
+        delete video.dataset.videoWarm;
+        startVideoPreview(video, warmPlayback);
+      }
+    };
+
+    const finishVideoPreview = (video, ready) => {
+      if (video.dataset.videoLoading !== '1') return;
+      delete video.dataset.videoLoading;
+      activePreviews = Math.max(0, activePreviews - 1);
+      if (ready) {
+        video.dataset.videoLoaded = '1';
+        video.closest('.post-video')?.classList.add('preview-ready');
+      }
+      pumpVideoPreviews();
+    };
+
+    const startVideoPreview = (video, immediate) => {
+      if (!video || video.dataset.videoLoaded === '1' || video.dataset.videoLoading === '1') {
+        return;
+      }
+      removeQueuedPreview(video);
+      const src = previewUrl(video);
+      if (!src) return;
+      video.dataset.videoLoading = '1';
+      activePreviews += 1;
+      video.preload = immediate ? 'auto' : 'metadata';
+
+      let settled = false;
+      const settle = (ready) => {
+        if (settled) return;
+        settled = true;
+        finishVideoPreview(video, ready);
+      };
+      video.addEventListener('loadeddata', () => settle(true), { once: true });
+      video.addEventListener('canplay', () => settle(true), { once: true });
+      video.addEventListener('error', () => settle(false), { once: true });
+      setTimeout(() => settle(video.readyState >= 2), immediate ? 20000 : 10000);
+      video.src = src;
+      video.load();
+    };
+
+    const queueVideoPreview = (video, warmPlayback = false) => {
+      if (!video || video.dataset.videoLoaded === '1'
+        || video.dataset.videoLoading === '1') {
+        return;
+      }
+      if (warmPlayback) video.dataset.videoWarm = '1';
+      if (video.dataset.videoQueued === '1') return;
+      video.dataset.videoQueued = '1';
+      previewQueue.push(video);
+      pumpVideoPreviews();
+    };
+
+    previewVideos.forEach((video) => {
+      // A direct tap must never wait for background preview work.
+      video.addEventListener('pointerdown', () => {
+        showVideoPoster(video);
+        if (video.dataset.videoLoaded !== '1' && video.dataset.videoLoading !== '1') {
+          startVideoPreview(video, true);
+        }
+        if (video.dataset.videoUserStarted !== '1') {
+          video.dataset.videoUserStarted = '1';
+          const playAttempt = video.play();
+          if (playAttempt && typeof playAttempt.catch === 'function') {
+            playAttempt.catch(() => {
+              // Native controls remain available when autoplay policy or a
+              // codec prevents the programmatic first-tap start.
+            });
+          }
+        }
+      }, { passive: true });
+      video.addEventListener('play', () => {
+        video.preload = 'auto';
+        previewVideos.forEach((other) => {
+          if (other !== video && !other.paused) other.pause();
+        });
+      });
+    });
+
+    if ('IntersectionObserver' in window) {
+      // Posters are tiny: request them well before their card enters view, but
+      // still avoid an eager burst for every video in a long feed.
+      const posterObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          posterObserver.unobserve(entry.target);
+          showVideoPoster(entry.target);
+        });
+      }, { rootMargin: '800px 0px', threshold: 0.01 });
+
+      const metadataObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          metadataObserver.unobserve(entry.target);
+          queueVideoPreview(entry.target);
+        });
+      }, { rootMargin: '220px 0px', threshold: 0.01 });
+      const canWarmPosterVideos = !(connection && connection.saveData)
+        && !/^(slow-2g|2g)$/.test(effectiveType);
+      const warmObserver = canWarmPosterVideos
+        ? new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+              if (!entry.isIntersecting) return;
+              warmObserver.unobserve(entry.target);
+              queueVideoPreview(entry.target, true);
+            });
+          }, { rootMargin: '120px 0px', threshold: 0.01 })
+        : null;
+      previewVideos.forEach((video) => {
+        if (video.getAttribute('data-video-poster')) {
+          posterObserver.observe(video);
+          if (warmObserver) warmObserver.observe(video);
+        } else {
+          metadataObserver.observe(video);
+        }
+      });
+
+      if (autoplayVideos) {
+        const visibility = new Map();
+        let autoplayTarget = null;
+        let autoplayFrame = 0;
+        const syncAutoplay = () => {
+          autoplayFrame = 0;
+          const candidates = document.hidden
+            ? []
+            : Array.from(visibility.entries())
+                .filter(([, ratio]) => ratio >= 0.6)
+                .sort((a, b) => b[1] - a[1]);
+          const next = candidates.length ? candidates[0][0] : null;
+          if (autoplayTarget && autoplayTarget !== next
+            && autoplayTarget.dataset.videoAutoplay === '1') {
+            autoplayTarget.pause();
+            delete autoplayTarget.dataset.videoAutoplay;
+          }
+          autoplayTarget = next;
+          if (!next || !next.paused) return;
+          showVideoPoster(next);
+          if (next.dataset.videoLoaded !== '1' && next.dataset.videoLoading !== '1') {
+            startVideoPreview(next, true);
+          }
+          next.muted = true;
+          next.dataset.videoAutoplay = '1';
+          const playAttempt = next.play();
+          if (playAttempt && typeof playAttempt.catch === 'function') {
+            playAttempt.catch(() => {});
+          }
+        };
+        const scheduleAutoplay = () => {
+          if (autoplayFrame) return;
+          autoplayFrame = requestAnimationFrame(syncAutoplay);
+        };
+        const autoplayObserver = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            visibility.set(entry.target, entry.isIntersecting ? entry.intersectionRatio : 0);
+          });
+          scheduleAutoplay();
+        }, { threshold: [0, 0.6, 0.85] });
+        previewVideos.forEach((video) => autoplayObserver.observe(video));
+        document.addEventListener('visibilitychange', scheduleAutoplay);
+      }
+
+      // Fill the first video buffers while the user is reading the page. Keep
+      // this bounded so a post with many large clips never downloads in bulk.
+      if (canWarmPosterVideos) {
+        const warmInitialVideos = () => {
+          previewVideos
+            .filter((video) => video.dataset.videoLoaded !== '1'
+              && video.dataset.videoLoading !== '1')
+            .slice(0, isMobile ? 2 : 4)
+            .forEach((video) => queueVideoPreview(video, true));
+        };
+        if ('requestIdleCallback' in window) {
+          window.requestIdleCallback(warmInitialVideos, { timeout: 1800 });
+        } else {
+          setTimeout(warmInitialVideos, 900);
+        }
+      }
+    } else {
+      previewVideos.forEach((video) => {
+        if (!showVideoPoster(video)) queueVideoPreview(video);
+      });
+    }
+  }
+
   const adultToggle = document.querySelector('[data-adult-toggle]');
   const adultHint = document.querySelector('[data-adult-hint]');
   const policyRequired = document.querySelector('[data-policy-required]');
@@ -102,16 +539,894 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
 
-  const imageInput = document.querySelector('[data-max-images]');
-  if (imageInput) {
-    const max = parseInt(imageInput.getAttribute('data-max-images') || '15', 10);
-    imageInput.addEventListener('change', () => {
-      if (imageInput.files && imageInput.files.length > max) {
-        alert('Maximal ' + max + ' Bilder.');
-        imageInput.value = '';
+  // Keep screen / WebView awake during long uploads (Android bridge + Wake Lock).
+  let wakeLock = null;
+  let uploadGuardDepth = 0;
+  const setUploadingGuard = (on) => {
+    if (on) uploadGuardDepth += 1;
+    else uploadGuardDepth = Math.max(0, uploadGuardDepth - 1);
+    const active = uploadGuardDepth > 0;
+    try {
+      if (window.HybrixonNative && typeof window.HybrixonNative.setUploading === 'function') {
+        window.HybrixonNative.setUploading(active);
+      }
+    } catch (_) {}
+    if (active) {
+      if (!wakeLock && navigator.wakeLock && navigator.wakeLock.request) {
+        navigator.wakeLock.request('screen').then((lock) => {
+          wakeLock = lock;
+          lock.addEventListener('release', () => { wakeLock = null; });
+        }).catch(() => {});
+      }
+    } else if (wakeLock) {
+      try { wakeLock.release(); } catch (_) {}
+      wakeLock = null;
+    }
+  };
+
+  const maxVideoBytes = Number(i18n.maxVideoBytes) > 0
+    ? Number(i18n.maxVideoBytes)
+    : 500 * 1000 * 1000;
+  const maxImageBytes = Number(i18n.maxImageBytes) > 0
+    ? Number(i18n.maxImageBytes)
+    : 12 * 1000 * 1000;
+  const fmtMb = (n) => (n / 1000000).toFixed(n >= 100000000 ? 0 : 1);
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const fileKey = (file) => file.name + ':' + file.size + ':' + file.lastModified;
+  const inNativeApp = !!(window.HybrixonNative)
+    || /HybrixonApp/i.test(navigator.userAgent || '');
+
+  /** True parallel: count real in-flight XHRs (file start → response), not workers. */
+  const activeStagedUploads = (uploadState) => {
+    let n = 0;
+    uploadState.items.forEach((row) => {
+      if (row && row.xhrActive) {
+        n += Math.max(1, Number(row.xhrActive) || 1);
       }
     });
-  }
+    return n;
+  };
+
+  /** Downscale large phone photos before upload (often 3–12 MB → <1 MB). */
+  const maybeCompressImage = async (file) => {
+    if (!file || !file.type || file.type.indexOf('image/') !== 0) return file;
+    if (file.size < 450000) return file;
+    if (!/^image\/(jpeg|png|webp)$/i.test(file.type)) return file;
+    if (typeof createImageBitmap !== 'function') return file;
+    try {
+      const bmp = await createImageBitmap(file);
+      const maxSide = 1920;
+      const scale = Math.min(1, maxSide / Math.max(bmp.width, bmp.height));
+      const w = Math.max(1, Math.round(bmp.width * scale));
+      const h = Math.max(1, Math.round(bmp.height * scale));
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d', { alpha: false });
+      if (!ctx) {
+        bmp.close();
+        return file;
+      }
+      ctx.drawImage(bmp, 0, 0, w, h);
+      bmp.close();
+      const blob = await new Promise((resolve) => {
+        canvas.toBlob(resolve, 'image/jpeg', 0.82);
+      });
+      if (!blob || blob.size >= file.size * 0.95) return file;
+      const base = file.name.replace(/\.[^.]+$/, '') || 'image';
+      return new File([blob], base + '.jpg', {
+        type: 'image/jpeg',
+        lastModified: file.lastModified,
+      });
+    } catch (_) {
+      return file;
+    }
+  };
+
+  /**
+   * Decode one local video frame before upload. The tiny JPEG is persisted
+   * alongside the staged video, so feed cards paint immediately without
+   * downloading MP4 metadata or waiting for a first-frame decode.
+   */
+  const createVideoPoster = async (file) => {
+    if (!file || !file.type || file.type.indexOf('video/') !== 0) return null;
+    if (typeof URL === 'undefined' || typeof document.createElement !== 'function') return null;
+    return new Promise((resolve) => {
+      const objectUrl = URL.createObjectURL(file);
+      const video = document.createElement('video');
+      video.muted = true;
+      video.playsInline = true;
+      video.preload = 'auto';
+      let settled = false;
+      const finish = (poster) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        try {
+          video.removeAttribute('src');
+          video.load();
+          URL.revokeObjectURL(objectUrl);
+        } catch (_) {}
+        resolve(poster || null);
+      };
+      const capture = () => {
+        if (!video.videoWidth || !video.videoHeight) {
+          finish(null);
+          return;
+        }
+        const maxWidth = 720;
+        const scale = Math.min(1, maxWidth / video.videoWidth);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(video.videoWidth * scale));
+        canvas.height = Math.max(1, Math.round(video.videoHeight * scale));
+        const ctx = canvas.getContext('2d', { alpha: false });
+        if (!ctx) {
+          finish(null);
+          return;
+        }
+        try {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              finish(null);
+              return;
+            }
+            const base = file.name.replace(/\.[^.]+$/, '') || 'video';
+            finish(new File([blob], base + '-poster.jpg', {
+              type: 'image/jpeg',
+              lastModified: file.lastModified,
+            }));
+          }, 'image/jpeg', 0.78);
+        } catch (_) {
+          finish(null);
+        }
+      };
+      video.addEventListener('loadedmetadata', () => {
+        const duration = Number.isFinite(video.duration) ? video.duration : 0;
+        const target = duration > 0.2 ? Math.min(0.25, duration * 0.05) : 0;
+        if (target > 0) {
+          try {
+            video.currentTime = target;
+            return;
+          } catch (_) {}
+        }
+        if (video.readyState >= 2) capture();
+      }, { once: true });
+      video.addEventListener('seeked', capture, { once: true });
+      video.addEventListener('loadeddata', () => {
+        if (!settled && video.currentTime === 0) capture();
+      }, { once: true });
+      video.addEventListener('error', () => finish(null), { once: true });
+      const timer = setTimeout(() => finish(null), 7000);
+      video.src = objectUrl;
+      video.load();
+    });
+  };
+
+  const ensureFileCountHint = (input) => {
+    const label = input.closest('label');
+    if (!label) return null;
+    let hint = label.querySelector('[data-file-count]');
+    if (!hint) {
+      hint = document.createElement('small');
+      hint.className = 'muted';
+      hint.setAttribute('data-file-count', '1');
+      hint.style.display = 'block';
+      hint.style.marginTop = '0.35rem';
+      label.appendChild(hint);
+    }
+    return hint;
+  };
+
+  /**
+   * Fast media staging:
+   * - start uploading as soon as files are chosen (while user writes the caption)
+   * - parallel XHRs (2–4)
+   * - compress images client-side
+   * - retry transient network errors
+   */
+  document.querySelectorAll('form[data-stage-uploads]').forEach((form) => {
+    const stageUrl = form.getAttribute('data-stage-url') || 'api-media-stage.php';
+    const purpose = form.getAttribute('data-stage-purpose') || 'posts';
+    const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+    const prevLabel = submitBtn ? (submitBtn.textContent || submitBtn.value || '') : '';
+    const uploadConnection = navigator.connection || navigator.mozConnection || navigator.webkitConnection || null;
+    const uploadEffectiveType = uploadConnection && uploadConnection.effectiveType
+      ? uploadConnection.effectiveType
+      : '';
+    const maxUploadRequests = uploadConnection && uploadConnection.saveData
+      ? 2
+      : (/^(slow-2g|2g)$/.test(uploadEffectiveType)
+        ? 2
+        : (uploadEffectiveType === '3g' ? 4 : (inNativeApp ? 5 : 6)));
+    const state = {
+      // key -> { token?: string, promise?: Promise<string>, loaded: number, total: number, error?: string }
+      items: new Map(),
+      busy: 0,
+      activeRequests: 0,
+      maxRequests: maxUploadRequests,
+    };
+    form._hxStage = state;
+
+    let progressEl = form.querySelector('[data-upload-progress]');
+    if (!progressEl) {
+      progressEl = document.createElement('p');
+      progressEl.className = 'muted';
+      progressEl.setAttribute('data-upload-progress', '1');
+      progressEl.hidden = true;
+      progressEl.style.margin = '0.5rem 0 0';
+      progressEl.style.fontWeight = '600';
+      if (submitBtn && submitBtn.parentNode) {
+        submitBtn.parentNode.insertBefore(progressEl, submitBtn.nextSibling);
+      } else {
+        form.appendChild(progressEl);
+      }
+    }
+
+    const renderProgress = () => {
+      let done = 0;
+      let total = 0;
+      let loaded = 0;
+      let bytes = 0;
+      let errors = 0;
+      state.items.forEach((row) => {
+        total += 1;
+        if (row.token) done += 1;
+        if (row.error) errors += 1;
+        loaded += row.loaded || 0;
+        bytes += row.total || 0;
+      });
+      if (total === 0) {
+        progressEl.hidden = true;
+        progressEl.textContent = '';
+        return;
+      }
+      progressEl.hidden = false;
+      const pct = bytes > 0 ? Math.min(99, Math.round((loaded / bytes) * 100)) : 0;
+      let text = 'Upload ' + done + '/' + total;
+      if (bytes > 0 && done < total) {
+        text += ' · ' + fmtMb(loaded) + '/' + fmtMb(bytes) + ' MB (' + pct + '%)';
+      } else if (done === total && errors === 0) {
+        text += ' · fertig — kannst veröffentlichen';
+      }
+      if (errors) text += ' · ' + errors + ' Fehler';
+      progressEl.textContent = text;
+      if (submitBtn && state.busy > 0 && form.dataset.stageSubmitting === '1') {
+        submitBtn.textContent = text;
+      }
+    };
+
+    const acquireRequestSlot = async () => {
+      while (state.activeRequests >= state.maxRequests) {
+        await sleep(35);
+      }
+      state.activeRequests += 1;
+    };
+
+    const releaseRequestSlot = () => {
+      state.activeRequests = Math.max(0, state.activeRequests - 1);
+    };
+
+    /**
+     * Send one multipart request through a form-wide connection limiter.
+     * Chunk workers and normal file uploads share this budget.
+     */
+    const sendUploadRequest = async (url, body, row, onProgress, timeoutMs) => {
+      await acquireRequestSlot();
+      row.xhrActive = (Number(row.xhrActive) || 0) + 1;
+      renderProgress();
+
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        let settled = false;
+        const finish = (callback) => {
+          if (settled) return;
+          settled = true;
+          row.xhrActive = Math.max(0, (Number(row.xhrActive) || 1) - 1);
+          releaseRequestSlot();
+          renderProgress();
+          callback();
+        };
+        xhr.open('POST', url);
+        xhr.withCredentials = true;
+        xhr.setRequestHeader('Accept', 'application/json');
+        if (typeof onProgress === 'function') {
+          xhr.upload.onprogress = onProgress;
+        }
+        xhr.onload = () => finish(() => {
+          let data = null;
+          try { data = JSON.parse(xhr.responseText); } catch (_) { data = null; }
+          resolve({ status: xhr.status, data, text: xhr.responseText || '' });
+        });
+        xhr.onerror = () => finish(() => reject(
+          Object.assign(new Error('Netzwerkfehler beim Upload.'), { retryable: true })
+        ));
+        xhr.ontimeout = () => finish(() => reject(
+          Object.assign(new Error('Upload-Timeout.'), { retryable: true })
+        ));
+        xhr.onabort = () => finish(() => reject(
+          Object.assign(new Error('Upload abgebrochen.'), { retryable: true })
+        ));
+        xhr.timeout = timeoutMs || (30 * 60 * 1000);
+        try {
+          xhr.send(body);
+        } catch (err) {
+          finish(() => reject(Object.assign(
+            err instanceof Error ? err : new Error('Upload konnte nicht gestartet werden.'),
+            { retryable: true }
+          )));
+        }
+      });
+    };
+
+    const uploadHttpError = (response, fallback) => {
+      const message = response && response.data && response.data.error
+        ? response.data.error
+        : (fallback || ('Upload fehlgeschlagen (HTTP ' + (response ? response.status : 0) + ').'));
+      const err = new Error(message);
+      const status = response ? response.status : 0;
+      err.retryable = status === 0 || status === 408 || status === 425
+        || status === 429 || status >= 500;
+      return err;
+    };
+
+    /**
+     * Upload one large video in parallel ranges. A failed range is retried
+     * independently, so a connection drop no longer restarts the whole file.
+     */
+    const uploadChunkedVideo = async (uploadFile, posterPromise, row, csrf) => {
+      const chunkUrl = i18n.mediaChunkUrl || 'api-media-chunk.php';
+      let uploadId = '';
+      try {
+        const initBody = new FormData();
+        initBody.append('_csrf', csrf);
+        initBody.append('action', 'init');
+        initBody.append('name', uploadFile.name || 'video');
+        initBody.append('mime', uploadFile.type || 'application/octet-stream');
+        initBody.append('size', String(uploadFile.size));
+        const initResponse = await sendUploadRequest(chunkUrl, initBody, row, null, 60000);
+        if (
+          initResponse.status < 200 || initResponse.status >= 300
+          || !initResponse.data || !initResponse.data.ok || !initResponse.data.upload_id
+        ) {
+          throw uploadHttpError(initResponse, 'Chunk-Upload konnte nicht gestartet werden.');
+        }
+
+        uploadId = String(initResponse.data.upload_id);
+        const chunkSize = Math.max(
+          1024 * 1024,
+          Number(initResponse.data.chunk_size) || Number(i18n.mediaChunkSize) || 8000000
+        );
+        const chunkCount = Math.ceil(uploadFile.size / chunkSize);
+        const perFileParallel = Math.max(
+          1,
+          Math.min(
+            state.maxRequests,
+            Number(i18n.mediaChunkParallel) || 4,
+            chunkCount
+          )
+        );
+        const partLoaded = new Array(chunkCount).fill(0);
+        let nextPart = 0;
+        let partFailure = null;
+
+        const renderPartProgress = () => {
+          row.loaded = Math.min(
+            uploadFile.size,
+            partLoaded.reduce((sum, bytes) => sum + bytes, 0)
+          );
+          row.total = uploadFile.size;
+          renderProgress();
+        };
+
+        const uploadPart = async (index) => {
+          const start = index * chunkSize;
+          const end = Math.min(uploadFile.size, start + chunkSize);
+          const blob = uploadFile.slice(start, end, uploadFile.type || 'application/octet-stream');
+          let lastErr = null;
+          for (let attempt = 1; attempt <= 4; attempt++) {
+            partLoaded[index] = 0;
+            renderPartProgress();
+            try {
+              if (attempt > 1) await sleep(350 * attempt);
+              const body = new FormData();
+              body.append('_csrf', csrf);
+              body.append('action', 'part');
+              body.append('upload_id', uploadId);
+              body.append('index', String(index));
+              body.append('chunk', blob, 'chunk-' + index + '.part');
+              const response = await sendUploadRequest(
+                chunkUrl,
+                body,
+                row,
+                (event) => {
+                  if (!event.lengthComputable) return;
+                  partLoaded[index] = Math.min(blob.size, event.loaded);
+                  renderPartProgress();
+                },
+                10 * 60 * 1000
+              );
+              if (
+                response.status < 200 || response.status >= 300
+                || !response.data || !response.data.ok
+              ) {
+                throw uploadHttpError(response, 'Video-Block ' + (index + 1) + ' fehlgeschlagen.');
+              }
+              partLoaded[index] = blob.size;
+              renderPartProgress();
+              return;
+            } catch (err) {
+              lastErr = err;
+              if (!err || !err.retryable || attempt === 4) throw err;
+            }
+          }
+          throw lastErr || new Error('Video-Block fehlgeschlagen.');
+        };
+
+        const worker = async () => {
+          while (nextPart < chunkCount && !partFailure) {
+            const index = nextPart++;
+            try {
+              await uploadPart(index);
+            } catch (err) {
+              partFailure = err;
+              throw err;
+            }
+          }
+        };
+        await Promise.allSettled(Array.from({ length: perFileParallel }, () => worker()));
+        if (partFailure) {
+          throw partFailure;
+        }
+        row.loaded = uploadFile.size;
+        renderProgress();
+
+        const completeBody = new FormData();
+        completeBody.append('_csrf', csrf);
+        completeBody.append('action', 'complete');
+        completeBody.append('upload_id', uploadId);
+        const posterFile = await posterPromise;
+        if (posterFile) {
+          completeBody.append('poster', posterFile, posterFile.name);
+        }
+
+        let completeResponse = null;
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          try {
+            if (attempt > 1) await sleep(500 * attempt);
+            completeResponse = await sendUploadRequest(
+              chunkUrl,
+              completeBody,
+              row,
+              null,
+              5 * 60 * 1000
+            );
+            if (
+              completeResponse.status >= 200 && completeResponse.status < 300
+              && completeResponse.data && completeResponse.data.ok
+              && completeResponse.data.token
+            ) {
+              return String(completeResponse.data.token);
+            }
+            throw uploadHttpError(completeResponse, 'Video konnte nicht abgeschlossen werden.');
+          } catch (err) {
+            if (!err || !err.retryable || attempt === 3) throw err;
+          }
+        }
+        throw uploadHttpError(completeResponse, 'Video konnte nicht abgeschlossen werden.');
+      } catch (err) {
+        if (uploadId) {
+          const abortBody = new FormData();
+          abortBody.append('_csrf', csrf);
+          abortBody.append('action', 'abort');
+          abortBody.append('upload_id', uploadId);
+          fetch(i18n.mediaChunkUrl || 'api-media-chunk.php', {
+            method: 'POST',
+            credentials: 'same-origin',
+            body: abortBody,
+          }).catch(() => {});
+        }
+        throw err;
+      }
+    };
+
+    const stageOne = (key, file, kind) => {
+      if (state.items.has(key) && (state.items.get(key).token || state.items.get(key).promise)) {
+        return state.items.get(key).promise || Promise.resolve(state.items.get(key).token);
+      }
+      const row = {
+        token: null,
+        promise: null,
+        loaded: 0,
+        total: file.size || 0,
+        error: null,
+        kind,
+        file,
+        xhrActive: 0,
+      };
+      state.items.set(key, row);
+
+      row.promise = (async () => {
+        state.busy += 1;
+        setUploadingGuard(true);
+        try {
+          const isVideo = kind === 'video'
+            || (file.type && file.type.indexOf('video/') === 0);
+          let uploadFile = file;
+          if (!isVideo) {
+            uploadFile = await maybeCompressImage(file);
+            row.total = uploadFile.size || row.total;
+          }
+          const maxBytes = isVideo ? maxVideoBytes : maxImageBytes;
+          if (uploadFile.size > maxBytes) {
+            throw Object.assign(new Error(
+              (isVideo ? 'Video' : 'Bild') + ' „' + file.name + '“ ist zu groß ('
+              + Math.ceil(uploadFile.size / 1000000) + ' MB). Max. '
+              + Math.floor(maxBytes / 1000000) + ' MB.'
+            ), { retryable: false });
+          }
+          const csrfInput = form.querySelector('input[name="_csrf"]');
+          const csrf = csrfInput ? csrfInput.value : (i18n.csrf || '');
+          const posterPromise = isVideo && purpose !== 'stories'
+            ? createVideoPoster(uploadFile)
+            : Promise.resolve(null);
+          const chunkThreshold = Number(i18n.mediaChunkThreshold) || 12000000;
+
+          if (isVideo && uploadFile.size >= chunkThreshold && i18n.mediaChunkUrl) {
+            const token = await uploadChunkedVideo(uploadFile, posterPromise, row, csrf);
+            row.token = token;
+            row.loaded = row.total;
+            row.error = null;
+            renderProgress();
+            return token;
+          }
+
+          const posterFile = await posterPromise;
+
+          let lastErr = null;
+          for (let attempt = 1; attempt <= 4; attempt++) {
+            try {
+              if (attempt > 1) await sleep(400 * attempt);
+              const body = new FormData();
+              body.append('_csrf', csrf);
+              body.append('kind', kind);
+              body.append('purpose', purpose);
+              body.append('file', uploadFile, uploadFile.name);
+              if (posterFile) {
+                body.append('poster', posterFile, posterFile.name);
+              }
+              const response = await sendUploadRequest(
+                stageUrl,
+                body,
+                row,
+                (event) => {
+                  if (!event.lengthComputable) return;
+                  row.loaded = Math.min(uploadFile.size, event.loaded);
+                  row.total = uploadFile.size;
+                  renderProgress();
+                },
+                30 * 60 * 1000
+              );
+              if (response.status === 413) {
+                const err = new Error(
+                  'Datei zu groß für den Server (413). Max. '
+                  + Math.floor(maxBytes / 1000000) + ' MB.'
+                );
+                err.retryable = false;
+                throw err;
+              }
+              if (
+                response.status < 200 || response.status >= 300
+                || !response.data || !response.data.ok || !response.data.token
+              ) {
+                throw uploadHttpError(response);
+              }
+              const token = String(response.data.token);
+              row.token = token;
+              row.loaded = row.total;
+              row.error = null;
+              renderProgress();
+              return token;
+            } catch (err) {
+              lastErr = err;
+              if (!err || !err.retryable || attempt === 4) throw err;
+            }
+          }
+          throw lastErr || new Error('Upload fehlgeschlagen.');
+        } catch (err) {
+          row.error = (err && err.message) ? err.message : 'Fehler';
+          row.promise = null;
+          renderProgress();
+          throw err;
+        } finally {
+          state.busy = Math.max(0, state.busy - 1);
+          setUploadingGuard(false);
+          renderProgress();
+        }
+      })();
+
+      return row.promise;
+    };
+
+    const collectQueue = () => {
+      const queue = [];
+      form.querySelectorAll('input[type="file"]').forEach((input) => {
+        if (!input.files || !input.files.length) return;
+        const kind = input.getAttribute('data-stage-kind') || 'auto';
+        Array.from(input.files).forEach((file) => {
+          queue.push({ file, kind, key: fileKey(file), input });
+        });
+      });
+      return queue;
+    };
+
+    const syncSelectionAndStart = () => {
+      const queue = collectQueue();
+      const liveKeys = new Set(queue.map((q) => q.key));
+      // Drop deselected entries (tokens remain server-side until expiry — OK).
+      Array.from(state.items.keys()).forEach((key) => {
+        if (!liveKeys.has(key)) state.items.delete(key);
+      });
+      queue.forEach((q) => {
+        const hint = ensureFileCountHint(q.input);
+        if (hint) {
+          const n = q.input.files ? q.input.files.length : 0;
+          hint.textContent = n ? (n + ' Datei(en) — Upload startet…') : '';
+        }
+      });
+      renderProgress();
+      if (!queue.length) return;
+
+      // Parallelism: scale with real throughput (measured after the first file),
+      // bounded by congestion — server session lock no longer serializes uploads.
+      const completedBytes = () => {
+        let n = 0;
+        state.items.forEach((row) => {
+          if (row && row.token) n += row.total || 0;
+        });
+        return n;
+      };
+      const completedCount = () => {
+        let n = 0;
+        state.items.forEach((row) => {
+          if (row && row.token) n += 1;
+        });
+        return n;
+      };
+      const hugeBytes = queue.reduce((a, q) => a + (q.file.size > 60 * 1000 * 1000 ? q.file.size : 0), 0);
+      const maxParallel = inNativeApp ? 5 : 6;
+      let concurrency = Math.min(3, maxParallel);
+      if (hugeBytes > 0) concurrency = inNativeApp ? 2 : 3;
+      const minParallel = (Number(i18n.uploadParallelMin) > 0) ? Math.min(maxParallel, Number(i18n.uploadParallelMin)) : 1;
+      concurrency = Math.max(concurrency, Math.min(minParallel, maxParallel));
+
+      let next = 0;
+      const worker = async () => {
+        while (next < queue.length) {
+          // Ramp parallelism up as uploads complete quickly.
+          const done = completedCount();
+          if (done >= 2 && hugeBytes === 0) concurrency = Math.max(concurrency, 4);
+          if (done >= 4 && hugeBytes === 0) concurrency = Math.max(concurrency, maxParallel);
+          while (activeStagedUploads(state) >= concurrency && next < queue.length) {
+            await sleep(80);
+          }
+          const i = next++;
+          const item = queue[i];
+          try {
+            await stageOne(item.key, item.file, item.kind);
+          } catch (_) {
+            // keep going; submit path surfaces errors
+          }
+        }
+      };
+      const n = Math.min(concurrency, queue.length);
+      Promise.all(Array.from({ length: n }, () => worker())).then(() => {
+        form.querySelectorAll('input[type="file"]').forEach((input) => {
+          const hint = ensureFileCountHint(input);
+          if (!hint || !input.files || !input.files.length) return;
+          let ready = 0;
+          Array.from(input.files).forEach((file) => {
+            const row = state.items.get(fileKey(file));
+            if (row && row.token) ready += 1;
+          });
+          hint.textContent = ready + '/' + input.files.length + ' hochgeladen';
+        });
+        renderProgress();
+      });
+    };
+
+    form.querySelectorAll('input[type="file"]').forEach((input) => {
+      const max = parseInt(
+        input.getAttribute('data-max-files') || input.getAttribute('data-max-images') || '15',
+        10
+      );
+      input.addEventListener('change', () => {
+        if (input.files && Number.isFinite(max) && max > 0 && input.files.length > max) {
+          alert('Maximal ' + max + ' Dateien.');
+          input.value = '';
+          syncSelectionAndStart();
+          return;
+        }
+        // New selection → clear submit lock so tokens can be rebuilt.
+        form.dataset.stageDone = '0';
+        syncSelectionAndStart();
+      });
+    });
+
+    /**
+     * Final publish MUST NOT multipart-upload the selected files again.
+     * Android WebView often keeps FileList even after input.value='' → HTTP 413.
+     * Build a clean FormData (fields + staged tokens only) and POST via fetch.
+     */
+    const publishWithTokens = async (tokens) => {
+      const fd = new FormData();
+      Array.from(form.elements).forEach((el) => {
+        if (!el || !el.name || el.disabled) return;
+        const tag = (el.tagName || '').toLowerCase();
+        if (tag !== 'input' && tag !== 'textarea' && tag !== 'select') return;
+        if (el.type === 'file' || el.type === 'submit' || el.type === 'button') return;
+        if (el.name === 'staged[]') return;
+        if ((el.type === 'checkbox' || el.type === 'radio') && !el.checked) return;
+        fd.append(el.name, el.value);
+      });
+      tokens.forEach((token) => {
+        if (token) fd.append('staged[]', token);
+      });
+
+      // Hard-disable file fields so a fallback native submit cannot attach them.
+      form.querySelectorAll('input[type="file"]').forEach((input) => {
+        try { input.value = ''; } catch (_) {}
+        if (input.name) input.setAttribute('data-original-name', input.name);
+        input.removeAttribute('name');
+        input.disabled = true;
+        input.removeAttribute('required');
+      });
+
+      const action = form.getAttribute('action') || window.location.href;
+      const res = await fetch(action, {
+        method: 'POST',
+        body: fd,
+        credentials: 'same-origin',
+        redirect: 'manual',
+      });
+
+      if (res.status === 413) {
+        throw new Error(
+          'Server lehnt den Request ab (413). Bitte Seite neu laden und erneut versuchen.'
+        );
+      }
+
+      // PRG redirect after successful create
+      if (res.status >= 300 && res.status < 400) {
+        const loc = res.headers.get('Location') || '/';
+        window.location.href = loc;
+        return;
+      }
+      if (res.type === 'opaqueredirect' || res.status === 0) {
+        window.location.href = '/';
+        return;
+      }
+      if (res.ok) {
+        // Some hosts return 200 with HTML — navigate home / reload target
+        const next = (form.getAttribute('action') && form.getAttribute('action').indexOf('compose') !== -1)
+          ? '/'
+          : (form.getAttribute('action') || '/');
+        window.location.href = next;
+        return;
+      }
+      const text = await res.text().catch(() => '');
+      throw new Error(
+        'Veröffentlichen fehlgeschlagen (HTTP ' + res.status + ').'
+        + (text && text.length < 180 ? (' ' + text) : '')
+      );
+    };
+
+    form.addEventListener('submit', async (event) => {
+      // Always intercept staging forms — never let the browser POST raw files.
+      const queue = collectQueue();
+      const stagedTokens = [];
+      state.items.forEach((row) => {
+        if (row && row.token) stagedTokens.push(row.token);
+      });
+
+      if (!queue.length && !stagedTokens.length) {
+        return; // text-only post
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+      form.dataset.stageSubmitting = '1';
+      if (submitBtn) submitBtn.disabled = true;
+      setUploadingGuard(true);
+      renderProgress();
+
+      try {
+        let tokens = stagedTokens.slice();
+        if (queue.length) {
+          // Finish any eager uploads still in flight / not started.
+          const hasHuge = queue.some((q) => q.file.size > 60 * 1000 * 1000);
+          const maxParallel = inNativeApp ? 5 : 6;
+          let concurrency = hasHuge ? (inNativeApp ? 2 : 3) : maxParallel;
+          const minParallel = (Number(i18n.uploadParallelMin) > 0) ? Math.min(maxParallel, Number(i18n.uploadParallelMin)) : 1;
+          concurrency = Math.max(concurrency, Math.min(minParallel, maxParallel));
+          let next = 0;
+          const ordered = new Array(queue.length);
+          const worker = async () => {
+            while (next < queue.length) {
+              while (activeStagedUploads(state) >= concurrency && next < queue.length) {
+                await sleep(60);
+              }
+              const i = next++;
+              const item = queue[i];
+              ordered[i] = await stageOne(item.key, item.file, item.kind);
+            }
+          };
+          await Promise.all(
+            Array.from({ length: Math.min(concurrency, queue.length) }, () => worker())
+          );
+          tokens = ordered;
+        }
+
+        if (!tokens.length) {
+          throw new Error('Keine Medien-Tokens — Upload bitte erneut starten.');
+        }
+
+        if (submitBtn) submitBtn.textContent = 'Veröffentlichen…';
+        progressEl.hidden = false;
+        progressEl.textContent = 'Veröffentlichen…';
+        form.dataset.stageDone = '1';
+        await publishWithTokens(tokens);
+      } catch (err) {
+        form.dataset.stageDone = '0';
+        // Re-enable file inputs for retry
+        form.querySelectorAll('input[type="file"]').forEach((input) => {
+          input.disabled = false;
+          if (!input.getAttribute('name')) {
+            const original = input.getAttribute('data-original-name');
+            const kind = input.getAttribute('data-stage-kind');
+            if (original) input.setAttribute('name', original);
+            else if (kind === 'video') input.setAttribute('name', 'videos[]');
+            else input.setAttribute('name', 'images[]');
+          }
+        });
+        const msg = (err && err.message) ? err.message : 'Upload fehlgeschlagen.';
+        alert(
+          msg
+          + '\n\nTipp: Große Videos werden einzeln hochgeladen — App geöffnet lassen.'
+        );
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = prevLabel;
+        }
+      } finally {
+        form.dataset.stageSubmitting = '0';
+        setUploadingGuard(false);
+      }
+    }, true);
+  });
+
+  // File-count hints for non-staging forms (legacy).
+  document.querySelectorAll('form:not([data-stage-uploads]) [data-max-files], form:not([data-stage-uploads]) [data-max-images]').forEach((input) => {
+    const max = parseInt(
+      input.getAttribute('data-max-files') || input.getAttribute('data-max-images') || '15',
+      10
+    );
+    if (!Number.isFinite(max) || max < 1) return;
+    input.addEventListener('change', () => {
+      if (!input.files) return;
+      if (input.files.length > max) {
+        alert('Maximal ' + max + ' Dateien.');
+        input.value = '';
+        return;
+      }
+      const hint = ensureFileCountHint(input);
+      if (hint) {
+        hint.textContent = input.files.length
+          ? (input.files.length + ' Datei(en) ausgewählt')
+          : '';
+      }
+    });
+  });
 
   const plzInput = document.querySelector('[data-plz-input]');
   const citySelect = document.querySelector('[data-city-select]');
@@ -497,190 +1812,164 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Lazy videos: no network until play / near viewport
-  const activateVideo = (figure) => {
-    if (!figure || figure.dataset.videoReady === '1') return;
-    const video = figure.querySelector('video[data-src]');
-    const poster = figure.querySelector('[data-video-load]');
-    if (!video) return;
-    const src = video.getAttribute('data-src');
-    if (!src) return;
-    video.src = src;
-    video.removeAttribute('hidden');
-    if (poster) poster.hidden = true;
-    figure.dataset.videoReady = '1';
-    video.load();
+  // ——— Push notifications (Web Push + Android native bridge) ———
+  const urlBase64ToUint8Array = (base64String) => {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const raw = atob(base64);
+    const out = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+    return out;
   };
 
-  document.addEventListener('click', (e) => {
-    const poster = e.target.closest('[data-video-load]');
-    if (!poster) return;
-    e.preventDefault();
-    const figure = poster.closest('.post-video');
-    activateVideo(figure);
-    const video = figure && figure.querySelector('video');
-    if (video) {
-      video.play().catch(() => {});
+  const pushSupported = !!(
+    'serviceWorker' in navigator
+    && 'PushManager' in window
+    && 'Notification' in window
+  );
+
+  const registerServiceWorker = async () => {
+    if (!('serviceWorker' in navigator)) return null;
+    try {
+      return await navigator.serviceWorker.register(i18n.swUrl || '/sw.js', { scope: '/' });
+    } catch (_) {
+      return null;
     }
+  };
+
+  const subscribeWebPush = async () => {
+    if (!i18n.loggedIn || !i18n.vapidPublicKey || !pushSupported) {
+      return { ok: false, reason: 'unsupported' };
+    }
+    const reg = await registerServiceWorker();
+    if (!reg) return { ok: false, reason: 'sw' };
+    let permission = Notification.permission;
+    if (permission !== 'granted') {
+      permission = await Notification.requestPermission();
+    }
+    if (permission !== 'granted') return { ok: false, reason: 'denied' };
+
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(i18n.vapidPublicKey),
+      });
+    }
+    const res = await fetch(i18n.pushSubscribeUrl || '/api-push-subscribe.php', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ _csrf: i18n.csrf || '', subscription: sub.toJSON() }),
+    });
+    const data = await res.json().catch(() => null);
+    return { ok: !!(res.ok && data && data.ok), reason: data && data.error };
+  };
+
+  // Register for every visitor so the static shell updates in the background.
+  // Logged-in users additionally keep their existing push subscription fresh.
+  registerServiceWorker().then(async (reg) => {
+    if (!i18n.loggedIn || !reg || !pushSupported
+      || Notification.permission !== 'granted' || !i18n.vapidPublicKey) {
+      return;
+    }
+    try { await subscribeWebPush(); } catch (_) {}
   });
 
-  document.querySelectorAll('[data-media-more]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const grid = btn.previousElementSibling;
-      if (!grid || !grid.classList.contains('media-grid')) return;
-      grid.querySelectorAll('.media-extra').forEach((el) => {
-        el.hidden = false;
-      });
-      btn.remove();
+  // Settings button
+  document.querySelectorAll('[data-push-enable]').forEach((btn) => {
+    const statusEl = document.querySelector('[data-push-status]');
+    btn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      btn.disabled = true;
+      try {
+        // Native Android app: request OS permission + start polling bridge
+        if (window.HybrixonNative && typeof window.HybrixonNative.requestNotifications === 'function') {
+          window.HybrixonNative.requestNotifications();
+        }
+        const result = await subscribeWebPush();
+        if (statusEl) {
+          statusEl.hidden = false;
+          if (result.ok) {
+            statusEl.textContent = i18n.pushActive || 'Push aktiv';
+          } else if (!pushSupported && window.HybrixonNative) {
+            statusEl.textContent = i18n.pushActive || 'Push aktiv';
+          } else {
+            statusEl.textContent = i18n.pushUnsupported || 'Push nicht verfügbar';
+          }
+        }
+      } catch (err) {
+        if (statusEl) {
+          statusEl.hidden = false;
+          statusEl.textContent = (err && err.message) || (i18n.pushUnsupported || 'Push fehlgeschlagen');
+        }
+      } finally {
+        btn.disabled = false;
+      }
     });
   });
 
-  if ('IntersectionObserver' in window) {
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) {
-          const video = entry.target.querySelector('video');
-          if (video && !video.paused) video.pause();
+  // Poll for new notifications → native Android tray (and browser Notification).
+  if (i18n.loggedIn && i18n.notifPollUrl) {
+    let seeded = false;
+    let lastShown = Number(localStorage.getItem('hybrixon_last_shown') || '0');
+    const poll = async () => {
+      try {
+        const url = (i18n.notifPollUrl || '/api-notifications-poll.php')
+          + (lastShown > 0 ? ('?since_id=' + lastShown) : '');
+        const res = await fetch(url, {
+          credentials: 'same-origin',
+          headers: { Accept: 'application/json' },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data || !data.ok) return;
+        const maxId = Number(data.max_id || 0);
+        const items = Array.isArray(data.items) ? data.items : [];
+        if (!seeded) {
+          seeded = true;
+          if (maxId > lastShown) {
+            lastShown = maxId;
+            localStorage.setItem('hybrixon_last_shown', String(lastShown));
+          }
           return;
         }
-      });
-    }, { rootMargin: '120px 0px', threshold: 0.15 });
-    document.querySelectorAll('.post-video').forEach((fig) => io.observe(fig));
-  }
-
-  // Keep theme-color / dataset scheme in sync for System theme
-  const themeMeta = document.getElementById('hx-theme-color');
-  const syncSystemTheme = () => {
-    if (!document.body.classList.contains('theme-system')) return;
-    const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    document.documentElement.dataset.hxScheme = dark ? 'aurora' : 'light';
-    if (themeMeta) themeMeta.setAttribute('content', dark ? '#07090d' : '#e8f0f1');
-  };
-  if (window.matchMedia) {
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    syncSystemTheme();
-    if (mq.addEventListener) mq.addEventListener('change', syncSystemTheme);
-    else if (mq.addListener) mq.addListener(syncSystemTheme);
-  }
-
-  // Capture a lightweight JPEG poster from a local video file (for feed previews).
-  const captureVideoPoster = (file) => new Promise((resolve) => {
-    try {
-      const url = URL.createObjectURL(file);
-      const video = document.createElement('video');
-      video.muted = true;
-      video.playsInline = true;
-      video.preload = 'metadata';
-      video.src = url;
-      const fail = () => {
-        URL.revokeObjectURL(url);
-        resolve(null);
-      };
-      const timer = setTimeout(fail, 8000);
-      video.addEventListener('loadeddata', () => {
-        const seekTo = Math.min(1, Math.max(0.1, (video.duration || 1) * 0.08));
-        const onSeeked = () => {
-          clearTimeout(timer);
-          try {
-            const w = video.videoWidth || 0;
-            const h = video.videoHeight || 0;
-            if (w < 2 || h < 2) { fail(); return; }
-            const maxW = 720;
-            const scale = Math.min(1, maxW / w);
-            const canvas = document.createElement('canvas');
-            canvas.width = Math.max(1, Math.round(w * scale));
-            canvas.height = Math.max(1, Math.round(h * scale));
-            const ctx = canvas.getContext('2d');
-            if (!ctx) { fail(); return; }
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            canvas.toBlob((blob) => {
-              URL.revokeObjectURL(url);
-              if (!blob) { resolve(null); return; }
-              resolve(new File([blob], 'poster.jpg', { type: 'image/jpeg' }));
-            }, 'image/jpeg', 0.72);
-          } catch (_) {
-            fail();
+        items.forEach((item) => {
+          const id = Number(item && item.id) || 0;
+          if (id <= lastShown) return;
+          lastShown = id;
+          localStorage.setItem('hybrixon_last_shown', String(lastShown));
+          if (window.HybrixonNative && typeof window.HybrixonNative.showNotification === 'function') {
+            window.HybrixonNative.showNotification(
+              item.title || 'Hybrixon',
+              item.body || '',
+              item.url || '/notifications.php'
+            );
+          } else if (typeof Notification !== 'undefined'
+            && Notification.permission === 'granted'
+            && document.hidden) {
+            try {
+              const n = new Notification(item.title || 'Hybrixon', {
+                body: item.body || '',
+                icon: '/assets/img/logo-avatar.png',
+              });
+              n.onclick = () => {
+                window.focus();
+                location.href = item.url || '/notifications.php';
+              };
+            } catch (_) {}
           }
-        };
-        video.addEventListener('seeked', onSeeked, { once: true });
-        try { video.currentTime = seekTo; } catch (_) { onSeeked(); }
-      }, { once: true });
-      video.addEventListener('error', fail, { once: true });
-    } catch (_) {
-      resolve(null);
-    }
-  });
-
-  // Staged uploads: one file at a time (+ optional video poster) to avoid HTTP 413.
-  document.querySelectorAll('form[data-stage-uploads]').forEach((form) => {
-    const stageUrl = form.getAttribute('data-stage-url');
-    if (!stageUrl) return;
-    const purpose = form.getAttribute('data-stage-purpose') || 'posts';
-    const csrf = form.querySelector('input[name="_csrf"]')?.value || '';
-    const status = document.createElement('p');
-    status.className = 'muted stage-status';
-    status.hidden = true;
-    form.appendChild(status);
-
-    form.addEventListener('submit', async (e) => {
-      const inputs = Array.from(form.querySelectorAll('input[type="file"][data-stage-kind]'));
-      const jobs = [];
-      inputs.forEach((input) => {
-        const kind = input.getAttribute('data-stage-kind') || 'auto';
-        const max = parseInt(input.getAttribute('data-max-files') || '20', 10);
-        const files = Array.from(input.files || []).slice(0, max);
-        files.forEach((file) => jobs.push({ file, kind }));
-      });
-      if (!jobs.length) return;
-
-      if (!csrf) {
-        e.preventDefault();
-        status.hidden = false;
-        status.textContent = 'Sitzung abgelaufen — bitte Seite neu laden.';
-        return;
-      }
-
-      e.preventDefault();
-      const submitBtn = form.querySelector('button[type="submit"]');
-      if (submitBtn) submitBtn.disabled = true;
-      status.hidden = false;
-      status.textContent = 'Medien werden hochgeladen …';
-
-      // Remove previous staged tokens
-      form.querySelectorAll('input[name="staged[]"]').forEach((el) => el.remove());
-
-      try {
-        for (let i = 0; i < jobs.length; i += 1) {
-          const { file, kind } = jobs[i];
-          status.textContent = `Lade ${i + 1}/${jobs.length}: ${file.name}`;
-          const fd = new FormData();
-          if (csrf) fd.append('_csrf', csrf);
-          fd.append('kind', kind);
-          fd.append('purpose', purpose);
-          fd.append('file', file, file.name);
-          if (kind === 'video' || (kind === 'auto' && file.type.startsWith('video/'))) {
-            const poster = await captureVideoPoster(file);
-            if (poster) fd.append('poster', poster, 'poster.jpg');
-          }
-          const res = await fetch(stageUrl, { method: 'POST', body: fd, credentials: 'same-origin' });
-          const data = await res.json().catch(() => ({ ok: false, error: 'Upload fehlgeschlagen' }));
-          if (!res.ok || !data.ok) {
-            throw new Error(data.error || `Upload fehlgeschlagen (${res.status})`);
-          }
-          const hidden = document.createElement('input');
-          hidden.type = 'hidden';
-          hidden.name = 'staged[]';
-          hidden.value = data.token;
-          form.appendChild(hidden);
+        });
+        if (maxId > lastShown) {
+          lastShown = maxId;
+          localStorage.setItem('hybrixon_last_shown', String(lastShown));
         }
-        // Clear file inputs so browser does not re-upload huge binaries
-        inputs.forEach((input) => { input.value = ''; });
-        status.textContent = 'Veröffentlichen …';
-        form.submit();
-      } catch (err) {
-        status.textContent = err && err.message ? err.message : 'Upload fehlgeschlagen';
-        if (submitBtn) submitBtn.disabled = false;
-      }
+      } catch (_) {}
+    };
+    poll();
+    setInterval(poll, 45000);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) poll();
     });
-  });
+  }
 });

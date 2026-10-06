@@ -23,8 +23,9 @@ const CONTENT_POLICY_SOFT_18 = [
     'Sensible Community-Themen / Soft-NSFW hinter Altersfreischaltung',
     'Derbe Sprache, Andeutungen, nicht-pornografische Reifeinhalte',
     'Soft-Nacktheit (z. B. Brüste) — ohne Genitalien, ohne Sexakt',
-    'Bilder nur als Soft-18+, mit automatischer Prüfung und Admin-Meldung',
-    'Nur für altersgeprüfte Mitglieder sichtbar',
+    'Soft-18+-Bilder mit Markierung, automatischer Prüfung und Admin-Meldung',
+    'Soft-18+ nur für altersgeprüfte Mitglieder sichtbar',
+    'Normale (nicht Soft-18+) Beiträge inkl. Bilder sind ohne Extra-Markierung erlaubt',
 ];
 
 const CONTENT_POLICY_DM = [

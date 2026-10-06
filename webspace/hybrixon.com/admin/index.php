@@ -132,6 +132,7 @@ require __DIR__ . '/../includes/header.php';
     <a class="pill" href="<?= e(allxion_url('admin/dms.php')) ?>">Alle DMs</a>
     <a class="pill" href="#dms">DM-Meldungen (<?= count($dmReports) ?>)</a>
     <a class="pill" href="#admins">Nutzer / Sperren</a>
+    <a class="pill" href="<?= e(allxion_url('admin/hosting.php')) ?>">Hosting-Monitor</a>
     <a class="pill" href="<?= e(allxion_url('rules.php')) ?>">Regeln</a>
   </div>
 </section>
@@ -140,6 +141,7 @@ require __DIR__ . '/../includes/header.php';
   <h2>Inhalt-Meldungen offen (<?= count($contentReports) ?>)</h2>
   <p class="muted" style="margin-bottom:1rem;">
     Soft-18+-Bilder und Text-Treffer werden automatisch gemeldet.
+    Beiträge ohne PLZ/Ort erscheinen hier mit Status <strong>pending</strong> — erst nach „OK“ öffentlich.
     Bei 18++: Beitrag entfernen — bei schweren Verstößen Nutzer sperren.
     Nach „OK“ können Nutzer den Beitrag erneut melden.
   </p>
@@ -153,7 +155,10 @@ require __DIR__ . '/../includes/header.php';
             <span>
               #<?= (int)$rep['id'] ?> ·
               <?= ($rep['source'] ?? '') === 'auto' ? 'Auto' : ('User @' . e((string)$rep['reporter_username'])) ?>
-              · Post von @<?= e((string)$rep['author_username']) ?>
+              · Post von <a href="<?= e(allxion_url('admin/user.php?id=' . (int)$rep['author_id'])) ?>">@<?= e((string)$rep['author_username']) ?></a>
+              <?php if (($rep['moderation_status'] ?? '') === 'pending'): ?>
+                · <span class="pill">Ort-Prüfung</span>
+              <?php endif; ?>
             </span>
             <span><?= e($rep['created_at'] ?? '') ?></span>
           </div>
@@ -173,7 +178,7 @@ require __DIR__ . '/../includes/header.php';
               <input type="text" name="note" maxlength="500">
             </label>
             <div class="hero-actions">
-              <button class="btn btn-sm" type="submit" name="action" value="content_ok">OK / behalten</button>
+              <button class="btn btn-sm" type="submit" name="action" value="content_ok"><?= ($rep['moderation_status'] ?? '') === 'pending' ? 'Freigeben' : 'OK / behalten' ?></button>
               <button class="btn btn-sm btn-danger" type="submit" name="action" value="content_remove">Beitrag entfernen</button>
               <?php if (empty($rep['author_banned_at'])): ?>
                 <button class="btn btn-sm btn-danger" type="submit" name="action" value="content_remove_ban">Entfernen + User sperren</button>
@@ -197,7 +202,7 @@ require __DIR__ . '/../includes/header.php';
       <?php foreach ($pending as $row): ?>
         <article class="post">
           <div class="post-meta">
-            <span class="post-user">@<?= e($row['username']) ?></span>
+            <span class="post-user"><a href="<?= e(allxion_url('admin/user.php?id=' . (int)$row['id'])) ?>">@<?= e($row['username']) ?></a></span>
             <span>Antrag: <?= e($row['age_requested_at'] ?? '') ?></span>
           </div>
           <p class="muted">Geburtsdatum (Konto): <strong><?= e($row['birthdate']) ?></strong> · Alter <?= (int)(age_from_birthdate($row['birthdate']) ?? 0) ?></p>
@@ -312,7 +317,7 @@ require __DIR__ . '/../includes/header.php';
       <article class="post<?= $isAdminRow ? ' post-adult' : '' ?>">
         <div class="post-meta">
           <div>
-            <span class="post-user">@<?= e($row['username']) ?></span>
+            <span class="post-user"><a href="<?= e(allxion_url('admin/user.php?id=' . (int)$row['id'])) ?>">@<?= e($row['username']) ?></a></span>
             <?php if ($isSelf): ?><span class="muted"> (du)</span><?php endif; ?>
           </div>
           <?php if ($isBanned): ?>

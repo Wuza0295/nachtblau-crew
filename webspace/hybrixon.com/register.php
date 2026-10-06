@@ -17,7 +17,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         (string)($_POST['password'] ?? ''),
         (string)($_POST['birthdate'] ?? ''),
         !empty($_POST['terms_ok']),
-        !empty($_POST['privacy_ok'])
+        !empty($_POST['privacy_ok']),
+        (string)($_POST['theme'] ?? 'light'),
+        (string)($_POST['postal_code'] ?? ''),
+        (string)($_POST['city'] ?? '')
     );
     if (!$errors) {
         flash('success', 'Konto erstellt. Du kannst jetzt posten.');
@@ -28,6 +31,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $pageTitle = 'Registrieren · Hybrixon';
 $activeNav = 'register';
 require __DIR__ . '/includes/header.php';
+$regTheme = (string)($_POST['theme'] ?? hybrixon_active_theme(null));
+if (!in_array($regTheme, ['light', 'dark'], true)) {
+    $regTheme = 'light';
+}
 ?>
 
 <section class="panel">
@@ -58,6 +65,22 @@ require __DIR__ . '/includes/header.php';
       <input type="date" name="birthdate" required value="<?= e($_POST['birthdate'] ?? '') ?>">
       <span class="hint">Für Altersprüfung (nicht öffentlich). Soft-18+/DMs ab <?= ALLXION_ADULT_AGE ?>.</span>
     </label>
+
+    <?php
+      $plzValue = (string)($_POST['postal_code'] ?? '');
+      $cityValue = (string)($_POST['city'] ?? '');
+      $required = true;
+      require __DIR__ . '/includes/partials/location-fields.php';
+    ?>
+
+    <label>Darstellung
+      <select name="theme">
+        <option value="light" <?= $regTheme === 'light' ? 'selected' : '' ?>>Light Mode</option>
+        <option value="dark" <?= $regTheme === 'dark' ? 'selected' : '' ?>>Dark Mode</option>
+      </select>
+      <span class="hint">Vor dem Login ist Light Standard; nach dem Login gilt deine Auswahl.</span>
+    </label>
+
     <label class="check">
       <input type="checkbox" name="terms_ok" value="1" required <?= !empty($_POST['terms_ok']) ? 'checked' : '' ?>>
       <span>Ich akzeptiere die <a href="<?= e(allxion_url('terms.php')) ?>" target="_blank" rel="noopener">Nutzungsbedingungen</a> und <a href="<?= e(allxion_url('rules.php')) ?>" target="_blank" rel="noopener">Inhaltsregeln</a> (kein Porno, keine Gewalt; Admins können DMs lesen).</span>

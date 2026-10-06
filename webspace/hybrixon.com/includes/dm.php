@@ -75,7 +75,8 @@ function dm_unblock(int $blockerId, int $blockedId): void
 function dm_find_user_by_username(string $username): ?array
 {
     $stmt = allxion_db()->prepare(
-        'SELECT id, username, birthdate, dm_rules_accepted_at, is_admin FROM users WHERE username = ? LIMIT 1'
+        'SELECT id, username, birthdate, dm_rules_accepted_at, is_admin, privacy_dms
+         FROM users WHERE username = ? LIMIT 1'
     );
     $stmt->execute([trim($username)]);
     $row = $stmt->fetch();
@@ -228,6 +229,25 @@ function dm_send(array $sender, int $otherId, string $body, bool $policyOk): arr
     )->execute([$threadId]);
     dm_mark_read($threadId, $senderId);
 
+    require_once __DIR__ . '/mail.php';
+    hybrixon_notify_email_message($otherId, (string)$sender['username'], $body);
+
+    // In-app + push for DMs (email is separate)
+    try {
+        require_once __DIR__ . '/notifications.php';
+        $preview = mb_strlen($body) > 120 ? (mb_substr($body, 0, 117) . '…') : $body;
+        notifications_create(
+            $otherId,
+            'dm',
+            (int)$sender['id'],
+            null,
+            null,
+            '@' . (string)$sender['username'] . ': ' . $preview
+        );
+    } catch (Throwable $e) {
+        error_log('hybrixon dm notify: ' . $e->getMessage());
+    }
+
     return [];
 }
 
@@ -326,6 +346,8 @@ function dm_report(array $reporter, int $threadId, string $reason, ?int $message
         'INSERT INTO dm_reports (reporter_id, thread_id, message_id, reason) VALUES (?, ?, ?, ?)'
     );
     $ins->execute([(int)$reporter['id'], $threadId, $messageId, $reason]);
+    require_once __DIR__ . '/mail.php';
+    hybrixon_notify_admins_of_report('dm', (int)$reporter['id'], $reason, null);
     return [];
 }
 

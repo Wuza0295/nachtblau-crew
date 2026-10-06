@@ -1,22 +1,13 @@
 <?php
 declare(strict_types=1);
 
-/** Hybrixon targets PHP 8.5 on ALL-INKL (AddHandler php85-cgi). */
-const HYBRIXON_MIN_PHP = '8.5.0';
-if (PHP_VERSION_ID < 80500) {
-    http_response_code(500);
-    header('Content-Type: text/plain; charset=utf-8');
-    exit(
-        'Hybrixon benötigt PHP ' . HYBRIXON_MIN_PHP . '+ (aktuell: ' . PHP_VERSION . ").\n"
-        . "Bitte in KAS → Domain → Bearbeiten „PHP 8.5“ wählen,\n"
-        . "oder in .htaccess: AddHandler php85-cgi .php\n"
-    );
-}
-
 const ALLXION_NAME = 'Hybrixon';
 const ALLXION_TAGLINE = 'Closer. Freer.';
 const ALLXION_MIN_REGISTER_AGE = 16;
 const ALLXION_ADULT_AGE = 18;
+
+/** Minimum supported PHP version for this portal build. */
+const HYBRIXON_MIN_PHP = '8.5.0';
 
 /** Canonical public domain (no scheme) — final home. */
 const HYBRIXON_CANONICAL_HOST = 'hybrixon.com';
@@ -53,6 +44,68 @@ const DM_REPORT_REASON_MAX = 500;
 /** Bump when DM privacy/admin policy changes — forces re-consent. */
 const DM_CONSENT_VERSION = '2026-08-05-full-admin';
 
+/** Media limits (images / shorts). Per-file size stays large; multi-select up to 15+15. */
+const MEDIA_IMAGE_MAX_BYTES = 12_000_000;
+/** Aggressive image downscale for faster uploads (bytes in / long edge out). */
+const MEDIA_IMAGE_COMPRESS_MIN_BYTES = 450_000;
+const MEDIA_IMAGE_COMPRESS_MAX_SIDE = 1920;
+/** Lower bound for parallel staged uploads (network congestion may cap it). */
+const MEDIA_UPLOAD_PARALLEL_MIN = 5;
+/** Large videos are split so one file can use parallel HTTP connections. */
+const MEDIA_UPLOAD_CHUNK_THRESHOLD_BYTES = 12_000_000;
+const MEDIA_UPLOAD_CHUNK_BYTES = 8_000_000;
+const MEDIA_UPLOAD_CHUNK_PARALLEL = 4;
+const MEDIA_UPLOAD_CHUNK_TTL_SECONDS = 7200;
+/** Bump when the byte layout of streamed videos changes, invalidating cached ranges. */
+const MEDIA_STREAM_VERSION = 2;
+/** Phone/4K festival clips often exceed 200 MB — allow up to 500 MB per video. */
+const MEDIA_VIDEO_MAX_BYTES = 500_000_000;
+const MEDIA_VIDEO_MAX_SECONDS = 900;
+const MEDIA_POST_IMAGES_MAX = 15;
+const MEDIA_POST_VIDEOS_MAX = 15;
+const MEDIA_REEL_VIDEOS_MAX = 15;
+const MEDIA_STORY_IMAGES_MAX = 15;
+const MEDIA_STORY_VIDEOS_MAX = 15;
+/** @deprecated use MEDIA_STORY_IMAGES_MAX / MEDIA_STORY_VIDEOS_MAX */
+const MEDIA_STORY_MEDIA_MAX = 30;
+const MEDIA_IMAGE_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
+const MEDIA_VIDEO_MIMES = ['video/mp4', 'video/webm', 'video/quicktime'];
+
+/** Stories expire after this many hours. */
+const STORY_TTL_HOURS = 24;
+
+/** „Eingeloggt bleiben“ cookie lifetime (days). */
+const REMEMBER_ME_DAYS = 30;
+
+/**
+ * IP-Verlauf für Sicherheit/Moderation (Art. 6 Abs. 1 lit. f DSGVO).
+ * Ältere Einträge werden automatisch gelöscht; bei Kontolöschung vollständig.
+ */
+const IP_LOG_RETENTION_DAYS = 90;
+
+/** Soft switch for outbound notification e-mails (PHP mail()). */
+const HYBRIXON_MAIL_ENABLED = true;
+
+/** Public brand account (@Hybrixon) — auto-created, auto-accepts friends. */
+const HYBRIXON_OFFICIAL_USERNAME = 'Hybrixon';
+const HYBRIXON_OFFICIAL_EMAIL = 'official@hybrixon.com';
+/** Legacy username merged into @Hybrixon (kept for redirects / reserved names). */
+const HYBRIXON_LEGACY_TEAM_USERNAME = 'HybrixonTeam';
+
+/**
+ * Current public Android release. Updating this version and its notes
+ * automatically creates one idempotent announcement from @Hybrixon.
+ */
+const HYBRIXON_ANDROID_APP_VERSION = '1.0.4';
+const HYBRIXON_ANDROID_APP_RELEASE_NOTES = [
+    'Webseite und App laden Oberfläche und Videopuffer intelligent im Hintergrund',
+    'Videos starten standardmäßig nur nach Antippen',
+    'Optionales stummes Autoplay kann in den Einstellungen aktiviert werden',
+    'Deutlich schnellerer Videostart durch optimiertes MP4-Streaming',
+    'Stabilere Uploads und bessere App-Leistung im Hintergrund',
+    'Weiter modernisierte Oberfläche für Smartphone und Desktop',
+];
+
 define('ALLXION_ROOT', dirname(__DIR__));
 define('ALLXION_DATA', ALLXION_ROOT . '/data');
 define('ALLXION_UPLOADS', ALLXION_ROOT . '/uploads');
@@ -73,9 +126,21 @@ function hybrixon_is_interim(): bool
 /**
  * Public absolute URL: interim NachtBlau path until the domain is fully live.
  */
+function hybrixon_is_staging_host(?string $host = null): bool
+{
+    $host = strtolower((string)($host ?? ($_SERVER['HTTP_HOST'] ?? '')));
+    $host = preg_replace('/:\d+$/', '', $host) ?? $host;
+    return $host === 'hybrixon.nacht-blau.de';
+}
+
 function hybrixon_public_url(string $path = ''): string
 {
     $path = ltrim($path, '/');
+    // Staging subdomain (same KAS account) keeps absolute links on itself.
+    if (hybrixon_is_staging_host()) {
+        $origin = 'https://hybrixon.nacht-blau.de';
+        return $path === '' ? $origin . '/' : $origin . '/' . $path;
+    }
     if (HYBRIXON_FORCE_CANONICAL) {
         $origin = rtrim(hybrixon_canonical_origin(), '/');
         return $path === '' ? $origin . '/' : $origin . '/' . $path;

@@ -1,7 +1,7 @@
 {
   "name": "Hybrixon",
   "short_name": "Hybrixon",
-  "description": "Hybrixon – Social-Portal. Soft-18+ · kein Porno, keine Gewalt.",
+  "description": "Hybrixon · Closer. Freer.",
   "start_url": "/",
   "scope": "/",
   "id": "https://hybrixon.com/",
@@ -9,12 +9,26 @@
   "background_color": "#12100e",
   "theme_color": "#12100e",
   "lang": "de",
+  "prefer_related_applications": true,
+  "related_applications": [
+    {
+      "platform": "play",
+      "id": "com.hybrixon.app",
+      "url": "https://hybrixon.com/app.php"
+    }
+  ],
   "icons": [
     {
       "src": "assets/img/favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
+    },
+    {
+      "src": "assets/img/logo-avatar.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

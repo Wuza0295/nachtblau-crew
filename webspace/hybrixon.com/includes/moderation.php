@@ -3,15 +3,20 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/policy.php';
+require_once __DIR__ . '/media_upload.php';
 
-/** Max Soft-18+ image size (bytes). */
-const CONTENT_IMAGE_MAX_BYTES = 4_000_000;
+/** @deprecated use MEDIA_IMAGE_MAX_BYTES */
+const CONTENT_IMAGE_MAX_BYTES = MEDIA_IMAGE_MAX_BYTES;
 
 /** @var list<string> */
-const CONTENT_IMAGE_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
+const CONTENT_IMAGE_MIMES = MEDIA_IMAGE_MIMES;
 
 /**
  * Heuristic text scan. Not perfect — Soft-18+ images are always auto-flagged too.
+ *
+ * allow  = ok for general feed
+ * flag   = Soft-18+ / Admin-Review (forces Soft-18+ on posts)
+ * block  = 18++ / forbidden
  *
  * @return array{action: 'allow'|'block'|'flag', reasons: list<string>}
  */
@@ -21,7 +26,10 @@ function content_scan_text(string $text): array
     $norm = strtr($norm, [
         'ä' => 'ae', 'ö' => 'oe', 'ü' => 'ue', 'ß' => 'ss',
     ]);
-    $compact = preg_replace('/\s+/u', ' ', $norm) ?? $norm;
+    // Leetspeak leicht normalisieren (p0ppen → poppen)
+    $norm = str_replace(['0', '1', '!', '|'], ['o', 'i', 'i', 'i'], $norm);
+    $norm = preg_replace('/[^\p{L}\p{N}\s]+/u', ' ', $norm) ?? $norm;
+    $compact = trim(preg_replace('/\s+/u', ' ', $norm) ?? $norm);
 
     $blockPatterns = [
         // Hard porn / genitals / sex acts
@@ -30,8 +38,9 @@ function content_scan_text(string $text): array
         '/\b(porn|porno|pornografie|pornographie)\b/u',
         '/\b(sex\s*video|sexvideo|sex\s*tape|sextape)\b/u',
         '/\b(penis|vagina|vulva|klitoris|hoden|genitalien|anal\s*sex|analsex)\b/u',
-        '/\b(ficken|gefickt|abschlecken|abspritzen|rein\s*spritzen)\b/u',
+        '/\b(ficken|gefickt|abschlecken|abspritzen|rein\s*spritzen|wichsen|abwichsen)\b/u',
         '/\b(nude\s*genitals?|full\s*frontal|explicit\s*sex)\b/u',
+        '/\b(oralsex|oral\s*sex|penetration|ejakul)/u',
         // CSAM / illegal
         '/\b(csam|child\s*porn|kinderporn|minderjaehrig(e|er|es)?\s*(nackt|sex|porno))\b/u',
         '/\b(lolita|underage\s*sex)\b/u',
@@ -39,10 +48,24 @@ function content_scan_text(string $text): array
         '/\b(gewaltporn|snuff|torture\s*porn|vergewaltigung)\b/u',
     ];
 
+    // Soft-18+: derbe sexuelle Sprache, Anbahnung, Soft-NSFW — Kennzeichnung + Review
     $flagPatterns = [
         '/\b(nacktbild|nacktfoto|nude\s*pic|nudes?\b)/u',
         '/\b(topless|oben\s*ohne|busenfrei)\b/u',
         '/\b(brust(e|en)?|brueste|boobs?|tits?)\b/u',
+        '/\b(nackt|nackig|nackte[rn]?|entbloesst)\b/u',
+        '/\b(sexy|erotisch|erotik|nsfw|onlyfans)\b/u',
+        '/\b(poppen|gepoppt|bumsen|gebumst|voegeln|gevogelt|vögeln)\b/u',
+        '/\b(geil\s+(auf|machen|werden)|geiler?\s+(chat|treffen|abend))\b/u',
+        '/\bbock\s+auf\b.{0,40}\b(sex|poppen|bumsen|ficken|dich|euch|mich|ihn|sie|uns)\b/u',
+        '/\b(lust\s+auf)\b.{0,40}\b(sex|poppen|bumsen|dich|mich)\b/u',
+        '/\b(sex\s*treffen|sextreffen|one\s*night|onenight|hook\s*up|hookup)\b/u',
+        '/\b(ficktreff|fick\s*treffen|quickie|fremdgeh)/u',
+        '/\b(dirty\s*talk|sexting|nudes?\s*(schick|send|tauschen))\b/u',
+        '/\b(ohne\s*kondom|bareback|creampie)\b/u',
+        '/\b(arsch|titten|schwanz|muschi|fotze|pussy|dick\b|cock\b)\b/u',
+        '/\b(horny|geilheit|geilheit)\b/u',
+        '/\b(milf|dilf|bbc|bwc|gang\s*bang)\b/u',
     ];
 
     $reasons = [];
@@ -55,7 +78,7 @@ function content_scan_text(string $text): array
 
     foreach ($flagPatterns as $re) {
         if (preg_match($re, $compact)) {
-            $reasons[] = 'Automatische Prüfung: Soft-NSFW-Hinweis — Admin-Review';
+            $reasons[] = 'Automatische Prüfung: sexueller / Soft-18+-Inhalt — Kennzeichnung und Admin-Review';
             return ['action' => 'flag', 'reasons' => array_values(array_unique($reasons))];
         }
     }
@@ -63,74 +86,14 @@ function content_scan_text(string $text): array
     return ['action' => 'allow', 'reasons' => []];
 }
 
-/**
- * Validate and store Soft-18+ image. Returns relative path under uploads/ or error.
- *
- * @return array{ok: true, path: string, mime: string}|array{ok: false, error: string}
- */
 function content_store_post_image(array $file): array
 {
-    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
-        return ['ok' => false, 'error' => 'Kein Bild gewählt.'];
-    }
-    if (($file['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
-        return ['ok' => false, 'error' => 'Upload fehlgeschlagen.'];
-    }
-    $size = (int)($file['size'] ?? 0);
-    if ($size <= 0 || $size > CONTENT_IMAGE_MAX_BYTES) {
-        return ['ok' => false, 'error' => 'Bild max. ' . (int)(CONTENT_IMAGE_MAX_BYTES / 1_000_000) . ' MB.'];
-    }
-
-    $tmp = (string)($file['tmp_name'] ?? '');
-    if ($tmp === '' || !is_uploaded_file($tmp)) {
-        return ['ok' => false, 'error' => 'Ungültiger Upload.'];
-    }
-
-    $finfo = new finfo(FILEINFO_MIME_TYPE);
-    $mime = (string)$finfo->file($tmp);
-    if (!in_array($mime, CONTENT_IMAGE_MIMES, true)) {
-        return ['ok' => false, 'error' => 'Nur JPEG, PNG oder WebP erlaubt.'];
-    }
-
-    $info = @getimagesize($tmp);
-    if ($info === false) {
-        return ['ok' => false, 'error' => 'Datei ist kein gültiges Bild.'];
-    }
-
-    $ext = match ($mime) {
-        'image/jpeg' => 'jpg',
-        'image/png' => 'png',
-        'image/webp' => 'webp',
-        default => 'bin',
-    };
-
-    $dir = ALLXION_UPLOADS . '/posts';
-    if (!is_dir($dir)) {
-        mkdir($dir, 0750, true);
-    }
-
-    $name = bin2hex(random_bytes(16)) . '.' . $ext;
-    $dest = $dir . '/' . $name;
-    if (!move_uploaded_file($tmp, $dest)) {
-        return ['ok' => false, 'error' => 'Bild konnte nicht gespeichert werden.'];
-    }
-    @chmod($dest, 0640);
-
-    return ['ok' => true, 'path' => 'posts/' . $name, 'mime' => $mime];
+    return media_store_image($file, 'posts');
 }
 
 function content_delete_image(?string $relativePath): void
 {
-    if ($relativePath === null || $relativePath === '') {
-        return;
-    }
-    if (!preg_match('#^posts/[a-f0-9]+\.(jpg|png|webp)$#', $relativePath)) {
-        return;
-    }
-    $full = ALLXION_UPLOADS . '/' . $relativePath;
-    if (is_file($full)) {
-        @unlink($full);
-    }
+    media_delete_path($relativePath);
 }
 
 function content_create_report(?int $reporterId, int $postId, string $source, string $reason): void
@@ -191,6 +154,8 @@ function content_user_report_post(array $reporter, int $postId, string $reason):
     }
 
     content_create_report((int)$reporter['id'], $postId, 'user', $reason);
+    require_once __DIR__ . '/mail.php';
+    hybrixon_notify_admins_of_report('post', (int)$reporter['id'], $reason, $postId);
     return [];
 }
 
@@ -233,20 +198,18 @@ function content_admin_resolve_report(int $reportId, string $action, int $adminI
     $note = substr(trim($note), 0, 500);
 
     if ($action === 'remove') {
-        $post = allxion_db()->prepare('SELECT image_path FROM posts WHERE id = ?');
-        $post->execute([$postId]);
-        $p = $post->fetch();
-        if ($p) {
-            content_delete_image($p['image_path'] ?? null);
-        }
+        require_once __DIR__ . '/posts.php';
+        allxion_delete_post_media_files($postId);
         allxion_db()->prepare(
-            "UPDATE posts SET moderation_status = 'removed', image_path = NULL, image_mime = NULL WHERE id = ?"
+            "UPDATE posts SET moderation_status = 'removed', image_path = NULL, image_mime = NULL,
+             video_path = NULL, video_mime = NULL, video_duration = NULL WHERE id = ?"
         )->execute([$postId]);
+        allxion_db()->prepare('DELETE FROM post_media WHERE post_id = ?')->execute([$postId]);
         $status = 'removed';
     } else {
         // ok / dismiss
         allxion_db()->prepare(
-            "UPDATE posts SET moderation_status = 'ok' WHERE id = ? AND moderation_status = 'flagged'"
+            "UPDATE posts SET moderation_status = 'ok' WHERE id = ? AND moderation_status IN ('flagged', 'pending')"
         )->execute([$postId]);
         $status = 'ok';
     }

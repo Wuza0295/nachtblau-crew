@@ -128,3 +128,6 @@ webspace/hybrixon.com/data/age-docs/**
 !webspace/hybrixon.com/data/age-docs/.htaccess
 webspace/hybrixon.com/uploads/*
 !webspace/hybrixon.com/uploads/.gitkeep
+webspace/hybrixon.com/vendor/
+
+webspace/hybrixon.com/downloads/*.apk

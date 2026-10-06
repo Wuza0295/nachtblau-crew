@@ -28,6 +28,10 @@ require __DIR__ . '/includes/header.php';
 <section class="panel">
   <h1>@<?= e($user['username']) ?></h1>
   <p class="muted">Mitglied seit <?= e((new DateTimeImmutable($user['created_at']))->format('d.m.Y')) ?></p>
+  <p style="margin:0.75rem 0;">
+    <a class="btn" href="<?= e(user_public_url($user['username'])) ?>">Öffentliches Profil</a>
+    <a class="btn btn-ghost" href="<?= e(allxion_url('settings.php')) ?>">Profil &amp; Privatsphäre</a>
+  </p>
 
   <div class="pill-row">
     <span class="pill">Alter (Konto): <?= $age !== null ? (int)$age : '?' ?></span>
@@ -58,10 +62,6 @@ require __DIR__ . '/includes/header.php';
       <a class="btn btn-ghost" href="<?= e(allxion_url('age-verify.php')) ?>">Soft-18+ freischalten</a>
     <?php endif; ?>
     <a class="btn btn-ghost" href="<?= e(allxion_url('rules.php')) ?>">Regeln</a>
-    <a class="btn btn-ghost" href="<?= e(allxion_url('privacy.php')) ?>">Datenschutz</a>
-    <?php if (user_is_admin($user)): ?>
-      <a class="btn btn-ghost" href="<?= e(allxion_url('admin/')) ?>">Admin-Panel</a>
-    <?php endif; ?>
     <a class="btn btn-ghost" href="<?= e(allxion_url('logout.php')) ?>">Logout</a>
   </div>
 </section>
@@ -69,8 +69,9 @@ require __DIR__ . '/includes/header.php';
 <section class="panel">
   <h2>Konto löschen</h2>
   <p class="muted" style="margin-bottom:0.75rem;">
-    Löscht dauerhaft dein Konto, Beiträge, Reaktionen und DM-Teilnahmen (soweit technisch verknüpft).
-    Das kann nicht rückgängig gemacht werden.
+    Löscht dein Konto und personenbezogene Daten unwiderruflich: Profil, Beiträge, Medien,
+    Stories, Alben, Freunde/Follower, DMs (soweit verknüpft), IP-Verlauf, Remember-Login und Altersprüfungs-Unterlagen.
+    Kurzfristig können Backup-/Serverlogs des Hosters noch technische Spuren enthalten (gesetzliche Speicherfristen).
   </p>
   <?php foreach ($errors as $err): ?>
     <div class="flash flash-error" style="margin-bottom:0.6rem;"><?= e($err) ?></div>
