@@ -66,6 +66,27 @@ pnpm start
 
 Oder Shortcut „NachtBlau Hub“ auf dem Desktop / im Startmenü.
 
+## Abhängigkeiten aktualisieren
+
+Im Hub-Ordner (Electron etc. innerhalb der semver-Ranges):
+
+```powershell
+cd apps\nachtblau-hub\windows
+pnpm update
+pnpm start
+```
+
+Repo-Branch + Skripte vom Monorepo:
+
+```powershell
+cd $HOME\Documents\nachtblau-crew   # ggf. anpassen
+git fetch origin cursor/pi-lightweight-desktop-3ddb
+git pull origin cursor/pi-lightweight-desktop-3ddb
+cd apps\nachtblau-hub\windows
+pnpm install
+pnpm update
+```
+
 ## Manuell ohne Install-Skript
 
 ```powershell

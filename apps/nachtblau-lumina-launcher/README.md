@@ -40,6 +40,8 @@ pnpm start     # benötigt electron (devDependency)
 
 Quelle lag bisher nur im gepackten AppImage auf dem Webspace. Dieses Repo führt den Code unter `apps/nachtblau-lumina-launcher/` fort.
 
-Nach einem Electron-Builder-Build die Artefakte nach `launcher.nachtblau-interactive.com/downloads/v1.0.11/` deployen und die Download-Seite aktualisieren. Bis dahin: Slider im laufenden 1.0.10 manuell auf **6–8 GB** stellen (siehe [LAPTOP-OPTIMIERUNG.md](./LAPTOP-OPTIMIERUNG.md)).
+Deploy-Schritte (AppImage, `latest-linux.yml`, Webspace): [DEPLOY.md](./DEPLOY.md).
+
+Bis **1.0.11** auf dem Webspace live ist: Slider im laufenden 1.0.10 manuell auf **6–8 GB** stellen (siehe [LAPTOP-OPTIMIERUNG.md](./LAPTOP-OPTIMIERUNG.md)).
 
 Keine Secrets / Discord-Webhooks mit Inhalt committen (`config/server.json` → `discordWebhook` leer lassen).

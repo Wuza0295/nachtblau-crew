@@ -29,6 +29,22 @@ Bei ~32 GB Laptop → Slider stoppt bei **~29–30 GB**. Vanilla/Java-Client bra
 - JVM: G1GC + vorsichtige Client-Flags (`customArgs`)
 - Einmalige `~/.nachtblau-minecraft/options.txt`-Defaults (nur wenn Datei fehlt)
 
+## Auf 1.0.11 wechseln (Update)
+
+| Quelle | Aktion |
+|--------|--------|
+| **Launcher im Repo** | `cd apps/nachtblau-lumina-launcher && pnpm install && pnpm start` (Dev) |
+| **AppImage / Installer vom Webspace** | Launcher → Update prüfen; nach Deploy von 1.0.11 siehe [DEPLOY.md](./DEPLOY.md) |
+| **Noch 1.0.10 live** | Slider **manuell auf 6–8 GB**; nach Update startet die Migration automatisch |
+
+Nach 1.0.11 einmal Launcher neu starten — alte **29 GB**-Einstellung wird auf den Empfehlungswert gesetzt (`migrateMemorySettings`).
+
+### Checkliste nach Update
+
+- [ ] RAM-Slider zeigt **6–8 GB** (32-GB-Laptop), Max **≤ 16 GB**
+- [ ] Minecraft startet mit Java **21+**
+- [ ] Renderdistanz **8–12** (Video-Einstellungen)
+
 ## Server vs. Client
 
 Der **Pi-Server** nutzt eigene Aikar-Flags unter `scripts/pi/` — das betrifft nicht den Client-Heap im Launcher. Client und Server getrennt optimieren.

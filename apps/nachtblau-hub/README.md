@@ -32,7 +32,9 @@ Danach: Shortcut **NachtBlau Hub** (voller Pfad in der Skript-Ausgabe) oder `pnp
 
 Shortcuts nachziehen ohne erneutes Install: `-SkipInstall` — Details: [windows/README.md](./windows/README.md).
 
-Pi-Desktop / Updates vom Heimnetz: `scripts/pi/run-lightweight-desktop-from-windows.ps1`.
+Abhängigkeiten im Hub-Ordner: `cd apps/nachtblau-hub/windows && pnpm update` (siehe [windows/README.md](./windows/README.md)).
+
+Pi-Desktop / Updates vom Heimnetz: `scripts/pi/run-lightweight-desktop-from-windows.ps1`. Vollständiges Pi-Upgrade: `scripts/pi/upgrade-all.sh` (auf dem Pi per SSH).
 
 ## Minecraft Client (Lumina Launcher)
 
