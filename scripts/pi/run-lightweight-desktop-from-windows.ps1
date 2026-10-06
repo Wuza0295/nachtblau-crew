@@ -11,6 +11,7 @@ Write-Host "Verbinde zu ${PiUser}@${PiHost} ..."
 Write-Host "Passwort eingeben wenn gefragt (Imager-Passwort)."
 
 $Remote = @"
+set -e
 cd ~
 if [ -d nachtblau-crew/.git ]; then
   cd nachtblau-crew
@@ -25,7 +26,7 @@ chmod +x scripts/pi/install-lightweight-desktop.sh
 sudo ./scripts/pi/install-lightweight-desktop.sh --yes --upgrade
 "@
 
-ssh "${PiUser}@${PiHost}" "bash -lc $(($Remote -replace "`r`n", "; " -replace '"', '\"'))"
+$Remote | ssh "${PiUser}@${PiHost}" "bash -s"
 
 Write-Host ""
 Write-Host "Fertig. Bei Bedarf auf dem Pi: sudo reboot"
