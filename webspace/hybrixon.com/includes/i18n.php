@@ -75,6 +75,27 @@ function hybrixon_active_lang(?array $user = null): string
 }
 
 /** @return array<string, string> */
+function hybrixon_i18n_core_fallbacks(): array
+{
+    // Always available German strings so missing/outdated lang/*.php never shows raw keys.
+    return [
+        'compose.title' => 'Neuen Beitrag',
+        'compose.lead' => 'Text, Bilder und/oder Videos. Soft-18+ nur bei Bedarf markieren.',
+        'compose.publish' => 'Veröffentlichen',
+        'compose.body' => 'Text',
+        'compose.images' => 'Bilder (optional)',
+        'compose.video' => 'Videos (optional)',
+        'compose.images_multi' => 'Bis :n Bilder (je max. :mb MB).',
+        'compose.videos_multi' => 'Bis :n Videos (je max. :mb MB / :min Min.).',
+        'compose.web_hint' => 'Gilt für Desktop und Handy im Browser: Mehrfachauswahl bis 15 Bilder und/oder 15 Videos.',
+        'nav.reels' => 'Reels',
+        'nav.stories' => 'Stories',
+        'nav.post' => 'Posten',
+        'footer.rules' => 'Inhaltsregeln',
+    ];
+}
+
+/** @return array<string, string> */
 function hybrixon_lang_catalog(string $lang): array
 {
     static $bags = [];
@@ -83,9 +104,12 @@ function hybrixon_lang_catalog(string $lang): array
     }
     $file = ALLXION_ROOT . '/lang/' . $lang . '.php';
     $deFile = ALLXION_ROOT . '/lang/de.php';
-    $base = is_file($deFile) ? (require $deFile) : [];
-    if (!is_array($base)) {
-        $base = [];
+    $base = hybrixon_i18n_core_fallbacks();
+    if (is_file($deFile)) {
+        $de = require $deFile;
+        if (is_array($de)) {
+            $base = array_merge($base, $de);
+        }
     }
     if ($lang === 'de' || !is_file($file)) {
         return $bags[$lang] = $base;
@@ -104,7 +128,10 @@ function t(string $key, array $replace = []): string
         $user = allxion_current_user();
     }
     $bag = hybrixon_lang_catalog(hybrixon_active_lang($user));
-    $text = $bag[$key] ?? hybrixon_lang_catalog('de')[$key] ?? $key;
+    $text = $bag[$key]
+        ?? hybrixon_lang_catalog('de')[$key]
+        ?? hybrixon_i18n_core_fallbacks()[$key]
+        ?? $key;
     foreach ($replace as $k => $v) {
         $text = str_replace(':' . $k, (string)$v, $text);
     }
