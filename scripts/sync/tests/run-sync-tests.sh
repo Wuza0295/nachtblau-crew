@@ -257,6 +257,42 @@ else
   skip "pwsh nicht installiert – Windows-Pfad und Vergleich uebersprungen"
 fi
 
+# --- Bazzite-Erkennung -----------------------------------------------------
+
+section "Bazzite-Erkennung"
+
+BAZZITE_OS_RELEASE="$TMP/os-release-bazzite"
+cat >"$BAZZITE_OS_RELEASE" <<'EOF'
+NAME="Bazzite"
+ID=bazzite
+VARIANT_ID=bazzite
+PRETTY_NAME="Bazzite 42 (FROM Fedora Silverblue)"
+EOF
+
+DETECTED="$(OS_RELEASE="$BAZZITE_OS_RELEASE" bash -c "source '$BASH_SCRIPT'; detect_platform")"
+if [[ "$DETECTED" == "bazzite" ]]; then
+  ok "detect_platform erkennt Bazzite"
+else
+  no "detect_platform erkennt Bazzite" "erkannt: $DETECTED"
+fi
+
+DESCRIBED="$(OS_RELEASE="$BAZZITE_OS_RELEASE" bash -c "source '$BASH_SCRIPT'; os_description")"
+if [[ "$DESCRIBED" == "Bazzite 42 (FROM Fedora Silverblue)" ]]; then
+  ok "os_description liest PRETTY_NAME"
+else
+  no "os_description liest PRETTY_NAME" "gelesen: $DESCRIBED"
+fi
+
+# Auf einem bootc-System darf nie zu dnf oder rpm-ostree geraten werden - das
+# wuerde den unveraenderlichen Host anfassen und einen Neustart erzwingen.
+HINT="$(bash -c "source '$BASH_SCRIPT'; toolchain_hint bazzite node")"
+if [[ "$HINT" == *"brew install node"* && "$HINT" != *"dnf"* ]] ||
+  [[ "$HINT" == *"brew install node"* && "$HINT" == *"nicht per dnf"* ]]; then
+  ok "Toolchain-Hinweis verweist auf brew statt dnf"
+else
+  no "Toolchain-Hinweis verweist auf brew statt dnf" "$HINT"
+fi
+
 # --- JSON ohne jq ----------------------------------------------------------
 
 # Bazzite bringt jq nicht zwingend mit; dann muss der python3-Pfad dieselben

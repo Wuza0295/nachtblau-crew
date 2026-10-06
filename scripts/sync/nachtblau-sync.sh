@@ -151,12 +151,15 @@ PY
 
 # --- Plattform -------------------------------------------------------------
 
+OS_RELEASE="${OS_RELEASE:-/etc/os-release}"
+
 detect_platform() {
   local id="" variant=""
-  if [[ -r /etc/os-release ]]; then
-    # shellcheck disable=SC1091
-    id="$(. /etc/os-release && printf '%s' "${ID:-}")"
-    variant="$(. /etc/os-release && printf '%s' "${VARIANT_ID:-}")"
+  if [[ -r "$OS_RELEASE" ]]; then
+    # shellcheck disable=SC1090
+    id="$(. "$OS_RELEASE" && printf '%s' "${ID:-}")"
+    # shellcheck disable=SC1090
+    variant="$(. "$OS_RELEASE" && printf '%s' "${VARIANT_ID:-}")"
   fi
   if [[ "$id" == "bazzite" || "$variant" == *bazzite* ]]; then
     printf 'bazzite'
@@ -168,9 +171,9 @@ detect_platform() {
 }
 
 os_description() {
-  if [[ -r /etc/os-release ]]; then
-    # shellcheck disable=SC1091
-    (. /etc/os-release && printf '%s' "${PRETTY_NAME:-${NAME:-Linux}}")
+  if [[ -r "$OS_RELEASE" ]]; then
+    # shellcheck disable=SC1090
+    (. "$OS_RELEASE" && printf '%s' "${PRETTY_NAME:-${NAME:-Linux}}")
   else
     printf 'Linux'
   fi
