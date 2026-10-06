@@ -104,6 +104,9 @@ temp/
 # Pi night-install download cache
 scripts/pi-nacht-install/.cache/
 
+# Zustandsdateien des Bazzite/Windows-Syncs
+.nachtblau-sync/
+
 # Database
 *.db
 *.sqlite

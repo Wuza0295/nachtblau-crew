@@ -11,7 +11,11 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "db:push": "drizzle-kit generate && drizzle-kit migrate",
-    "db:seed": "tsx server/seed.ts"
+    "db:seed": "tsx server/seed.ts",
+    "sync": "bash scripts/sync/nachtblau-sync.sh sync",
+    "sync:status": "bash scripts/sync/nachtblau-sync.sh status",
+    "sync:compare": "bash scripts/sync/nachtblau-sync.sh compare",
+    "sync:test": "bash scripts/sync/tests/run-sync-tests.sh"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1116.0",
