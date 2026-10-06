@@ -1,5 +1,9 @@
 # NachtBlau Hub — Windows
 
+> **Nur PowerShell auf Windows.** Nicht in Bazzite-/Linux-bash pasten
+> (`\`-Pfade und `powershell` funktionieren dort nicht).
+> Linux/Bazzite: `../linux/README.md`. Pi-Upgrade: SSH zum Pi → `scripts/pi/README.md`.
+
 Electron-Shell wie unter Linux/Bazzite. Inhalt kommt live vom Webspace
 (`windowsUrl` in `../hub-url.json` → `https://launcher.nachtblau-interactive.com/windows.html`).
 
@@ -97,7 +101,7 @@ pnpm start
 
 ## Pi / Minecraft vom Windows-PC
 
-SSH und Desktop-Install liegen unter `scripts/pi/`:
+SSH und Desktop-Install liegen unter `scripts/pi/` (laufen **remote auf dem Pi**, nicht lokal auf Windows):
 
 ```powershell
 cd ..\..\..\scripts\pi

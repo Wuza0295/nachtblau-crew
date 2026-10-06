@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # NachtBlau Pi: idempotentes Gesamt-Upgrade (apt + Repo-Branch + Desktop-Skript).
-# Läuft auf dem Pi (Cloud-Agent hat keinen SSH). Erfordert Root.
+# Läuft NUR auf dem Raspberry Pi (per SSH oder lokal am Pi).
+# NICHT auf Bazzite / Windows / Notebook — dort fehlt das Skript oft und apt/Pi-Pfade passen nicht.
+# Cloud-Agent hat keinen SSH. Erfordert Root.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -13,6 +15,7 @@ CHECK_ONLY=0
 SKIP_GIT=0
 WITH_DESKTOP=0
 DIST_UPGRADE=0
+FORCE_HOST=0
 
 log() { printf '[pi-upgrade] %s\n' "$*"; }
 die() { printf '[pi-upgrade] FEHLER: %s\n' "$*" >&2; exit 1; }
@@ -21,19 +24,27 @@ usage() {
   cat <<EOF
 NachtBlau Pi — apt upgrade + Git-Branch aktualisieren + Desktop-Skript
 
+  NUR auf dem Raspberry Pi ausführen (ssh administrator@192.168.178.33).
+  Nicht auf Bazzite/Windows — Hub dort: apps/nachtblau-hub/linux|windows/
+
   --yes              Nicht nachfragen (apt upgrade + git pull)
   --check-only       Nur apt-Check (install-lightweight-desktop --check-only), kein git pull
   --skip-git         Kein git fetch/pull (nur apt + Desktop-Skript)
   --with-desktop     XFCE/LightDM nachziehen falls noch nicht installiert
   --dist-upgrade     Zusätzlich apt full-upgrade (Vorsicht: Kernel/Firmware)
+  --force            Auch ohne erkanntes Raspberry-Pi-Board (selten)
   -h, --help         Diese Hilfe
 
 Umgebung:
   NACHT_BRANCH       Git-Branch (Standard: ${BRANCH})
   NACHT_REPO         Repo-Pfad (Standard: ${REPO_ROOT})
 
+Von Bazzite aus:
+  ssh administrator@192.168.178.33
+  cd ~/nachtblau-crew && sudo ./scripts/pi/upgrade-all.sh --yes
+
 Empfohlen auf dem Pi (nach erstem Clone):
-  cd nachtblau-crew
+  cd ~/nachtblau-crew
   sudo ./scripts/pi/upgrade-all.sh --yes
 
 Nur prüfen:
@@ -48,6 +59,7 @@ while [[ $# -gt 0 ]]; do
     --skip-git) SKIP_GIT=1 ;;
     --with-desktop) WITH_DESKTOP=1 ;;
     --dist-upgrade) DIST_UPGRADE=1 ;;
+    --force) FORCE_HOST=1 ;;
     -h|--help) usage; exit 0 ;;
     *) die "Unbekannte Option: $1" ;;
   esac
@@ -55,6 +67,16 @@ while [[ $# -gt 0 ]]; do
 done
 
 [[ "$(id -u)" -eq 0 ]] || die "Bitte als root ausführen (sudo $0)."
+
+is_raspberry_pi() {
+  [[ -f /proc/device-tree/model ]] && grep -qi 'raspberry pi' /proc/device-tree/model 2>/dev/null && return 0
+  [[ -f /proc/cpuinfo ]] && grep -qiE 'Raspberry Pi|BCM2[0-9]+' /proc/cpuinfo 2>/dev/null && return 0
+  return 1
+}
+
+if [[ "${FORCE_HOST}" -eq 0 ]] && ! is_raspberry_pi; then
+  die "Kein Raspberry Pi erkannt (Host: $(uname -n)). Dieses Skript gehört auf den Pi — von Bazzite: ssh administrator@192.168.178.33 und dort im Clone ausführen. Notfalls: --force"
+fi
 
 if [[ -n "${NACHT_REPO:-}" ]]; then
   REPO_ROOT="$(cd "${NACHT_REPO}" && pwd)"

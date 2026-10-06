@@ -18,9 +18,35 @@ Windows / Bazzite / Android / Browser  ──lesen──►  Webspace (ALL-INKL)
                  dein PC
 ```
 
-## Windows (Notebook)
+## Welches Gerät? Welches Terminal?
 
-Einmalig Branch holen und Install-Skript ausführen (legt standardmäßig Desktop-/Startmenü-Shortcut an, kein Admin):
+| Du sitzt auf … | Shell | Hub-Pfad | Pi-Upgrade? |
+|----------------|-------|----------|-------------|
+| **Bazzite / Linux** | **bash** | `apps/nachtblau-hub/linux/` → `./Install-NachtBlauHub.sh` | Nein — nur per SSH **auf dem Pi** |
+| **Windows-Notebook** | **PowerShell** | `apps\nachtblau-hub\windows\` → `Install-NachtBlauHub.ps1` | Optional: `scripts\pi\run-lightweight-desktop-from-windows.ps1` |
+| **Raspberry Pi** | **bash** (SSH) | Hub läuft nicht dort | Ja: `sudo ./scripts/pi/upgrade-all.sh --yes` **im Clone auf dem Pi** |
+
+**Nicht vermischen:** Windows-`\`-Pfade und `powershell` gehören nicht in Bazzite-bash. `upgrade-all.sh` gehört nicht in `~` auf Bazzite.
+
+---
+
+## Linux (Bazzite / Aurora) — bash
+
+```bash
+cd ~
+git clone -b cursor/pi-lightweight-desktop-3ddb https://github.com/Wuza0295/nachtblau-crew.git
+cd ~/nachtblau-crew/apps/nachtblau-hub/linux
+chmod +x Install-NachtBlauHub.sh Start-NachtBlauHub.sh
+./Install-NachtBlauHub.sh
+```
+
+Danach: Shortcut **NachtBlau Hub** oder `pnpm start` im gleichen Ordner.
+
+Details: [linux/README.md](./linux/README.md).
+
+---
+
+## Windows (Notebook) — PowerShell only
 
 ```powershell
 git clone -b cursor/pi-lightweight-desktop-3ddb https://github.com/Wuza0295/nachtblau-crew.git
@@ -28,13 +54,14 @@ cd nachtblau-crew\apps\nachtblau-hub\windows
 powershell -ExecutionPolicy Bypass -File .\Install-NachtBlauHub.ps1
 ```
 
-Danach: Shortcut **NachtBlau Hub** (voller Pfad in der Skript-Ausgabe) oder `pnpm start` im gleichen Ordner.
+Danach: Shortcut **NachtBlau Hub** oder `pnpm start` im gleichen Ordner.
 
-Shortcuts nachziehen ohne erneutes Install: `-SkipInstall` — Details: [windows/README.md](./windows/README.md).
+Details: [windows/README.md](./windows/README.md).
 
-Abhängigkeiten im Hub-Ordner: `cd apps/nachtblau-hub/windows && pnpm update` (siehe [windows/README.md](./windows/README.md)).
+Pi-Desktop vom Windows-PC (Heimnetz): `scripts/pi/run-lightweight-desktop-from-windows.ps1`.
+Vollständiges Pi-Upgrade: SSH zum Pi, dann `scripts/pi/upgrade-all.sh` **auf dem Pi** — nicht lokal auf Windows oder Bazzite.
 
-Pi-Desktop / Updates vom Heimnetz: `scripts/pi/run-lightweight-desktop-from-windows.ps1`. Vollständiges Pi-Upgrade: `scripts/pi/upgrade-all.sh` (auf dem Pi per SSH).
+---
 
 ## Minecraft Client (Lumina Launcher)
 
@@ -42,12 +69,6 @@ Der **NachtBlau Lumina Launcher** (Minecraft Java, RAM-Slider, Microsoft-Login) 
 [`apps/nachtblau-lumina-launcher/`](../nachtblau-lumina-launcher/). Downloads: [`/downloads/`](https://launcher.nachtblau-interactive.com/downloads/).
 
 Laptop-RAM: **6–8 GB** empfohlen — nicht den Slider auf Maximum (bei 32‑GB-PCs zeigte ≤1.0.10 fälschlich „29 GB“ als Cap). Details: [LAPTOP-OPTIMIERUNG.md](../nachtblau-lumina-launcher/LAPTOP-OPTIMIERUNG.md).
-
-## Linux (Bazzite / Aurora)
-
-```bash
-cd apps/nachtblau-hub/linux && pnpm install && pnpm start
-```
 
 ## Android aktualisieren
 

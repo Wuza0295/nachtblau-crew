@@ -10,6 +10,10 @@ Idempotentes Setup für **Java (Paper)**, **Bedrock Dedicated** und **Geyser-Cro
 
 Der Cloud-Agent kann den Install **nicht** auf deinem physischen Pi starten (kein SSH, kein Private Worker, Pi nicht im selben Netz). Das Skript läuft **auf dem Pi**.
 
+> **Nicht auf Bazzite / Windows / Notebook ausführen.**  
+> `upgrade-all.sh` und `nacht-install.sh` brauchen den Raspberry Pi (oder SSH **auf** den Pi).  
+> Auf Bazzite: Hub unter `apps/nachtblau-hub/linux/` — siehe dortiges README.
+
 ## Voraussetzungen
 
 - Raspberry Pi **4B, 8 GB**, 64-Bit-OS (Raspberry Pi OS Lite 64-bit oder Ubuntu Server 24.04 ARM64)
@@ -20,7 +24,49 @@ Der Cloud-Agent kann den Install **nicht** auf deinem physischen Pi starten (kei
 
 Mit der Installation akzeptierst du die [Minecraft EULA](https://aka.ms/MinecraftEULA).
 
-## Start auf dem Pi
+## Von Bazzite / Linux-PC: erst SSH, dann Upgrade
+
+Auf dem Desktop (bash) — **nur** verbinden, Skripte laufen remote:
+
+```bash
+ssh administrator@192.168.178.33
+```
+
+Danach **im SSH-Prompt auf dem Pi** (Prompt zeigt den Pi-Host, nicht `wuza@bazzite`):
+
+```bash
+cd ~
+# Clone falls noch nicht vorhanden:
+# git clone -b cursor/pi-lightweight-desktop-3ddb https://github.com/Wuza0295/nachtblau-crew.git
+cd nachtblau-crew
+git fetch origin cursor/pi-lightweight-desktop-3ddb
+git checkout cursor/pi-lightweight-desktop-3ddb
+git pull origin cursor/pi-lightweight-desktop-3ddb
+sudo chmod +x scripts/pi/upgrade-all.sh scripts/pi/install-lightweight-desktop.sh
+sudo ./scripts/pi/upgrade-all.sh --yes
+```
+
+Einzeiler von Bazzite ohne interaktive Shell (Passwort/Key bei SSH-Abfrage):
+
+```bash
+ssh administrator@192.168.178.33 'bash -s' <<'EOF'
+set -e
+cd ~
+if [ -d nachtblau-crew/.git ]; then
+  cd nachtblau-crew
+  git fetch origin cursor/pi-lightweight-desktop-3ddb
+  git checkout cursor/pi-lightweight-desktop-3ddb
+  git pull origin cursor/pi-lightweight-desktop-3ddb
+else
+  git clone -b cursor/pi-lightweight-desktop-3ddb https://github.com/Wuza0295/nachtblau-crew.git
+  cd nachtblau-crew
+fi
+sudo chmod +x scripts/pi/upgrade-all.sh scripts/pi/install-lightweight-desktop.sh
+sudo ./scripts/pi/upgrade-all.sh --yes
+EOF
+```
+
+## Start auf dem Pi (direkt am Gerät)
 
 ```bash
 sudo apt-get update
@@ -31,12 +77,12 @@ sudo ./scripts/pi/nacht-install.sh --yes
 sudo ./scripts/pi/nacht-status.sh
 ```
 
-## Upgrade (bestehendes Clone auf dem Pi)
+## Upgrade (bestehendes Clone **auf dem Pi**)
 
 Idempotent: **apt upgrade**, **git pull** auf dem Branch, optional Desktop nachziehen.
 
 ```bash
-cd nachtblau-crew
+cd ~/nachtblau-crew   # muss auf dem Pi sein — nicht ~/ auf Bazzite
 sudo chmod +x scripts/pi/upgrade-all.sh scripts/pi/install-lightweight-desktop.sh
 sudo ./scripts/pi/upgrade-all.sh --yes
 ```
@@ -55,13 +101,7 @@ sudo ./scripts/pi/nacht-install.sh --yes
 sudo ./scripts/pi/nacht-status.sh
 ```
 
-Oder nur das Skript kopieren – es ist selbstständig:
-
-```bash
-sudo ./scripts/pi/nacht-install.sh --yes
-```
-
-## Nützliche Schalter
+## Nützliche Schalter (nacht-install)
 
 | Schalter | Bedeutung |
 |----------|-----------|
@@ -92,7 +132,7 @@ Java-Heap und Flags: `/etc/nachtblau/minecraft.env`
 Auf **Raspberry Pi OS Lite** ohne Oberfläche: Updates prüfen und optional XFCE nachinstallieren.
 
 ```bash
-cd nachtblau-crew
+cd ~/nachtblau-crew
 sudo chmod +x scripts/pi/install-lightweight-desktop.sh
 
 # Nur prüfen, ob Upgrades anstehen (Exit 2 = es gibt Upgrades)
@@ -112,9 +152,9 @@ sudo ./scripts/pi/upgrade-all.sh --yes
 | `--skip-desktop` | Nur Paket-Updates, kein XFCE |
 | `--yes` | Nicht interaktiv nachfragen |
 
-Der Cloud-Agent hat **keinen SSH-Zugang** zu deinem Pi – dieses Skript musst du **auf dem Pi** (oder per `ssh pi@…`) ausführen.
+Der Cloud-Agent hat **keinen SSH-Zugang** zu deinem Pi – dieses Skript musst du **auf dem Pi** (oder per `ssh administrator@192.168.178.33`) ausführen.
 
-### Vom Windows-PC (Heimnetz)
+### Vom Windows-PC (Heimnetz) — PowerShell only
 
 ```powershell
 cd nachtblau-crew\scripts\pi
