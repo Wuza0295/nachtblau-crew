@@ -11,7 +11,12 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "db:push": "drizzle-kit generate && drizzle-kit migrate",
-    "db:seed": "tsx server/seed.ts"
+    "db:seed": "tsx server/seed.ts",
+    "hub:pull": "python3 scripts/hub-sync.py pull",
+    "hub:sync": "python3 scripts/hub-sync.py sync",
+    "hub:push": "python3 scripts/hub-sync.py push",
+    "hub:status": "python3 scripts/hub-sync.py status",
+    "hub:check": "python3 scripts/hub-sync.py check"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1116.0",

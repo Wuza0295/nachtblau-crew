@@ -104,6 +104,16 @@ temp/
 # Pi night-install download cache
 scripts/pi-nacht-install/.cache/
 
+# ALL-INKL webspace (FTPS) credentials and local mirrors — pull via pnpm hub:pull
+.env.webspace
+webspace/
+
+# NachtBlau Hub: generated from the webspace mirror by scripts/hub-sync.py
+apps/nachtblau-hub/shared/
+apps/nachtblau-hub/*/www/
+
+__pycache__/
+
 # Database
 *.db
 *.sqlite
