@@ -10,11 +10,20 @@ Ziel: **ein Befehl → Silk-Fenster**.
 ujust setup-virtualization
 ```
 
-Danach ab- und wieder anmelden (Gruppe `libvirt`). Prüfen:
+**Wichtig:** Das installiert oft nur *virt-manager* + Kernel-Args – **nicht** immer `qemu-system-x86_64` auf dem Host.
+
+QEMU zusätzlich layer'n und **rebooten**:
 
 ```bash
-ls -l /dev/kvm
-groups | grep -E 'libvirt|kvm'
+sudo rpm-ostree install qemu-system-x86 qemu-img qemu-kvm edk2-ovmf
+sudo systemctl reboot
+```
+
+Danach neu anmelden. Prüfen:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-connect-multiplatform-fef1/silk/scripts/go-bazzite-vm.sh | bash -s -- doctor
+# erwartet: QEMU ✓ und KVM nutzbar ✓
 ```
 
 ### 2. Silk-VM starten
@@ -25,24 +34,13 @@ groups | grep -E 'libvirt|kvm'
 curl -fsSL https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-connect-multiplatform-fef1/silk/scripts/go-bazzite-vm.sh | bash
 ```
 
-Oder aus dem Repo:
+**Ohne Host-QEMU** – Disk laden und in virt-manager importieren:
 
 ```bash
-bash silk/scripts/go-bazzite-vm.sh
+curl -fsSL https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-connect-multiplatform-fef1/silk/scripts/go-bazzite-vm.sh | bash -s -- virt-manager
 ```
 
-**Installer-ISO** (wie echte Installation):
-
-```bash
-bash silk/scripts/go-bazzite-vm.sh iso
-```
-
-Das Skript:
-- lädt `Silk-VM-*.qcow2` bzw. ISO vom Release `silk-media-latest` (~6 GB)
-- prüft SHA256
-- startet **QEMU/KVM mit GTK-Fenster** (Overlay = Original-Disk bleibt sauber)
-
-Medien liegen in `~/Silk-VMs/`.
+Dann in virt-manager: *Neue VM* → *Vorhandenes Disk-Image* → `~/Silk-VMs/Silk-VM-x86_64.qcow2`.
 
 ### Tipps
 

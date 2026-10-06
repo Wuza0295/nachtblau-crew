@@ -420,6 +420,10 @@ grep -q 'Install-SilkVM' "$ROOT/QUICKSTART.md" && ok "QUICKSTART Windows VM" || 
 [[ -f "$ROOT/scripts/go-bazzite-vm.sh" ]] && ok "go-bazzite-vm.sh" || bad "go-bazzite-vm.sh"
 bash -n "$ROOT/scripts/go-bazzite-vm.sh" && ok "go-bazzite-vm syntax" || bad "go-bazzite-vm syntax"
 grep -q 'ujust setup-virtualization' "$ROOT/scripts/go-bazzite-vm.sh" && ok "bazzite ujust hint" || bad "bazzite ujust"
+grep -q 'rpm-ostree install qemu' "$ROOT/scripts/go-bazzite-vm.sh" && ok "bazzite rpm-ostree qemu" || bad "bazzite rpm-ostree"
+grep -q 'cmd_doctor\|doctor' "$ROOT/scripts/go-bazzite-vm.sh" && ok "bazzite doctor" || bad "bazzite doctor"
+grep -q 'virt-manager' "$ROOT/scripts/go-bazzite-vm.sh" && ok "bazzite virt-manager path" || bad "bazzite virt-manager"
+bash "$ROOT/scripts/go-bazzite-vm.sh" doctor >/dev/null && ok "bazzite doctor runs" || bad "bazzite doctor runs"
 [[ -f "$ROOT/docs/VM-BAZZITE.md" ]] && ok "VM-BAZZITE.md" || bad "VM-BAZZITE.md"
 grep -q 'go-bazzite-vm' "$ROOT/QUICKSTART.md" && ok "QUICKSTART Bazzite VM" || bad "QUICKSTART Bazzite"
 
