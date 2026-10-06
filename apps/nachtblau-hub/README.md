@@ -22,7 +22,7 @@ Windows / Bazzite / Android / Browser  ──lesen──►  Webspace (ALL-INKL)
 
 | Du sitzt auf … | Shell | Hub-Pfad | Pi-Upgrade? |
 |----------------|-------|----------|-------------|
-| **Bazzite / Linux** | **bash** | `apps/nachtblau-hub/linux/` → `./Install-NachtBlauHub.sh` | Nein — nur per SSH **auf dem Pi** |
+| **Bazzite / Linux** | **bash** | `apps/nachtblau-hub/linux/` → `./Install-SteamShortcut.sh` (Steam) oder `./Install-NachtBlauHub.sh` | Nein — nur per SSH **auf dem Pi** |
 | **Windows-Notebook** | **PowerShell** | `apps\nachtblau-hub\windows\` → `Install-NachtBlauHub.ps1` | Optional: `scripts\pi\run-lightweight-desktop-from-windows.ps1` |
 | **Raspberry Pi** | **bash** (SSH) | Hub läuft nicht dort | Ja: `sudo ./scripts/pi/upgrade-all.sh --yes` **im Clone auf dem Pi** |
 
@@ -30,19 +30,30 @@ Windows / Bazzite / Android / Browser  ──lesen──►  Webspace (ALL-INKL)
 
 ---
 
-## Linux (Bazzite / Aurora) — bash
+## Linux (Bazzite / Aurora) — Steam + bash
+
+**Spielen über Steam (empfohlen auf Bazzite):**
 
 ```bash
 cd ~
 git clone -b cursor/pi-lightweight-desktop-3ddb https://github.com/Wuza0295/nachtblau-crew.git
 cd ~/nachtblau-crew/apps/nachtblau-hub/linux
-chmod +x Install-NachtBlauHub.sh Start-NachtBlauHub.sh
+chmod +x Install-SteamShortcut.sh Start-NachtBlauHub-Steam.sh Install-NachtBlauHub.sh Start-NachtBlauHub.sh
+./Install-SteamShortcut.sh
+```
+
+Dann in Steam: **Spiele → Ein Nicht-Steam-Spiel hinzufügen…** →  
+`Start-NachtBlauHub-Steam.sh` wählen → umbenennen **NachtBlau Hub** → starten.  
+**Kein Proton.** Details: [linux/README.md](./linux/README.md) Abschnitt **Bazzite + Steam**.
+
+Ohne Steam:
+
+```bash
+cd ~/nachtblau-crew/apps/nachtblau-hub/linux
 ./Install-NachtBlauHub.sh
 ```
 
-Danach: Shortcut **NachtBlau Hub** oder `pnpm start` im gleichen Ordner.
-
-Details: [linux/README.md](./linux/README.md).
+Danach: Shortcut **NachtBlau Hub** oder `./Start-NachtBlauHub-Steam.sh`.
 
 ---
 
@@ -67,6 +78,9 @@ Vollständiges Pi-Upgrade: SSH zum Pi, dann `scripts/pi/upgrade-all.sh` **auf de
 
 Der **NachtBlau Lumina Launcher** (Minecraft Java, RAM-Slider, Microsoft-Login) liegt unter
 [`apps/nachtblau-lumina-launcher/`](../nachtblau-lumina-launcher/). Downloads: [`/downloads/`](https://launcher.nachtblau-interactive.com/downloads/).
+
+**Play-Pfad auf Bazzite:** Steam → NachtBlau Hub → im Hub Lumina AppImage laden → Microsoft-Login → Server.  
+Alternativ Prism / offizieller Launcher mit der Serveradresse aus dem Hub. Kein neues Client-Projekt nötig.
 
 Laptop-RAM: **6–8 GB** empfohlen — nicht den Slider auf Maximum (bei 32‑GB-PCs zeigte ≤1.0.10 fälschlich „29 GB“ als Cap). Details: [LAPTOP-OPTIMIERUNG.md](../nachtblau-lumina-launcher/LAPTOP-OPTIMIERUNG.md).
 

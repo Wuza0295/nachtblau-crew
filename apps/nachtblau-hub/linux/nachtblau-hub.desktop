@@ -1,0 +1,16 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=NachtBlau Hub
+GenericName=NachtBlau Hub
+Comment=NachtBlau Hub — Webspace-Launcher (Electron, native Linux). Auch als Nicht-Steam-Spiel unter Bazzite.
+# Install-NachtBlauHub.sh / Install-SteamShortcut.sh schreiben Absolute Pfade nach
+# ~/.local/share/applications/nachtblau-hub.desktop — dieses Repo-Exemplar ist die Vorlage.
+Exec=Start-NachtBlauHub-Steam.sh
+Path=.
+Icon=applications-games
+Terminal=false
+Categories=Game;Network;
+Keywords=NachtBlau;Hub;Minecraft;Lumina;Steam;Bazzite;
+StartupNotify=true
+StartupWMClass=NachtBlau Hub

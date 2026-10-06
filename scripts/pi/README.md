@@ -12,7 +12,7 @@ Der Cloud-Agent kann den Install **nicht** auf deinem physischen Pi starten (kei
 
 > **Nicht auf Bazzite / Windows / Notebook ausführen.**  
 > `upgrade-all.sh` und `nacht-install.sh` brauchen den Raspberry Pi (oder SSH **auf** den Pi).  
-> Auf Bazzite: Hub unter `apps/nachtblau-hub/linux/` — siehe dortiges README.
+> Auf Bazzite zum Spielen: Hub + Steam unter `apps/nachtblau-hub/linux/` — `./Install-SteamShortcut.sh`, siehe dortiges README (**Bazzite + Steam**).
 
 ## Voraussetzungen
 

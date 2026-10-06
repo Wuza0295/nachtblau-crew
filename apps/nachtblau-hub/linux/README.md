@@ -6,13 +6,13 @@
 Electron-Shell wie unter Windows. Inhalt kommt live vom Webspace
 (`linuxUrl` in `../hub-url.json` → `https://launcher.nachtblau-interactive.com/linux.html`).
 
-## Bazzite: einmalig installieren
+## Bazzite + Steam (empfohlen zum Spielen)
 
-Voraussetzungen: **Node.js LTS** und **pnpm** (kein sudo für den Hub selbst).
-Auf Bazzite oft: `brew install node`, danach `npm install -g pnpm` oder Corepack.
+Hub ist **natives Linux-Electron** — in Steam **ohne Proton** als Nicht-Steam-Spiel starten.
+
+### 1) Terminal (einmalig)
 
 ```bash
-# Repo holen / Branch aktualisieren
 cd ~
 git clone -b cursor/pi-lightweight-desktop-3ddb https://github.com/Wuza0295/nachtblau-crew.git
 # Falls schon geclonet:
@@ -22,18 +22,66 @@ git clone -b cursor/pi-lightweight-desktop-3ddb https://github.com/Wuza0295/nach
 #   git pull origin cursor/pi-lightweight-desktop-3ddb
 
 cd ~/nachtblau-crew/apps/nachtblau-hub/linux
-chmod +x Install-NachtBlauHub.sh Start-NachtBlauHub.sh
+chmod +x Install-NachtBlauHub.sh Install-SteamShortcut.sh \
+  Start-NachtBlauHub.sh Start-NachtBlauHub-Steam.sh
+./Install-SteamShortcut.sh
+```
+
+Voraussetzung: **Node.js LTS** + **pnpm** (Bazzite oft: `brew install node`, dann `npm install -g pnpm`).
+`Install-SteamShortcut.sh` ruft den Hub-Installer auf, legt
+`~/.local/share/applications/nachtblau-hub.desktop` an und zeigt die Steam-Schritte.
+
+### 2) Steam UI
+
+1. Steam öffnen  
+2. **Spiele** → **Ein Nicht-Steam-Spiel hinzufügen…**  
+3. **Durchsuchen…** → Datei wählen:
+
+   `~/nachtblau-crew/apps/nachtblau-hub/linux/Start-NachtBlauHub-Steam.sh`
+
+4. Eintrag umbenennen zu **NachtBlau Hub**  
+5. **Hinzufügen** → in der Bibliothek starten  
+
+**Kompatibilitätstool / Proton: aus** (Launch Options leer).  
+Game Mode: derselbe Bibliotheks-Eintrag.
+
+Schnelltest ohne Steam:
+
+```bash
+~/nachtblau-crew/apps/nachtblau-hub/linux/Start-NachtBlauHub-Steam.sh
+```
+
+### Minecraft / Lumina (Spielen)
+
+Der Hub öffnet den Webspace. Zum **Minecraft Java** auf dem NachtBlau-Server:
+
+1. Hub starten (Steam oder Desktop)  
+2. **Lumina Launcher** vom Webspace laden:  
+   https://launcher.nachtblau-interactive.com/downloads/  
+   (AppImage auf Bazzite: ausführbar machen, starten, Microsoft-Login, RAM **6–8 GB**)  
+3. In Lumina zum Server verbinden (Direktconnect / Serverliste im Launcher)
+
+Alternativen (wenn du schon einen Client hast): Prism Launcher / offizieller Minecraft-Launcher / Flatpak — Serveradresse laut Hub-Status (Heimnetz Pi oder WAN). Projekt-Launcher: `apps/nachtblau-lumina-launcher/`.
+
+---
+
+## Bazzite: nur Hub ohne Steam
+
+```bash
+cd ~/nachtblau-crew/apps/nachtblau-hub/linux
+chmod +x Install-NachtBlauHub.sh Start-NachtBlauHub.sh Start-NachtBlauHub-Steam.sh
 ./Install-NachtBlauHub.sh
 ```
 
 Das Skript prüft Node/pnpm, führt `pnpm install` aus und legt **standardmäßig** an:
 
 - Desktop: `NachtBlau Hub.desktop` (unter `~/Desktop` bzw. `~/Schreibtisch`)
-- App-Menü: `~/.local/share/applications/nachtblau-hub.desktop`
+- App-Menü: `~/.local/share/applications/nachtblau-hub.desktop`  
+  (Exec → `Start-NachtBlauHub-Steam.sh`)
 
 | Schalter | Wirkung |
 |----------|---------|
-| `--start` | Nach Install sofort `pnpm start` |
+| `--start` | Nach Install sofort starten |
 | `--no-shortcut` | Keine Desktop-Datei |
 | `--skip-install` | Nur Shortcut / Checks, kein `pnpm install` |
 
@@ -45,17 +93,18 @@ git fetch origin cursor/pi-lightweight-desktop-3ddb
 git checkout cursor/pi-lightweight-desktop-3ddb
 git pull origin cursor/pi-lightweight-desktop-3ddb
 cd apps/nachtblau-hub/linux
-./Install-NachtBlauHub.sh --skip-install
+./Install-SteamShortcut.sh --skip-install
 ```
 
 ## Start (danach)
 
 ```bash
 cd ~/nachtblau-crew/apps/nachtblau-hub/linux
-pnpm start
+./Start-NachtBlauHub-Steam.sh
+# oder: pnpm start
 ```
 
-Oder Desktop-/App-Menü-Eintrag „NachtBlau Hub“.
+Oder Desktop-/App-Menü-/Steam-Eintrag „NachtBlau Hub“.
 
 ## Abhängigkeiten aktualisieren
 
@@ -63,7 +112,7 @@ Oder Desktop-/App-Menü-Eintrag „NachtBlau Hub“.
 cd ~/nachtblau-crew/apps/nachtblau-hub/linux
 pnpm install
 pnpm update
-pnpm start
+./Start-NachtBlauHub-Steam.sh
 ```
 
 ## Manuell ohne Install-Skript
@@ -80,4 +129,5 @@ pnpm start
 |--------------------|---------|
 | `sudo ./scripts/pi/upgrade-all.sh` | SSH zum Pi, **dort** im Clone ausführen — siehe `scripts/pi/README.md` |
 | PowerShell / `cd apps\nachtblau-hub\windows` | Bash + Forward-Slashes: `apps/nachtblau-hub/linux` |
-| `powershell … Install-NachtBlauHub.ps1` | `./Install-NachtBlauHub.sh` in diesem Ordner |
+| `powershell … Install-NachtBlauHub.ps1` | `./Install-NachtBlauHub.sh` / `./Install-SteamShortcut.sh` |
+| Steam → Proton für den Hub | **Kein Proton** — natives Linux-Skript |

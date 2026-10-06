@@ -7,6 +7,7 @@
 #   ./Install-NachtBlauHub.sh --start
 #   ./Install-NachtBlauHub.sh --skip-install   # nur Desktop-Shortcut nachziehen
 #   ./Install-NachtBlauHub.sh --no-shortcut
+# Steam / Game Mode: danach ./Install-SteamShortcut.sh  (siehe README „Bazzite + Steam“)
 
 set -euo pipefail
 
@@ -27,6 +28,8 @@ NachtBlau Hub — Linux Install (Bazzite / Aurora)
   -h, --help        Diese Hilfe
 
 Voraussetzungen: Node.js LTS + pnpm (kein sudo für den Hub selbst).
+Steam: nach diesem Skript ./Install-SteamShortcut.sh — oder README „Bazzite + Steam“.
+Pi-Upgrade (scripts/pi/upgrade-all.sh): nur per SSH auf dem Raspberry Pi, nicht hier.
 EOF
 }
 
@@ -103,21 +106,31 @@ desktop_dirs() {
 
 write_desktop_file() {
   local target="$1"
-  local start_script="$SCRIPT_DIR/Start-NachtBlauHub.sh"
+  # Steam-sicherer Starter (räumt LD_PRELOAD auf); funktioniert auch ohne Steam
+  local start_script="$SCRIPT_DIR/Start-NachtBlauHub-Steam.sh"
+  if [[ ! -f "$start_script" ]]; then
+    start_script="$SCRIPT_DIR/Start-NachtBlauHub.sh"
+  fi
   mkdir -p "$(dirname "$target")"
   cat >"$target" <<EOF
 [Desktop Entry]
 Version=1.0
 Type=Application
 Name=NachtBlau Hub
-Comment=NachtBlau Hub Launcher (Electron → Webspace)
+Comment=NachtBlau Hub Launcher (Electron → Webspace). Steam: natives Linux, kein Proton.
 Exec=${start_script}
 Path=${SCRIPT_DIR}
+Icon=applications-games
 Terminal=false
 Categories=Game;Network;
+Keywords=NachtBlau;Hub;Minecraft;Lumina;Steam;Bazzite;
 StartupNotify=true
+StartupWMClass=NachtBlau Hub
 EOF
-  chmod +x "$target" "$start_script"
+  chmod +x "$target" \
+    "$SCRIPT_DIR/Start-NachtBlauHub.sh" \
+    "$SCRIPT_DIR/Start-NachtBlauHub-Steam.sh" \
+    2>/dev/null || true
   # Mark as trusted on some GNOME/KDE setups (best-effort, no fail)
   if have_cmd gio; then
     gio set "$target" metadata::trusted true 2>/dev/null || true
@@ -170,19 +183,22 @@ if [[ ${#CREATED[@]} -gt 0 ]]; then
   echo "So starten:"
   echo "  1) Desktop: Doppelklick „NachtBlau Hub“ (ggf. „Erlauben“ / vertrauenswürdig)"
   echo "  2) App-Menü: NachtBlau Hub"
-  echo "  3) Manuell:"
+  echo "  3) Steam (Bazzite): ./Install-SteamShortcut.sh  — dann Nicht-Steam-Spiel"
+  echo "  4) Manuell:"
   echo "       cd \"$SCRIPT_DIR\""
-  echo "       pnpm start"
+  echo "       ./Start-NachtBlauHub-Steam.sh"
+  echo "       # oder: pnpm start"
 else
   echo "Start manuell:"
   echo "  cd \"$SCRIPT_DIR\""
-  echo "  pnpm start"
+  echo "  ./Start-NachtBlauHub-Steam.sh"
 fi
 echo ""
 echo "Hub-URL: https://launcher.nachtblau-interactive.com/linux.html"
+echo "Minecraft: Hub → Lumina downloaden, oder apps/nachtblau-lumina-launcher/"
 echo ""
 
 if [[ "$START" -eq 1 ]]; then
   echo "Starte Hub …"
-  pnpm start
+  exec "$SCRIPT_DIR/Start-NachtBlauHub-Steam.sh"
 fi

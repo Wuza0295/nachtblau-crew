@@ -2,6 +2,7 @@
 # NachtBlau Pi: idempotentes Gesamt-Upgrade (apt + Repo-Branch + Desktop-Skript).
 # Läuft NUR auf dem Raspberry Pi (per SSH oder lokal am Pi).
 # NICHT auf Bazzite / Windows / Notebook — dort fehlt das Skript oft und apt/Pi-Pfade passen nicht.
+# Auf Bazzite zum Spielen: apps/nachtblau-hub/linux/Install-SteamShortcut.sh (Steam, kein Proton).
 # Cloud-Agent hat keinen SSH. Erfordert Root.
 set -euo pipefail
 
@@ -25,7 +26,9 @@ usage() {
 NachtBlau Pi — apt upgrade + Git-Branch aktualisieren + Desktop-Skript
 
   NUR auf dem Raspberry Pi ausführen (ssh administrator@192.168.178.33).
-  Nicht auf Bazzite/Windows — Hub dort: apps/nachtblau-hub/linux|windows/
+  Nicht auf Bazzite/Windows — zum Spielen dort:
+    apps/nachtblau-hub/linux/Install-SteamShortcut.sh
+  (Steam → Nicht-Steam-Spiel → Start-NachtBlauHub-Steam.sh, kein Proton.)
 
   --yes              Nicht nachfragen (apt upgrade + git pull)
   --check-only       Nur apt-Check (install-lightweight-desktop --check-only), kein git pull
