@@ -11,7 +11,10 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "db:push": "drizzle-kit generate && drizzle-kit migrate",
-    "db:seed": "tsx server/seed.ts"
+    "db:seed": "tsx server/seed.ts",
+    "sync:bazzite": "bash scripts/desktop/nacht-install-bazzite.sh",
+    "sync:windows": "echo 'Auf Windows in Admin-PowerShell: .\\scripts\\desktop\\run-nachtblau-from-windows.ps1 -Yes (siehe scripts/desktop/README.md)'",
+    "desktop:status": "bash scripts/desktop/nacht-status-desktop.sh"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1116.0",
