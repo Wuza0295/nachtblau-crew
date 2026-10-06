@@ -18,15 +18,21 @@ Windows / Bazzite / Android / Browser  ──lesen──►  Webspace (ALL-INKL)
                  dein PC
 ```
 
-## Windows
+## Windows (Notebook)
+
+Einmalig Branch holen und Install-Skript ausführen (legt Desktop-/Startmenü-Shortcut an, kein Admin):
 
 ```powershell
-cd apps\nachtblau-hub\windows
-pnpm install
-pnpm start
+git clone -b cursor/pi-lightweight-desktop-3ddb https://github.com/Wuza0295/nachtblau-crew.git
+cd nachtblau-crew\apps\nachtblau-hub\windows
+.\Install-NachtBlauHub.ps1
 ```
 
-Pi-Desktop / Updates vom Heimnetz: siehe `scripts/pi/run-lightweight-desktop-from-windows.ps1` und [windows/README.md](./windows/README.md).
+Danach: Shortcut **NachtBlau Hub** oder `pnpm start` im gleichen Ordner.
+
+Details, Optionen (`-Start`, `-NoShortcut`) und Troubleshooting: [windows/README.md](./windows/README.md).
+
+Pi-Desktop / Updates vom Heimnetz: `scripts/pi/run-lightweight-desktop-from-windows.ps1`.
 
 ## Linux (Bazzite / Aurora)
 
