@@ -15,11 +15,16 @@ usage() {
 silk-vm – Silk-VM herunterladen & starten
 
   silk-vm                  Auto (QEMU wenn möglich, sonst VirtualBox-Hinweis)
-  silk-vm qemu             Fertige QCOW2-Disk mit QEMU/KVM starten
+  silk-vm qemu             Fertige QCOW2 – GTK-Fenster wenn DISPLAY gesetzt, sonst VNC
+  silk-vm gtk              Fertige QCOW2 mit GTK-Fenster (Bazzite/Desktop)
   silk-vm iso              Installer-ISO laden (+ QEMU booten)
   silk-vm vbox             VirtualBox-Pfad (go-virtualbox)
+  silk-vm bazzite          → scripts/go-bazzite-vm.sh (falls vorhanden)
   silk-vm download         Nur Medien laden / zusammenfügen
   silk-vm status           Was liegt in ~/Silk-VMs
+
+Bazzite:  ujust setup-virtualization
+          bash silk/scripts/go-bazzite-vm.sh
 
 Windows: siehe silk/windows/Install-SilkVM.cmd
 EOF
@@ -82,23 +87,45 @@ download_qcow() {
 }
 
 run_qemu_qcow() {
-  have qemu-system-x86_64 || die "qemu-system-x86_64 fehlt"
-  local disk
+  have qemu-system-x86_64 || die "qemu-system-x86_64 fehlt – auf Bazzite: ujust setup-virtualization"
+  local disk display_args=()
   disk="$(download_qcow)"
-  local port="${SILK_VNC_PORT:-5901}"
-  info "Starte QEMU/KVM – VNC :${port} (vnc://127.0.0.1:${port})"
   local kvm=()
   [[ -r /dev/kvm ]] && kvm=(-enable-kvm -cpu host)
+
+  # Desktop → GTK-Fenster; sonst VNC
+  if [[ "${1:-}" == gtk ]] || [[ -n "${DISPLAY:-}${WAYLAND_DISPLAY:-}" && "${SILK_VM_VNC:-0}" != "1" ]]; then
+    info "Starte QEMU/KVM – GTK-Fenster"
+    display_args=(-vga virtio -display gtk,gl=on)
+  else
+    local port="${SILK_VNC_PORT:-5901}"
+    info "Starte QEMU/KVM – VNC :${port} (vnc://127.0.0.1:${port})"
+    display_args=(-device virtio-vga -display none -vnc "127.0.0.1:$((port - 5900))")
+  fi
+
   exec qemu-system-x86_64 \
     "${kvm[@]}" \
     -m "$MEM_MB" -smp "$CPUS" \
     -drive "file=${disk},if=virtio,format=qcow2" \
     -netdev user,id=net0 -device virtio-net-pci,netdev=net0 \
-    -device virtio-vga \
+    "${display_args[@]}" \
     -usb -device usb-tablet \
-    -display none \
-    -vnc "127.0.0.1:$((port - 5900))" \
     -name "$VM_NAME"
+}
+
+cmd_bazzite() {
+  local candidates=(
+    "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/scripts/go-bazzite-vm.sh"
+    "/usr/share/silk/scripts/go-bazzite-vm.sh"
+    "$HOME/nachtblau-crew/silk/scripts/go-bazzite-vm.sh"
+  )
+  local s
+  for s in "${candidates[@]}"; do
+    if [[ -f "$s" ]]; then
+      exec bash "$s" "$@"
+    fi
+  done
+  die "go-bazzite-vm.sh nicht gefunden – siehe docs/VM-BAZZITE.md"
 }
 
 run_qemu_iso() {
@@ -151,8 +178,10 @@ main() {
       cmd_status
       ;;
     qemu|qcow|ready) run_qemu_qcow ;;
+    gtk) run_qemu_qcow gtk ;;
     iso|installer) run_qemu_iso ;;
     vbox|virtualbox) shift; cmd_vbox "$@" ;;
+    bazzite) shift; cmd_bazzite "$@" ;;
     auto)
       if have qemu-system-x86_64 && [[ -r /dev/kvm ]]; then
         run_qemu_qcow
@@ -162,8 +191,9 @@ main() {
         cat <<'EOF'
 Kein QEMU/KVM und kein VirtualBox.
 
-Linux:  sudo apt install qemu-system-x86
-        silk-vm qemu
+Bazzite:
+  ujust setup-virtualization
+  bash silk/scripts/go-bazzite-vm.sh
 
 Windows:
   silk\windows\Install-SilkVM.cmd

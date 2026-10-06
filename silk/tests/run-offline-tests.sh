@@ -417,6 +417,11 @@ grep -q 'silk-media-latest' "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 releas
 bash -n "$ROOT/system_files/usr/bin/silk-vm" && ok "silk-vm syntax" || bad "silk-vm syntax"
 bash "$ROOT/system_files/usr/bin/silk-vm" --help >/dev/null && ok "silk-vm help" || bad "silk-vm help"
 grep -q 'Install-SilkVM' "$ROOT/QUICKSTART.md" && ok "QUICKSTART Windows VM" || bad "QUICKSTART VM"
+[[ -f "$ROOT/scripts/go-bazzite-vm.sh" ]] && ok "go-bazzite-vm.sh" || bad "go-bazzite-vm.sh"
+bash -n "$ROOT/scripts/go-bazzite-vm.sh" && ok "go-bazzite-vm syntax" || bad "go-bazzite-vm syntax"
+grep -q 'ujust setup-virtualization' "$ROOT/scripts/go-bazzite-vm.sh" && ok "bazzite ujust hint" || bad "bazzite ujust"
+[[ -f "$ROOT/docs/VM-BAZZITE.md" ]] && ok "VM-BAZZITE.md" || bad "VM-BAZZITE.md"
+grep -q 'go-bazzite-vm' "$ROOT/QUICKSTART.md" && ok "QUICKSTART Bazzite VM" || bad "QUICKSTART Bazzite"
 
 
 echo "== Markenname Aurora nicht in Nutzer-Text =="

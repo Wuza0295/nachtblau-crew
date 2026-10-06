@@ -28,6 +28,15 @@ silk\windows\Install-SilkVM.cmd
 Hyper-V oder VirtualBox – lädt Silk-Medium, legt VM an, startet.  
 Details: [`docs/VM-WINDOWS.md`](docs/VM-WINDOWS.md)
 
+### Unter Bazzite testen (VM)
+
+```bash
+ujust setup-virtualization          # einmalig, dann neu anmelden
+bash silk/scripts/go-bazzite-vm.sh  # fertige Disk → QEMU-Fenster
+```
+
+Details: [`docs/VM-BAZZITE.md`](docs/VM-BAZZITE.md)
+
 ---
 
 ## Tablet / 2-in-1

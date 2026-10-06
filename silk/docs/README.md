@@ -13,6 +13,7 @@ Alternativ im Repo-Root: [`../silk-zusammenfassung.pdf`](../silk-zusammenfassung
 | Dokument | Inhalt |
 |----------|--------|
 | [`OUT-OF-BOX.md`](OUT-OF-BOX.md) | Auspacken und loslegen – GPU + Controller on the fly |
+| [`VM-BAZZITE.md`](VM-BAZZITE.md) | Silk-VM unter Bazzite (QEMU/KVM, ein Befehl) |
 | [`VM-WINDOWS.md`](VM-WINDOWS.md) | Silk-VM unter Windows (Hyper-V / VirtualBox) |
 | [`UX.md`](UX.md) | User Experience – Tour, Startzentrum, Menü |
 | [`GPU-CONTROLLERS.md`](GPU-CONTROLLERS.md) | AMD / Intel / NVIDIA + Gamepads |
