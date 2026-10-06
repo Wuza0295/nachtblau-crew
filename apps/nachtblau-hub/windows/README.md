@@ -2,6 +2,9 @@
 
 Electron-Shell wie unter Linux/Bazzite. Inhalt kommt live vom Webspace
 (`windowsUrl` in `../hub-url.json` → `https://launcher.nachtblau-interactive.com/windows.html`).
+Liefert `windows.html` einen HTTP-Fehler (z. B. noch nicht deployt), lädt der Hub automatisch
+den Web-Einstieg (`url` in `hub-url.json`). Deploy von `windows.html` + `windows-bridge.js`:
+`pnpm hub:push` im Repo-Root, Prüfung: `pnpm hub:check`.
 
 ## Notebook: einmalig installieren
 

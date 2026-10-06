@@ -58,9 +58,17 @@ pnpm open            # Android Studio → aufs Handy
 
 Details: [android/README.md](./android/README.md)
 
-## Webspace deployen
+## Sync Bazzite / Windows / Android / Webspace
+
+`scripts/hub-sync.py` erzeugt aus der Web-Vorlage (`index.html`) je Plattform `<plattform>.html` + `<plattform>-bridge.js` (`linux`, `windows`, `android`) und legt die lokalen `www/`-Kopien an.
 
 ```bash
-pnpm webspace:connect
-pnpm hub:push
+pnpm hub:check    # HTTPS-Live-Prüfung aller Plattform-Einstiege (ohne Zugangsdaten)
+pnpm hub:pull     # FTPS → webspace/ → shared/ → linux|windows|android/www
+pnpm hub:sync     # wie pull, aber aus vorhandenem lokalem Spiegel
+pnpm hub:push     # shared/ (inkl. windows.html) → Webspace
 ```
+
+FTPS-Zugang: `cp .env.webspace.example .env.webspace` und `FTP_USER`/`FTP_PASS` eintragen (oder als Cloud-Agent-Secrets setzen).
+
+Fehlt `windows.html` live noch, fällt der Windows-Client automatisch auf den Web-Einstieg (`/`) zurück.

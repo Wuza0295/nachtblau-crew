@@ -17,10 +17,24 @@ function hubUrl() {
   return "https://launcher.nachtblau-interactive.com/windows.html";
 }
 
+/** Web-Einstieg, falls windows.html auf dem Webspace (noch) fehlt. */
+function fallbackUrl() {
+  try {
+    const cfg = JSON.parse(
+      fs.readFileSync(path.join(__dirname, "..", "hub-url.json"), "utf8"),
+    );
+    if (cfg.url) return cfg.url;
+  } catch {
+    /* fall through */
+  }
+  return "https://launcher.nachtblau-interactive.com/";
+}
+
 let mainWindow;
 
 function createWindow() {
   const url = hubUrl();
+  const fallback = fallbackUrl();
   mainWindow = new BrowserWindow({
     width: 1440,
     height: 900,
@@ -33,6 +47,12 @@ function createWindow() {
       contextIsolation: true,
       webviewTag: true,
     },
+  });
+
+  mainWindow.webContents.on("did-navigate", (_event, navUrl, httpResponseCode) => {
+    if (httpResponseCode >= 400 && navUrl !== fallback && fallback !== url) {
+      mainWindow.loadURL(fallback);
+    }
   });
 
   mainWindow.loadURL(url);
