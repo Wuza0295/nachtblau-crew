@@ -25,8 +25,32 @@ Mit der Installation akzeptierst du die [Minecraft EULA](https://aka.ms/Minecraf
 ```bash
 sudo apt-get update
 sudo apt-get install -y git
-git clone https://github.com/Wuza0295/nachtblau-crew.git
+git clone -b cursor/pi-lightweight-desktop-3ddb https://github.com/Wuza0295/nachtblau-crew.git
 cd nachtblau-crew
+sudo ./scripts/pi/nacht-install.sh --yes
+sudo ./scripts/pi/nacht-status.sh
+```
+
+## Upgrade (bestehendes Clone auf dem Pi)
+
+Idempotent: **apt upgrade**, **git pull** auf dem Branch, optional Desktop nachziehen.
+
+```bash
+cd nachtblau-crew
+sudo chmod +x scripts/pi/upgrade-all.sh scripts/pi/install-lightweight-desktop.sh
+sudo ./scripts/pi/upgrade-all.sh --yes
+```
+
+| Schalter | Bedeutung |
+|----------|-----------|
+| `--check-only` | Nur apt-Check (+ optional git fetch Anzeige) |
+| `--skip-git` | Nur apt, kein `git pull` |
+| `--with-desktop` | XFCE installieren falls noch nicht vorhanden |
+| `--dist-upgrade` | Zusätzlich `apt full-upgrade` |
+
+Minecraft-Server-Stack nach Repo-Update bei Bedarf erneut (idempotent):
+
+```bash
 sudo ./scripts/pi/nacht-install.sh --yes
 sudo ./scripts/pi/nacht-status.sh
 ```
@@ -76,6 +100,9 @@ sudo ./scripts/pi/install-lightweight-desktop.sh --check-only
 
 # Updates + Desktop in einem Schritt (empfohlen)
 sudo ./scripts/pi/install-lightweight-desktop.sh --yes --upgrade
+
+# Oder apt + git pull + Skripte (ohne Desktop-Neuinstall)
+sudo ./scripts/pi/upgrade-all.sh --yes
 ```
 
 | Schalter | Bedeutung |

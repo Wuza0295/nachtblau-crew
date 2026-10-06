@@ -29,6 +29,9 @@ Standard ohne Optionen: Update-Prüfung anzeigen, interaktiv fragen ob upgrade +
 
 Beispiel (empfohlen auf dem Pi):
   sudo ./scripts/pi/install-lightweight-desktop.sh --yes --upgrade
+
+Gesamt-Upgrade (apt + git pull + Skripte aktuell):
+  sudo ./scripts/pi/upgrade-all.sh --yes
 EOF
 }
 
