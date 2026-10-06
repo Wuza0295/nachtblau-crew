@@ -1,7 +1,9 @@
 # NachtBlau Hub — Windows
 
-Electron-Shell wie unter Linux/Bazzite. Inhalt kommt live vom Webspace
+Electron-Shell wie unter Bazzite/Linux. Inhalt kommt live vom Webspace
 (`windowsUrl` in `../hub-url.json` → `https://launcher.nachtblau-interactive.com/windows.html`).
+
+Die Seite wird aus der Bazzite-/Linux-Seite erzeugt (`pnpm hub:sync-bazzite-windows` im Repo-Root). Ohne diesen Sync antwortet `/windows` mit 404.
 
 ## Notebook: einmalig installieren
 

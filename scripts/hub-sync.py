@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 """Sync NachtBlau Hub — Webspace is always the live source of truth.
 
-Linux (Electron) and Android (Capacitor) load
+Bazzite/Linux (Electron), Windows (Electron) and Android (Capacitor) load
 https://launcher.nachtblau-interactive.com/ directly.
 These scripts only pull/push the FTPS mirror for edits & backup;
 day-to-day use does not need local www/ copies.
+
+Den öffentlichen Bazzite-Stand auf die Windows-URL zu spiegeln
+übernimmt scripts/sync_bazzite_windows.py (lädt nur windows.html/.htm
+und windows-bridge.js hoch).
 """
 
 from __future__ import annotations
@@ -33,6 +37,7 @@ ROOT = Path(__file__).resolve().parents[1]
 HUB = ROOT / "apps" / "nachtblau-hub"
 SHARED = HUB / "shared"
 LINUX_WWW = HUB / "linux" / "www"
+WINDOWS_WWW = HUB / "windows" / "www"
 ANDROID_WWW = HUB / "android" / "www"
 BRIDGES = HUB / "bridges"
 WEBSPACE_LAUNCHER = WEBSPACE_ROOT / "launcher.nachtblau-interactive.com"
@@ -43,6 +48,7 @@ MANIFEST = HUB / "sync-manifest.json"
 PLATFORM_OWNED = {
     "site-bridge.js",  # web bridge name used by index.html on web
     "linux-bridge.js",
+    "windows-bridge.js",
     "android-bridge.js",
 }
 
@@ -144,7 +150,7 @@ def apply_platforms() -> dict[str, int]:
     counts: dict[str, int] = {}
 
     # Web bridge lives in shared as site-bridge.js (from webspace)
-    # Linux / Android get a full copy of shared + their bridge + patched index
+    # Bazzite/Linux, Windows and Android get a full copy + their bridge
     for platform, www, bridge_src, bridge_name, label, css_src, css_name in (
         (
             "linux",
@@ -154,6 +160,15 @@ def apply_platforms() -> dict[str, int]:
             "Linux Desktop",
             HUB / "linux" / "styles-linux.css",
             "styles-linux.css",
+        ),
+        (
+            "windows",
+            WINDOWS_WWW,
+            BRIDGES / "windows-bridge.js",
+            "windows-bridge.js",
+            "Windows Desktop",
+            HUB / "windows" / "styles-windows.css",
+            "styles-windows.css",
         ),
         (
             "android",
@@ -261,6 +276,7 @@ def write_manifest(counts: dict[str, int], action: str) -> None:
         "paths": {
             "shared": str(SHARED.relative_to(ROOT)),
             "linux": str(LINUX_WWW.relative_to(ROOT)),
+            "windows": str(WINDOWS_WWW.relative_to(ROOT)),
             "android": str(ANDROID_WWW.relative_to(ROOT)),
             "webspace": str(WEBSPACE_LAUNCHER.relative_to(ROOT)),
         },
@@ -275,6 +291,7 @@ def status() -> None:
         ("Webspace launcher", WEBSPACE_LAUNCHER),
         ("shared", SHARED),
         ("Linux www", LINUX_WWW),
+        ("Windows www", WINDOWS_WWW),
         ("Android www", ANDROID_WWW),
     ):
         if not path.exists():
@@ -293,7 +310,9 @@ def status() -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Sync Hub across Linux / Android / Webspace")
+    parser = argparse.ArgumentParser(
+        description="Sync Hub across Bazzite/Linux, Windows, Android and Webspace"
+    )
     parser.add_argument(
         "command",
         choices=["pull", "sync", "push", "status"],
@@ -310,7 +329,7 @@ def main() -> None:
         materialize_shared_from_webspace()
         counts = apply_platforms()
         write_manifest(counts, "pull")
-        print("\n✓ Pull+Sync fertig — Linux, Android und Webspace-Spiegel sind identisch.")
+        print("\n✓ Pull+Sync fertig — Bazzite/Linux, Windows, Android und Webspace-Spiegel sind identisch.")
         return
 
     if args.command == "sync":
@@ -321,7 +340,7 @@ def main() -> None:
             raise SystemExit("Weder Webspace-Spiegel noch shared/ vorhanden. Nutze: pnpm hub:pull")
         counts = apply_platforms()
         write_manifest(counts, "sync")
-        print("\n✓ Sync fertig — Linux- und Android-App nutzen denselben Stand wie der Web-Launcher.")
+        print("\n✓ Sync fertig — Bazzite/Linux, Windows und Android nutzen denselben Stand wie der Web-Launcher.")
         return
 
     if args.command == "push":
@@ -333,7 +352,7 @@ def main() -> None:
         counts = apply_platforms()
         push_shared_to_webspace()
         write_manifest(counts, "push")
-        print("\n✓ Push fertig — Webspace-Launcher entspricht shared / Linux / Android.")
+        print("\n✓ Push fertig — Webspace-Launcher entspricht shared / Bazzite / Windows / Android.")
 
 
 if __name__ == "__main__":

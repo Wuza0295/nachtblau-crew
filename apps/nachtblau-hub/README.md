@@ -43,9 +43,26 @@ Laptop-RAM: **6–8 GB** empfohlen — nicht den Slider auf Maximum (bei 32‑GB
 
 ## Linux (Bazzite / Aurora)
 
+Einmalig, ohne Root (Anwendungsmenü + Desktop-Starter):
+
 ```bash
-cd apps/nachtblau-hub/linux && pnpm install && pnpm start
+cd apps/nachtblau-hub/linux
+./install-bazzite.sh
 ```
+
+Danach: Menüeintrag **NachtBlau Hub** oder `pnpm start`.
+
+## Gleicher Stand: Bazzite und Windows
+
+Die Bazzite-Seite (`/linux`) ist die Quelle. Windows (`/windows`) wird daraus erzeugt und auf den Launcher gelegt:
+
+```bash
+# Zugangsdaten in .env.webspace (siehe .env.webspace.example)
+pnpm hub:sync-bazzite-windows
+```
+
+Ohne Upload nur die Dateien bauen: `python3 scripts/sync_bazzite_windows.py --no-upload`.
+Nur prüfen: `python3 scripts/sync_bazzite_windows.py --check`.
 
 ## Android aktualisieren
 
