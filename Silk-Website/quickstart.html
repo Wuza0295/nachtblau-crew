@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Silk – Quickstart</title>
+  <link rel="icon" href="assets/logo-icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .doc { max-width: 720px; margin: 0 auto; padding: 32px 24px 64px; }
+    .doc-header { margin-bottom: 8px; }
+    .doc-header .logo { display: inline-block; text-decoration: none; }
+    .doc-header .logo img { display: block; height: 32px; width: auto; }
+    .doc h1 { font-size: 1.75rem; margin-bottom: 8px; }
+    .doc h2 { font-size: 1.2rem; margin: 28px 0 10px; color: #1e40af; }
+    .doc p, .doc li { color: #334155; margin-bottom: 8px; }
+    .doc ul { margin-left: 20px; }
+    .back { display: inline-block; margin-bottom: 20px; color: #2563eb; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="doc">
+    <header class="doc-header">
+      <a href="index.html" class="logo">
+        <img src="assets/logo-light.svg" alt="Silk" width="120" height="28" />
+      </a>
+    </header>
+    <a class="back" href="index.html">← Zurück zur Startseite</a>
+    <h1>Silk – Installation in 5 Minuten</h1>
+    <p><strong>Voraussetzung:</strong> PC mit UEFI, Internet. Start von Universal Blue Aurora oder anderem Bootc-System.</p>
+
+    <h2>1. Image wählen</h2>
+    <ul>
+      <li><strong>AMD / Intel:</strong> <code>ghcr.io/wuza0295/silk:latest</code></li>
+      <li><strong>NVIDIA (Turing/16xx+):</strong> <code>ghcr.io/wuza0295/silk-nvidia-open:latest</code></li>
+    </ul>
+
+    <h2>2. Installieren</h2>
+    <p><strong>AMD / Intel:</strong></p>
+    <pre><code>sudo bootc switch --enforce-container-sigpolicy ghcr.io/wuza0295/silk:latest
+sudo systemctl reboot</code></pre>
+    <p><strong>NVIDIA:</strong></p>
+    <pre><code>sudo bootc switch --enforce-container-sigpolicy ghcr.io/wuza0295/silk-nvidia-open:latest
+sudo systemctl reboot</code></pre>
+
+    <h2>3. Erstlogin</h2>
+    <p><code>silk-setup</code> → Stil wählen → Essentials → optional Gaming → <code>silk-welcome</code></p>
+
+    <h2>4. Wichtige Befehle</h2>
+    <pre><code>silk-welcome
+silk-install datei.exe
+silk-desktop mac
+silk-wallpaper list
+silk-update
+sudo bootc upgrade</code></pre>
+
+    <h2>Probleme?</h2>
+    <ul>
+      <li><code>bootc switch</code> fehlgeschlagen → <code>--enforce-container-sigpolicy</code> setzen</li>
+      <li>NVIDIA schwarzer Bildschirm → <code>silk-nvidia-open</code> Image nutzen</li>
+      <li>Zurück zu Aurora → <code>sudo bootc switch ghcr.io/ublue-os/aurora:stable</code></li>
+    </ul>
+
+    <p><em>Silk ist kein macOS/Windows. Community-Projekt der Nachtblau Crew.</em></p>
+  </div>
+</body>
+</html>
