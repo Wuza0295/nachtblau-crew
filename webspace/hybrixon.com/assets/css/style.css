@@ -646,6 +646,10 @@ body.theme-light .mention-box {
   padding: 0 0.22rem;
   pointer-events: none;
 }
+.topbar-tab .nav-badge-icon {
+  top: 0.08rem;
+  right: 0.12rem;
+}
 .nav-avatar-summary {
   display: inline-flex !important;
   align-items: center;
@@ -1447,7 +1451,7 @@ body.theme-light .feed-compose-actions .btn-ghost {
     height: 1.65rem;
   }
   .feed-scope-panel {
-    top: 5.65rem;
+    top: 7.55rem;
     padding: 0.3rem;
     margin-bottom: 0.65rem;
     border-radius: 0.88rem;
