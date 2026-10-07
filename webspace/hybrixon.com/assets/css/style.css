@@ -118,6 +118,9 @@ button, input, textarea { font: inherit; }
   width: 1.85rem;
   height: 1.85rem;
 }
+.brand-mobile-only {
+  display: none;
+}
 .sidebar-brand {
   display: flex;
   align-items: center;
@@ -133,23 +136,41 @@ button, input, textarea { font: inherit; }
 .sidebar-brand .brand-logo {
   width: 3.85rem;
   height: 3.85rem;
+  flex-shrink: 0;
   filter: none;
 }
+.sidebar-brand-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.15;
+}
+.sidebar-brand .brand-text strong,
 .sidebar-brand-text strong {
+  display: block;
   font-size: 1.28rem;
   letter-spacing: 0.03em;
+  color: inherit !important;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
 }
 .sidebar-brand .brand-tagline {
   display: block;
   font-size: 0.7rem;
   opacity: 0.78;
+  color: inherit;
 }
 @media (min-width: 901px) {
-  .brand-topbar .brand-text-topbar { display: none; }
-  .brand-topbar .brand-logo-topbar {
-    width: 1.65rem;
-    height: 1.65rem;
-    opacity: 0.92;
+  .brand-topbar,
+  .brand-mobile-only {
+    display: none !important;
+  }
+}
+@media (max-width: 900px) {
+  .brand-mobile-only {
+    display: inline-flex;
+    align-items: center;
   }
 }
 .brand-text { display: flex; flex-direction: column; line-height: 1.1; }

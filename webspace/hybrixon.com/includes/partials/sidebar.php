@@ -115,18 +115,12 @@ $defs = [
 ];
 ?>
 <aside class="sidebar" aria-label="<?= e(t('nav.feed')) ?>">
-  <a class="sidebar-brand brand brand-<?= e($brandStyle) ?>" href="<?= e(allxion_url()) ?>" aria-label="Hybrixon">
-    <?php if ($brandStyle !== 'text'): ?>
-      <img class="sidebar-brand-logo brand-logo" src="<?= e(allxion_url('assets/img/logo.svg')) ?>" width="56" height="56" alt="">
-    <?php endif; ?>
-    <?php if ($brandStyle !== 'logo'): ?>
-      <span class="brand-text sidebar-brand-text">
-        <strong>Hybrixon</strong>
-        <?php if ($brandStyle === 'logo_text'): ?>
-          <small class="brand-tagline"><?= e(ALLXION_TAGLINE) ?></small>
-        <?php endif; ?>
-      </span>
-    <?php endif; ?>
+  <a class="sidebar-brand brand" href="<?= e(allxion_url()) ?>" aria-label="Hybrixon">
+    <img class="sidebar-brand-logo brand-logo" src="<?= e(allxion_url('assets/img/logo.svg')) ?>" width="56" height="56" alt="">
+    <span class="brand-text sidebar-brand-text">
+      <strong>Hybrixon</strong>
+      <small class="brand-tagline"><?= e(ALLXION_TAGLINE) ?></small>
+    </span>
   </a>
   <nav class="sidebar-nav">
     <?php foreach ($items as $key): ?>

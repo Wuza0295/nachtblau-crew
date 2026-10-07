@@ -145,7 +145,7 @@ if (!isset($pageUrl)) {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=Oxanium:wght@600;700;800&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="<?= e(allxion_url('assets/css/style.css')) ?>?v=124">
+  <link rel="stylesheet" href="<?= e(allxion_url('assets/css/style.css')) ?>?v=125">
   <?php
     // Immediate client handoff on first paint (HTML always served so the banner stays).
     $clientAutoApp = hybrixon_should_client_auto_open_app($ua, $forceStayWeb);
@@ -196,18 +196,9 @@ if (!isset($pageUrl)) {
   <?php endif; ?>
   <header class="topbar">
     <div class="topbar-left">
-      <a class="brand brand-topbar brand-<?= e($brandStyle) ?>" href="<?= e(allxion_url()) ?>" aria-label="Hybrixon">
-        <?php if ($brandStyle !== 'text'): ?>
-          <img class="brand-logo brand-logo-topbar" src="<?= e(allxion_url('assets/img/logo.svg')) ?>" width="32" height="32" alt="">
-        <?php endif; ?>
-        <?php if ($brandStyle !== 'logo'): ?>
-          <span class="brand-text brand-text-topbar">
-            <strong>Hybrixon</strong>
-            <?php if ($brandStyle === 'logo_text'): ?>
-              <small class="brand-tagline"><?= e(ALLXION_TAGLINE) ?></small>
-            <?php endif; ?>
-          </span>
-        <?php endif; ?>
+      <?php /* Logo nur mobil (Sidebar ausgeblendet); Desktop: Brand ausschließlich in der Seitenleiste */ ?>
+      <a class="brand brand-topbar brand-mobile-only" href="<?= e(allxion_url()) ?>" aria-label="Hybrixon">
+        <img class="brand-logo brand-logo-topbar" src="<?= e(allxion_url('assets/img/logo.svg')) ?>" width="32" height="32" alt="">
       </a>
       <form class="top-search" method="get" action="<?= e(allxion_url('search.php')) ?>" role="search">
         <svg class="top-search-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
