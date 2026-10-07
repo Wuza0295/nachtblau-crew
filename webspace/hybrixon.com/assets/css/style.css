@@ -855,6 +855,7 @@ body.theme-light .avatar-on-banner {
   .shell { grid-template-columns: 1fr; padding: 0.5rem 0.75rem 0; }
   .sidebar { display: none; }
   .topbar {
+    display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-rows: auto auto;
     min-height: auto;
@@ -867,6 +868,15 @@ body.theme-light .avatar-on-banner {
     border-bottom: 0;
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.2);
     isolation: isolate;
+  }
+  .topbar-left,
+  .topbar-right {
+    flex: unset;
+    min-width: 0;
+  }
+  .topbar-center {
+    flex: unset;
+    max-width: none;
   }
   .topbar::before {
     content: "";
@@ -2045,10 +2055,12 @@ body.theme-light .empty {
 
 /* Desktop chrome */
 @media (min-width: 901px) {
-  /* Equal side tracks keep the auto center column on the true header midpoint
-     without absolute positioning (avoids Sign up / avatar covering tabs). */
+  /* Flex equal sides: left/right share leftover space 50/50 so the pill sits on
+     the true midpoint; min-width:max-content stops Sign up from covering tabs. */
   .topbar {
-    grid-template-columns: minmax(12.5rem, 1fr) minmax(0, auto) minmax(12.5rem, 1fr);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
     min-height: 4.15rem;
     padding-inline: 1rem;
     background: rgba(7, 11, 17, 0.82);
@@ -2065,8 +2077,15 @@ body.theme-light .empty {
   .topbar-left,
   .topbar-right {
     position: relative;
-    z-index: 3;
-    isolation: isolate;
+    z-index: 2;
+    flex: 1 1 0;
+    min-width: max-content;
+  }
+  .topbar-left {
+    justify-content: flex-start;
+  }
+  .topbar-right {
+    justify-content: flex-end;
   }
   .topbar-center {
     position: relative;
@@ -2074,11 +2093,14 @@ body.theme-light .empty {
     top: auto;
     transform: none;
     z-index: 1;
-    justify-self: center;
+    flex: 0 1 auto;
+    justify-self: auto;
+    align-self: center;
+    min-width: 0;
     min-height: 3.55rem;
     height: auto;
     width: max-content;
-    max-width: 100%;
+    max-width: min(100%, calc(100vw - 28rem));
     justify-content: center;
     padding: 0.28rem 0.35rem;
     gap: 0.1rem;
