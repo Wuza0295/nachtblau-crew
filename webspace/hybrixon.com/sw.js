@@ -1,5 +1,5 @@
 /* Hybrixon service worker — Web Push + background-loaded static shell */
-const STATIC_CACHE = 'hybrixon-static-v9';
+const STATIC_CACHE = 'hybrixon-static-v10';
 const STATIC_PREFIX = 'hybrixon-static-';
 const STATIC_ASSETS = [
   '/manifest.json',

@@ -133,7 +133,7 @@ button, input, textarea { font: inherit; }
 .sidebar-brand .brand-logo {
   width: 3.85rem;
   height: 3.85rem;
-  filter: drop-shadow(0 4px 10px rgba(34, 211, 238, 0.18));
+  filter: none;
 }
 .sidebar-brand-text strong {
   font-size: 1.28rem;
@@ -4675,7 +4675,6 @@ body.theme-lime .story-ring.story-unseen .avatar {
 body.theme-aurora,
 body.theme-dark,
 body.theme-ember,
-body.theme-ocean,
 body.theme-forest,
 body.theme-rose,
 body.theme-noir,
@@ -4696,9 +4695,10 @@ body.theme-lime {
 body.theme-sand,
 body.theme-mist,
 body.theme-lavender,
-body.theme-arctic {
-  --panel-glass: rgba(255, 255, 255, 0.94);
-  --panel-highlight: rgba(255, 255, 255, 0.7);
+body.theme-arctic,
+body.theme-ocean {
+  --panel-glass: #ffffff;
+  --panel-highlight: transparent;
   --accent-soft: color-mix(in srgb, var(--accent) 12%, transparent);
   --accent-line: color-mix(in srgb, var(--accent) 28%, transparent);
   --content-shadow: none;
