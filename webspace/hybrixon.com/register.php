@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         (string)($_POST['birthdate'] ?? ''),
         !empty($_POST['terms_ok']),
         !empty($_POST['privacy_ok']),
-        (string)($_POST['theme'] ?? 'light'),
+        (string)($_POST['theme'] ?? 'ocean'),
         (string)($_POST['postal_code'] ?? ''),
         (string)($_POST['city'] ?? '')
     );
@@ -32,8 +32,8 @@ $pageTitle = 'Registrieren · Hybrixon';
 $activeNav = 'register';
 require __DIR__ . '/includes/header.php';
 $regTheme = (string)($_POST['theme'] ?? hybrixon_active_theme(null));
-if (!in_array($regTheme, ['light', 'dark'], true)) {
-    $regTheme = 'light';
+if (!hybrixon_theme_valid($regTheme)) {
+    $regTheme = 'ocean';
 }
 ?>
 

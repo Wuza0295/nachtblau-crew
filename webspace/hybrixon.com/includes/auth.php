@@ -45,7 +45,7 @@ function hybrixon_theme_valid(string $theme): bool
     return isset(hybrixon_themes()[$theme]);
 }
 
-/** Active UI theme: logged-in preference, else guest cookie, else light. */
+/** Active UI theme: logged-in preference, else guest cookie, else ocean (Option C). */
 function hybrixon_active_theme(?array $user = null): string
 {
     if ($user && hybrixon_theme_valid((string)($user['theme'] ?? ''))) {
@@ -55,13 +55,13 @@ function hybrixon_active_theme(?array $user = null): string
     if (hybrixon_theme_valid($cookie)) {
         return $cookie;
     }
-    return 'light';
+    return 'ocean';
 }
 
 function hybrixon_set_theme_cookie(string $theme): void
 {
     if (!hybrixon_theme_valid($theme)) {
-        $theme = 'light';
+        $theme = 'ocean';
     }
     $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
     setcookie('hybrixon_theme', $theme, [
@@ -448,7 +448,7 @@ function allxion_register(
     string $birthdate,
     bool $termsOk = false,
     bool $privacyOk = false,
-    string $theme = 'light',
+    string $theme = 'ocean',
     string $postalCode = '',
     string $city = ''
 ): array
@@ -459,7 +459,7 @@ function allxion_register(
 
     $username = trim($username);
     $email = trim(mb_strtolower($email));
-    $theme = hybrixon_theme_valid($theme) ? $theme : 'light';
+    $theme = hybrixon_theme_valid($theme) ? $theme : 'ocean';
     $postalCode = trim($postalCode);
     $city = trim($city);
     $errors = [];

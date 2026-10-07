@@ -109,7 +109,7 @@ if (!isset($pageUrl)) {
       'light' => '#e8f0f1',
       'dark' => '#12141a',
       'aurora' => '#0b1220',
-      'ocean' => '#061018',
+      'ocean' => '#0b1c28',
       'ember' => '#120e0c',
       'violet' => '#12081c',
       'forest' => '#07140c',
@@ -121,6 +121,12 @@ if (!isset($pageUrl)) {
       'neon' => '#050510',
       'coral' => '#1a0c0c',
       'mist' => '#f4f8fc',
+      'mono' => '#111113',
+      'lavender' => '#efeaf3',
+      'copper' => '#1a120e',
+      'arctic' => '#e8f1f4',
+      'ink' => '#0c121c',
+      'lime' => '#10140e',
       'system' => '#12100e',
     ];
     $metaThemeColor = $themeColors[$uiTheme] ?? '#12100e';
@@ -139,7 +145,7 @@ if (!isset($pageUrl)) {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=Oxanium:wght@600;700;800&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="<?= e(allxion_url('assets/css/style.css')) ?>?v=122">
+  <link rel="stylesheet" href="<?= e(allxion_url('assets/css/style.css')) ?>?v=123">
   <?php
     // Immediate client handoff on first paint (HTML always served so the banner stays).
     $clientAutoApp = hybrixon_should_client_auto_open_app($ua, $forceStayWeb);
