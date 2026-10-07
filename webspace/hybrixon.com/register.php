@@ -75,10 +75,11 @@ if (!in_array($regTheme, ['light', 'dark'], true)) {
 
     <label>Darstellung
       <select name="theme">
-        <option value="light" <?= $regTheme === 'light' ? 'selected' : '' ?>>Light Mode</option>
-        <option value="dark" <?= $regTheme === 'dark' ? 'selected' : '' ?>>Dark Mode</option>
+        <?php foreach (hybrixon_themes() as $themeId => $themeLabel): ?>
+          <option value="<?= e($themeId) ?>" <?= $regTheme === $themeId ? 'selected' : '' ?>><?= e($themeLabel) ?></option>
+        <?php endforeach; ?>
       </select>
-      <span class="hint">Vor dem Login ist Light Standard; nach dem Login gilt deine Auswahl.</span>
+      <span class="hint">Vor dem Login ist Light Standard; nach dem Login gilt deine Auswahl. Später jederzeit unter Einstellungen änderbar.</span>
     </label>
 
     <label class="check">

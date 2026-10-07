@@ -104,7 +104,28 @@ if (!isset($pageUrl)) {
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="<?= e($pageTitle) ?>">
   <meta name="twitter:description" content="<?= e($pageDescription) ?>">
-  <meta name="theme-color" content="<?= $uiTheme === 'light' ? '#e8f0f1' : '#12100e' ?>">
+  <?php
+    $themeColors = [
+      'light' => '#e8f0f1',
+      'dark' => '#12141a',
+      'aurora' => '#0b1220',
+      'ocean' => '#061018',
+      'ember' => '#120e0c',
+      'violet' => '#12081c',
+      'forest' => '#07140c',
+      'rose' => '#180812',
+      'noir' => '#050505',
+      'midnight' => '#070b18',
+      'sand' => '#f6f1e8',
+      'slate' => '#0f141b',
+      'neon' => '#050510',
+      'coral' => '#1a0c0c',
+      'mist' => '#f4f8fc',
+      'system' => '#12100e',
+    ];
+    $metaThemeColor = $themeColors[$uiTheme] ?? '#12100e';
+  ?>
+  <meta name="theme-color" content="<?= e($metaThemeColor) ?>">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <?php if (!empty($noIndex)): ?>
   <meta name="robots" content="noindex,nofollow">
@@ -193,27 +214,43 @@ if (!isset($pageUrl)) {
 
     <nav class="topbar-center" aria-label="<?= e(t('nav.feed')) ?>">
       <a href="<?= e(allxion_url()) ?>" class="topbar-tab<?= $activeNav === 'feed' ? ' active' : '' ?>" aria-label="<?= e(t('nav.feed')) ?>" title="<?= e(t('nav.feed')) ?>">
-        <svg class="nav-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v10h14V10"/></svg>
+        <svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v10h14V10"/></svg>
+        <span class="topbar-tab-label"><?= e(t('nav.feed')) ?></span>
       </a>
       <a href="<?= e(allxion_url('shorts-feed.php')) ?>" class="topbar-tab<?= $activeNav === 'reels' || $activeNav === 'shorts' ? ' active' : '' ?>" aria-label="<?= e(t('nav.reels')) ?>" title="<?= e(t('nav.reels')) ?>">
-        <svg class="nav-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m10 9 5 3-5 3V9z"/></svg>
+        <svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="13" height="18" rx="2"/><path d="M16 8h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="m8 10 4 2.5L8 15z"/></svg>
+        <span class="topbar-tab-label"><?= e(t('nav.reels')) ?></span>
       </a>
       <a href="<?= e(allxion_url('stories.php')) ?>" class="topbar-tab<?= $activeNav === 'stories' ? ' active' : '' ?>" aria-label="<?= e(t('nav.stories')) ?>" title="<?= e(t('nav.stories')) ?>">
-        <svg class="nav-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>
+        <svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v2"/><path d="M12 19v2"/><path d="M3 12h2"/><path d="M19 12h2"/></svg>
+        <span class="topbar-tab-label"><?= e(t('nav.stories')) ?></span>
+      </a>
+      <a href="<?= e(allxion_url('explore.php')) ?>" class="topbar-tab<?= $activeNav === 'explore' ? ' active' : '' ?>" aria-label="<?= e(t('nav.explore')) ?>" title="<?= e(t('nav.explore')) ?>">
+        <svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m16.2 7.8-2.4 6-6 2.4 2.4-6 6-2.4z"/></svg>
+        <span class="topbar-tab-label"><?= e(t('nav.explore')) ?></span>
       </a>
       <a href="<?= e(allxion_url('groups.php')) ?>" class="topbar-tab<?= $activeNav === 'groups' ? ' active' : '' ?>" aria-label="<?= e(t('nav.groups')) ?>" title="<?= e(t('nav.groups')) ?>">
-        <svg class="nav-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      </a>
-      <a href="<?= e(allxion_url('explore.php')) ?>" class="topbar-tab<?= $activeNav === 'explore' ? ' active' : '' ?>" aria-label="Entdecken" title="Entdecken">
-        <svg class="nav-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m16.2 7.8-2.4 6-6 2.4 2.4-6 6-2.4z"/></svg>
+        <svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="topbar-tab-label"><?= e(t('nav.groups')) ?></span>
       </a>
       <?php if ($currentUser): ?>
         <a href="<?= e(allxion_url('friends.php')) ?>" class="topbar-tab<?= $activeNav === 'friends' ? ' active' : '' ?>" aria-label="<?= e(t('nav.friends')) ?>" title="<?= e(t('nav.friends')) ?>">
-          <svg class="nav-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg>
+          <svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg>
+          <span class="topbar-tab-label"><?= e(t('nav.friends')) ?></span>
+        </a>
+        <a href="<?= e(allxion_url('messages.php')) ?>" class="topbar-tab<?= $activeNav === 'messages' ? ' active' : '' ?>" aria-label="<?= e(t('nav.messages')) ?><?= $dmUnread > 0 ? ' (' . (int)$dmUnread . ')' : '' ?>" title="<?= e(t('nav.messages')) ?>">
+          <svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span class="topbar-tab-label"><?= e(t('nav.messages')) ?></span>
+          <?php if ($dmUnread > 0): ?><span class="nav-badge nav-badge-icon"><?= (int)$dmUnread ?></span><?php endif; ?>
+        </a>
+        <a href="<?= e(allxion_url('albums.php')) ?>" class="topbar-tab<?= $activeNav === 'albums' ? ' active' : '' ?>" aria-label="<?= e(t('nav.albums')) ?>" title="<?= e(t('nav.albums')) ?>">
+          <svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="m21 15-4.5-4.5L7 20"/></svg>
+          <span class="topbar-tab-label"><?= e(t('nav.albums')) ?></span>
         </a>
       <?php else: ?>
         <a href="<?= e(allxion_url('search.php')) ?>" class="topbar-tab<?= $activeNav === 'search' ? ' active' : '' ?>" aria-label="<?= e(t('nav.search')) ?>" title="<?= e(t('nav.search')) ?>">
-          <svg class="nav-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <span class="topbar-tab-label"><?= e(t('nav.search')) ?></span>
         </a>
       <?php endif; ?>
     </nav>

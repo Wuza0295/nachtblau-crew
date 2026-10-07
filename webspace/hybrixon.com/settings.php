@@ -176,13 +176,20 @@ require __DIR__ . '/includes/header.php';
         <?php endforeach; ?>
       </select>
     </label>
-    <label><?= e(t('settings.theme')) ?>
-      <select name="theme">
+    <fieldset class="theme-picker-fieldset">
+      <legend><?= e(t('settings.theme')) ?></legend>
+      <p class="hint" style="margin-bottom:0.55rem;">Wähle ein Erscheinungsbild. Die Auswahl wird sofort gespeichert und auf allen Geräten mit diesem Konto genutzt.</p>
+      <div class="theme-picker" role="radiogroup" aria-label="<?= e(t('settings.theme')) ?>">
         <?php $th = (string)($user['theme'] ?? 'light'); ?>
-        <option value="light" <?= $th === 'light' ? 'selected' : '' ?>>Light Mode</option>
-        <option value="dark" <?= $th === 'dark' ? 'selected' : '' ?>>Dark Mode</option>
-      </select>
-    </label>
+        <?php foreach (hybrixon_themes() as $themeId => $themeLabel): ?>
+          <label class="theme-picker-option">
+            <input type="radio" name="theme" value="<?= e($themeId) ?>" <?= $th === $themeId ? 'checked' : '' ?>>
+            <span class="theme-picker-swatch" data-theme="<?= e($themeId) ?>" aria-hidden="true"></span>
+            <span><?= e($themeLabel) ?></span>
+          </label>
+        <?php endforeach; ?>
+      </div>
+    </fieldset>
     <label class="pref-check">
       <input type="checkbox" name="autoplay_videos" value="1" <?= !empty($user['autoplay_videos']) ? 'checked' : '' ?>>
       <span>Videos automatisch abspielen (stumm)</span>

@@ -271,7 +271,7 @@ function social_update_profile(array $user, array $input, ?array $avatarFile = n
     if (!in_array($privacyDms, ['everyone', 'friends', 'followers', 'none'], true)) {
         $errors[] = 'Ungültige DM-Privatsphäre.';
     }
-    if (!in_array($theme, ['dark', 'light'], true)) {
+    if (!hybrixon_theme_valid($theme)) {
         $errors[] = 'Ungültiges Theme.';
     }
     if (!isset(hybrixon_brand_styles()[$brandStyle])) {
