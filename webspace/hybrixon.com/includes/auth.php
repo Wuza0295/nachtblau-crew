@@ -30,6 +30,12 @@ function hybrixon_themes(): array
         'neon' => 'Neon',
         'coral' => 'Coral',
         'mist' => 'Mist',
+        'mono' => 'Mono',
+        'lavender' => 'Lavender',
+        'copper' => 'Copper',
+        'arctic' => 'Arctic',
+        'ink' => 'Ink',
+        'lime' => 'Lime',
         'system' => 'System',
     ];
 }

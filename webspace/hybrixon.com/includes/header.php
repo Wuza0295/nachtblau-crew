@@ -139,7 +139,7 @@ if (!isset($pageUrl)) {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=Oxanium:wght@600;700;800&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="<?= e(allxion_url('assets/css/style.css')) ?>?v=121">
+  <link rel="stylesheet" href="<?= e(allxion_url('assets/css/style.css')) ?>?v=122">
   <?php
     // Immediate client handoff on first paint (HTML always served so the banner stays).
     $clientAutoApp = hybrixon_should_client_auto_open_app($ua, $forceStayWeb);
@@ -190,12 +190,12 @@ if (!isset($pageUrl)) {
   <?php endif; ?>
   <header class="topbar">
     <div class="topbar-left">
-      <a class="brand brand-<?= e($brandStyle) ?>" href="<?= e(allxion_url()) ?>" aria-label="Hybrixon">
+      <a class="brand brand-topbar brand-<?= e($brandStyle) ?>" href="<?= e(allxion_url()) ?>" aria-label="Hybrixon">
         <?php if ($brandStyle !== 'text'): ?>
-          <img class="brand-logo" src="<?= e(allxion_url('assets/img/logo.svg')) ?>" width="40" height="40" alt="">
+          <img class="brand-logo brand-logo-topbar" src="<?= e(allxion_url('assets/img/logo.svg')) ?>" width="32" height="32" alt="">
         <?php endif; ?>
         <?php if ($brandStyle !== 'logo'): ?>
-          <span class="brand-text">
+          <span class="brand-text brand-text-topbar">
             <strong>Hybrixon</strong>
             <?php if ($brandStyle === 'logo_text'): ?>
               <small class="brand-tagline"><?= e(ALLXION_TAGLINE) ?></small>

@@ -8,6 +8,7 @@ require_once __DIR__ . '/../sidebar-config.php';
 /** @var int $dmUnread */
 $activeNav = $activeNav ?? '';
 $dmUnread = (int)($dmUnread ?? 0);
+$brandStyle = $brandStyle ?? hybrixon_active_brand_style($currentUser ?? null);
 $items = hybrixon_sidebar_items_for($currentUser);
 $displayLabel = $currentUser
     ? (trim((string)($currentUser['display_name'] ?? '')) !== ''
@@ -114,6 +115,19 @@ $defs = [
 ];
 ?>
 <aside class="sidebar" aria-label="<?= e(t('nav.feed')) ?>">
+  <a class="sidebar-brand brand brand-<?= e($brandStyle) ?>" href="<?= e(allxion_url()) ?>" aria-label="Hybrixon">
+    <?php if ($brandStyle !== 'text'): ?>
+      <img class="sidebar-brand-logo brand-logo" src="<?= e(allxion_url('assets/img/logo.svg')) ?>" width="56" height="56" alt="">
+    <?php endif; ?>
+    <?php if ($brandStyle !== 'logo'): ?>
+      <span class="brand-text sidebar-brand-text">
+        <strong>Hybrixon</strong>
+        <?php if ($brandStyle === 'logo_text'): ?>
+          <small class="brand-tagline"><?= e(ALLXION_TAGLINE) ?></small>
+        <?php endif; ?>
+      </span>
+    <?php endif; ?>
+  </a>
   <nav class="sidebar-nav">
     <?php foreach ($items as $key): ?>
       <?php if (!isset($defs[$key])) {
