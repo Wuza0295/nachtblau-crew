@@ -16,136 +16,98 @@ import {
   Github,
   Globe,
   ExternalLink,
-  Shield,
   Swords,
 } from "lucide-react";
 import { SITE } from "@/lib/site";
 
-function StarField() {
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {Array.from({ length: 60 }).map((_, i) => (
-        <div
-          key={i}
-          className="absolute rounded-full bg-white"
-          style={{
-            width: Math.random() * 2 + 1 + "px",
-            height: Math.random() * 2 + 1 + "px",
-            left: Math.random() * 100 + "%",
-            top: Math.random() * 100 + "%",
-            opacity: Math.random() * 0.7 + 0.1,
-            animation: `twinkle ${Math.random() * 3 + 2}s ease-in-out infinite`,
-            animationDelay: Math.random() * 3 + "s",
-          }}
-        />
-      ))}
-    </div>
-  );
-}
+const HERO_LINKS = [
+  { href: "/free-games", label: "Loot & Gratis" },
+  { href: "/news", label: "Gilden-Intel" },
+  { href: "/forum", label: "Gilden-Halle" },
+  { href: "/ueber-uns", label: "Gilden-Rang" },
+] as const;
 
 function HeroSection() {
   return (
     <section
-      className="relative overflow-hidden border-b border-white/5"
+      className="relative overflow-hidden border-b border-white/8"
       style={{
         background:
-          "radial-gradient(ellipse at 50% 0%, oklch(0.18 0.06 252 / 0.35) 0%, transparent 55%), oklch(0.16 0.02 260)",
+          "radial-gradient(ellipse 80% 120% at 50% -20%, oklch(0.28 0.12 265 / 0.55) 0%, transparent 55%), radial-gradient(ellipse 40% 50% at 80% 100%, oklch(0.32 0.14 320 / 0.18) 0%, transparent 60%), oklch(0.14 0.03 262)",
       }}
     >
       <div
-        className="absolute inset-0 bg-cover bg-center opacity-15"
+        className="absolute inset-0 bg-cover bg-center opacity-20"
         style={{ backgroundImage: `url(${SITE.heroBgUrl})` }}
       />
-      <StarField />
+      <div className="stars-bg absolute inset-0 opacity-80" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-background to-transparent" />
 
-      <div className="container relative z-10 py-5 md:py-6 text-center">
+      <div className="container relative z-10 py-4 md:py-5 text-center">
         <div className="flex items-center justify-center gap-2">
           <img
             src={SITE.logoUrl}
             alt="NachtBlau Crew Logo"
-            className="h-5 w-5 object-contain"
+            className="h-6 w-6 object-contain"
           />
-          <p className="text-[10px] sm:text-[11px] tracking-[0.18em] uppercase text-muted-foreground">
-            NachtBlau Crew · Gilde unter dem Mondlicht
+          <p className="text-[10px] sm:text-[11px] tracking-[0.22em] uppercase text-muted-foreground">
+            Gilde unter dem Mondlicht
           </p>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-[10px] text-emerald-300">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            wach
+          </span>
         </div>
-        <p className="mt-1.5 text-[11px] sm:text-xs tracking-[0.14em] text-foreground/70">
-          « Eine Gilde · Ein Mond · Unendlich Loot »
+
+        <h1 className="mt-2 text-[1.65rem] leading-[1.05] font-black sm:text-4xl md:text-5xl">
+          Willkommen in der{" "}
+          <span className="gradient-text">NachtBlau</span>{" "}
+          <span className="text-[oklch(0.78_0.15_330)]">Crew</span>
+        </h1>
+        <p className="mt-2 text-[11px] sm:text-xs tracking-[0.18em] text-foreground/65">
+          Eine Gilde · Ein Mond · Unendlich Loot
+        </p>
+        <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+          Loot sammeln, Intel teilen, Quests pinnen. Die Eule wacht, die Crew spielt zusammen.
         </p>
 
         <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[11px] text-emerald-300">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            Gilde wach — Loot & Intel live · Gilde aktiv
-          </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-foreground/80">
-            <Shield className="h-3 w-3" />
-            Offizielle NachtBlau-Gilde
-          </span>
-        </div>
-
-        <h1
-          className="mt-4 text-3xl sm:text-4xl md:text-5xl font-black leading-tight"
-          style={{ fontFamily: "Orbitron, sans-serif" }}
-        >
-          Willkommen in der
-          <br />
-          <span className="gradient-text">NachtBlau</span>
-          <br />
-          <span className="text-[oklch(0.72_0.18_330)]">Crew</span>
-        </h1>
-        <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground leading-relaxed">
-          Eure Gaming-Gilde unter dem Mondlicht — Loot sammeln, Intel teilen, Quests pinnen.
-          Die Eule wacht, die Crew spielt zusammen.
-        </p>
-
-        <div className="mx-auto mt-4 grid max-w-lg grid-cols-3 gap-2">
-          {[
-            { value: "17", label: "Loot & Beute" },
-            { value: "25", label: "Gilden-Intel" },
-            { value: "63", label: "Crew aktiv" },
-          ].map((stat) => (
-            <div
-              key={stat.label}
-              className="rounded-xl border border-white/10 bg-black/20 px-2 py-2.5"
-            >
-              <Shield className="mx-auto mb-1 h-3.5 w-3.5 text-primary/80" />
-              <div className="text-2xl font-semibold text-[oklch(0.78_0.12_290)]">{stat.value}</div>
-              <div className="text-[10px] tracking-wider uppercase text-muted-foreground">
-                {stat.label}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
           <Link href="/forum">
-            <Button className="h-9 bg-[oklch(0.62_0.2_290)] hover:bg-[oklch(0.58_0.2_290)] text-white">
+            <Button className="h-9 bg-[oklch(0.58_0.2_280)] hover:bg-[oklch(0.52_0.2_280)] text-white">
               <Swords className="mr-2 h-4 w-4" />
               Gilden-Halle
             </Button>
           </Link>
           <Link href="/portal">
-            <Button variant="outline" className="h-9 border-white/15 bg-black/20">
+            <Button variant="outline" className="h-9 border-white/15 bg-white/5 backdrop-blur-sm">
               Crew-Tafel
             </Button>
           </Link>
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-          {[
-            { href: "/free-games", label: "Loot & Gratis" },
-            { href: "/news", label: "Gilden-Intel" },
-            { href: "/forum", label: "Crew-Tafel" },
-            { href: "/ueber-uns", label: "Gilden-Rang" },
-          ].map((item) => (
-            <Link key={item.href + item.label} href={item.href}>
-              <span className="inline-flex rounded-lg border border-white/10 bg-black/25 px-3 py-1.5 text-xs text-foreground/80 hover:border-primary/40 hover:text-foreground">
+        <div className="mx-auto mt-3 flex max-w-sm items-center justify-between rounded-full border border-white/10 bg-black/35 px-4 py-1.5 text-[11px] text-muted-foreground backdrop-blur-sm">
+          <span>
+            <span className="font-semibold text-foreground">17</span> Loot
+          </span>
+          <span className="text-white/20">·</span>
+          <span>
+            <span className="font-semibold text-foreground">25</span> Intel
+          </span>
+          <span className="text-white/20">·</span>
+          <span>
+            <span className="font-semibold text-foreground">63</span> Crew
+          </span>
+        </div>
+
+        <nav className="mt-2.5 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+          {HERO_LINKS.map((item) => (
+            <Link key={item.href} href={item.href}>
+              <span className="text-xs text-foreground/70 underline-offset-4 hover:text-foreground hover:underline">
                 {item.label}
               </span>
             </Link>
           ))}
-        </div>
+        </nav>
       </div>
     </section>
   );
@@ -166,7 +128,7 @@ function FreeGamesPreview() {
               style={{ fontFamily: "Orbitron, sans-serif" }}
             >
               <Gift className="inline h-6 w-6 text-primary mr-2" />
-              Kostenlose Spiele
+              Loot & Gratis
             </h2>
             <p className="text-muted-foreground mt-1">Aktuell gratis erhältliche Spiele</p>
           </div>
@@ -240,7 +202,7 @@ function NewsPreview() {
               style={{ fontFamily: "Orbitron, sans-serif" }}
             >
               <Newspaper className="inline h-6 w-6 text-primary mr-2" />
-              Gaming News
+              Gilden-Intel
             </h2>
             <p className="text-muted-foreground mt-1">Aktuelle Nachrichten aus der Gaming-Welt</p>
           </div>
@@ -330,9 +292,9 @@ function ForumPreview() {
               style={{ fontFamily: "Orbitron, sans-serif" }}
             >
               <MessageSquare className="inline h-6 w-6 text-primary mr-2" />
-              Community Forum
+              Gilden-Halle
             </h2>
-            <p className="text-muted-foreground mt-1">Diskutiere mit der Community</p>
+            <p className="text-muted-foreground mt-1">Diskutiere mit der Crew</p>
           </div>
           <Link href="/forum">
             <Button variant="ghost" className="text-primary hover:text-primary/80 gap-1">
@@ -367,40 +329,35 @@ function ForumPreview() {
 
 function FeatureBanner() {
   return (
-    <section className="py-12 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border-y border-primary/10">
-      <div className="container">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-          {[
-            {
-              icon: Zap,
-              title: "Live Updates",
-              desc: "Kostenlose Spiele und Angebote in Echtzeit",
-            },
-            {
-              icon: Newspaper,
-              title: "Gaming News",
-              desc: "PC, Konsolen, Steam/Valve – alles an einem Ort",
-            },
-            {
-              icon: Users,
-              title: "Community",
-              desc: "Tausche dich mit Gleichgesinnten aus",
-            },
-          ].map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="flex flex-col items-center gap-3">
-              <div className="p-3 rounded-full bg-primary/15 text-primary">
-                <Icon className="h-6 w-6" />
-              </div>
-              <h3
-                className="font-bold text-foreground"
-                style={{ fontFamily: "Orbitron, sans-serif" }}
-              >
-                {title}
-              </h3>
-              <p className="text-sm text-muted-foreground">{desc}</p>
+    <section className="border-y border-white/5 bg-white/[0.02]">
+      <div className="container grid grid-cols-1 gap-3 py-4 sm:grid-cols-3 sm:gap-6">
+        {[
+          {
+            icon: Zap,
+            title: "Live Updates",
+            desc: "Loot und Angebote, sobald sie fallen",
+          },
+          {
+            icon: Newspaper,
+            title: "Gilden-Intel",
+            desc: "PC, Konsole und Steam an einem Ort",
+          },
+          {
+            icon: Users,
+            title: "Crew",
+            desc: "Quests, Taktik und der gemeinsame Tisch",
+          },
+        ].map(({ icon: Icon, title, desc }) => (
+          <div key={title} className="flex items-center gap-3 sm:justify-center">
+            <div className="rounded-full bg-primary/15 p-2 text-primary">
+              <Icon className="h-4 w-4" />
             </div>
-          ))}
-        </div>
+            <div className="text-left">
+              <h3 className="text-sm font-bold text-foreground">{title}</h3>
+              <p className="text-xs text-muted-foreground">{desc}</p>
+            </div>
+          </div>
+        ))}
       </div>
     </section>
   );
