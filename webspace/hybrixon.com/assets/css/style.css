@@ -3378,7 +3378,7 @@ body[class*="theme-"] .hero,
 body[class*="theme-"] .age-gate,
 body[class*="theme-"] .feed-compose,
 body[class*="theme-"] .feed-scope-panel {
-  background: #ffffff;
+  background: var(--panel);
   border-color: var(--line);
   box-shadow: var(--shadow);
   color: var(--text);
