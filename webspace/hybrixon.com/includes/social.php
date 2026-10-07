@@ -223,7 +223,8 @@ function social_update_profile(array $user, array $input, ?array $avatarFile = n
     $privacyRelationship = (string)($input['privacy_relationship'] ?? 'friends');
     $privacySearch = (string)($input['privacy_search'] ?? 'public');
     $theme = (string)($input['theme'] ?? 'light');
-    $brandStyle = (string)($input['brand_style'] ?? 'logo_text');
+    // Settings UI no longer sends brand_style; keep last value or default logo_text.
+    $brandStyle = (string)($input['brand_style'] ?? ($user['brand_style'] ?? 'logo_text'));
     $relationshipStatus = (string)($input['relationship_status'] ?? ($user['relationship_status'] ?? 'unspecified'));
     require_once __DIR__ . '/i18n.php';
     $uiLang = (string)($input['ui_lang'] ?? ($user['ui_lang'] ?? 'de'));

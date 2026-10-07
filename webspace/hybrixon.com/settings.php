@@ -195,15 +195,6 @@ require __DIR__ . '/includes/header.php';
       <span>Videos automatisch abspielen (stumm)</span>
     </label>
     <p class="hint">Ausgeschaltet: Videos werden im Hintergrund vorgeladen, starten aber erst nach deinem Tippen.</p>
-    <label>Markenanzeige (obere Leiste)
-      <select name="brand_style">
-        <?php $bs = (string)($user['brand_style'] ?? 'logo_text'); ?>
-        <?php foreach (hybrixon_brand_styles() as $val => $label): ?>
-          <option value="<?= e($val) ?>" <?= $bs === $val ? 'selected' : '' ?>><?= e($label) ?></option>
-        <?php endforeach; ?>
-      </select>
-      <span class="hint">Nur Logo, Logo mit Text „Hybrixon“, oder nur Text.</span>
-    </label>
 
     <?php
       require_once __DIR__ . '/includes/sidebar-config.php';
