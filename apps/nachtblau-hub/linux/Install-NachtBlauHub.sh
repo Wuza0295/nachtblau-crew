@@ -130,6 +130,7 @@ EOF
   chmod +x "$target" \
     "$SCRIPT_DIR/Start-NachtBlauHub.sh" \
     "$SCRIPT_DIR/Start-NachtBlauHub-Steam.sh" \
+    "$SCRIPT_DIR/Install-Java21-Bazzite.sh" \
     2>/dev/null || true
   # Mark as trusted on some GNOME/KDE setups (best-effort, no fail)
   if have_cmd gio; then

@@ -53,7 +53,9 @@ DESKTOP_DST="$APPS_DIR/nachtblau-hub.desktop"
 
 chmod +x \
   "$SCRIPT_DIR/Install-NachtBlauHub.sh" \
+  "$SCRIPT_DIR/Install-Java21-Bazzite.sh" \
   "$SCRIPT_DIR/Start-NachtBlauHub.sh" \
+  "$SCRIPT_DIR/Start-Lumina-With-Java.sh" \
   "$STEAM_START" \
   "$SCRIPT_DIR/Install-SteamShortcut.sh" \
   2>/dev/null || true
@@ -146,6 +148,8 @@ App-Menü / „Add Non-Steam Game“ alternativ:
 Minecraft spielen:
   Hub öffnen → Lumina Launcher downloaden (Webspace), oder siehe README
   „Minecraft / Lumina“.
+  Java fehlt?  ./Install-Java21-Bazzite.sh  → Launcher neu starten
+  RAM im Launcher auf 6–8 GB (nicht 29 GB).
 
 Pi-Server-Upgrade ist getrennt (nur SSH auf den Pi):
   ssh administrator@192.168.178.33

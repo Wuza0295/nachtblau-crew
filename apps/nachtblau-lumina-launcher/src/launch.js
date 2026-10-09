@@ -38,9 +38,25 @@ function findJavaPath() {
   const envJava = process.env.JAVA_HOME
     ? path.join(process.env.JAVA_HOME, 'bin', javaName)
     : null;
+  const home = os.homedir();
+  // Bazzite / Fedora Atomic: User-Space Temurin via Install-Java21-Bazzite.sh
+  const nachtblauJdk = path.join(
+    home,
+    '.local',
+    'share',
+    'nachtblau',
+    'jdk-21',
+    'bin',
+    javaName
+  );
+  const homeJdk = path.join(home, 'jdk-21', 'bin', javaName);
+  const localBinJava = path.join(home, '.local', 'bin', javaName);
 
   const candidates = [
     envJava,
+    nachtblauJdk,
+    homeJdk,
+    localBinJava,
     javaName,
     '/usr/lib/jvm/java-21-openjdk/bin/java',
     '/usr/lib/jvm/java-21/bin/java',

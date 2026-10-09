@@ -44,4 +44,15 @@ Deploy-Schritte (AppImage, `latest-linux.yml`, Webspace): [DEPLOY.md](./DEPLOY.m
 
 Bis **1.0.11** auf dem Webspace live ist: Slider im laufenden 1.0.10 manuell auf **6–8 GB** stellen (siehe [LAPTOP-OPTIMIERUNG.md](./LAPTOP-OPTIMIERUNG.md)).
 
+### Java fehlt auf Bazzite
+
+```bash
+cd ~/nachtblau-crew/apps/nachtblau-hub/linux
+chmod +x Install-Java21-Bazzite.sh
+./Install-Java21-Bazzite.sh
+# Launcher komplett schließen und neu starten (auch über Steam)
+```
+
+Danach RAM-Slider auf **6–8 GB** (nicht 29 GB) → SPIELEN.
+
 Keine Secrets / Discord-Webhooks mit Inhalt committen (`config/server.json` → `discordWebhook` leer lassen).

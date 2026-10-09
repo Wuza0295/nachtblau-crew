@@ -12,6 +12,29 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
+# NachtBlau / Temurin Java 21 (User-Space auf Bazzite)
+# Install: ./Install-Java21-Bazzite.sh → ~/.config/nachtblau/java.env
+NB_JAVA_ENV="${XDG_CONFIG_HOME:-$HOME/.config}/nachtblau/java.env"
+if [[ -f "$NB_JAVA_ENV" ]]; then
+  # shellcheck disable=SC1090
+  source "$NB_JAVA_ENV"
+fi
+# Lumina sucht „java“ auf PATH — ~/.local/bin voranstellen
+export PATH="${HOME}/.local/bin:${JAVA_HOME:+$JAVA_HOME/bin:}${PATH}"
+# Fallback, falls Env-Datei fehlt, JDK aber schon liegt
+if [[ -z "${JAVA_HOME:-}" ]]; then
+  for _nb_jdk in \
+    "${XDG_DATA_HOME:-$HOME/.local/share}/nachtblau/jdk-21" \
+    "$HOME/jdk-21"; do
+    if [[ -x "$_nb_jdk/bin/java" ]]; then
+      export JAVA_HOME="$_nb_jdk"
+      export PATH="$JAVA_HOME/bin:$PATH"
+      break
+    fi
+  done
+  unset _nb_jdk
+fi
+
 # Steam Overlay / Runtime — nicht für Electron
 unset LD_PRELOAD
 unset STEAM_RUNTIME

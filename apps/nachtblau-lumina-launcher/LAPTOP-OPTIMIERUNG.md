@@ -13,6 +13,7 @@ Bei ~32 GB Laptop → Slider stoppt bei **~29–30 GB**. Vanilla/Java-Client bra
 1. **Lumina Launcher** öffnen → RAM-Slider auf **6–8 GB** (bei 16-GB-Gerät eher 4–6).
 2. Nicht auf Maximum schieben — Windows, Browser, Discord brauchen Reserve.
 3. **Java 21+** (Temurin) installiert lassen; im Launcher steht die Server-Version (z. B. 1.21.11).
+   Auf **Bazzite**: `apps/nachtblau-hub/linux/Install-Java21-Bazzite.sh` (User-Space, ohne rpm-ostree).
 4. In Minecraft (Video):
    - Renderdistanz **8–12** Chunks (Laptop)
    - VSync **an** oder FPS-Limit ~120

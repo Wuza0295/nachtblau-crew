@@ -23,8 +23,10 @@ git clone -b cursor/pi-lightweight-desktop-3ddb https://github.com/Wuza0295/nach
 
 cd ~/nachtblau-crew/apps/nachtblau-hub/linux
 chmod +x Install-NachtBlauHub.sh Install-SteamShortcut.sh \
-  Start-NachtBlauHub.sh Start-NachtBlauHub-Steam.sh
+  Install-Java21-Bazzite.sh Start-NachtBlauHub.sh \
+  Start-NachtBlauHub-Steam.sh Start-Lumina-With-Java.sh
 ./Install-SteamShortcut.sh
+# Minecraft: falls Lumina „Kein Java“ zeigt → ./Install-Java21-Bazzite.sh
 ```
 
 Voraussetzung: **Node.js LTS** + **pnpm** (Bazzite oft: `brew install node`, dann `npm install -g pnpm`).
@@ -62,6 +64,27 @@ Der Hub öffnet den Webspace. Zum **Minecraft Java** auf dem NachtBlau-Server:
 3. In Lumina zum Server verbinden (Direktconnect / Serverliste im Launcher)
 
 Alternativen (wenn du schon einen Client hast): Prism Launcher / offizieller Minecraft-Launcher / Flatpak — Serveradresse laut Hub-Status (Heimnetz Pi oder WAN). Projekt-Launcher: `apps/nachtblau-lumina-launcher/`.
+
+### Java fehlt auf Bazzite
+
+Lumina zeigt rot: *„Kein Java gefunden… Temurin 21“*. Auf Atomic/Bazzite oft kein System-JDK — User-Space reicht:
+
+```bash
+cd ~/nachtblau-crew/apps/nachtblau-hub/linux
+chmod +x Install-Java21-Bazzite.sh
+./Install-Java21-Bazzite.sh
+# Launcher komplett schließen und neu starten (auch über Steam)
+```
+
+Das Skript legt Temurin 21 unter `~/.local/share/nachtblau/jdk-21` ab, schreibt
+`~/.config/nachtblau/java.env` und verlinkt `~/.local/bin/java`.
+`Start-NachtBlauHub-Steam.sh` / `Start-NachtBlauHub.sh` laden diese Env automatisch.
+
+**RAM:** Live-Launcher ist oft noch **1.0.10** — Slider kann bei ~29 GB stehen.
+Vor **SPIELEN** auf **6–8 GB** ziehen (Client braucht kein 29 GB). Ab Repo **1.0.11**
+sind Defaults enger; bis das AppImage live ist, manuell stellen.
+
+Optional (System-Layer, Reboot): `rpm-ostree install java-21-openjdk`
 
 ---
 
