@@ -1,0 +1,323 @@
+#!/usr/bin/env bash
+# NachtBlau — Java 21 (Temurin) für Bazzite / Fedora Atomic / Aurora
+#
+# Vollständig standalone: kein Repo-Checkout nötig. Temurin kommt von der
+# Adoptium-API; schreibt nur unter $HOME (kein sudo / kein rpm-ostree).
+#
+# Einzeiler (Terminal auf Bazzite als User wuza):
+#   curl -fsSL https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/pi-lightweight-desktop-3ddb/apps/nachtblau-hub/linux/Install-Java21-Bazzite.sh | bash
+#
+# Lokal aus dem Clone:
+#   chmod +x Install-Java21-Bazzite.sh
+#   ./Install-Java21-Bazzite.sh
+#
+# Danach Lumina / Hub komplett schließen und neu starten (auch über Steam).
+# RAM im Lumina-Launcher auf 6–8 GB stellen.
+
+set -euo pipefail
+
+NB_DATA="${XDG_DATA_HOME:-$HOME/.local/share}/nachtblau"
+NB_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/nachtblau"
+JDK_HOME="$NB_DATA/jdk-21"
+JDK_ALT="$HOME/jdk-21"
+ENV_FILE="$NB_CONFIG/java.env"
+LOCAL_BIN="$HOME/.local/bin"
+
+# Arch für Adoptium API (Gaming-Bazzite = x64; aarch64 falls Notebook/ARM)
+_nb_arch="$(uname -m 2>/dev/null || echo x86_64)"
+case "$_nb_arch" in
+  x86_64|amd64) ADOPTIUM_OS_ARCH="x64" ;;
+  aarch64|arm64) ADOPTIUM_OS_ARCH="aarch64" ;;
+  *)
+    echo "[nachtblau-java] FEHLER: Nicht unterstützte CPU-Architektur: $_nb_arch (nur x64/aarch64)." >&2
+    exit 1
+    ;;
+esac
+ADOPTIUM_API="https://api.adoptium.net/v3/binary/latest/21/ga/linux/${ADOPTIUM_OS_ARCH}/jdk/hotspot/normal/eclipse?project=jdk"
+
+log()  { echo "[nachtblau-java] $*"; }
+warn() { echo "[nachtblau-java] WARN: $*" >&2; }
+die()  { echo "[nachtblau-java] FEHLER: $*" >&2; exit 1; }
+
+usage() {
+  cat <<EOF
+NachtBlau — Java 21 auf Bazzite (User-Space, ohne sudo)
+
+  curl -fsSL https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/pi-lightweight-desktop-3ddb/apps/nachtblau-hub/linux/Install-Java21-Bazzite.sh | bash
+
+  ./Install-Java21-Bazzite.sh                 Temurin 21 installieren / aktualisieren
+  ./Install-Java21-Bazzite.sh --check         Nur prüfen, nichts schreiben
+  ./Install-Java21-Bazzite.sh --force-userspace
+      Immer Adoptium nach $JDK_HOME (auch wenn System-Java schon da ist)
+  ./Install-Java21-Bazzite.sh -h              Hilfe
+
+Ziele:
+  JDK:      $JDK_HOME
+  Env-Datei: $ENV_FILE
+  Symlink:  $LOCAL_BIN/java
+
+Optional (manuell, braucht Admin / rpm-ostree):
+  rpm-ostree install java-21-openjdk
+  # oder: brew install --cask temurin@21   (wenn Homebrew da ist)
+
+Nach dem Install: Launcher komplett beenden und neu starten.
+RAM im Lumina-Launcher auf 6–8 GB stellen (Live 1.0.10: Slider manuell).
+EOF
+}
+
+CHECK_ONLY=0
+FORCE_USERSPACE=0
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --check) CHECK_ONLY=1 ;;
+    --force-userspace|--force) FORCE_USERSPACE=1 ;;
+    -h|--help) usage; exit 0 ;;
+    *) die "Unbekanntes Argument: $1 (siehe --help)" ;;
+  esac
+  shift
+done
+
+java_version_ok() {
+  local bin="${1:-}"
+  [[ -n "$bin" ]] || return 1
+  if [[ "$bin" == */* ]] && [[ ! -x "$bin" ]]; then
+    return 1
+  fi
+  local out
+  out="$("$bin" -version 2>&1 || true)"
+  # Major ≥ 21
+  if echo "$out" | grep -Eq 'version "2[1-9]|version "[3-9][0-9]'; then
+    return 0
+  fi
+  return 1
+}
+
+# JAVA_HOME aus einem java-Binary ableiten (nicht dirname/../ bei /usr/bin/java → /usr)
+java_home_of() {
+  local bin="$1"
+  local resolved home_prop
+  resolved="$(readlink -f "$bin" 2>/dev/null || realpath "$bin" 2>/dev/null || echo "$bin")"
+  # Debian/Ubuntu/Fedora: /usr/lib/jvm/.../bin/java
+  if [[ "$resolved" == */bin/java ]] || [[ "$resolved" == */bin/java.exe ]]; then
+    echo "$(cd "$(dirname "$resolved")/.." && pwd)"
+    return 0
+  fi
+  home_prop="$("$bin" -XshowSettings:properties -version 2>&1 | sed -n 's/.*java.home = //p' | head -1 | tr -d '\r')"
+  if [[ -n "$home_prop" && -x "$home_prop/bin/java" ]]; then
+    echo "$home_prop"
+    return 0
+  fi
+  # Fallback: Parent von bin/
+  if [[ "$bin" == */bin/java ]]; then
+    echo "$(cd "$(dirname "$bin")/.." && pwd)"
+    return 0
+  fi
+  return 1
+}
+
+resolve_existing_java() {
+  local candidates=(
+    "${JAVA_HOME:+$JAVA_HOME/bin/java}"
+    "$JDK_HOME/bin/java"
+    "$JDK_ALT/bin/java"
+    "$LOCAL_BIN/java"
+    "/usr/lib/jvm/java-21-openjdk/bin/java"
+    "/usr/lib/jvm/java-21/bin/java"
+    "/usr/lib/jvm/temurin-21/bin/java"
+    "/usr/bin/java"
+  )
+  # Homebrew Temurin (falls vorhanden)
+  if command -v brew >/dev/null 2>&1; then
+    local brew_prefix
+    brew_prefix="$(brew --prefix 2>/dev/null || true)"
+    if [[ -n "$brew_prefix" ]]; then
+      candidates+=(
+        "$brew_prefix/opt/temurin@21/libexec/openjdk.jdk/Contents/Home/bin/java"
+        "$brew_prefix/opt/temurin/libexec/openjdk.jdk/Contents/Home/bin/java"
+      )
+      # Linux brew oft ohne .jdk bundle:
+      candidates+=(
+        "$brew_prefix/opt/temurin@21/bin/java"
+        "$brew_prefix/opt/temurin/bin/java"
+      )
+    fi
+  fi
+  local c
+  for c in "${candidates[@]}"; do
+    [[ -z "$c" ]] && continue
+    if java_version_ok "$c"; then
+      echo "$c"
+      return 0
+    fi
+  done
+  if command -v java >/dev/null 2>&1 && java_version_ok "$(command -v java)"; then
+    command -v java
+    return 0
+  fi
+  return 1
+}
+
+write_env_and_path() {
+  local home_dir="$1"
+  local java_bin="$home_dir/bin/java"
+  [[ -x "$java_bin" ]] || die "Kein java unter $java_bin"
+
+  mkdir -p "$NB_CONFIG" "$LOCAL_BIN"
+
+  cat >"$ENV_FILE" <<EOF
+# Generated by Install-Java21-Bazzite.sh — NachtBlau Lumina / Hub
+# source this file or let Start-NachtBlauHub-*.sh load it.
+export JAVA_HOME="$home_dir"
+export PATH="\$JAVA_HOME/bin:\$HOME/.local/bin:\$PATH"
+EOF
+
+  ln -sfn "$java_bin" "$LOCAL_BIN/java"
+  # Optionaler Kurzpfad laut Aufgabe
+  if [[ ! -e "$JDK_ALT" ]] || [[ -L "$JDK_ALT" ]]; then
+    ln -sfn "$home_dir" "$JDK_ALT"
+  fi
+
+  log "JAVA_HOME=$home_dir"
+  log "Env-Datei: $ENV_FILE"
+  log "Symlink:   $LOCAL_BIN/java -> $java_bin"
+}
+
+install_via_adoptium() {
+  local archive top
+  # tmp bewusst global für RETURN-Trap unter set -u
+  _nb_jdk_tmp="$(mktemp -d "${TMPDIR:-/tmp}/nachtblau-jdk21.XXXXXX")"
+  trap 'rm -rf "${_nb_jdk_tmp:-}"; unset _nb_jdk_tmp; trap - RETURN' RETURN
+
+  log "Lade Eclipse Temurin 21 (Adoptium API, linux/${ADOPTIUM_OS_ARCH})…"
+  archive="$_nb_jdk_tmp/OpenJDK21.tar.gz"
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL -o "$archive" -L "$ADOPTIUM_API" \
+      || die "Download fehlgeschlagen (curl). Netz / Firewall prüfen."
+  elif command -v wget >/dev/null 2>&1; then
+    wget -q -O "$archive" "$ADOPTIUM_API" \
+      || die "Download fehlgeschlagen (wget)."
+  else
+    die "Weder curl noch wget gefunden."
+  fi
+
+  tar -tzf "$archive" >/dev/null 2>&1 || die "Archiv ungültig (kein tar.gz)."
+  # pipefail + head würde tar mit SIGPIPE abbrechen — daher awk/exit
+  top="$(tar -tzf "$archive" | awk -F/ 'NF{print $1; exit}')"
+  [[ -n "$top" ]] || die "Konnte JDK-Ordner im Archiv nicht lesen."
+
+  mkdir -p "$NB_DATA"
+  rm -rf "$JDK_HOME"
+  tar -xzf "$archive" -C "$_nb_jdk_tmp"
+  mv "$_nb_jdk_tmp/$top" "$JDK_HOME"
+
+  [[ -x "$JDK_HOME/bin/java" ]] || die "Nach Entpacken fehlt $JDK_HOME/bin/java"
+  log "Installiert nach $JDK_HOME"
+}
+
+try_brew() {
+  command -v brew >/dev/null 2>&1 || return 1
+  log "Homebrew gefunden — versuche temurin@21…"
+  if brew install --cask temurin@21 2>/dev/null \
+    || brew install temurin@21 2>/dev/null \
+    || brew install --cask temurin 2>/dev/null \
+    || brew install temurin 2>/dev/null; then
+    return 0
+  fi
+  warn "brew install temurin@21 fehlgeschlagen — falle auf User-Space-Download zurück."
+  return 1
+}
+
+try_flatpak_hint() {
+  if command -v flatpak >/dev/null 2>&1; then
+    log "Hinweis Flatpak: für CLI-Minecraft besser User-Space-JDK (dieses Skript)."
+    log "  Optional SDK-Extension: flatpak install flathub org.freedesktop.Sdk.Extension.openjdk21"
+    log "  (nur in Flatpak-Sandbox nützlich — Lumina AppImage braucht Host-Java.)"
+  fi
+}
+
+print_rpm_ostree_hint() {
+  cat <<EOF
+
+Optional (System-Layer, braucht Reboot / Admin):
+  rpm-ostree install java-21-openjdk
+  # danach neu booten; JAVA_HOME oft /usr/lib/jvm/java-21-openjdk
+
+EOF
+}
+
+print_done_banner() {
+  cat <<EOF
+
+=== Fertig ===
+JAVA_HOME=${JAVA_HOME:-}
+java -version:
+$("$JAVA_HOME/bin/java" -version 2>&1 || true)
+
+Lumina neu starten, RAM 6-8 GB
+
+Nächste Schritte:
+  1) Lumina Launcher komplett schließen (auch über Steam / Hub).
+  2) Neu starten — Fehler „Kein Java gefunden“ sollte weg sein.
+  3) RAM-Slider auf 6–8 GB stellen (Live ist noch 1.0.10; 29 GB ist zu viel).
+  4) SPIELEN & VERBINDEN.
+
+Env laden (falls nötig):
+  source $ENV_FILE
+
+EOF
+}
+
+# --- main ---
+
+log "Bazzite/Fedora Atomic — Java 21 für NachtBlau Lumina (arch=${ADOPTIUM_OS_ARCH})"
+
+if [[ "$FORCE_USERSPACE" -eq 0 ]] && existing="$(resolve_existing_java 2>/dev/null)"; then
+  home_guess="$(java_home_of "$existing")" || home_guess="$(cd "$(dirname "$existing")/.." && pwd)"
+  log "Bereits nutzbar: $existing"
+  if [[ "$CHECK_ONLY" -eq 1 ]]; then
+    export JAVA_HOME="$home_guess"
+    "$existing" -version
+    echo "JAVA_HOME=$JAVA_HOME"
+    exit 0
+  fi
+  # Env/Symlinks nachziehen, auch wenn Java schon da
+  write_env_and_path "$home_guess"
+  # shellcheck disable=SC1090
+  source "$ENV_FILE"
+  export PATH="$LOCAL_BIN:$PATH"
+  print_done_banner
+  exit 0
+fi
+
+if [[ "$CHECK_ONLY" -eq 1 ]]; then
+  warn "Kein Java 21+ gefunden."
+  print_rpm_ostree_hint
+  exit 1
+fi
+
+try_flatpak_hint
+
+installed=0
+if [[ "$FORCE_USERSPACE" -eq 0 ]] && try_brew; then
+  if existing="$(resolve_existing_java 2>/dev/null)"; then
+    home_guess="$(java_home_of "$existing")" || home_guess="$(cd "$(dirname "$existing")/.." && pwd)"
+    write_env_and_path "$home_guess"
+    installed=1
+  fi
+fi
+
+if [[ "$installed" -eq 0 ]]; then
+  install_via_adoptium
+  write_env_and_path "$JDK_HOME"
+fi
+
+# shellcheck disable=SC1090
+source "$ENV_FILE"
+export PATH="$LOCAL_BIN:$PATH"
+
+if ! java_version_ok "$JAVA_HOME/bin/java"; then
+  die "Installation scheint kaputt — $JAVA_HOME/bin/java -version fehlgeschlagen."
+fi
+
+print_done_banner
+print_rpm_ostree_hint

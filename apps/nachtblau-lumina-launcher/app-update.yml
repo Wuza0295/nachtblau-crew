@@ -1,0 +1,4 @@
+provider: generic
+url: https://launcher.nachtblau-interactive.com/downloads
+useMultipleRangeRequest: false
+updaterCacheDirName: nachtblau-lumina-launcher-updater
