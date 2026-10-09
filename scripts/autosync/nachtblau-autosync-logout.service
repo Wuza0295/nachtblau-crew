@@ -1,0 +1,15 @@
+[Unit]
+Description=NachtBlau Auto-Sync Saves vor Logout/Shutdown (Dual-Boot)
+DefaultDependencies=no
+Before=shutdown.target reboot.target halt.target sleep.target
+Conflicts=shutdown.target reboot.target halt.target
+
+[Service]
+Type=oneshot
+Environment=NACHTBLAU_AUTOSYNC_ENV=%h/.config/nachtblau/autosync.env
+# Nur Saves — schnell, damit Shutdown nicht hängt
+ExecStart=/bin/bash -c 'set -a; [ -f "$NACHTBLAU_AUTOSYNC_ENV" ] && . "$NACHTBLAU_AUTOSYNC_ENV"; set +a; ROOT="${NACHTBLAU_REPO:-$HOME/nachtblau-crew}"; if [ "${AUTO_SYNC_SAVES:-1}" = 1 ] && [ -n "${NACHTBLAU_SYNC_ROOT:-}" ] && [ -d "${NACHTBLAU_SYNC_ROOT}" ]; then python3 "$ROOT/scripts/dualboot/sync_saves.py" sync; fi'
+TimeoutStartSec=120
+
+[Install]
+WantedBy=shutdown.target reboot.target halt.target sleep.target

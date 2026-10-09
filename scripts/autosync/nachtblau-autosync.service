@@ -1,0 +1,16 @@
+[Unit]
+Description=NachtBlau Auto-Sync (Git, Silk, Dual-Boot-Saves, Hub-Check)
+Documentation=file:docs/SYNC-BAZZITE-WINDOWS.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# %h = Home; Repo-Pfad kommt aus autosync.env oder Default-Clone
+Environment=NACHTBLAU_AUTOSYNC_ENV=%h/.config/nachtblau/autosync.env
+ExecStart=%h/nachtblau-crew/scripts/autosync/run-autosync.sh
+# Falls Repo woanders liegt: in autosync.env NACHTBLAU_REPO setzen und
+# ExecStart per drop-in überschreiben (install-Skript erledigt das).
+
+[Install]
+WantedBy=default.target

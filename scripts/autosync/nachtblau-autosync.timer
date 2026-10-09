@@ -1,0 +1,15 @@
+[Unit]
+Description=NachtBlau Auto-Sync Timer (Login + periodisch)
+Documentation=file:docs/SYNC-BAZZITE-WINDOWS.md
+
+[Timer]
+# Kurz nach Login / User-Session
+OnStartupSec=2min
+# Danach regelmäßig (Dual-Boot: Saves bleiben frisch)
+OnUnitActiveSec=30min
+AccuracySec=1min
+Persistent=true
+Unit=nachtblau-autosync.service
+
+[Install]
+WantedBy=timers.target

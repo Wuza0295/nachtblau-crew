@@ -6,12 +6,58 @@ Alles, was beim Wechsel **Bazzite → Windows** und zurück denselben Stand habe
 
 | Bereich | Bazzite / Linux | Windows |
 |---------|-----------------|---------|
+| **Auto-Sync aktivieren** | `pnpm autosync:install` bzw. `./scripts/autosync/install-autosync-linux.sh` | `.\scripts\autosync\Install-AutoSync.ps1` |
+| **Auto-Sync Status** | `pnpm autosync:status` | `.\scripts\autosync\Install-AutoSync.ps1 -Action Status` |
 | **Git + Silk-Config** | `./scripts/sync-bazzite-windows.sh` bzw. `pnpm sync:machines` | `.\scripts\windows\Sync-NachtBlauRepo.ps1` |
 | **+ Spielstände** | `./scripts/sync-bazzite-windows.sh --saves` | `.\scripts\windows\Sync-NachtBlauRepo.ps1 -SyncSaves` |
 | **Minecraft-Server (Desktop)** | `pnpm sync:bazzite` / `sudo ./scripts/desktop/nacht-install-bazzite.sh --yes` | `.\scripts\desktop\run-nachtblau-from-windows.ps1 -Yes` |
 | **Hub live (Webspace)** | `pnpm hub:check` · Deploy: `pnpm deploy:windows-hub` (braucht FTP) | Electron: `apps/nachtblau-hub/windows` |
 | **Silk-Website** | `cd Silk-Website && ./start.sh` | wie links oder `-StartSilkWebsite` |
 | **Silk-VM** | — | `.\silk\windows\Install-SilkVM.ps1` |
+
+## Auto-Sync (ohne manuellen pnpm-Aufruf)
+
+Einmalig auf **jeder** Maschine einschalten. Danach: Login + alle ~30 Min Git/Silk/Saves/Hub-Check; vor Logout/Sleep auf Linux zusätzlich Saves.
+
+### Bazzite / Linux
+
+```bash
+cd ~/nachtblau-crew   # oder dein Clone
+./scripts/autosync/install-autosync-linux.sh
+# Env editieren:
+nano ~/.config/nachtblau/autosync.env
+# Pflicht für Spielstände:
+#   NACHTBLAU_SYNC_ROOT=/mnt/nachtblau-sync
+```
+
+- systemd user timer: `nachtblau-autosync.timer`
+- Logout/Shutdown/Sleep: `nachtblau-autosync-logout.service` (nur Saves)
+- Log: `~/.local/state/nachtblau/autosync.log`
+- Ohne systemd: Fallback auf crontab
+
+### Windows
+
+```powershell
+cd $env:USERPROFILE\nachtblau-crew
+.\scripts\autosync\Install-AutoSync.ps1
+# Env:
+notepad $env:APPDATA\nachtblau\autosync.env
+#   NACHTBLAU_SYNC_ROOT=D:\NachtBlauSync
+```
+
+- Task Scheduler: `NachtBlau-AutoSync` (AtLogOn + Intervall)
+- Log: `%LOCALAPPDATA%\nachtblau\autosync.log`
+
+### Was Auto-Sync macht / nicht macht
+
+| Baustein | Default | Hinweis |
+|----------|---------|---------|
+| Git pull (ff-only) | an | nur wenn Working Tree clean |
+| Silk-Config (Linux) | an | |
+| Dual-Boot-Saves | an | nur wenn `NACHTBLAU_SYNC_ROOT` gemountet |
+| Hub Live-Check | an | |
+| Hub FTP-Deploy | **aus** | nur mit `AUTO_SYNC_HUB_DEPLOY=1` **und** FTP_USER/FTP_PASS |
+| Minecraft-Desktop-Neuinstall | **aus** | zu schwer; manuell `pnpm sync:bazzite` |
 
 ## 1. Git / Silk (Repo-Stand)
 
