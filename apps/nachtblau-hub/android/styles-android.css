@@ -1,0 +1,11 @@
+/* Android shell tweaks — safe-area + touch denser chrome */
+.platform-android .app {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.platform-android #platform-label {
+  color: #a8e6ff;
+  font-weight: 600;
+}
+.platform-android .btn {
+  min-height: 44px;
+}

@@ -1,0 +1,16 @@
+{
+  "name": "NachtBlau Lumina",
+  "host": "192.168.178.33",
+  "publicHost": "drake-intra.tun.ply.gg",
+  "port": 58820,
+  "lanPort": 25565,
+  "bedrockPort": 63573,
+  "bedrockDedicatedPort": 19132,
+  "version": "1.21.11",
+  "discord": "https://discord.gg/uJ25M5xf",
+  "discordWebhook": "",
+  "newsUrl": "https://launcher.nachtblau-interactive.com/nachtblau-lumina/news.json",
+  "updateFeed": "https://launcher.nachtblau-interactive.com/downloads",
+  "bedrockNote": "LAN Java 192.168.178.33:25565 / Geyser :19134 \u00b7 Dedicated :19132 \u00b7 playit UNCLAIMED \u2014 Claim: https://playit.gg/claim/eeff6a8f30 (danach Java-Tunnel 127.0.0.1:25565 + Geyser UDP 127.0.0.1:19134; Sync server.json)",
+  "bedrockHost": "drake-shrank.tun.ply.gg"
+}

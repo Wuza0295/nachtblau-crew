@@ -9,6 +9,7 @@ build/
 
 # Environment variables
 .env
+.env.webspace
 .env.local
 .env.development.local
 .env.test.local
@@ -38,6 +39,10 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+
+# Python
+**/__pycache__/
+*.py[cod]
 
 # Runtime data
 pids
@@ -103,6 +108,12 @@ temp/
 
 # Pi night-install download cache
 scripts/pi-nacht-install/.cache/
+
+# Hub generated platform copies (source of truth = Webspace + bridges)
+apps/nachtblau-hub/shared/
+apps/nachtblau-hub/linux/www/
+apps/nachtblau-hub/windows/www/
+apps/nachtblau-hub/android/www/
 
 # Database
 *.db

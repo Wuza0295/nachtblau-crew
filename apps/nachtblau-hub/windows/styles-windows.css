@@ -1,0 +1,8 @@
+/* Windows desktop shell tweaks — loaded optionally; shared styles remain canonical */
+.platform-windows .footer {
+  opacity: 0.95;
+}
+.platform-windows #platform-label {
+  color: #7ec8ff;
+  font-weight: 600;
+}

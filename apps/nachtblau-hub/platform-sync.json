@@ -1,0 +1,22 @@
+{
+  "updatedAt": "2026-10-09T19:56:04.555065+00:00",
+  "source": {
+    "page": "https://launcher.nachtblau-interactive.com/linux.html",
+    "bridge": "https://launcher.nachtblau-interactive.com/linux-bridge.js"
+  },
+  "bidirectional": true,
+  "bazzite": {
+    "url": "https://launcher.nachtblau-interactive.com/linux.html",
+    "htmlSha256": "bd13bc8229c7bb767e8600770b241d943921d482623d211201e5b88cccf5840b",
+    "bridgeSha256": "294f5ee6ce49c175a93e94b44ba2fe43c2a64a01abec0a597a37fbc4fab4b44d"
+  },
+  "windows": {
+    "url": "https://launcher.nachtblau-interactive.com/windows.html",
+    "htmlSha256": "40ae9fe371d2059fa9ad99da08dbc2f6d4e41f81c0d5ad69e803b277bc167a62",
+    "bridgeSha256": "a0d821eced203284ab06dfb8613410bdb1a79127da13ec8d9f0bb2990e7ccd42"
+  },
+  "parity": {
+    "htmlNormalizedEqual": true,
+    "roundTripOk": true
+  }
+}

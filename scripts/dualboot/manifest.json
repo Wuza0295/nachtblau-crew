@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "description": "Was zwischen Bazzite und Windows über einen gemeinsamen Sync-Root geteilt wird (Dual-Boot).",
+  "syncRootEnv": "NACHTBLAU_SYNC_ROOT",
+  "defaults": {
+    "linux": "/mnt/nachtblau-sync",
+    "windows": "D:/NachtBlauSync"
+  },
+  "categories": [
+    {
+      "id": "minecraft-java-saves",
+      "label": "Minecraft Java – Welten (Client)",
+      "bidirectional": true,
+      "linux": ["$HOME/.minecraft/saves"],
+      "windows": ["$APPDATA/.minecraft/saves"],
+      "shared": "minecraft-java/saves"
+    },
+    {
+      "id": "minecraft-java-servers",
+      "label": "Minecraft Java – Serverliste",
+      "bidirectional": true,
+      "linux": ["$HOME/.minecraft/servers.dat"],
+      "windows": ["$APPDATA/.minecraft/servers.dat"],
+      "shared": "minecraft-java/servers.dat",
+      "type": "file"
+    },
+    {
+      "id": "minecraft-java-options",
+      "label": "Minecraft Java – options.txt",
+      "bidirectional": true,
+      "linux": ["$HOME/.minecraft/options.txt"],
+      "windows": ["$APPDATA/.minecraft/options.txt"],
+      "shared": "minecraft-java/options.txt",
+      "type": "file",
+      "optional": true
+    },
+    {
+      "id": "desktop-server-java-world",
+      "label": "Desktop Java-Server Welt (NachtBlau)",
+      "bidirectional": true,
+      "linux": ["/opt/minecraft-java/world"],
+      "windows": ["C:/NachtBlau/java/world"],
+      "shared": "desktop-server/java-world",
+      "optional": true
+    },
+    {
+      "id": "desktop-server-java-ops",
+      "label": "Desktop Java-Server Ops/Allowlist",
+      "bidirectional": true,
+      "type": "file",
+      "linux": [
+        "/opt/minecraft-java/ops.json",
+        "/opt/minecraft-java/whitelist.json",
+        "/opt/minecraft-java/banned-players.json"
+      ],
+      "windows": [
+        "C:/NachtBlau/java/ops.json",
+        "C:/NachtBlau/java/whitelist.json",
+        "C:/NachtBlau/java/banned-players.json"
+      ],
+      "shared": "desktop-server/java-config",
+      "optional": true
+    },
+    {
+      "id": "desktop-server-bedrock-worlds",
+      "label": "Desktop Bedrock-Server Welten",
+      "bidirectional": true,
+      "linux": ["/opt/minecraft-bedrock/worlds"],
+      "windows": ["C:/NachtBlau/bedrock/worlds"],
+      "shared": "desktop-server/bedrock-worlds",
+      "optional": true
+    },
+    {
+      "id": "lumina-launcher",
+      "label": "Lumina Launcher Einstellungen",
+      "bidirectional": true,
+      "linux": ["$HOME/.config/nachtblau-lumina-launcher"],
+      "windows": ["$APPDATA/nachtblau-lumina-launcher"],
+      "shared": "lumina-launcher",
+      "optional": true
+    }
+  ],
+  "outOfScope": [
+    "Steam/Proton-Prefixes und Steam-Cloud (eigener Mechanismus)",
+    "Bedrock-Windows-Store-Saves (%LOCALAPPDATA%\\Packages\\Microsoft.MinecraftUWP_*) — Pfade stark versionsabhängig",
+    "Browser localStorage (Hub-Unlocks) — folgt dem Webspace, nicht der Partition",
+    "Gleichzeitiger Schreibzugriff beider OS (Dual-Boot: immer nur ein System aktiv)"
+  ]
+}

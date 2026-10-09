@@ -62,3 +62,36 @@ Ops/Allowlist später in:
 - `/opt/minecraft-bedrock/permissions.json`, `allowlist.json`
 
 Java-Heap und Flags: `/etc/nachtblau/minecraft.env`
+
+## Leichtgewichtiger Desktop (XFCE)
+
+Auf **Raspberry Pi OS Lite** ohne Oberfläche: Updates prüfen und optional XFCE nachinstallieren.
+
+```bash
+cd nachtblau-crew
+sudo chmod +x scripts/pi/install-lightweight-desktop.sh
+
+# Nur prüfen, ob Upgrades anstehen (Exit 2 = es gibt Upgrades)
+sudo ./scripts/pi/install-lightweight-desktop.sh --check-only
+
+# Updates + Desktop in einem Schritt (empfohlen)
+sudo ./scripts/pi/install-lightweight-desktop.sh --yes --upgrade
+```
+
+| Schalter | Bedeutung |
+|----------|-----------|
+| `--check-only` | Nur `apt update` und Liste upgradbarer Pakete |
+| `--upgrade` | `apt upgrade` (optional `--dist-upgrade` für full-upgrade) |
+| `--skip-desktop` | Nur Paket-Updates, kein XFCE |
+| `--yes` | Nicht interaktiv nachfragen |
+
+Der Cloud-Agent hat **keinen SSH-Zugang** zu deinem Pi – dieses Skript musst du **auf dem Pi** (oder per `ssh pi@…`) ausführen.
+
+### Vom Windows-PC (Heimnetz)
+
+```powershell
+cd nachtblau-crew\scripts\pi
+.\run-lightweight-desktop-from-windows.ps1
+```
+
+Oder lokalen Cursor-Agent: Prompt in `LOCAL-AGENT-PROMPT.md` kopieren (**Run on: This Computer**).
