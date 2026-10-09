@@ -12,7 +12,7 @@ echo  Download ca. 6 GB nach %%USERPROFILE%%\Silk-VMs
 echo.
 echo  1^) VirtualBox (kein Admin noetig, empfohlen fuer Home)
 echo  2^) Hyper-V    (Admin, Windows Pro)
-echo  3^) Auto       (Hyper-V wenn Admin+Feature, sonst VirtualBox)
+echo  3^) Auto       (VirtualBox wenn vorhanden, sonst Hyper-V)
 echo.
 set /p BACKEND=Wahl [1/2/3, Enter=1]: 
 if "%BACKEND%"=="2" (

@@ -13,7 +13,7 @@
 #
 param(
   [ValidateSet('Auto', 'HyperV', 'VirtualBox')]
-  [string]$Backend = 'VirtualBox',
+  [string]$Backend = 'Auto',
 
   [ValidateSet('Installer', 'Ready')]
   [string]$Mode = 'Installer',

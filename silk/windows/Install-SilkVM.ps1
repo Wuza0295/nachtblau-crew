@@ -44,6 +44,26 @@ function Test-IsAdmin {
   return $p.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
+function Get-NoHypervisorHelp {
+  return @'
+Kein Hypervisor gefunden.
+
+Option A - VirtualBox (einfach, kein Admin):
+  1. Installieren: https://www.virtualbox.org/
+  2. Danach erneut (Auto waehlt VirtualBox):
+     powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-connect-multiplatform-fef1/silk/windows/Get-SilkVM.ps1 | iex"
+
+Option B - Hyper-V (Windows Pro, Admin-PowerShell):
+  1. Feature aktivieren:
+     Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All
+  2. Neustart, dann als Administrator:
+     powershell -ExecutionPolicy Bypass -Command "& ([scriptblock]::Create((irm https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-connect-multiplatform-fef1/silk/windows/Get-SilkVM.ps1))) -Backend HyperV -Mode Installer"
+
+Oder Skript speichern und:
+  powershell -ExecutionPolicy Bypass -File .\Get-SilkVM.ps1 -Backend HyperV -Mode Installer
+'@
+}
+
 function Resolve-Backend {
   param([string]$Wanted)
   $hasVBox = [bool](Get-Command VBoxManage -ErrorAction SilentlyContinue)
@@ -62,27 +82,52 @@ function Resolve-Backend {
   }
 
   if ($Wanted -eq 'VirtualBox') {
-    if (-not $hasVBox) { throw 'VirtualBox / VBoxManage nicht gefunden. Bitte VirtualBox installieren.' }
+    if (-not $hasVBox) {
+      throw @'
+VirtualBox / VBoxManage nicht gefunden.
+
+Installieren: https://www.virtualbox.org/
+Danach denselben Befehl erneut ausfuehren.
+
+Oder Hyper-V (Win Pro, Admin):
+  Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All
+  (Neustart, dann:)
+  powershell -ExecutionPolicy Bypass -File .\Get-SilkVM.ps1 -Backend HyperV -Mode Installer
+'@
+    }
     return 'VirtualBox'
   }
   if ($Wanted -eq 'HyperV') {
-    if (-not $hasHyperV) { throw 'Hyper-V nicht verfuegbar (Windows Pro + Feature + Admin).' }
+    if (-not $hasHyperV) {
+      throw @"
+Hyper-V nicht verfuegbar (Windows Pro + Feature + Admin).
+
+Feature aktivieren (Admin-PowerShell):
+  Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All
+Danach Neustart und erneut mit -Backend HyperV.
+
+Oder VirtualBox: https://www.virtualbox.org/
+"@
+    }
+    if (-not (Test-IsAdmin)) {
+      throw 'Hyper-V gefunden, aber ohne Admin-Rechte. PowerShell als Administrator starten.'
+    }
     return 'HyperV'
   }
-  # Auto: Hyper-V bevorzugen wenn Admin + Feature, sonst VirtualBox
-  if ($hasHyperV -and (Test-IsAdmin)) { return 'HyperV' }
+  # Auto: VirtualBox bevorzugen wenn VBoxManage da, sonst Hyper-V
   if ($hasVBox) { return 'VirtualBox' }
+  if ($hasHyperV -and (Test-IsAdmin)) { return 'HyperV' }
   if ($hasHyperV) {
-    throw 'Hyper-V gefunden, aber ohne Admin-Rechte. PowerShell als Administrator starten oder VirtualBox installieren.'
-  }
-  throw @'
-Kein Hypervisor gefunden.
+    throw @'
+Hyper-V gefunden, aber ohne Admin-Rechte.
 
-Option A: VirtualBox installieren -> https://www.virtualbox.org/
-Option B: Hyper-V aktivieren (Win Pro):
-  Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All
-  (Neustart, dann dieses Skript als Admin)
+PowerShell als Administrator starten und erneut:
+  powershell -ExecutionPolicy Bypass -File .\Get-SilkVM.ps1 -Backend HyperV -Mode Installer
+
+Oder VirtualBox installieren (kein Admin): https://www.virtualbox.org/
 '@
+  }
+  throw (Get-NoHypervisorHelp)
 }
 
 function Get-ReleaseBase {

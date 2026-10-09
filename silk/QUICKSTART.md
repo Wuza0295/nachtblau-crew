@@ -21,7 +21,15 @@ Controller: stecken / Bluetooth – on the fly.
 
 ### Unter Windows testen (VM)
 
-PowerShell (VirtualBox vorher installieren):
+**Hyper-V** (Win Pro, Admin-PowerShell; einmal Feature + Neustart):
+
+```powershell
+Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All
+# nach Neustart:
+powershell -ExecutionPolicy Bypass -Command "& ([scriptblock]::Create((irm https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-connect-multiplatform-fef1/silk/windows/Get-SilkVM.ps1))) -Backend HyperV -Mode Installer"
+```
+
+**VirtualBox** (zuerst https://www.virtualbox.org/ installieren):
 
 ```powershell
 powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-connect-multiplatform-fef1/silk/windows/Get-SilkVM.ps1 | iex"

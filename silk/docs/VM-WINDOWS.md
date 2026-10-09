@@ -6,11 +6,21 @@ Ziel: **Doppelklick → Silk läuft in einer VM.**
 
 ### Einzeiler (PowerShell)
 
-Zuerst [VirtualBox](https://www.virtualbox.org/) installieren, dann:
+**Hyper-V** (Windows Pro, Admin):
+
+```powershell
+Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All
+# nach Neustart:
+powershell -ExecutionPolicy Bypass -Command "& ([scriptblock]::Create((irm https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-connect-multiplatform-fef1/silk/windows/Get-SilkVM.ps1))) -Backend HyperV -Mode Installer"
+```
+
+**VirtualBox** (zuerst [VirtualBox](https://www.virtualbox.org/) installieren):
 
 ```powershell
 powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-connect-multiplatform-fef1/silk/windows/Get-SilkVM.ps1 | iex"
 ```
+
+`Backend=Auto` (Standard): VirtualBox wenn `VBoxManage` vorhanden, sonst Hyper-V.
 
 ### Doppelklick / Repo
 
@@ -28,7 +38,7 @@ Das Skript:
 
 ```powershell
 cd silk\windows
-# Empfohlen: Installer-ISO
+# Empfohlen: Installer-ISO (Auto = VBox bevorzugt, sonst Hyper-V)
 powershell -ExecutionPolicy Bypass -File .\Install-SilkVM.ps1 -Backend Auto -Mode Installer
 
 # Fertige Disk (braucht qemu-img für QCOW→VHDX/VDI)
@@ -37,7 +47,7 @@ powershell -ExecutionPolicy Bypass -File .\Install-SilkVM.ps1 -Mode Ready -Backe
 
 | Parameter | Bedeutung |
 |-----------|-----------|
-| `-Backend Auto\|HyperV\|VirtualBox` | Hypervisor |
+| `-Backend Auto\|HyperV\|VirtualBox` | Hypervisor (`Auto`: VirtualBox zuerst) |
 | `-Mode Installer` | ISO booten und Silk installieren (empfohlen) |
 | `-Mode Ready` | Fertige Disk (schneller, Konvertierung nötig) |
 | `-MemMB 4096` `-Cpus 2` | Ressourcen |

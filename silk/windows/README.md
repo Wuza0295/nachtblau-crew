@@ -4,13 +4,28 @@ Ziel: **ein Befehl / Doppelklick -> Silk-VM**.
 
 ## Schnellstart (ohne Git)
 
-**1. VirtualBox installieren** (Home/einfach): https://www.virtualbox.org/  
-Oder Hyper-V (Win Pro): Einstellungen -> optionale Features -> Hyper-V
+Backend **Auto** (Standard): VirtualBox wenn `VBoxManage` da ist, sonst Hyper-V.
 
-**2. PowerShell oeffnen** und ausfuehren:
+### A) Hyper-V (Windows Pro, Admin-PowerShell)
+
+Einmal Feature aktivieren, Neustart, dann:
 
 ```powershell
-# Empfohlen (umgeht ExecutionPolicy):
+Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All
+```
+
+Nach Neustart (als Administrator):
+
+```powershell
+powershell -ExecutionPolicy Bypass -Command "& ([scriptblock]::Create((irm https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-connect-multiplatform-fef1/silk/windows/Get-SilkVM.ps1))) -Backend HyperV -Mode Installer"
+```
+
+### B) VirtualBox (Home / kein Admin)
+
+1. Installieren: https://www.virtualbox.org/  
+2. PowerShell:
+
+```powershell
 powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-connect-multiplatform-fef1/silk/windows/Get-SilkVM.ps1 | iex"
 ```
 
@@ -34,7 +49,7 @@ Remove-Item -Force "$env:USERPROFILE\Silk-VMs\tools\Install-SilkVM.ps1" -ErrorAc
 ### Varianten
 
 ```powershell
-# Explizit VirtualBox + Installer-ISO (Standard)
+# Auto (Standard): VirtualBox bevorzugt, sonst Hyper-V
 irm https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-connect-multiplatform-fef1/silk/windows/Get-SilkVM.ps1 | iex
 
 # Mit Parametern (Skript speichern)
@@ -49,7 +64,7 @@ powershell -ExecutionPolicy Bypass -File .\Get-SilkVM.ps1 -Backend HyperV -Mode 
 
 1. Branch `cursor/silk-connect-multiplatform-fef1` auschecken  
 2. `silk\windows\Install-SilkVM.cmd` doppelklicken  
-3. Backend waehlen (1 = VirtualBox) -> Enter
+3. Backend waehlen (1 = VirtualBox, 3 = Auto) -> Enter
 
 ## Was passiert
 
@@ -71,7 +86,7 @@ silk-tour --center
 
 | Symptom | Fix |
 |---------|-----|
-| Kein Hypervisor | VirtualBox installieren **oder** Hyper-V aktivieren |
+| Kein Hypervisor | VirtualBox installieren **oder** Hyper-V aktivieren (siehe A/B oben) |
 | ExecutionPolicy | `powershell -ExecutionPolicy Bypass -File ...` |
 | Hyper-V Rechte | PowerShell/CMD **als Administrator** |
 | Download bricht ab | Skript erneut starten (setzt fort) |
