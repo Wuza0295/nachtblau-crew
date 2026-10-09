@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc";
+import { useFreeGames, useNewsFeed } from "@/lib/publicContent";
 import { Link } from "wouter";
 import {
   Gift,
@@ -114,9 +115,8 @@ function HeroSection() {
 }
 
 function FreeGamesPreview() {
-  const { data, isLoading, error } = trpc.games.getFreeGames.useQuery({ type: "game" });
-  const games = data?.games?.slice(0, 3) ?? [];
-  const hasError = error || data?.error;
+  const { games: loaded, isLoading } = useFreeGames({ type: "game" });
+  const games = loaded.slice(0, 3);
 
   return (
     <section className="py-16">
@@ -140,15 +140,7 @@ function FreeGamesPreview() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {hasError && !isLoading ? (
-            <div className="col-span-full p-4 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive">
-              <p className="text-sm">Kostenlose Spiele konnten nicht geladen werden. Bitte versuchen Sie es später erneut.</p>
-            </div>
-          ) : games.length === 0 && !isLoading
-            ? Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-48 rounded-xl bg-card animate-pulse" />
-              ))
-            : isLoading
+          {isLoading
             ? Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="h-48 rounded-xl bg-card animate-pulse" />
               ))
@@ -188,9 +180,7 @@ function FreeGamesPreview() {
 }
 
 function NewsPreview() {
-  const { data, isLoading, error } = trpc.news.getNews.useQuery({ category: "all", limit: 3 });
-  const articles = data?.articles ?? [];
-  const hasError = error || data?.error;
+  const { articles, isLoading } = useNewsFeed("all", 3);
 
   return (
     <section className="py-16 bg-card/30">
@@ -214,15 +204,7 @@ function NewsPreview() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {hasError && !isLoading ? (
-            <div className="col-span-full p-4 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive">
-              <p className="text-sm">Gaming News konnten nicht geladen werden. Bitte versuchen Sie es später erneut.</p>
-            </div>
-          ) : articles.length === 0 && !isLoading
-            ? Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-48 rounded-xl bg-card animate-pulse" />
-              ))
-            : isLoading
+          {isLoading
             ? Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="h-48 rounded-xl bg-card animate-pulse" />
               ))
