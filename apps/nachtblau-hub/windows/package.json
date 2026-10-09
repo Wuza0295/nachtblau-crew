@@ -1,0 +1,14 @@
+{
+  "name": "nachtblau-hub-windows",
+  "version": "1.0.0",
+  "private": true,
+  "description": "NachtBlau Hub — Windows Desktop (Electron), synced with Webspace, Linux & Android",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "sync": "python ../../../scripts/hub-sync.py sync"
+  },
+  "devDependencies": {
+    "electron": "^37.10.3"
+  }
+}

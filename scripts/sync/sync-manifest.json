@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "project": "nachtblau-crew",
+  "repo": {
+    "url": "https://github.com/Wuza0295/nachtblau-crew.git",
+    "defaultBranch": "main"
+  },
+  "workspace": {
+    "linux": "NachtBlau",
+    "windows": "NachtBlau"
+  },
+  "gitConfig": {
+    "core.autocrlf": "false",
+    "core.eol": "lf",
+    "core.longpaths": "true",
+    "core.fsmonitor": "false"
+  },
+  "toolchain": {
+    "node": "22",
+    "pnpm": "10"
+  },
+  "verify": ["pnpm check", "pnpm test"],
+  "platforms": {
+    "bazzite": {
+      "note": "Fedora Atomic / bootc: Host ist unveraenderlich, Pakete kommen aus brew, distrobox oder flatpak.",
+      "packageManagers": ["brew", "distrobox", "flatpak"],
+      "forbiddenOnHost": ["dnf install", "rpm-ostree install"]
+    },
+    "windows": {
+      "note": "winget als Paketquelle, pnpm ueber corepack.",
+      "packageManagers": ["winget"],
+      "packages": {
+        "git": "Git.Git",
+        "node": "OpenJS.NodeJS.LTS"
+      }
+    }
+  }
+}

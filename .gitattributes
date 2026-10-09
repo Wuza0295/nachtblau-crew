@@ -1,0 +1,16 @@
+# Arbeitskopien auf Bazzite und Windows byte-gleich halten: ohne diese Regel
+# checkt Windows Textdateien mit CRLF aus und der Sync-Fingerabdruck weicht ab.
+* text=auto eol=lf
+
+*.ps1 text eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.patch -text
