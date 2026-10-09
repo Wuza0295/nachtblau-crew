@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Link, useParams } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
+import { LOCAL_LOGIN_PATH } from "@/const";
 import { toast } from "sonner";
 import {
   ChevronLeft,
@@ -259,12 +259,11 @@ export default function ForumThread() {
               <p className="text-sm text-muted-foreground mb-3">
                 Melde dich an, um zu antworten.
               </p>
-              <Button
-                className="bg-primary hover:bg-primary/80 text-primary-foreground"
-                onClick={() => (window.location.href = getLoginUrl())}
-              >
-                Jetzt anmelden
-              </Button>
+              <Link href={LOCAL_LOGIN_PATH}>
+                <Button className="bg-primary hover:bg-primary/80 text-primary-foreground">
+                  Jetzt anmelden
+                </Button>
+              </Link>
             </div>
           )}
         </div>

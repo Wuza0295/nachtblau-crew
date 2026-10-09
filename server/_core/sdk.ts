@@ -171,8 +171,8 @@ class SDKServer {
     return this.signSession(
       {
         openId,
-        appId: ENV.appId,
-        name: options.name || "",
+        appId: ENV.appId || "local",
+        name: options.name || "Mitglied",
       },
       options
     );
@@ -299,6 +299,11 @@ class SDKServer {
 
     if (!user) {
       throw ForbiddenError("User not found");
+    }
+
+    // Passwort-Konten ohne bestätigte E-Mail gelten nicht als angemeldet.
+    if (user.passwordHash && !user.emailVerified) {
+      throw ForbiddenError("E-Mail-Adresse ist nicht bestätigt");
     }
 
     await db.upsertUser({

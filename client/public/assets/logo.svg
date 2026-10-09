@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none" role="img" aria-label="NachtBlau Crew Gildenwappen">
+  <defs>
+    <linearGradient id="shieldBg" x1="24" y1="8" x2="104" y2="120">
+      <stop offset="0%" stop-color="#2a5494"/>
+      <stop offset="45%" stop-color="#142a52"/>
+      <stop offset="100%" stop-color="#060e1a"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#a8e6ff"/>
+      <stop offset="100%" stop-color="#3a8fd4"/>
+    </linearGradient>
+    <linearGradient id="owlFill" x1="64" y1="34" x2="64" y2="98">
+      <stop offset="0%" stop-color="#5a82b8"/>
+      <stop offset="100%" stop-color="#1a3058"/>
+    </linearGradient>
+    <radialGradient id="moonGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#eef6ff"/>
+      <stop offset="100%" stop-color="#9ec4f0"/>
+    </radialGradient>
+    <filter id="glow" x="-25%" y="-25%" width="150%" height="150%">
+      <feGaussianBlur stdDeviation="2.2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="sparkle" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="1" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Schwerter hinter dem Schild -->
+  <g opacity="0.55">
+    <path d="M18 42 L38 62 L34 66 L14 46 Z" fill="url(#accentGrad)" stroke="#2a6a94" stroke-width="0.6"/>
+    <path d="M110 42 L90 62 L94 66 L114 46 Z" fill="url(#accentGrad)" stroke="#2a6a94" stroke-width="0.6"/>
+    <rect x="30" y="58" width="4" height="18" rx="1" fill="#6ec8ff" transform="rotate(-45 32 67)"/>
+    <rect x="94" y="58" width="4" height="18" rx="1" fill="#6ec8ff" transform="rotate(45 96 67)"/>
+  </g>
+
+  <!-- Gilden-Schild -->
+  <path d="M64 4 L110 22 V68 Q110 106 64 122 Q18 106 18 68 V22 Z" fill="url(#shieldBg)"/>
+  <path d="M64 8 L104 24 V67 Q104 101 64 116 Q24 101 24 67 V24 Z" stroke="url(#accentGrad)" stroke-width="2.8" fill="none"/>
+  <path d="M64 12 L98 26 V66 Q98 96 64 110 Q30 96 30 66 V26 Z" stroke="#7ec4ff" stroke-width="1" fill="none" opacity="0.4"/>
+
+  <!-- Wappen-Rauten -->
+  <path d="M28 30 L30 32 L28 34 L26 32 Z" fill="#a8e6ff" opacity="0.7"/>
+  <path d="M100 30 L102 32 L100 34 L98 32 Z" fill="#a8e6ff" opacity="0.7"/>
+  <path d="M64 118 L66 120 L64 122 L62 120 Z" fill="#a8e6ff" opacity="0.5"/>
+
+  <!-- Funkelnde Sterne -->
+  <path d="M22 18 L23.2 21 L26.5 21 L23.8 23 L24.8 26.2 L22 24.2 L19.2 26.2 L20.2 23 L17.5 21 L20.8 21 Z" fill="#d4f0ff" opacity="0.85" filter="url(#sparkle)"/>
+  <path d="M106 20 L107 22.5 L109.5 22.5 L107.5 24 L108.5 26.5 L106 25 L103.5 26.5 L104.5 24 L102.5 22.5 L105 22.5 Z" fill="#d4f0ff" opacity="0.75" filter="url(#sparkle)"/>
+
+  <!-- Wappen-Stern -->
+  <path d="M64 18 L67 26.5 L76 26.5 L68.8 31.5 L71.8 40 L64 35 L56.2 40 L59.2 31.5 L52 26.5 L61 26.5 Z" fill="url(#accentGrad)" filter="url(#glow)"/>
+
+  <!-- Mond -->
+  <circle cx="90" cy="34" r="10" fill="url(#moonGlow)" opacity="0.95"/>
+  <circle cx="93.5" cy="30.5" r="7.5" fill="#142a52"/>
+
+  <!-- Verspielte Eule -->
+  <ellipse cx="64" cy="80" rx="26" ry="28" fill="url(#owlFill)"/>
+  <path d="M38 72 Q28 88 34 104 Q44 96 48 78 Z" fill="#122038"/>
+  <path d="M90 72 Q100 88 94 104 Q84 96 80 78 Z" fill="#122038"/>
+  <path d="M48 46 L42 28 L58 44 Z" fill="#3d6294" stroke="#5a82b8" stroke-width="0.8" stroke-linejoin="round"/>
+  <path d="M80 46 L86 28 L70 44 Z" fill="#3d6294" stroke="#5a82b8" stroke-width="0.8" stroke-linejoin="round"/>
+  <ellipse cx="64" cy="58" rx="24" ry="22" fill="url(#owlFill)"/>
+  <!-- Große Augen -->
+  <circle cx="52" cy="58" r="9" fill="#f5f9ff"/>
+  <circle cx="76" cy="58" r="9" fill="#f5f9ff"/>
+  <circle cx="52" cy="59" r="5.5" fill="#0a1628"/>
+  <circle cx="76" cy="59" r="5.5" fill="#0a1628"/>
+  <circle cx="54.5" cy="56.5" r="2.2" fill="#fff"/>
+  <circle cx="78.5" cy="56.5" r="2.2" fill="#fff"/>
+  <circle cx="50" cy="61" r="1" fill="#fff" opacity="0.5"/>
+  <circle cx="74" cy="61" r="1" fill="#fff" opacity="0.5"/>
+  <!-- Schnabel -->
+  <path d="M64 66 L59 73 L69 73 Z" fill="#a8e6ff" stroke="#3a8fd4" stroke-width="0.5" stroke-linejoin="round"/>
+  <!-- Wangen -->
+  <ellipse cx="44" cy="68" rx="4" ry="2.5" fill="#ff8fab" opacity="0.35"/>
+  <ellipse cx="84" cy="68" rx="4" ry="2.5" fill="#ff8fab" opacity="0.35"/>
+
+  <!-- CREW-Gildenbanner -->
+  <path d="M32 100 H96 Q102 100 102 106 V114 Q102 120 96 120 H32 Q26 120 26 114 V106 Q26 100 32 100 Z" fill="#0a1628" stroke="url(#accentGrad)" stroke-width="1.4"/>
+  <path d="M32 100 H96" stroke="#a8e6ff" stroke-width="0.6" opacity="0.35"/>
+  <text x="64" y="114.5" text-anchor="middle" font-family="Rajdhani, system-ui, sans-serif" font-size="11" font-weight="700" fill="#a8e6ff" letter-spacing="3.2">CREW</text>
+  <!-- Banner-Zacken -->
+  <path d="M26 108 L22 106 L26 104 Z" fill="#6ec8ff"/>
+  <path d="M102 108 L106 106 L102 104 Z" fill="#6ec8ff"/>
+</svg>

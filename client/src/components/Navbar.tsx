@@ -1,5 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
+import { LOCAL_LOGIN_PATH, LOCAL_REGISTER_PATH } from "@/const";
 import { SITE } from "@/lib/site";
 import { Button } from "@/components/ui/button";
 import {
@@ -125,6 +125,7 @@ export default function Navbar() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
+                    id="nav-account"
                     variant="ghost"
                     className="relative h-9 w-9 rounded-full p-0 ring-2 ring-primary/30 hover:ring-primary/60 transition-all"
                   >
@@ -160,14 +161,28 @@ export default function Navbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button
-                size="sm"
-                className="bg-primary hover:bg-primary/80 text-primary-foreground font-semibold shadow-lg shadow-primary/20 transition-all duration-200"
-                onClick={() => (window.location.href = getLoginUrl())}
-              >
-                <Gamepad2 className="mr-2 h-4 w-4" />
-                Anmelden
-              </Button>
+              <div className="flex items-center gap-2">
+                <Link href={LOCAL_REGISTER_PATH}>
+                  <Button
+                    id="nav-register"
+                    size="sm"
+                    variant="outline"
+                    className="border-primary/40 text-primary hover:bg-primary/10"
+                  >
+                    Registrieren
+                  </Button>
+                </Link>
+                <Link href={LOCAL_LOGIN_PATH}>
+                  <Button
+                    id="nav-login"
+                    size="sm"
+                    className="bg-primary hover:bg-primary/80 text-primary-foreground font-semibold shadow-lg shadow-primary/20 transition-all duration-200"
+                  >
+                    <Gamepad2 className="mr-2 h-4 w-4" />
+                    Anmelden
+                  </Button>
+                </Link>
+              </div>
             )}
 
             <Button
@@ -208,6 +223,22 @@ export default function Navbar() {
                 </Button>
               </a>
             ))}
+            {!isAuthenticated && (
+              <>
+                <Link href={LOCAL_LOGIN_PATH} onClick={() => setMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start gap-2 text-primary">
+                    <Gamepad2 className="h-4 w-4" />
+                    Anmelden
+                  </Button>
+                </Link>
+                <Link href={LOCAL_REGISTER_PATH} onClick={() => setMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start gap-2 text-primary">
+                    <User className="h-4 w-4" />
+                    Registrieren
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         )}
       </div>

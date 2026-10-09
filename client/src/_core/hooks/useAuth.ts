@@ -1,4 +1,4 @@
-import { getLoginUrl } from "@/const";
+import { LOCAL_LOGIN_PATH } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { TRPCClientError } from "@trpc/client";
 import { useCallback, useEffect, useMemo } from "react";
@@ -66,7 +66,7 @@ export function useAuth(options?: UseAuthOptions) {
     if (typeof window === "undefined") return;
     if (window.location.pathname === redirectPath) return;
 
-    window.location.href = redirectPath ?? getLoginUrl();
+    window.location.href = redirectPath ?? LOCAL_LOGIN_PATH;
   }, [
     redirectOnUnauthenticated,
     redirectPath,

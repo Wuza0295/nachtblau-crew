@@ -7,4 +7,13 @@ export const ENV = {
   isProduction: process.env.NODE_ENV === "production",
   forgeApiUrl: process.env.BUILT_IN_FORGE_API_URL ?? "",
   forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? "",
+  appBaseUrl: process.env.APP_BASE_URL ?? "",
+  smtp: {
+    host: process.env.SMTP_HOST ?? "",
+    port: Number(process.env.SMTP_PORT || 587),
+    user: process.env.SMTP_USER ?? "",
+    password: process.env.SMTP_PASSWORD ?? process.env.SMTP_PASS ?? "",
+    from: process.env.SMTP_FROM ?? "",
+    secure: process.env.SMTP_SECURE,
+  },
 };

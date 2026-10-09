@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link, useParams } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
+import { LOCAL_LOGIN_PATH } from "@/const";
 import {
   MessageSquare,
   Plus,
@@ -83,13 +83,14 @@ export default function ForumCategory() {
               </Button>
             </Link>
           ) : (
-            <Button
-              variant="outline"
-              className="border-primary/40 text-primary hover:bg-primary/10 gap-2"
-              onClick={() => (window.location.href = getLoginUrl())}
-            >
-              Anmelden
-            </Button>
+            <Link href={LOCAL_LOGIN_PATH}>
+              <Button
+                variant="outline"
+                className="border-primary/40 text-primary hover:bg-primary/10 gap-2"
+              >
+                Anmelden
+              </Button>
+            </Link>
           )}
         </div>
 
