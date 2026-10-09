@@ -14,22 +14,24 @@
         return;
       }
       data.links.forEach(function (item) {
-        var card = document.createElement("article");
-        card.className = "project-card";
+        var link = document.createElement("a");
+        link.className = "project-link";
+        link.href = item.url || "#";
         var external = /^https?:\/\//i.test(item.url || "");
-        card.innerHTML =
-          '<h3 class="project-title"><a href="' +
-          escapeAttr(item.url) +
-          '"' +
-          (external ? ' rel="noopener noreferrer"' : "") +
-          ">" +
+        if (external) link.rel = "noopener noreferrer";
+        link.innerHTML =
+          '<span class="project-title">' +
           escapeHtml(item.title) +
-          "</a></h3>" +
+          "</span>" +
           (item.subtitle
-            ? '<p class="project-subtitle">' + escapeHtml(item.subtitle) + "</p>"
+            ? '<span class="project-subtitle">' +
+              escapeHtml(item.subtitle) +
+              "</span>"
             : "") +
-          (item.note ? '<p class="project-note">' + escapeHtml(item.note) + "</p>" : "");
-        root.appendChild(card);
+          (item.note
+            ? '<span class="project-note">' + escapeHtml(item.note) + "</span>"
+            : "");
+        root.appendChild(link);
       });
     })
     .catch(function () {
@@ -43,9 +45,5 @@
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
-  }
-
-  function escapeAttr(s) {
-    return escapeHtml(s).replace(/'/g, "&#39;");
   }
 })();
