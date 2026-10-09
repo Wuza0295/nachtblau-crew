@@ -9,9 +9,15 @@
   "lang": "de",
   "icons": [
     {
-      "src": "https://d2xsxph8kpxj0f.cloudfront.net/310519663739653758/PbtcqHtcftAKnwDnhmoduf/nachtblau-logo-Li7umgFb8XhrYaRtYVFm4Z.webp",
-      "sizes": "512x512",
-      "type": "image/webp"
+      "src": "/assets/favicon-7e76c5b7.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon-7e76c5b7.ico",
+      "sizes": "16x16 32x32",
+      "type": "image/x-icon"
     }
   ]
 }

@@ -4,8 +4,7 @@ export const SITE = {
   tagline: "Deine Gaming Community für PC, Konsolen, Steam und mehr.",
   description:
     "NachtBlau Crew – Deine Gaming Community für PC, Konsolen, Steam und mehr. Aktuelle News, kostenlose Spiele und ein aktives Forum.",
-  logoUrl:
-    "https://d2xsxph8kpxj0f.cloudfront.net/310519663739653758/PbtcqHtcftAKnwDnhmoduf/nachtblau-logo-Li7umgFb8XhrYaRtYVFm4Z.webp",
+  logoUrl: "/assets/logo-67f5a046.svg",
   heroBgUrl:
     "https://d2xsxph8kpxj0f.cloudfront.net/310519663739653758/PbtcqHtcftAKnwDnhmoduf/nachtblau-hero-bg-HgRTyjrF5BBTepdctiJ8Mj.webp",
   webspaceUrl: "https://nacht-blau.de",

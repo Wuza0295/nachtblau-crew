@@ -1,5 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
+import { LOCAL_LOGIN_PATH, LOCAL_REGISTER_PATH } from "@/const";
 import { SITE } from "@/lib/site";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,7 +26,6 @@ import {
   Zap,
 } from "lucide-react";
 import { useState } from "react";
-import { trpc } from "@/lib/trpc";
 
 const NAV_LINKS = [
   { href: "/portal", label: "Social Portal", icon: Zap },
@@ -45,12 +44,6 @@ export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const [location] = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
-  const logoutMutation = trpc.auth.logout.useMutation({
-    onSuccess: () => {
-      logout();
-      window.location.href = "/";
-    },
-  });
 
   const initials = user?.name
     ? user.name
@@ -69,7 +62,7 @@ export default function Navbar() {
             <img
               src={SITE.logoUrl}
               alt="NachtBlau Crew Logo"
-              className="h-10 w-10 object-contain transition-transform duration-300 group-hover:scale-110"
+              className="h-11 w-11 object-contain transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6"
             />
             <div className="hidden sm:block">
               <span
@@ -151,7 +144,11 @@ export default function Navbar() {
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={() => logoutMutation.mutate()}
+                    onClick={() => {
+                      void logout().finally(() => {
+                        window.location.href = "/";
+                      });
+                    }}
                     className="text-destructive focus:text-destructive cursor-pointer"
                   >
                     <LogOut className="mr-2 h-4 w-4" />
@@ -160,14 +157,28 @@ export default function Navbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button
-                size="sm"
-                className="bg-primary hover:bg-primary/80 text-primary-foreground font-semibold shadow-lg shadow-primary/20 transition-all duration-200"
-                onClick={() => (window.location.href = getLoginUrl())}
-              >
-                <Gamepad2 className="mr-2 h-4 w-4" />
-                Anmelden
-              </Button>
+              <div className="flex items-center gap-2">
+                <Link href={LOCAL_REGISTER_PATH}>
+                  <Button
+                    id="nav-register"
+                    size="sm"
+                    variant="outline"
+                    className="hidden sm:inline-flex border-primary/40 text-primary hover:bg-primary/10"
+                  >
+                    Registrieren
+                  </Button>
+                </Link>
+                <Link href={LOCAL_LOGIN_PATH}>
+                  <Button
+                    id="nav-login"
+                    size="sm"
+                    className="bg-primary hover:bg-primary/80 text-primary-foreground font-semibold shadow-lg shadow-primary/20 transition-all duration-200"
+                  >
+                    <Gamepad2 className="mr-2 h-4 w-4" />
+                    Anmelden
+                  </Button>
+                </Link>
+              </div>
             )}
 
             <Button
@@ -208,6 +219,22 @@ export default function Navbar() {
                 </Button>
               </a>
             ))}
+            {!isAuthenticated && (
+              <>
+                <Link href={LOCAL_LOGIN_PATH} onClick={() => setMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start gap-2 text-primary">
+                    <Gamepad2 className="h-4 w-4" />
+                    Anmelden
+                  </Button>
+                </Link>
+                <Link href={LOCAL_REGISTER_PATH} onClick={() => setMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start gap-2 text-primary">
+                    <User className="h-4 w-4" />
+                    Registrieren
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         )}
       </div>

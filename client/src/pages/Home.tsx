@@ -1,9 +1,8 @@
-import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc";
+import { useFreeGames, useNewsFeed } from "@/lib/publicContent";
 import { Link } from "wouter";
 import {
   Gift,
@@ -13,164 +12,138 @@ import {
   Gamepad2,
   Monitor,
   Flame,
-  Star,
   Users,
   Zap,
   Github,
   Globe,
   ExternalLink,
+  Swords,
 } from "lucide-react";
 import { SITE } from "@/lib/site";
 
-function StarField() {
+const HERO_LINKS = [
+  { href: "/free-games", label: "Loot & Gratis" },
+  { href: "/news", label: "Gilden-Intel" },
+  { href: "/forum", label: "Gilden-Halle" },
+  { href: "/ueber-uns", label: "Gilden-Rang" },
+] as const;
+
+function PixelSpark({ className }: { className?: string }) {
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {Array.from({ length: 60 }).map((_, i) => (
-        <div
-          key={i}
-          className="absolute rounded-full bg-white"
-          style={{
-            width: Math.random() * 2 + 1 + "px",
-            height: Math.random() * 2 + 1 + "px",
-            left: Math.random() * 100 + "%",
-            top: Math.random() * 100 + "%",
-            opacity: Math.random() * 0.7 + 0.1,
-            animation: `twinkle ${Math.random() * 3 + 2}s ease-in-out infinite`,
-            animationDelay: Math.random() * 3 + "s",
-          }}
-        />
-      ))}
-    </div>
+    <svg viewBox="0 0 10 10" className={className} aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M4 0h2v2H4zM2 2h2v2H2zM6 2h2v2H6zM0 4h2v2H0zM4 4h2v2H4zM8 4h2v2H8zM2 6h2v2H2zM6 6h2v2H6zM4 8h2v2H4z"
+      />
+    </svg>
   );
 }
 
 function HeroSection() {
-  const { isAuthenticated } = useAuth();
-
   return (
     <section
-      className="relative min-h-[85vh] flex items-center overflow-hidden"
+      className="relative overflow-hidden border-b border-white/8"
       style={{
         background:
-          "radial-gradient(ellipse at 70% 50%, oklch(0.18 0.06 252 / 0.4) 0%, transparent 60%), radial-gradient(ellipse at 20% 80%, oklch(0.14 0.05 260 / 0.3) 0%, transparent 50%), oklch(0.09 0.025 250)",
+          "radial-gradient(ellipse 70% 90% at 50% -10%, oklch(0.34 0.14 265 / 0.5) 0%, transparent 58%), radial-gradient(ellipse 28% 40% at 12% 80%, oklch(0.55 0.16 330 / 0.16) 0%, transparent 70%), radial-gradient(ellipse 32% 40% at 90% 70%, oklch(0.45 0.14 230 / 0.2) 0%, transparent 70%), oklch(0.14 0.03 262)",
       }}
     >
-      {/* Hero background image */}
       <div
         className="absolute inset-0 bg-cover bg-center opacity-20"
-        style={{
-          backgroundImage: `url(${SITE.heroBgUrl})`,
-        }}
+        style={{ backgroundImage: `url(${SITE.heroBgUrl})` }}
       />
-      <StarField />
+      <div className="stars-bg absolute inset-0 opacity-80" />
+      <PixelSpark className="pixel-pop pointer-events-none absolute left-[7%] top-4 hidden h-4 w-4 text-[#d4f0ff] sm:block" />
+      <PixelSpark className="pixel-pop pointer-events-none absolute right-[9%] top-6 hidden h-3.5 w-3.5 text-[#ffb3c7] sm:block [animation-delay:400ms]" />
+      <PixelSpark className="pixel-pop pointer-events-none absolute bottom-8 left-[18%] hidden h-3 w-3 text-[#9ad8ff] md:block [animation-delay:900ms]" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-background to-transparent" />
 
-      {/* Glow orb */}
-      <div
-        className="absolute right-1/4 top-1/3 w-96 h-96 rounded-full opacity-10 blur-3xl pointer-events-none"
-        style={{ background: "oklch(0.62 0.22 245)" }}
-      />
-
-      <div className="container relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Text */}
-          <div className="space-y-6">
-            <Badge
-              variant="outline"
-              className="border-primary/40 text-primary bg-primary/10 text-xs tracking-widest uppercase"
-              style={{ fontFamily: "Orbitron, sans-serif" }}
-            >
-              <Star className="h-3 w-3 mr-1 fill-primary" />
-              Gaming Community
-            </Badge>
-
-            <h1
-              className="text-5xl md:text-6xl lg:text-7xl font-black leading-none"
-              style={{ fontFamily: "Orbitron, sans-serif" }}
-            >
-              <span className="gradient-text text-glow">NachtBlau</span>
-              <br />
-              <span className="text-foreground">Crew</span>
-            </h1>
-
-            <p className="text-lg text-muted-foreground leading-relaxed max-w-lg">
-              Deine Gaming Community für PC, Konsolen und Steam. Entdecke kostenlose Spiele,
-              aktuelle News und tausche dich im Forum aus.
-            </p>
-
-            <div className="flex flex-wrap gap-3">
-              {!isAuthenticated && (
-                <Button
-                  size="lg"
-                  className="bg-primary hover:bg-primary/80 text-primary-foreground font-bold shadow-xl shadow-primary/25 transition-all duration-200 hover:shadow-primary/40 hover:scale-105"
-                  onClick={() => (window.location.href = getLoginUrl())}
-                >
-                  <Gamepad2 className="mr-2 h-5 w-5" />
-                  Jetzt beitreten
-                </Button>
-              )}
-              <Link href="/portal">
-                <Button
-                  size="lg"
-                  className="font-bold shadow-xl transition-all duration-200 hover:scale-105 bg-gradient-to-r from-[oklch(0.65_0.22_310)] to-[oklch(0.62_0.2_25)] text-white border-0"
-                >
-                  <Zap className="mr-2 h-5 w-5" />
-                  Social Portal
-                </Button>
-              </Link>
-              <Link href="/forum">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-primary/40 text-primary hover:bg-primary/10 font-semibold transition-all duration-200"
-                >
-                  <MessageSquare className="mr-2 h-5 w-5" />
-                  Zum Forum
-                </Button>
-              </Link>
-            </div>
-
-            {/* Stats */}
-            <div className="flex gap-6 pt-2">
-              {[
-                { icon: Users, label: "Community", value: "Aktiv" },
-                { icon: Gift, label: "Free Games", value: "Täglich" },
-                { icon: Newspaper, label: "News", value: "24/7" },
-              ].map(({ icon: Icon, label, value }) => (
-                <div key={label} className="flex items-center gap-2">
-                  <Icon className="h-4 w-4 text-primary" />
-                  <div>
-                    <div className="text-sm font-semibold text-foreground">{value}</div>
-                    <div className="text-xs text-muted-foreground">{label}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Logo */}
-          <div className="flex justify-center lg:justify-end">
-            <div className="relative">
-              <div
-                className="absolute inset-0 rounded-full blur-3xl opacity-30"
-                style={{ background: "oklch(0.62 0.22 245)" }}
-              />
-              <img
-                src={SITE.logoUrl}
-                alt="NachtBlau Crew"
-                className="relative w-72 h-72 md:w-96 md:h-96 object-contain animate-float drop-shadow-2xl"
-              />
-            </div>
-          </div>
+      <div className="container relative z-10 py-3.5 text-center md:py-4">
+        <img
+          src={SITE.logoUrl}
+          alt="NachtBlau Crew Logo, Eule mit Headset"
+          className="logo-bob mx-auto h-12 w-12 object-contain drop-shadow-[0_6px_12px_oklch(0.55_0.2_250/0.45)] sm:h-14 sm:w-14"
+        />
+        <div className="mt-1 flex items-center justify-center gap-2">
+          <p
+            className="text-[11px] text-[#d7ecff] sm:text-xs"
+            style={{ fontFamily: "Fredoka, Inter, sans-serif" }}
+          >
+            Die Eule zockt mit
+          </p>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-[10px] text-emerald-300">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            im Spiel
+          </span>
         </div>
+
+        <h1 className="mt-1 whitespace-nowrap text-[clamp(0.92rem,3.7vw,2.85rem)] leading-none font-black tracking-tight">
+          Willkommen in der{" "}
+          <span className="gradient-text">NachtBlau</span>{" "}
+          <span className="text-[oklch(0.78_0.15_330)]">Crew</span>
+        </h1>
+        <p
+          className="mt-1.5 text-xs text-foreground/75 sm:text-sm"
+          style={{ fontFamily: "Fredoka, Inter, sans-serif" }}
+        >
+          Weiche Federn, laute Lobby, süßer Loot
+        </p>
+        <p className="mx-auto mt-1.5 max-w-md text-sm leading-relaxed text-muted-foreground">
+          Headset auf, Controller bereit. Die Eule zwinkert, die Crew spielt zusammen.
+        </p>
+
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-3">
+          <Link href="/forum">
+            <Button className="game-pill h-9 bg-[oklch(0.58_0.2_280)] px-4 text-white hover:bg-[oklch(0.52_0.2_280)]">
+              <Swords className="mr-1.5 h-4 w-4" />
+              Gilden-Halle
+            </Button>
+          </Link>
+          <Link href="/portal">
+            <Button
+              variant="outline"
+              className="game-pill h-9 border-white/20 bg-white/8 px-4 text-foreground backdrop-blur-sm hover:bg-white/12"
+            >
+              <Gamepad2 className="mr-1.5 h-4 w-4" />
+              Crew-Tafel
+            </Button>
+          </Link>
+        </div>
+
+        <div className="game-hud mx-auto mt-3 flex max-w-sm items-center justify-between px-4 py-1.5 text-[11px] text-muted-foreground">
+          <span>
+            <span className="font-semibold text-foreground">17</span> Loot
+          </span>
+          <span className="text-[#ffb3c7]">✦</span>
+          <span>
+            <span className="font-semibold text-foreground">25</span> Intel
+          </span>
+          <span className="text-[#9ad8ff]">✦</span>
+          <span>
+            <span className="font-semibold text-foreground">63</span> Crew
+          </span>
+        </div>
+
+        <nav className="mt-2.5 flex flex-wrap items-center justify-center gap-2">
+          {HERO_LINKS.map((item) => (
+            <Link key={item.href} href={item.href}>
+              <span
+                className="inline-flex rounded-full border border-white/12 bg-white/5 px-2.5 py-0.5 text-xs text-foreground/80 transition-colors hover:border-[#9ad8ff]/50 hover:text-foreground"
+                style={{ fontFamily: "Fredoka, Inter, sans-serif" }}
+              >
+                {item.label}
+              </span>
+            </Link>
+          ))}
+        </nav>
       </div>
     </section>
   );
 }
 
 function FreeGamesPreview() {
-  const { data, isLoading, error } = trpc.games.getFreeGames.useQuery({ type: "game" });
-  const games = data?.games?.slice(0, 3) ?? [];
-  const hasError = error || data?.error;
+  const { games: loaded, isLoading } = useFreeGames({ type: "game" });
+  const games = loaded.slice(0, 3);
 
   return (
     <section className="py-16">
@@ -182,7 +155,7 @@ function FreeGamesPreview() {
               style={{ fontFamily: "Orbitron, sans-serif" }}
             >
               <Gift className="inline h-6 w-6 text-primary mr-2" />
-              Kostenlose Spiele
+              Loot & Gratis
             </h2>
             <p className="text-muted-foreground mt-1">Aktuell gratis erhältliche Spiele</p>
           </div>
@@ -194,15 +167,7 @@ function FreeGamesPreview() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {hasError && !isLoading ? (
-            <div className="col-span-full p-4 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive">
-              <p className="text-sm">Kostenlose Spiele konnten nicht geladen werden. Bitte versuchen Sie es später erneut.</p>
-            </div>
-          ) : games.length === 0 && !isLoading
-            ? Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-48 rounded-xl bg-card animate-pulse" />
-              ))
-            : isLoading
+          {isLoading
             ? Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="h-48 rounded-xl bg-card animate-pulse" />
               ))
@@ -214,7 +179,7 @@ function FreeGamesPreview() {
                   rel="noopener noreferrer"
                   className="group block"
                 >
-                  <Card className="card-glow bg-card border-border overflow-hidden transition-all duration-300 hover:-translate-y-1">
+                  <Card className="play-card card-glow bg-card border-border overflow-hidden transition-all duration-300">
                     <div className="relative h-36 overflow-hidden">
                       <img
                         src={game.image}
@@ -242,9 +207,7 @@ function FreeGamesPreview() {
 }
 
 function NewsPreview() {
-  const { data, isLoading, error } = trpc.news.getNews.useQuery({ category: "all", limit: 3 });
-  const articles = data?.articles ?? [];
-  const hasError = error || data?.error;
+  const { articles, isLoading } = useNewsFeed("all", 3);
 
   return (
     <section className="py-16 bg-card/30">
@@ -256,7 +219,7 @@ function NewsPreview() {
               style={{ fontFamily: "Orbitron, sans-serif" }}
             >
               <Newspaper className="inline h-6 w-6 text-primary mr-2" />
-              Gaming News
+              Gilden-Intel
             </h2>
             <p className="text-muted-foreground mt-1">Aktuelle Nachrichten aus der Gaming-Welt</p>
           </div>
@@ -268,15 +231,7 @@ function NewsPreview() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {hasError && !isLoading ? (
-            <div className="col-span-full p-4 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive">
-              <p className="text-sm">Gaming News konnten nicht geladen werden. Bitte versuchen Sie es später erneut.</p>
-            </div>
-          ) : articles.length === 0 && !isLoading
-            ? Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-48 rounded-xl bg-card animate-pulse" />
-              ))
-            : isLoading
+          {isLoading
             ? Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="h-48 rounded-xl bg-card animate-pulse" />
               ))
@@ -288,7 +243,7 @@ function NewsPreview() {
                   rel="noopener noreferrer"
                   className="group block"
                 >
-                  <Card className="card-glow bg-card border-border overflow-hidden transition-all duration-300 hover:-translate-y-1 h-full">
+                  <Card className="play-card card-glow bg-card border-border overflow-hidden transition-all duration-300 h-full">
                     {article.image && (
                       <div className="relative h-36 overflow-hidden">
                         <img
@@ -346,9 +301,9 @@ function ForumPreview() {
               style={{ fontFamily: "Orbitron, sans-serif" }}
             >
               <MessageSquare className="inline h-6 w-6 text-primary mr-2" />
-              Community Forum
+              Gilden-Halle
             </h2>
-            <p className="text-muted-foreground mt-1">Diskutiere mit der Community</p>
+            <p className="text-muted-foreground mt-1">Diskutiere mit der Crew</p>
           </div>
           <Link href="/forum">
             <Button variant="ghost" className="text-primary hover:text-primary/80 gap-1">
@@ -360,7 +315,7 @@ function ForumPreview() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {(categories ?? []).map((cat) => (
             <Link key={cat.id} href={`/forum/kategorie/${cat.slug}`}>
-              <Card className="card-glow bg-card border-border cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:border-primary/40">
+              <Card className="play-card card-glow bg-card border-border cursor-pointer transition-all duration-300 hover:border-primary/40">
                 <CardContent className="p-4 flex items-start gap-3">
                   <div className="p-2 rounded-lg bg-primary/10 text-primary flex-shrink-0">
                     {ICONS[cat.icon ?? "MessageSquare"] ?? <MessageSquare className="h-5 w-5" />}
@@ -383,40 +338,35 @@ function ForumPreview() {
 
 function FeatureBanner() {
   return (
-    <section className="py-12 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border-y border-primary/10">
-      <div className="container">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-          {[
-            {
-              icon: Zap,
-              title: "Live Updates",
-              desc: "Kostenlose Spiele und Angebote in Echtzeit",
-            },
-            {
-              icon: Newspaper,
-              title: "Gaming News",
-              desc: "PC, Konsolen, Steam/Valve – alles an einem Ort",
-            },
-            {
-              icon: Users,
-              title: "Community",
-              desc: "Tausche dich mit Gleichgesinnten aus",
-            },
-          ].map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="flex flex-col items-center gap-3">
-              <div className="p-3 rounded-full bg-primary/15 text-primary">
-                <Icon className="h-6 w-6" />
-              </div>
-              <h3
-                className="font-bold text-foreground"
-                style={{ fontFamily: "Orbitron, sans-serif" }}
-              >
-                {title}
-              </h3>
-              <p className="text-sm text-muted-foreground">{desc}</p>
+    <section className="border-y border-white/5 bg-white/[0.02]">
+      <div className="container grid grid-cols-1 gap-3 py-4 sm:grid-cols-3 sm:gap-6">
+        {[
+          {
+            icon: Zap,
+            title: "Live Updates",
+            desc: "Loot blinkt, sobald es fällt",
+          },
+          {
+            icon: Newspaper,
+            title: "Gilden-Intel",
+            desc: "News mit Nachtschicht und Pixeln",
+          },
+          {
+            icon: Users,
+            title: "Crew",
+            desc: "Zusammen am Controller",
+          },
+        ].map(({ icon: Icon, title, desc }) => (
+          <div key={title} className="flex items-center gap-3 sm:justify-center">
+            <div className="rounded-2xl bg-primary/15 p-2 text-primary shadow-[0_0_0_2px_oklch(0.75_0.12_250/0.2)]">
+              <Icon className="h-4 w-4" />
             </div>
-          ))}
-        </div>
+            <div className="text-left">
+              <h3 className="text-sm font-bold text-foreground">{title}</h3>
+              <p className="text-xs text-muted-foreground">{desc}</p>
+            </div>
+          </div>
+        ))}
       </div>
     </section>
   );
@@ -444,9 +394,9 @@ function NetworkLinksSection() {
             rel="noopener noreferrer"
             className="group block"
           >
-            <Card className="card-glow bg-card border-border transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 h-full">
+            <Card className="play-card card-glow bg-card border-border transition-all duration-300 hover:border-primary/40 h-full">
               <CardContent className="p-5 flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
+                <div className="p-3 rounded-2xl bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
                   <Globe className="h-6 w-6" />
                 </div>
                 <div className="flex-1">
@@ -467,9 +417,9 @@ function NetworkLinksSection() {
             rel="noopener noreferrer"
             className="group block"
           >
-            <Card className="card-glow bg-card border-border transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 h-full">
+            <Card className="play-card card-glow bg-card border-border transition-all duration-300 hover:border-primary/40 h-full">
               <CardContent className="p-5 flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
+                <div className="p-3 rounded-2xl bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
                   <Github className="h-6 w-6" />
                 </div>
                 <div className="flex-1">
