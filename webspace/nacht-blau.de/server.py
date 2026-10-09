@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Lokaler Entwicklungsserver für NachtBlau GbR."""
+"""Lokaler Entwicklungsserver für NachtBlau Projekt."""
 
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
@@ -15,7 +15,7 @@ class Handler(SimpleHTTPRequestHandler):
 
 def main():
     server = HTTPServer(("0.0.0.0", PORT), Handler)
-    print(f"NachtBlau GbR: http://localhost:{PORT}")
+    print(f"NachtBlau Projekt: http://localhost:{PORT}")
     server.serve_forever()
 
 

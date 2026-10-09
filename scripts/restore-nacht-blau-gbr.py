@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Stelle die NachtBlau-GbR-Seite auf https://nacht-blau.de/ wieder her.
+"""Stelle die NachtBlau-Projekt-Seite auf https://nacht-blau.de/ bereit.
 
 Lädt webspace/nacht-blau.de/ per temporärem KAS-FTP-User hoch.
 Credentials: Umgebungsvariablen, .env.webspace oder /tmp/nb-creds.env.
@@ -194,7 +194,7 @@ def upload(host: str, user: str, password: str, remote_root: str) -> str:
     ftp.retrbinary("RETR logo.svg", logo.extend)
     log(f"logo.svg {len(logo)} bytes")
 
-    title_ok = b"NachtBlau GbR" in bytes(check)
+    title_ok = b"NachtBlau" in bytes(check) and b"NachtBlau GbR" not in bytes(check)
     ftp.quit()
     if not match or not title_ok or len(logo) < 200:
         raise RuntimeError("Upload-Verifikation fehlgeschlagen")
@@ -329,7 +329,7 @@ def main() -> None:
     if not SOURCE.is_dir():
         raise RuntimeError(f"Quelle fehlt: {SOURCE}")
     LOG.write_text("")
-    log(f"Restore GbR aus {SOURCE}")
+    log(f"Deploy NachtBlau aus {SOURCE}")
     kas_auth()
     wait_until_only_main()
 
@@ -343,7 +343,7 @@ def main() -> None:
                 "ftp_login": login,
                 "ftp_password": password,
                 "ftp_path": "/nacht-blau.de/",
-                "ftp_comment": "gbr-restore",
+                "ftp_comment": "nachtblau-deploy",
             },
         )
         problem = fault(raw)

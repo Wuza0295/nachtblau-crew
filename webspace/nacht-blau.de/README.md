@@ -1,10 +1,10 @@
-# NachtBlau GbR (nacht-blau.de)
+# NachtBlau Projekt (nacht-blau.de)
 
-Eigenständige GbR-Webseite auf ALL-INKL. Projekte: **Hybrixon**, **Allxion** (`/allxion/`), Crew-Repo.
+Eigenständige Projekt-Webseite auf ALL-INKL. Projekte: **Hybrixon**, **Allxion** (`/allxion/`), Crew-Repo.
 
 ## URLs
 
-- GbR: https://nacht-blau.de/
+- NachtBlau: https://nacht-blau.de/
 - Hybrixon: https://hybrixon.com/
 - Allxion: https://nacht-blau.de/allxion/
 
@@ -12,7 +12,7 @@ Eigenständige GbR-Webseite auf ALL-INKL. Projekte: **Hybrixon**, **Allxion** (`
 
 1. `.env.webspace.example` → `.env.webspace` (FTP-Zugang)
 2. Optional Allxion bauen: `pnpm webspace:build-allxion`
-3. Upload GbR: `pnpm webspace:sync:nacht-blau`
+3. Upload: `pnpm webspace:sync:nacht-blau`
 4. Upload Hybrixon: `pnpm webspace:sync:one -- hybrixon.com` bzw. `FTP_REMOTE_DIR=/hybrixon.com pnpm webspace:sync:one`
 
 `index.htm` wird beim Sync automatisch aus `index.html` gespiegelt (ALL-INKL DirectoryIndex).

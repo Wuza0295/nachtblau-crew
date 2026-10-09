@@ -27,4 +27,4 @@ Dann **Actions → Webspace Sync (nacht-blau.de) → Run workflow**.
 
 - Vite `base`: `/allxion/`
 - Apache `.htaccess` mit `RewriteBase /allxion/`
-- GbR-Startseite verlinkt `/allxion/` unter **Projekte**
+- NachtBlau-Startseite verlinkt `/allxion/` unter **Projekte**
