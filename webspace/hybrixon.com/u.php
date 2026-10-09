@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $viewer) {
     }
     if ($action === 'unfollow') {
         social_unfollow((int)$viewer['id'], (int)$owner['id']);
-        flash('success', 'Nicht mehr folgend.');
+        flash('success', 'Nicht mehr gefolgt.');
         redirect(user_public_url($owner['username']));
     }
     if ($action === 'friend_request') {
@@ -139,7 +139,7 @@ $shareUrl = $pageUrl;
       </p>
       <div class="pill-row">
         <span class="pill"><?= (int)$counts['followers'] ?> Follower</span>
-        <span class="pill"><?= (int)$counts['following'] ?> folgend</span>
+        <span class="pill"><?= (int)$counts['following'] ?> gefolgt</span>
         <?php if (social_can_view_friends($viewer, $owner)): ?>
           <span class="pill"><?= (int)$friendCount ?> Freunde</span>
         <?php endif; ?>

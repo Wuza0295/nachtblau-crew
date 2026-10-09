@@ -40,7 +40,7 @@ require __DIR__ . '/../includes/header.php';
     <?php if (!empty($target['is_admin'])): ?><span class="pill pill-ok">Admin</span><?php endif; ?>
     <?php if (!empty($target['banned_at'])): ?><span class="pill" style="color:#fca5a5;">Gesperrt</span><?php endif; ?>
     <span class="pill"><?= (int)$counts['followers'] ?> Follower</span>
-    <span class="pill"><?= (int)$counts['following'] ?> folgend</span>
+    <span class="pill"><?= (int)$counts['following'] ?> gefolgt</span>
   </div>
 </section>
 

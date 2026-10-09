@@ -9,6 +9,21 @@ const ALLXION_ADULT_AGE = 18;
 /** Minimum supported PHP version for this portal build. */
 const HYBRIXON_MIN_PHP = '8.5.0';
 
+/**
+ * Runtime engine id (PHP + SQLite on ALL-INKL). Bump when safe runtime
+ * hardening lands — not a frontend redesign. Never rewrite to SPA/React here.
+ */
+const HYBRIXON_ENGINE = 'hybrixon-php85-r3';
+
+/**
+ * Public asset cache-busters — single source of truth for header/footer/SW.
+ * Bump the matching constant when that file changes; keep SW list in sync.
+ */
+const HYBRIXON_ASSET_CSS = '137';
+const HYBRIXON_ASSET_JS = '123';
+const HYBRIXON_ASSET_SW = '13';
+const HYBRIXON_STATIC_CACHE = 'hybrixon-static-v17';
+
 /** Canonical public domain (no scheme) — final home. */
 const HYBRIXON_CANONICAL_HOST = 'hybrixon.com';
 
@@ -214,3 +229,77 @@ function hybrixon_enforce_canonical_host(): void
         }
     }
 }
+
+/**
+ * Versioned public asset URL (CSS/JS). Path is relative to the app base.
+ */
+function hybrixon_asset_url(string $path, ?string $version = null): string
+{
+    $path = ltrim($path, '/');
+    $url = allxion_url($path);
+    if ($version === null) {
+        if (str_ends_with($path, '.css')) {
+            $version = HYBRIXON_ASSET_CSS;
+        } elseif (str_ends_with($path, '.js')) {
+            $version = HYBRIXON_ASSET_JS;
+        }
+    }
+    if ($version === null || $version === '') {
+        return $url;
+    }
+    return $url . (str_contains($url, '?') ? '&' : '?') . 'v=' . rawurlencode($version);
+}
+
+function hybrixon_sw_url(): string
+{
+    $url = allxion_url('sw.js');
+    return $url . (str_contains($url, '?') ? '&' : '?') . 'v=' . rawurlencode(HYBRIXON_ASSET_SW);
+}
+
+/**
+ * Shared security headers for HTML pages and JSON API (idempotent).
+ */
+function hybrixon_send_security_headers(bool $withHsts = true): void
+{
+    if (PHP_SAPI === 'cli' || headers_sent()) {
+        return;
+    }
+    static $sent = false;
+    if ($sent) {
+        return;
+    }
+    $sent = true;
+
+    header('X-Content-Type-Options: nosniff');
+    header('X-Frame-Options: SAMEORIGIN');
+    header('Referrer-Policy: strict-origin-when-cross-origin');
+    header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
+    header('Cross-Origin-Opener-Policy: same-origin-allow-popups');
+
+    $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || ((string)($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+    if ($withHsts && $https) {
+        header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+    }
+}
+
+/** Fail fast when the host PHP is below the supported floor. */
+function hybrixon_assert_php_runtime(): void
+{
+    if (version_compare(PHP_VERSION, HYBRIXON_MIN_PHP, '>=')) {
+        return;
+    }
+    if (PHP_SAPI === 'cli') {
+        fwrite(STDERR, 'Hybrixon benötigt PHP ' . HYBRIXON_MIN_PHP . "+ (aktuell: " . PHP_VERSION . ")\n");
+        exit(1);
+    }
+    if (!headers_sent()) {
+        http_response_code(503);
+        header('Content-Type: text/plain; charset=utf-8');
+        header('Retry-After: 3600');
+    }
+    echo 'Hybrixon benötigt PHP ' . HYBRIXON_MIN_PHP . '+ (aktuell: ' . PHP_VERSION . ').';
+    exit;
+}
+
+hybrixon_assert_php_runtime();

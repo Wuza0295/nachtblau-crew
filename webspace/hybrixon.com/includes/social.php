@@ -49,16 +49,42 @@ function social_privacy_allows(?array $viewer, array $owner, string $field, stri
     return false;
 }
 
+/**
+ * Request-scoped set of following_ids for a follower (avoids feed N+1).
+ * Pass $bust=true after follow/unfollow writes.
+ *
+ * @return array<int, true>
+ */
+function social_following_set(int $followerId, bool $bust = false): array
+{
+    static $sets = [];
+    if ($bust) {
+        unset($sets[$followerId]);
+        return [];
+    }
+    if ($followerId <= 0) {
+        return [];
+    }
+    if (!isset($sets[$followerId])) {
+        $stmt = allxion_db()->prepare(
+            'SELECT following_id FROM follows WHERE follower_id = ?'
+        );
+        $stmt->execute([$followerId]);
+        $map = [];
+        foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $id) {
+            $map[(int)$id] = true;
+        }
+        $sets[$followerId] = $map;
+    }
+    return $sets[$followerId];
+}
+
 function social_is_following(int $followerId, int $followingId): bool
 {
     if ($followerId <= 0 || $followingId <= 0 || $followerId === $followingId) {
         return false;
     }
-    $stmt = allxion_db()->prepare(
-        'SELECT 1 FROM follows WHERE follower_id = ? AND following_id = ?'
-    );
-    $stmt->execute([$followerId, $followingId]);
-    return (bool)$stmt->fetchColumn();
+    return isset(social_following_set($followerId)[$followingId]);
 }
 
 function social_follow(int $followerId, int $followingId): array
@@ -75,6 +101,7 @@ function social_follow(int $followerId, int $followingId): array
     allxion_db()->prepare(
         'INSERT OR IGNORE INTO follows (follower_id, following_id) VALUES (?, ?)'
     )->execute([$followerId, $followingId]);
+    social_following_set($followerId, true);
     return [];
 }
 
@@ -83,6 +110,7 @@ function social_unfollow(int $followerId, int $followingId): void
     allxion_db()->prepare(
         'DELETE FROM follows WHERE follower_id = ? AND following_id = ?'
     )->execute([$followerId, $followingId]);
+    social_following_set($followerId, true);
 }
 
 function social_counts(int $userId): array
@@ -223,7 +251,8 @@ function social_update_profile(array $user, array $input, ?array $avatarFile = n
     $privacyRelationship = (string)($input['privacy_relationship'] ?? 'friends');
     $privacySearch = (string)($input['privacy_search'] ?? 'public');
     $theme = (string)($input['theme'] ?? 'light');
-    $brandStyle = (string)($input['brand_style'] ?? 'logo_text');
+    // Settings UI no longer sends brand_style; keep last value or default logo_text.
+    $brandStyle = (string)($input['brand_style'] ?? ($user['brand_style'] ?? 'logo_text'));
     $relationshipStatus = (string)($input['relationship_status'] ?? ($user['relationship_status'] ?? 'unspecified'));
     require_once __DIR__ . '/i18n.php';
     $uiLang = (string)($input['ui_lang'] ?? ($user['ui_lang'] ?? 'de'));
@@ -271,7 +300,7 @@ function social_update_profile(array $user, array $input, ?array $avatarFile = n
     if (!in_array($privacyDms, ['everyone', 'friends', 'followers', 'none'], true)) {
         $errors[] = 'Ungültige DM-Privatsphäre.';
     }
-    if (!in_array($theme, ['dark', 'light'], true)) {
+    if (!hybrixon_theme_valid($theme)) {
         $errors[] = 'Ungültiges Theme.';
     }
     if (!isset(hybrixon_brand_styles()[$brandStyle])) {
