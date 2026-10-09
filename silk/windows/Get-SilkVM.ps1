@@ -5,7 +5,11 @@
 #   irm https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-connect-multiplatform-fef1/silk/windows/Get-SilkVM.ps1 | iex
 #
 # Falls ExecutionPolicy stoert, alternativ:
-#   powershell -ExecutionPolicy Bypass -Command "irm …/Get-SilkVM.ps1 | iex"
+#   powershell -ExecutionPolicy Bypass -Command "irm .../Get-SilkVM.ps1 | iex"
+#
+# Bei Parse-Fehlern (alte lokale Kopie): Cache loeschen und erneut ausfuehren:
+#   Remove-Item -Force "$env:USERPROFILE\Silk-VMs\tools\Install-SilkVM.ps1" -ErrorAction SilentlyContinue
+#   powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-connect-multiplatform-fef1/silk/windows/Get-SilkVM.ps1 | iex"
 #
 param(
   [ValidateSet('Auto', 'HyperV', 'VirtualBox')]
@@ -31,13 +35,16 @@ Write-Host "Backend=$Backend  Mode=$Mode  -> $Work"
 Write-Host ""
 
 $ps1 = Join-Path $Tools 'Install-SilkVM.ps1'
-Write-Host "==> Lade Install-SilkVM.ps1 …"
-Invoke-WebRequest -Uri "$Base/Install-SilkVM.ps1" -OutFile $ps1 -UseBasicParsing
+Write-Host "==> Lade Install-SilkVM.ps1 ..."
+# Download as text and write UTF-8 with BOM so Windows PowerShell 5.1 parses
+# correctly even if a future edit reintroduces non-ASCII (ASCII-only preferred).
+$resp = Invoke-WebRequest -Uri "$Base/Install-SilkVM.ps1" -UseBasicParsing
+[System.IO.File]::WriteAllText($ps1, $resp.Content, (New-Object System.Text.UTF8Encoding $true))
 
 # Von Internet geladene Dateien sind oft "blocked" + ExecutionPolicy RemoteSigned
 try { Unblock-File -LiteralPath $ps1 -ErrorAction SilentlyContinue } catch { }
 
-Write-Host "==> Starte Installation (ExecutionPolicy Bypass) …"
+Write-Host "==> Starte Installation (ExecutionPolicy Bypass) ..."
 $argList = @(
   '-NoProfile'
   '-ExecutionPolicy', 'Bypass'

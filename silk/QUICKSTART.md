@@ -27,6 +27,12 @@ PowerShell (VirtualBox vorher installieren):
 powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-connect-multiplatform-fef1/silk/windows/Get-SilkVM.ps1 | iex"
 ```
 
+Bei Parse-Fehlern (alte lokale Kopie): Cache loeschen und erneut:
+
+```powershell
+Remove-Item -Force "$env:USERPROFILE\Silk-VMs\tools\Install-SilkVM.ps1" -ErrorAction SilentlyContinue; powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-connect-multiplatform-fef1/silk/windows/Get-SilkVM.ps1 | iex"
+```
+
 Oder Doppelklick: `silk\windows\Install-SilkVM.cmd`  
 Details: [`docs/VM-WINDOWS.md`](docs/VM-WINDOWS.md) · [`windows/README.md`](windows/README.md)
 

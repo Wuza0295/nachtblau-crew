@@ -3,8 +3,8 @@
   Silk unter Windows in einer VM installieren / starten (Hyper-V oder VirtualBox).
 
 .DESCRIPTION
-  Lädt das Silk-Install-Medium vom GitHub-Release, setzt Split-Dateien zusammen,
-  legt eine VM an und startet sie. Kein manuelles Basteln nötig.
+  Laedt das Silk-Install-Medium vom GitHub-Release, setzt Split-Dateien zusammen,
+  legt eine VM an und startet sie. Kein manuelles Basteln noetig.
 
 .EXAMPLE
   .\Install-SilkVM.ps1
@@ -66,7 +66,7 @@ function Resolve-Backend {
     return 'VirtualBox'
   }
   if ($Wanted -eq 'HyperV') {
-    if (-not $hasHyperV) { throw 'Hyper-V nicht verfügbar (Windows Pro + Feature + Admin).' }
+    if (-not $hasHyperV) { throw 'Hyper-V nicht verfuegbar (Windows Pro + Feature + Admin).' }
     return 'HyperV'
   }
   # Auto: Hyper-V bevorzugen wenn Admin + Feature, sonst VirtualBox
@@ -78,7 +78,7 @@ function Resolve-Backend {
   throw @'
 Kein Hypervisor gefunden.
 
-Option A: VirtualBox installieren → https://www.virtualbox.org/
+Option A: VirtualBox installieren -> https://www.virtualbox.org/
 Option B: Hyper-V aktivieren (Win Pro):
   Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All
   (Neustart, dann dieses Skript als Admin)
@@ -100,7 +100,7 @@ function Download-File([string]$Url, [string]$Dest) {
     Write-Host "  skip (vorhanden): $(Split-Path $Dest -Leaf)"
     return
   }
-  Write-Host "  ↓ $(Split-Path $Dest -Leaf)"
+  Write-Host "  dl $(Split-Path $Dest -Leaf)"
   $tmp = "$Dest.partial"
   # BITS bevorzugt (fortsetzbar), sonst Invoke-WebRequest
   try {
@@ -126,9 +126,9 @@ function Join-SplitMedia {
   }
   $parts = Get-ChildItem -LiteralPath $Dir -Filter "$BaseName.part*" | Sort-Object Name
   if (-not $parts -or $parts.Count -eq 0) {
-    throw "Keine Split-Teile für $BaseName in $Dir"
+    throw "Keine Split-Teile fuer $BaseName in $Dir"
   }
-  Write-Silk "Setze $BaseName aus $($parts.Count) Teilen zusammen …"
+  Write-Silk "Setze $BaseName aus $($parts.Count) Teilen zusammen ..."
   if (Test-Path -LiteralPath $out) { Remove-Item -Force $out }
   $outStream = [System.IO.File]::Create($out)
   try {
@@ -142,12 +142,12 @@ function Join-SplitMedia {
   }
   $shaFile = Join-Path $Dir "$BaseName.sha256"
   if (Test-Path -LiteralPath $shaFile) {
-    Write-Silk "Prüfe SHA256 …"
+    Write-Silk "Pruefe SHA256 ..."
     $expected = ((Get-Content $shaFile -Raw) -split '\s+')[0].Trim().ToLowerInvariant()
     $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $out).Hash.ToLowerInvariant()
     if ($hash -ne $expected) {
       Remove-Item -Force $out -ErrorAction SilentlyContinue
-      throw "SHA256 mismatch für $BaseName (erwartet $expected, ist $hash)"
+      throw "SHA256 mismatch fuer $BaseName (erwartet $expected, ist $hash)"
     }
     Write-Host "  SHA256 OK"
   }
@@ -164,7 +164,7 @@ function Download-InstallerIso {
     'Silk-Installer-x86_64.iso.part02',
     'Silk-Installer-x86_64.iso.part03'
   )
-  Write-Silk "Lade Silk-Installer (~6 GB) …"
+  Write-Silk "Lade Silk-Installer (~6 GB) ..."
   foreach ($f in $files) {
     Download-File "$base/$f" (Join-Path $WorkDir $f)
   }
@@ -180,7 +180,7 @@ function Download-ReadyQcow {
     'Silk-VM-x86_64.qcow2.part01',
     'Silk-VM-x86_64.qcow2.part02'
   )
-  Write-Silk "Lade fertige Silk-VM (QCOW2, ~6 GB) …"
+  Write-Silk "Lade fertige Silk-VM (QCOW2, ~6 GB) ..."
   foreach ($f in $files) {
     Download-File "$base/$f" (Join-Path $WorkDir $f)
   }
@@ -191,13 +191,13 @@ function Convert-QcowToVhdx([string]$Qcow, [string]$Vhdx) {
   $qemu = Get-Command qemu-img -ErrorAction SilentlyContinue
   if (-not $qemu) {
     throw @'
-Mode Ready unter Hyper-V braucht qemu-img zur Umwandlung QCOW2 → VHDX.
+Mode Ready unter Hyper-V braucht qemu-img zur Umwandlung QCOW2 -> VHDX.
 
 Schnellste Variante: -Mode Installer  (ISO, keine Konvertierung)
-Oder qemu-img installieren (z.B. über MSYS2 / QEMU für Windows) und erneut -Mode Ready.
+Oder qemu-img installieren (z.B. ueber MSYS2 / QEMU fuer Windows) und erneut -Mode Ready.
 '@
   }
-  Write-Silk "Konvertiere QCOW2 → VHDX …"
+  Write-Silk "Konvertiere QCOW2 -> VHDX ..."
   & $qemu.Source convert -p -f qcow2 -O vhdx $Qcow $Vhdx
   if ($LASTEXITCODE -ne 0) { throw 'qemu-img convert fehlgeschlagen' }
   return $Vhdx
@@ -206,25 +206,25 @@ Oder qemu-img installieren (z.B. über MSYS2 / QEMU für Windows) und erneut -Mo
 function Convert-QcowToVdi([string]$Qcow, [string]$Vdi) {
   $qemu = Get-Command qemu-img -ErrorAction SilentlyContinue
   if ($qemu) {
-    Write-Silk "Konvertiere QCOW2 → VDI …"
+    Write-Silk "Konvertiere QCOW2 -> VDI ..."
     & $qemu.Source convert -p -f qcow2 -O vdi $Qcow $Vdi
     if ($LASTEXITCODE -ne 0) { throw 'qemu-img convert fehlgeschlagen' }
     return $Vdi
   }
-  # Fallback: VirtualBox kann kein qcow2 – dann Installer-Modus erzwingen
-  throw 'Ready-Disk unter VirtualBox braucht qemu-img (QCOW→VDI). Nutze -Mode Installer.'
+  # Fallback: VirtualBox kann kein qcow2 - dann Installer-Modus erzwingen
+  throw 'Ready-Disk unter VirtualBox braucht qemu-img (QCOW->VDI). Nutze -Mode Installer.'
 }
 
 function New-SilkHyperVInstaller {
   param([string]$IsoPath)
-  if (-not (Test-IsAdmin)) { throw 'Hyper-V benötigt Administrator-Rechte.' }
-  Write-Silk "Hyper-V VM '$VmName' anlegen (Installer) …"
+  if (-not (Test-IsAdmin)) { throw 'Hyper-V benoetigt Administrator-Rechte.' }
+  Write-Silk "Hyper-V VM '$VmName' anlegen (Installer) ..."
   $vmPath = Join-Path $WorkDir 'Hyper-V'
   Ensure-Dir $vmPath
   $vhd = Join-Path $vmPath "$VmName.vhdx"
 
   if (Get-VM -Name $VmName -ErrorAction SilentlyContinue) {
-    Write-Host "VM existiert bereits – ISO aktualisieren / starten."
+    Write-Host "VM existiert bereits - ISO aktualisieren / starten."
   } else {
     New-VM -Name $VmName -MemoryStartupBytes ($MemMB * 1MB) -Generation 2 `
       -NewVHDPath $vhd -NewVHDSizeBytes ($DiskGB * 1GB) -Path $vmPath | Out-Null
@@ -246,7 +246,7 @@ function New-SilkHyperVInstaller {
   Set-VMFirmware -VMName $VmName -FirstBootDevice $dvd -ErrorAction SilentlyContinue
 
   if ($DoStart) {
-    Write-Silk "Starte Hyper-V VM …"
+    Write-Silk "Starte Hyper-V VM ..."
     Start-VM -Name $VmName
     try { vmconnect.exe localhost $VmName } catch { Start-Process vmconnect.exe -ArgumentList "localhost","$VmName" -ErrorAction SilentlyContinue }
   }
@@ -255,14 +255,14 @@ function New-SilkHyperVInstaller {
 
 function New-SilkHyperVReady {
   param([string]$QcowPath)
-  if (-not (Test-IsAdmin)) { throw 'Hyper-V benötigt Administrator-Rechte.' }
+  if (-not (Test-IsAdmin)) { throw 'Hyper-V benoetigt Administrator-Rechte.' }
   $vmPath = Join-Path $WorkDir 'Hyper-V'
   Ensure-Dir $vmPath
   $vhdx = Join-Path $vmPath 'Silk-VM-x86_64.vhdx'
   if (-not (Test-Path -LiteralPath $vhdx) -or $ForceDownload) {
     Convert-QcowToVhdx -Qcow $QcowPath -Vhdx $vhdx | Out-Null
   }
-  Write-Silk "Hyper-V VM '$VmName' anlegen (Ready-Disk) …"
+  Write-Silk "Hyper-V VM '$VmName' anlegen (Ready-Disk) ..."
   if (-not (Get-VM -Name $VmName -ErrorAction SilentlyContinue)) {
     New-VM -Name $VmName -MemoryStartupBytes ($MemMB * 1MB) -Generation 2 `
       -VHDPath $vhdx -Path $vmPath | Out-Null
@@ -278,7 +278,7 @@ function New-SilkHyperVReady {
 function New-SilkVBoxInstaller {
   param([string]$IsoPath)
   $VBoxManage = (Get-Command VBoxManage).Source
-  Write-Silk "VirtualBox VM '$VmName' anlegen (Installer) …"
+  Write-Silk "VirtualBox VM '$VmName' anlegen (Installer) ..."
   Ensure-Dir $WorkDir
   $vdi = Join-Path $WorkDir "$VmName.vdi"
 
@@ -297,7 +297,7 @@ function New-SilkVBoxInstaller {
     --memory $MemMB --cpus $Cpus --firmware efi --vram 128 `
     --nic1 nat --mouse usbtablet --graphicscontroller vmsvga `
     --clipboard-mode bidirectional --ioapic on --acpi on `
-    --description 'Silk – Desktop-Betriebssystem' | Out-Null
+    --description 'Silk - Desktop-Betriebssystem' | Out-Null
 
   & $VBoxManage storageattach $VmName --storagectl IDE --port 0 --device 0 `
     --type dvddrive --medium $IsoPath 2>$null
@@ -307,7 +307,7 @@ function New-SilkVBoxInstaller {
   }
 
   if ($DoStart) {
-    Write-Silk "Starte VirtualBox …"
+    Write-Silk "Starte VirtualBox ..."
     & $VBoxManage startvm $VmName --type gui
   }
   Write-Host "Fertig. In der VM: Silk installieren, dann nach Login silk-tour."
@@ -320,7 +320,7 @@ function New-SilkVBoxReady {
   if (-not (Test-Path -LiteralPath $vdi) -or $ForceDownload) {
     Convert-QcowToVdi -Qcow $QcowPath -Vdi $vdi | Out-Null
   }
-  Write-Silk "VirtualBox VM '$VmName' anlegen (Ready-Disk) …"
+  Write-Silk "VirtualBox VM '$VmName' anlegen (Ready-Disk) ..."
   Ensure-Dir $WorkDir
   $exists = & $VBoxManage showvminfo $VmName 2>$null
   if ($LASTEXITCODE -ne 0) {
@@ -331,16 +331,16 @@ function New-SilkVBoxReady {
   & $VBoxManage modifyvm $VmName `
     --memory $MemMB --cpus $Cpus --firmware efi --vram 128 `
     --nic1 nat --mouse usbtablet --graphicscontroller vmsvga `
-    --description 'Silk – Desktop-Betriebssystem' | Out-Null
+    --description 'Silk - Desktop-Betriebssystem' | Out-Null
   if ($DoStart) {
     & $VBoxManage startvm $VmName --type gui
   }
 }
 
-# ── main ────────────────────────────────────────────────────────────
+# --- main ----------------------------------------------------------------
 Write-Host @"
 
-  Silk VM Setup für Windows
+  Silk VM Setup fuer Windows
   Backend: $Backend | Mode: $Mode | RAM: ${MemMB}MB | CPUs: $Cpus
 
 "@ -ForegroundColor Green

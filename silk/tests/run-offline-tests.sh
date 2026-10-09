@@ -413,6 +413,21 @@ grep -q 'VirtualBox' "$ROOT/windows/Install-SilkVM.cmd" && ok "CMD VirtualBox ch
 grep -q 'HyperV\|VirtualBox' "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 HyperV+VBox" || bad "PS1 backends"
 grep -q 'Silk-Installer-x86_64.iso' "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 ISO download" || bad "PS1 ISO"
 grep -q 'silk-media-latest' "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 release tag" || bad "PS1 release"
+# Windows PowerShell 5.1 mis-parses mojibake from UTF-8 ellipsis/arrows; keep .ps1 ASCII-only
+ps1_non_ascii=0
+for ps1 in "$ROOT/windows/Install-SilkVM.ps1" "$ROOT/windows/Get-SilkVM.ps1"; do
+  if grep -P -q '[^\x00-\x7F]' "$ps1"; then
+    echo "non-ASCII in $(basename "$ps1"):"
+    grep -P -n '[^\x00-\x7F]' "$ps1" | head -20 || true
+    ps1_non_ascii=1
+  fi
+done
+if [[ "$ps1_non_ascii" -eq 0 ]]; then
+  ok "PS1 files are ASCII-only"
+else
+  bad "PS1 files contain non-ASCII (breaks WinPS 5.1)"
+fi
+grep -q 'UTF8Encoding' "$ROOT/windows/Get-SilkVM.ps1" && ok "Get-SilkVM UTF8 BOM write" || bad "Get-SilkVM UTF8 BOM write"
 [[ -f "$ROOT/docs/VM-WINDOWS.md" ]] && ok "VM-WINDOWS.md" || bad "VM-WINDOWS.md"
 [[ -f "$ROOT/scripts/go-virtualbox.sh" ]] && ok "go-virtualbox.sh" || bad "go-virtualbox.sh"
 [[ -f "$ROOT/scripts/test-silk-virtualbox.sh" ]] && ok "test-silk-virtualbox.sh" || bad "test-silk-vbox"
