@@ -26,10 +26,21 @@ LimitRequestBody 1073741824
 </IfModule>
 
 # Long-lived static assets (cache-busted via ?v= from HYBRIXON_ASSET_*).
+# Use "always" so proxies/CDN don't drop the header; Expires as fallback.
 <IfModule mod_headers.c>
   <FilesMatch "\.(css|js|svg|png|jpe?g|webp|woff2?)$">
-    Header set Cache-Control "public, max-age=604800, immutable"
+    Header always set Cache-Control "public, max-age=604800, immutable"
   </FilesMatch>
+</IfModule>
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css "access plus 7 days"
+  ExpiresByType application/javascript "access plus 7 days"
+  ExpiresByType image/svg+xml "access plus 7 days"
+  ExpiresByType image/png "access plus 7 days"
+  ExpiresByType image/jpeg "access plus 7 days"
+  ExpiresByType image/webp "access plus 7 days"
+  ExpiresByType font/woff2 "access plus 30 days"
 </IfModule>
 
 # www → apex (when domain is live)

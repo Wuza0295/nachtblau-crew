@@ -13,7 +13,7 @@ const HYBRIXON_MIN_PHP = '8.5.0';
  * Runtime engine id (PHP + SQLite on ALL-INKL). Bump when safe runtime
  * hardening lands — not a frontend redesign. Never rewrite to SPA/React here.
  */
-const HYBRIXON_ENGINE = 'hybrixon-php85-r2';
+const HYBRIXON_ENGINE = 'hybrixon-php85-r3';
 
 /**
  * Public asset cache-busters — single source of truth for header/footer/SW.
