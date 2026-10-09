@@ -55,7 +55,7 @@ Environment=NACHTBLAU_AUTOSYNC_ENV=$ENV_FILE
 Environment=NACHTBLAU_REPO=$ROOT
 EOF
 
-  systemctl --user daemon-reload
+  systemctl --user daemon-reload 2>/dev/null || true
 }
 
 case "$cmd" in
