@@ -1,4 +1,5 @@
-const STORAGE_KEY = 'nb-gbr-theme';
+const STORAGE_KEY = 'nb-theme';
+const LEGACY_KEY = 'nb-gbr-theme';
 const COLORS = { dark: '#0a1220', light: '#f7f9fc' };
 
 export function applyTheme(mode) {
@@ -10,12 +11,13 @@ export function applyTheme(mode) {
 export function toggleTheme() {
   const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
   localStorage.setItem(STORAGE_KEY, next);
+  localStorage.removeItem(LEGACY_KEY);
   applyTheme(next);
   return next;
 }
 
 function init() {
-  let mode = localStorage.getItem(STORAGE_KEY);
+  let mode = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_KEY);
   // Dark ist Marken-Standard; Light nur nach manueller Wahl
   if (mode !== 'light' && mode !== 'dark') {
     mode = 'dark';

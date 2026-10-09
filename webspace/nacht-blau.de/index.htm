@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NachtBlau GbR — Gesellschaft bürgerlichen Rechts</title>
-  <meta name="description" content="NachtBlau GbR — Gesellschaft bürgerlichen Rechts. Hobbyprojekte, digitale Infrastruktur und Community rund um NachtBlau.">
+  <title>NachtBlau — Projekt &amp; Netzwerk</title>
+  <meta name="description" content="NachtBlau — digitales Hobbyprojekt und Netzwerk. Community, Social und Infrastruktur rund um NachtBlau.">
   <meta name="theme-color" content="#07101c">
   <meta name="color-scheme" content="dark light">
   <link rel="canonical" href="https://nacht-blau.de/">
   <meta property="og:type" content="website">
-  <meta property="og:site_name" content="NachtBlau GbR">
-  <meta property="og:title" content="NachtBlau GbR">
-  <meta property="og:description" content="Gesellschaft bürgerlichen Rechts — Hobbyprojekte und digitale Infrastruktur.">
+  <meta property="og:site_name" content="NachtBlau">
+  <meta property="og:title" content="NachtBlau — Projekt &amp; Netzwerk">
+  <meta property="og:description" content="Digitales Hobbyprojekt und Netzwerk — Community, Social und Infrastruktur.">
   <meta property="og:url" content="https://nacht-blau.de/">
   <script>
     (function () {
-      var m = localStorage.getItem('nb-gbr-theme');
+      var m = localStorage.getItem('nb-theme') || localStorage.getItem('nb-gbr-theme');
       var mode = m === 'light' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', mode);
       var meta = document.querySelector('meta[name="theme-color"]');
@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=3">
+  <link rel="stylesheet" href="css/style.css?v=4">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 </head>
 <body>
@@ -33,18 +33,18 @@
 
   <header class="site-header">
     <div class="container header-row">
-      <a href="index.html" class="site-id" aria-label="NachtBlau GbR Startseite">
+      <a href="index.html" class="site-id" aria-label="NachtBlau Startseite">
         <img src="assets/logo.svg" alt="" class="site-id-mark" width="40" height="40">
         <span class="site-id-text">
           <span class="site-id-name">NachtBlau</span>
-          <span class="site-id-legal">GbR</span>
+          <span class="site-id-tag">Projekt</span>
         </span>
       </a>
       <button type="button" class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="site-nav">Menü</button>
       <nav class="site-nav" id="site-nav" aria-label="Hauptnavigation">
         <a href="index.html" aria-current="page">Profil</a>
         <a href="#projekte">Projekte</a>
-        <a href="#gesellschafter">Gesellschafter</a>
+        <a href="#team">Team</a>
         <a href="impressum.html">Impressum</a>
         <a href="datenschutz.html">Datenschutz</a>
         <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Darstellung wechseln">Hell / Dunkel</button>
@@ -59,7 +59,7 @@
         <div class="hero-copy">
           <h1 id="hero-title" class="hero-brand">NachtBlau</h1>
           <p class="hero-lead">
-            Gesellschaft bürgerlichen Rechts für digitale Hobbyprojekte — Community, Social und Infrastruktur, klar getrennt vom Gewerbe.
+            Digitales Hobbyprojekt und Netzwerk — Community, Social und Infrastruktur, klar getrennt vom Gewerbe.
           </p>
           <div class="hero-actions">
             <a class="btn btn-primary" href="#projekte">Projekte ansehen</a>
@@ -72,22 +72,22 @@
       </div>
     </section>
 
-    <section class="section" id="gesellschaft" aria-labelledby="gesellschaft-title">
+    <section class="section" id="projekt" aria-labelledby="projekt-title">
       <div class="container narrow">
-        <h2 id="gesellschaft-title">Die Gesellschaft</h2>
-        <p class="section-lead">Zwei Gesellschafter, paritätisch — privates Hobbyprojekt ohne gewerbliche Einnahmen.</p>
+        <h2 id="projekt-title">Über das Projekt</h2>
+        <p class="section-lead">Zwei Macher, ein Netzwerk — privates Hobbyprojekt ohne gewerbliche Einnahmen.</p>
         <dl class="facts">
           <div>
-            <dt>Rechtsform</dt>
-            <dd>Gesellschaft bürgerlichen Rechts (GbR)</dd>
+            <dt>Charakter</dt>
+            <dd>Privates Hobbyprojekt &amp; Netzwerk</dd>
           </div>
           <div>
-            <dt>Gesellschafter</dt>
-            <dd>Sven und Sascha, je 50&nbsp;%</dd>
+            <dt>Team</dt>
+            <dd>Sven und Sascha</dd>
           </div>
           <div>
-            <dt>Sitz</dt>
-            <dd>Derzeit nicht festgelegt</dd>
+            <dt>Fokus</dt>
+            <dd>Community, Social, digitale Infrastruktur</dd>
           </div>
           <div>
             <dt>Kontakt</dt>
@@ -97,19 +97,19 @@
       </div>
     </section>
 
-    <section class="section" id="gesellschafter" aria-labelledby="gesellschafter-title">
+    <section class="section" id="team" aria-labelledby="team-title">
       <div class="container">
-        <h2 id="gesellschafter-title">Gesellschafter</h2>
-        <p class="section-lead">Persönliche Haftung, gleiche Stimm- und Gewinnrechte.</p>
+        <h2 id="team-title">Team</h2>
+        <p class="section-lead">Die Macher hinter dem NachtBlau-Projekt.</p>
         <div class="partner-grid">
           <article>
             <h3>Sven</h3>
-            <p class="role">Technische Leitung · 50&nbsp;%</p>
+            <p class="role">Technische Leitung</p>
             <p>Technologie, Infrastruktur und Produktpflege — von Software bis Serverbetrieb.</p>
           </article>
           <article>
             <h3>Sascha</h3>
-            <p class="role">Organisation &amp; Entwicklung · 50&nbsp;%</p>
+            <p class="role">Organisation &amp; Entwicklung</p>
             <p>Steuerung, Kommunikation und visuelle Identität — von Koordination bis Ausgewogenheit.</p>
           </article>
         </div>
@@ -119,7 +119,7 @@
     <section class="section" id="projekte" aria-labelledby="projekte-title">
       <div class="container">
         <h2 id="projekte-title">Projekte</h2>
-        <p class="section-lead">Unabhängige Angebote rund um NachtBlau — rechtlich getrennt von dieser GbR-Darstellung.</p>
+        <p class="section-lead">Unabhängige Angebote rund um NachtBlau — Teil des Netzwerks, jeweils eigenständig.</p>
         <div id="project-links" class="project-links" aria-live="polite"></div>
       </div>
     </section>
@@ -127,7 +127,7 @@
 
   <footer class="site-footer">
     <div class="container footer-row">
-      <strong>NachtBlau GbR</strong>
+      <strong>NachtBlau</strong>
       <nav aria-label="Fußnavigation">
         <a href="#projekte">Projekte</a>
         <a href="https://hybrixon.com/" rel="noopener noreferrer">Hybrixon</a>
@@ -136,7 +136,7 @@
         <a href="mailto:info@nacht-blau.de">Kontakt</a>
       </nav>
     </div>
-    <div class="container footer-copy">© 2026 NachtBlau GbR</div>
+    <div class="container footer-copy">© 2026 NachtBlau Projekt</div>
   </footer>
 
   <script src="js/projects.js?v=2"></script>

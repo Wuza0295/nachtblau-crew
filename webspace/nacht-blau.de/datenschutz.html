@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Datenschutzerklärung — NachtBlau GbR</title>
+  <title>Datenschutzerklärung — NachtBlau</title>
   <meta name="robots" content="noindex">
   <meta name="theme-color" content="#07101c">
   <meta name="color-scheme" content="dark light">
   <script>
     (function () {
-      var m = localStorage.getItem('nb-gbr-theme');
+      var m = localStorage.getItem('nb-theme') || localStorage.getItem('nb-gbr-theme');
       var mode = m === 'light' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', mode);
       var meta = document.querySelector('meta[name="theme-color"]');
@@ -19,25 +19,25 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=3">
+  <link rel="stylesheet" href="css/style.css?v=4">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 </head>
 <body>
   <a class="skip-link" href="#inhalt">Zum Inhalt</a>
   <header class="site-header">
     <div class="container header-row">
-      <a href="index.html" class="site-id" aria-label="NachtBlau GbR Startseite">
+      <a href="index.html" class="site-id" aria-label="NachtBlau Startseite">
         <img src="assets/logo.svg" alt="" class="site-id-mark" width="40" height="40">
         <span class="site-id-text">
           <span class="site-id-name">NachtBlau</span>
-          <span class="site-id-legal">GbR</span>
+          <span class="site-id-tag">Projekt</span>
         </span>
       </a>
       <button type="button" class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="site-nav">Menü</button>
       <nav class="site-nav" id="site-nav" aria-label="Hauptnavigation">
         <a href="index.html">Profil</a>
         <a href="index.html#projekte">Projekte</a>
-        <a href="index.html#gesellschafter">Gesellschafter</a>
+        <a href="index.html#team">Team</a>
         <a href="impressum.html">Impressum</a>
         <a href="datenschutz.html" aria-current="page">Datenschutz</a>
         <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Darstellung wechseln">Hell / Dunkel</button>
@@ -48,14 +48,14 @@
   <main class="legal-page" id="inhalt">
     <div class="container">
       <h1>Datenschutzerklärung</h1>
-      <p class="legal-updated">Stand: 10. Juni 2026</p>
+      <p class="legal-updated">Stand: 9. Oktober 2026</p>
       <article class="legal-content">
         <h2>1. Verantwortlicher</h2>
         <p>
-          NachtBlau GbR<br>
+          NachtBlau — privates Hobbyprojekt<br>
           <a href="mailto:info@nacht-blau.de">info@nacht-blau.de</a>
         </p>
-        <p>Die NachtBlau GbR hat keinen festen Geschäftssitz. Privatanschriften der Gesellschafter werden nicht veröffentlicht.</p>
+        <p>Es besteht kein fester Geschäftssitz. Privatanschriften der Projektbeteiligten werden nicht veröffentlicht.</p>
 
         <h2>2. Allgemeines</h2>
         <p>Es findet kein Tracking, kein Profiling und keine Werbung statt.</p>
@@ -64,7 +64,7 @@
         <p>Beim Aufruf dieser Webseite werden durch den Hosting-Anbieter Server-Logfiles erstellt (u.&nbsp;a. IP-Adresse, Zeitpunkt, abgerufene Datei). Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO.</p>
 
         <h2>4. localStorage</h2>
-        <p>Optionale Speicherung der Theme-Einstellung (<code>nb-gbr-theme</code>) im Browser. Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO.</p>
+        <p>Optionale Speicherung der Theme-Einstellung (<code>nb-theme</code>) im Browser. Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO.</p>
 
         <h2>5. Cookies</h2>
         <p>Keine Analyse-, Marketing- oder Tracking-Cookies.</p>
@@ -83,7 +83,7 @@
 
   <footer class="site-footer">
     <div class="container footer-row">
-      <strong>NachtBlau GbR</strong>
+      <strong>NachtBlau</strong>
       <nav aria-label="Fußnavigation">
         <a href="https://hybrixon.com/" rel="noopener noreferrer">Hybrixon</a>
         <a href="impressum.html">Impressum</a>
@@ -91,7 +91,7 @@
         <a href="mailto:info@nacht-blau.de">Kontakt</a>
       </nav>
     </div>
-    <div class="container footer-copy">© 2026 NachtBlau GbR</div>
+    <div class="container footer-copy">© 2026 NachtBlau Projekt</div>
   </footer>
 
   <script src="js/theme.js" type="module"></script>

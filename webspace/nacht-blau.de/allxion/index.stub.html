@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#0a1220">
   <script>
     (function () {
-      var m = localStorage.getItem('nb-gbr-theme');
+      var m = localStorage.getItem('nb-theme') || localStorage.getItem('nb-gbr-theme');
       document.documentElement.setAttribute('data-theme', m === 'light' ? 'light' : 'dark');
     })();
   </script>
@@ -31,7 +31,7 @@
           <code>pnpm webspace:sync:nacht-blau</code>
         </p>
         <p style="margin-top: 1rem;">
-          <a class="btn btn-ghost" href="../index.html">← Zurück zur NachtBlau GbR</a>
+          <a class="btn btn-ghost" href="../index.html">← Zurück zu NachtBlau</a>
         </p>
       </article>
     </div>

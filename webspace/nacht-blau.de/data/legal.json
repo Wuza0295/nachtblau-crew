@@ -1,11 +1,12 @@
 {
-  "company": "NachtBlau GbR",
-  "legalForm": "GbR",
+  "project": "NachtBlau",
+  "character": "Privates Hobbyprojekt & Netzwerk",
   "email": "info@nacht-blau.de",
   "noFixedSeat": true,
   "publishPrivateAddresses": false,
   "activity": "Hobbyprojekt ohne gewerbliche Einnahmen",
   "vatNote": "Keine Umsatzsteuer-Identifikationsnummer — es werden keine gewerblichen Einnahmen erzielt.",
-  "contentResponsible": "NachtBlau GbR",
-  "lastUpdated": "2026-10-06"
+  "contentResponsible": "NachtBlau",
+  "operators": ["Sven", "Sascha"],
+  "lastUpdated": "2026-10-09"
 }
