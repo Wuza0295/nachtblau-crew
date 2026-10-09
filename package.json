@@ -9,7 +9,7 @@
     "start": "NODE_ENV=production node dist/index.js",
     "check": "tsc --noEmit",
     "format": "prettier --write .",
-    "test": "vitest run && python3 scripts/test_hub_sync.py && python3 scripts/test_sync_bazzite_windows.py && node --test apps/nachtblau-hub/resolve-hub-url.test.cjs",
+    "test": "vitest run && python3 scripts/test_hub_sync.py && python3 scripts/test_sync_bazzite_windows.py && python3 scripts/test_dualboot_sync_saves.py && node --test apps/nachtblau-hub/resolve-hub-url.test.cjs",
     "hub:sync": "python3 scripts/hub-sync.py sync",
     "hub:push": "python3 scripts/hub-sync.py push",
     "hub:pull": "python3 scripts/hub-sync.py pull",
@@ -17,7 +17,14 @@
     "hub:check": "python3 scripts/hub-sync.py check",
     "sync:bazzite-windows": "python3 scripts/sync_bazzite_windows.py",
     "db:push": "drizzle-kit generate && drizzle-kit migrate",
-    "db:seed": "tsx server/seed.ts"
+    "db:seed": "tsx server/seed.ts",
+    "sync:machines": "bash scripts/sync-bazzite-windows.sh",
+    "sync:bazzite": "bash scripts/desktop/nacht-install-bazzite.sh",
+    "sync:windows": "echo 'Auf Windows in Admin-PowerShell: .\\\\scripts\\\\desktop\\\\run-nachtblau-from-windows.ps1 -Yes (siehe scripts/desktop/README.md)'",
+    "desktop:status": "bash scripts/desktop/nacht-status-desktop.sh",
+    "sync:saves": "bash scripts/dualboot/sync-saves.sh",
+    "deploy:windows-hub": "python3 scripts/sync_bazzite_windows.py",
+    "deploy:prepare": "python3 scripts/deploy_prepare.py"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1116.0",

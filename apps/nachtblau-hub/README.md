@@ -1,5 +1,7 @@
 # NachtBlau Hub — immer Webspace
 
+Gesamt-Sync Bazzite ↔ Windows (Git/Silk, Desktop-Minecraft, Dual-Boot-Saves): [docs/SYNC-BAZZITE-WINDOWS.md](../../docs/SYNC-BAZZITE-WINDOWS.md).
+
 > **Hinweis:** Minecraft läuft auf dem Raspberry Pi (`192.168.178.33` / WAN `89.247.164.165`). Ports: Java **25565**, Bedrock **19132**, Geyser **19134**. Der Hub kann geöffnet werden, auch wenn die Spiele-Server noch im Setup sind.
 
 **Eine Quelle:** `https://launcher.nachtblau-interactive.com/`

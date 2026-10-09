@@ -1,0 +1,20 @@
+{
+  "updatedAt": "2026-10-09T19:56:07.112113+00:00",
+  "ftpReady": false,
+  "ftpStatus": "fehlt: FTP_USER, FTP_PASS",
+  "waitingOn": "FTP_USER/FTP_PASS (ALL-INKL)",
+  "liveWindowsMissing": true,
+  "artifacts": {
+    "windowsHtml": "apps/nachtblau-hub/webspace-entrypoints/windows.html",
+    "windowsBridge": "apps/nachtblau-hub/webspace-entrypoints/windows-bridge.js",
+    "platforms": "apps/nachtblau-hub/platforms/windows/"
+  },
+  "nextCommands": [
+    "cp .env.webspace.example .env.webspace  # FTP_USER/FTP_PASS eintragen",
+    "pnpm deploy:windows-hub                 # Upload windows.html/.htm/bridge",
+    "pnpm hub:check -- --require-windows     # Live-Parit\u00e4t pr\u00fcfen"
+  ],
+  "host": "w02176b7.kasserver.com",
+  "remoteDir": "/launcher.nachtblau-interactive.com",
+  "liveWindowsHttp": 404
+}

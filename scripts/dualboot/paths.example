@@ -1,0 +1,9 @@
+# Dual-Boot Sync-Root (gemeinsame Partition, typisch NTFS).
+# Linux/Bazzite (nach Mount der Windows-/Datenpartition):
+#   export NACHTBLAU_SYNC_ROOT=/mnt/nachtblau-sync
+# Windows (PowerShell):
+#   $env:NACHTBLAU_SYNC_ROOT = 'D:\NachtBlauSync'
+#
+# Partition einmalig anlegen/mounten, dann:
+#   pnpm sync:saves          # oder: python3 scripts/dualboot/sync_saves.py sync
+#   pnpm sync:saves status   # Übersicht
