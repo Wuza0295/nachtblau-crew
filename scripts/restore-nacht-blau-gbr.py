@@ -190,13 +190,17 @@ def upload(host: str, user: str, password: str, remote_root: str) -> str:
     log(f"index.html {len(check)} sha {digest} match {match}")
 
     logo = bytearray()
+    light = bytearray()
     cwd(ftp, remote_root.rstrip("/") + "/assets")
     ftp.retrbinary("RETR logo.svg", logo.extend)
-    log(f"logo.svg {len(logo)} bytes")
+    ftp.retrbinary("RETR logo-light.svg", light.extend)
+    log(f"logo.svg {len(logo)} bytes light {len(light)} bytes")
 
     title_ok = b"NachtBlau" in bytes(check) and b"NachtBlau GbR" not in bytes(check)
+    mark_ok = b"nb-deploy-rev2-20261009" in bytes(check)
+    logo_ok = b"nb-mark-rev2-20261009" in bytes(logo) and b"nb-mark-rev2-20261009" in bytes(light)
     ftp.quit()
-    if not match or not title_ok or len(logo) < 200:
+    if not match or not title_ok or not mark_ok or not logo_ok or len(logo) < 200:
         raise RuntimeError("Upload-Verifikation fehlgeschlagen")
     return digest
 

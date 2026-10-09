@@ -1,4 +1,4 @@
-# NachtBlau GbR — ALL-INKL
+# NachtBlau Projekt — ALL-INKL
 # index.htm zuerst spiegeln falls Hosting DirectoryIndex index.htm bevorzugt
 DirectoryIndex index.html index.htm
 
@@ -14,6 +14,7 @@ Options -Indexes -MultiViews
   ExpiresActive On
   ExpiresByType text/css "access plus 7 days"
   ExpiresByType application/javascript "access plus 7 days"
-  ExpiresByType image/svg+xml "access plus 30 days"
-  ExpiresByType image/png "access plus 30 days"
+  # SVG mit Query-Cache-Buster (?v=) — kürzere TTL hilft bei Logo-Updates
+  ExpiresByType image/svg+xml "access plus 1 day"
+  ExpiresByType image/png "access plus 7 days"
 </IfModule>
