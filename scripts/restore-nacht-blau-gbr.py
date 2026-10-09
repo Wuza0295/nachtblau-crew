@@ -343,7 +343,7 @@ def main() -> None:
                 "ftp_login": login,
                 "ftp_password": password,
                 "ftp_path": "/nacht-blau.de/",
-                "ftp_comment": "gbr-restore",
+                "ftp_comment": "nachtblau-deploy",
             },
         )
         problem = fault(raw)
