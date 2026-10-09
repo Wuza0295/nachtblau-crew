@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
+import { LOCAL_LOGIN_PATH, LOCAL_REGISTER_PATH } from "@/const";
 import {
   MessageSquare,
   Monitor,
@@ -59,13 +59,21 @@ export default function Forum() {
               </Button>
             </Link>
           ) : (
-            <Button
-              variant="outline"
-              className="border-primary/40 text-primary hover:bg-primary/10 gap-2"
-              onClick={() => (window.location.href = getLoginUrl())}
-            >
-              Anmelden zum Posten
-            </Button>
+            <div className="flex gap-2">
+              <Link href={LOCAL_LOGIN_PATH}>
+                <Button
+                  variant="outline"
+                  className="border-primary/40 text-primary hover:bg-primary/10 gap-2"
+                >
+                  Anmelden
+                </Button>
+              </Link>
+              <Link href={LOCAL_REGISTER_PATH}>
+                <Button className="bg-primary hover:bg-primary/80 text-primary-foreground">
+                  Registrieren
+                </Button>
+              </Link>
+            </div>
           )}
         </div>
 
@@ -117,12 +125,18 @@ export default function Forum() {
             <p className="text-sm text-muted-foreground mb-4">
               Melde dich an, um Threads zu erstellen und zu kommentieren.
             </p>
-            <Button
-              className="bg-primary hover:bg-primary/80 text-primary-foreground"
-              onClick={() => (window.location.href = getLoginUrl())}
-            >
-              Jetzt anmelden
-            </Button>
+            <div className="flex justify-center gap-2">
+              <Link href={LOCAL_LOGIN_PATH}>
+                <Button className="bg-primary hover:bg-primary/80 text-primary-foreground">
+                  Jetzt anmelden
+                </Button>
+              </Link>
+              <Link href={LOCAL_REGISTER_PATH}>
+                <Button variant="outline" className="border-primary/40 text-primary hover:bg-primary/10">
+                  Registrieren
+                </Button>
+              </Link>
+            </div>
           </div>
         )}
       </div>

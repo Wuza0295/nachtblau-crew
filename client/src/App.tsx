@@ -14,6 +14,9 @@ import NewThread from "./pages/NewThread";
 import Profile from "./pages/Profile";
 import ProfileRedirect from "./pages/ProfileRedirect";
 import About from "./pages/About";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import ConfirmEmail from "./pages/ConfirmEmail";
 import SocialHub from "./pages/social/SocialHub";
 import SocialFluss from "./pages/social/SocialFluss";
 import SocialKreise from "./pages/social/SocialKreise";
@@ -43,6 +46,9 @@ function Router() {
               <Route path="/profil" component={ProfileRedirect} />
               <Route path="/profil/:id" component={Profile} />
               <Route path="/ueber-uns" component={About} />
+              <Route path="/anmelden" component={Login} />
+              <Route path="/registrieren" component={Register} />
+              <Route path="/email-bestaetigen" component={ConfirmEmail} />
               <Route path="/404" component={NotFound} />
               <Route component={NotFound} />
             </Switch>

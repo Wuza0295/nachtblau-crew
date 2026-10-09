@@ -1,9 +1,23 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { COOKIE_NAME } from "@shared/const";
+import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
+import {
+  confirmEmailSchema,
+  loginSchema,
+  registerSchema,
+  resendConfirmationSchema,
+} from "@shared/emailAuth";
+import type { User } from "../drizzle/schema";
 import { getSessionCookieOptions } from "./_core/cookies";
+import { sdk } from "./_core/sdk";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import {
+  confirmEmailAddress,
+  loginWithPassword,
+  registerWithPassword,
+  resendConfirmationEmail,
+} from "./emailAuth";
 import {
   createPost,
   createThread,
@@ -251,15 +265,42 @@ const profileRouter = router({
 });
 
 // ─── App Router ───────────────────────────────────────────────────────────────
+function toPublicUser(user: User | null) {
+  if (!user) return null;
+  const { passwordHash: _passwordHash, ...safeUser } = user;
+  return safeUser;
+}
+
 export const appRouter = router({
   system: systemRouter,
   auth: router({
-    me: publicProcedure.query((opts) => opts.ctx.user),
+    me: publicProcedure.query((opts) => toPublicUser(opts.ctx.user)),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return { success: true } as const;
     }),
+    register: publicProcedure.input(registerSchema).mutation(({ ctx, input }) => {
+      return registerWithPassword(input, ctx.req);
+    }),
+    login: publicProcedure.input(loginSchema).mutation(async ({ ctx, input }) => {
+      const user = await loginWithPassword(input);
+      const sessionToken = await sdk.createSessionToken(user.openId, {
+        name: user.name || "",
+        expiresInMs: ONE_YEAR_MS,
+      });
+      const cookieOptions = getSessionCookieOptions(ctx.req);
+      ctx.res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+      return { success: true as const };
+    }),
+    confirmEmail: publicProcedure.input(confirmEmailSchema).mutation(({ input }) => {
+      return confirmEmailAddress(input.token);
+    }),
+    resendConfirmation: publicProcedure
+      .input(resendConfirmationSchema)
+      .mutation(({ ctx, input }) => {
+        return resendConfirmationEmail(input.email, ctx.req);
+      }),
   }),
   games: gamesRouter,
   news: newsRouter,

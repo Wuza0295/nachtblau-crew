@@ -39,10 +39,13 @@ export function getSessionCookieOptions(
   //       ? hostname
   //       : undefined;
 
+  const secure = isSecureRequest(req);
+
   return {
     httpOnly: true,
     path: "/",
-    sameSite: "none",
-    secure: isSecureRequest(req),
+    // SameSite=None ohne Secure verwirft der Browser. Lokal bleibt die Sitzung mit Lax gültig.
+    sameSite: secure ? "none" : "lax",
+    secure,
   };
 }

@@ -14,7 +14,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link, useLocation, useSearch } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
+import { LOCAL_LOGIN_PATH } from "@/const";
 import { toast } from "sonner";
 import { ChevronLeft, Plus, MessageSquare } from "lucide-react";
 
@@ -50,12 +50,11 @@ export default function NewThread() {
         <p className="text-muted-foreground mb-4">
           Du musst angemeldet sein, um einen Thread zu erstellen.
         </p>
-        <Button
-          className="bg-primary hover:bg-primary/80 text-primary-foreground"
-          onClick={() => (window.location.href = getLoginUrl())}
-        >
-          Jetzt anmelden
-        </Button>
+        <Link href={LOCAL_LOGIN_PATH}>
+          <Button className="bg-primary hover:bg-primary/80 text-primary-foreground">
+            Jetzt anmelden
+          </Button>
+        </Link>
       </div>
     );
   }

@@ -1,10 +1,11 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   ForumCategory,
   ForumPost,
   ForumThread,
   InsertUser,
+  emailVerificationTokens,
   forumCategories,
   forumPosts,
   forumThreads,
@@ -84,6 +85,114 @@ export async function updateUserProfile(
   const db = await getDb();
   if (!db) return;
   await db.update(users).set(data).where(eq(users.id, id));
+}
+
+export async function getUserByEmail(email: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  return result[0];
+}
+
+export async function createLocalUser(data: {
+  openId: string;
+  name: string;
+  email: string;
+  passwordHash: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Datenbank ist nicht erreichbar.");
+  await db.insert(users).values({
+    openId: data.openId,
+    name: data.name,
+    email: data.email,
+    passwordHash: data.passwordHash,
+    loginMethod: "password",
+    emailVerified: false,
+    role: "user",
+  });
+  const created = await getUserByOpenId(data.openId);
+  if (!created) throw new Error("Konto konnte nicht angelegt werden.");
+  return created;
+}
+
+export async function markUserSignedIn(userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(users).set({ lastSignedIn: new Date() }).where(eq(users.id, userId));
+}
+
+function affectedRows(result: unknown): number {
+  if (Array.isArray(result)) {
+    const header = result[0] as { affectedRows?: number } | undefined;
+    return header?.affectedRows ?? 0;
+  }
+  if (result && typeof result === "object" && "affectedRows" in result) {
+    return Number((result as { affectedRows: number }).affectedRows) || 0;
+  }
+  return 0;
+}
+
+/** Alte ungenutzte Links ungültig machen und einen neuen Hash speichern. */
+export async function replaceVerificationToken(
+  userId: number,
+  tokenHash: string,
+  expiresAt: Date
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Datenbank ist nicht erreichbar.");
+  const now = new Date();
+  await db
+    .update(emailVerificationTokens)
+    .set({ usedAt: now })
+    .where(and(eq(emailVerificationTokens.userId, userId), isNull(emailVerificationTokens.usedAt)));
+  await db.insert(emailVerificationTokens).values({
+    userId,
+    tokenHash,
+    expiresAt,
+  });
+}
+
+/**
+ * Löst einen Token-Hash ein. Bereits bestätigte Konten bleiben beim erneuten
+ * Aufruf desselben Links erfolgreich, ohne den Status noch einmal zu ändern.
+ */
+export async function consumeVerificationToken(
+  tokenHash: string
+): Promise<"confirmed" | "already" | "invalid"> {
+  const db = await getDb();
+  if (!db) throw new Error("Datenbank ist nicht erreichbar.");
+  const now = new Date();
+
+  return db.transaction(async (tx) => {
+    const rows = await tx
+      .select()
+      .from(emailVerificationTokens)
+      .where(eq(emailVerificationTokens.tokenHash, tokenHash))
+      .limit(1);
+    const row = rows[0];
+    if (!row) return "invalid";
+
+    if (row.usedAt) {
+      const owner = await tx.select().from(users).where(eq(users.id, row.userId)).limit(1);
+      return owner[0]?.emailVerified ? "already" : "invalid";
+    }
+
+    if (row.expiresAt.getTime() <= now.getTime()) return "invalid";
+
+    const updated = await tx
+      .update(emailVerificationTokens)
+      .set({ usedAt: now })
+      .where(and(eq(emailVerificationTokens.id, row.id), isNull(emailVerificationTokens.usedAt)));
+
+    if (affectedRows(updated) < 1) {
+      const owner = await tx.select().from(users).where(eq(users.id, row.userId)).limit(1);
+      return owner[0]?.emailVerified ? "already" : "invalid";
+    }
+
+    await tx.update(users).set({ emailVerified: true }).where(eq(users.id, row.userId));
+    return "confirmed";
+  });
 }
 
 // ─── Forum Categories ─────────────────────────────────────────────────────────
