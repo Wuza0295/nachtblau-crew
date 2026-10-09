@@ -1,7 +1,8 @@
 Doppelklick auf .exe startet Windows-Programme – silk-windows richtet alles ein.
 Desktop-Stil ändern: Silk → Desktop-Stil im Startmenü, oder silk-desktop --ask.
 Controller einfach stecken oder per Bluetooth koppeln – on the fly.
-Updates: silk-update hält Apps frisch; silk-update --full fürs System-Image.
+Updates als Image: silk-update --full (oder sudo bootc upgrade && reboot) zieht ghcr.io/wuza0295/silk:latest.
+Apps zwischendurch: silk-update ohne --full (Flatpaks + Listen).
 Hilfe jederzeit: silk-welcome oder „Silk Hilfe“ im Startmenü.
 Tastenkürzel wie gewohnt: siehe ~/.config/silk/habits-cheatsheet.txt
 iPhone/iPad anbinden: silk-connect setup (Silk Connect).

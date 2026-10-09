@@ -215,5 +215,60 @@ if [[ -f /usr/share/icons/hicolor/scalable/apps/start-here.svg ]]; then
   done
 fi
 
+# --- Anaconda / Installer: SS AURORA + Dino-Mascots → Silk Owl ---
+# system_files liefert bereits pixmaps; hier Upstream-Reste und Live-Hintergründe überschreiben.
+ANA_BG="${BRAND_SRC}/anaconda-bg.png"
+ANA_DONE="${BRAND_SRC}/anaconda-done.png"
+ANA_MARK="${BRAND_SRC}/silk-mark.png"
+ANA_BANNER="${BRAND_SRC}/silk-banner.png"
+if [[ -f "$ANA_BG" ]]; then
+  mkdir -p /usr/share/anaconda/pixmaps
+  cp -f "$ANA_BG" /usr/share/anaconda/pixmaps/background.png 2>/dev/null || true
+  cp -f "$ANA_BG" /usr/share/anaconda/pixmaps/sidebar-bg.png 2>/dev/null || true
+  # Häufige Live-/Default-Hintergründe (Aurora-Schiff o.ä.)
+  for dest in \
+    /usr/share/backgrounds/default.png \
+    /usr/share/backgrounds/images/default.png \
+    /usr/share/backgrounds/aurora \
+    /usr/share/wallpapers/Aurora \
+    /usr/share/wallpapers/aurora
+  do
+    if [[ -d "$dest" ]]; then
+      find "$dest" -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' \) \
+        -exec cp -f "$ANA_BG" {} \; 2>/dev/null || true
+    elif [[ -f "$dest" ]]; then
+      cp -f "$ANA_BG" "$dest" 2>/dev/null || true
+    fi
+  done
+  # Jeden Wallpaper-Pfad mit „aurora“ im Namen ersetzen (best-effort)
+  while IFS= read -r -d '' f; do
+    cp -f "$ANA_BG" "$f" 2>/dev/null || true
+  done < <(find /usr/share/backgrounds /usr/share/wallpapers -type f \
+    \( -iname '*aurora*' -o -iname '*Aurora*' \) \
+    \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' \) -print0 2>/dev/null || true)
+fi
+if [[ -f "$ANA_DONE" ]]; then
+  mkdir -p /usr/share/anaconda/pixmaps
+  for name in done.png progress_done.png complete.png success.png \
+              konqi.png katie.png mascot.png payload-complete.png; do
+    cp -f "$ANA_DONE" "/usr/share/anaconda/pixmaps/${name}" 2>/dev/null || true
+  done
+  # Falls Upstream eigene Done-Grafiken unter anderen Namen legt
+  while IFS= read -r -d '' f; do
+    case "$(basename "$f" | tr '[:upper:]' '[:lower:]')" in
+      *done*|*complete*|*konqi*|*katie*|*mascot*|*dino*)
+        cp -f "$ANA_DONE" "$f" 2>/dev/null || true
+        ;;
+    esac
+  done < <(find /usr/share/anaconda -type f \( -iname '*.png' -o -iname '*.svg' \) -print0 2>/dev/null || true)
+fi
+if [[ -f "$ANA_MARK" ]]; then
+  cp -f "$ANA_MARK" /usr/share/anaconda/pixmaps/product-logo.png 2>/dev/null || true
+fi
+if [[ -f "$ANA_BANNER" ]]; then
+  cp -f "$ANA_BANNER" /usr/share/anaconda/pixmaps/fedora-logo.png 2>/dev/null || true
+  cp -f "$ANA_BANNER" /usr/share/anaconda/pixmaps/sidebar-logo.png 2>/dev/null || true
+fi
+
 echo "Silk Branding fertig."
 cat /usr/lib/os-release 2>/dev/null | head -20 || true

@@ -111,11 +111,24 @@ silk-mobile install
 
 ---
 
+## Update (bestehende Installation / VM)
+
+Image von `ghcr.io/wuza0295/silk:latest` einspielen:
+
+```bash
+silk-update --full
+# Alternative:
+sudo bootc upgrade && sudo systemctl reboot
+```
+
+---
+
 ## Hilfe
 
 ```bash
 silk-doctor
 silk-platform guide
+silk-tips
 ```
 
 Vollständig: [`docs/PLATFORMS.md`](docs/PLATFORMS.md)

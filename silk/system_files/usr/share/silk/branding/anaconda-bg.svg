@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" role="img" aria-label="Silk ocean">
+  <defs>
+    <linearGradient id="sky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1a0a08"/>
+      <stop offset="35%" stop-color="#7c2d12"/>
+      <stop offset="60%" stop-color="#ea580c"/>
+      <stop offset="78%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#fecaca"/>
+    </linearGradient>
+    <linearGradient id="sea" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a5f"/>
+      <stop offset="50%" stop-color="#0f2744"/>
+      <stop offset="100%" stop-color="#071525"/>
+    </linearGradient>
+    <linearGradient id="sail" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7dd3fc"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+  </defs>
+  <!-- sky -->
+  <rect width="1920" height="620" fill="url(#sky)"/>
+  <!-- painterly clouds -->
+  <ellipse cx="320" cy="180" rx="260" ry="70" fill="#451a03" opacity="0.55"/>
+  <ellipse cx="700" cy="120" rx="300" ry="80" fill="#7c2d12" opacity="0.45"/>
+  <ellipse cx="1200" cy="160" rx="340" ry="90" fill="#431407" opacity="0.5"/>
+  <ellipse cx="1600" cy="100" rx="280" ry="70" fill="#9a3412" opacity="0.4"/>
+  <!-- sun glow -->
+  <circle cx="960" cy="520" r="90" fill="#fde68a" opacity="0.85"/>
+  <circle cx="960" cy="520" r="140" fill="#fbbf24" opacity="0.25"/>
+  <!-- sea -->
+  <rect y="560" width="1920" height="520" fill="url(#sea)"/>
+  <!-- waves -->
+  <path d="M0 620 Q120 600 240 620 T480 620 T720 620 T960 620 T1200 620 T1440 620 T1680 620 T1920 620 V1080 H0 Z" fill="#163553" opacity="0.5"/>
+  <path d="M0 700 Q160 680 320 700 T640 700 T960 700 T1280 700 T1600 700 T1920 700" fill="none" stroke="#94a3b8" stroke-width="3" opacity="0.35"/>
+  <path d="M0 780 Q140 760 280 780 T560 780 T840 780 T1120 780 T1400 780 T1680 780 T1920 780" fill="none" stroke="#e2e8f0" stroke-width="2" opacity="0.25"/>
+  <!-- dolphins -->
+  <g fill="#38bdf8" opacity="0.9">
+    <path d="M280 640 C320 600 380 600 400 640 C370 630 330 635 280 640 Z"/>
+    <path d="M360 610 L390 590 L385 620 Z"/>
+    <path d="M420 670 C460 630 520 635 540 675 C510 665 470 670 420 670 Z"/>
+  </g>
+  <!-- ship hull -->
+  <g transform="translate(1180,560)">
+    <path d="M40 180 L80 280 L420 280 L460 180 Z" fill="#4a1942"/>
+    <path d="M60 180 L100 260 L400 260 L440 180 Z" fill="#6b2d5c"/>
+    <!-- SS SILK -->
+    <text x="250" y="235" text-anchor="middle" font-family="DejaVu Sans, Liberation Sans, sans-serif" font-size="36" font-weight="700" fill="#0f172a" letter-spacing="3">SS SILK</text>
+    <!-- mast -->
+    <rect x="245" y="-40" width="10" height="230" fill="#1e293b"/>
+    <!-- sail with owl mark -->
+    <path d="M255 -30 L420 140 L255 160 Z" fill="url(#sail)"/>
+    <g transform="translate(300,40) scale(0.55)">
+      <circle cx="64" cy="64" r="50" fill="#0b1a2e" opacity="0.35"/>
+      <path d="M34 44 L26 18 L48 36 Z" fill="#e0f2fe"/>
+      <path d="M94 44 L102 18 L80 36 Z" fill="#e0f2fe"/>
+      <circle cx="48" cy="62" r="12" fill="#fff"/>
+      <circle cx="80" cy="62" r="12" fill="#fff"/>
+      <circle cx="48" cy="62" r="6" fill="#0f172a"/>
+      <circle cx="80" cy="62" r="6" fill="#0f172a"/>
+      <path d="M64 70 L56 84 L72 84 Z" fill="#f59e0b"/>
+    </g>
+  </g>
+</svg>

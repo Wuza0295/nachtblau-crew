@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Silk Owl">
+  <defs>
+    <linearGradient id="body" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#7dd3fc"/>
+      <stop offset="55%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#1e3a5f"/>
+    </linearGradient>
+    <linearGradient id="belly" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#e0f2fe"/>
+      <stop offset="100%" stop-color="#bae6fd"/>
+    </linearGradient>
+  </defs>
+  <!-- ear tufts -->
+  <path d="M78 78 L58 28 L98 62 Z" fill="#1e3a5f"/>
+  <path d="M178 78 L198 28 L158 62 Z" fill="#1e3a5f"/>
+  <!-- body -->
+  <ellipse cx="128" cy="148" rx="78" ry="86" fill="url(#body)"/>
+  <!-- belly -->
+  <ellipse cx="128" cy="168" rx="48" ry="52" fill="url(#belly)"/>
+  <!-- face disk -->
+  <ellipse cx="128" cy="118" rx="62" ry="54" fill="#dbeafe"/>
+  <!-- eyes -->
+  <circle cx="104" cy="112" r="18" fill="#0f172a"/>
+  <circle cx="152" cy="112" r="18" fill="#0f172a"/>
+  <circle cx="110" cy="106" r="6" fill="#fff"/>
+  <circle cx="158" cy="106" r="6" fill="#fff"/>
+  <!-- beak -->
+  <path d="M128 122 L118 138 L138 138 Z" fill="#f59e0b"/>
+  <!-- brows -->
+  <path d="M86 96 Q104 86 120 96" fill="none" stroke="#1e3a5f" stroke-width="6" stroke-linecap="round"/>
+  <path d="M136 96 Q152 86 170 96" fill="none" stroke="#1e3a5f" stroke-width="6" stroke-linecap="round"/>
+  <!-- feet -->
+  <path d="M100 220 L92 236 M100 220 L100 238 M100 220 L108 236" stroke="#f59e0b" stroke-width="5" stroke-linecap="round"/>
+  <path d="M156 220 L148 236 M156 220 L156 238 M156 220 L164 236" stroke="#f59e0b" stroke-width="5" stroke-linecap="round"/>
+</svg>

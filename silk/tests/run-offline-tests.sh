@@ -202,7 +202,26 @@ grep -q 'Theme=org.silk.desktop' "$ROOT/system_files/etc/skel/.config/ksplashrc"
 grep -q 'LookAndFeelPackage=org.silk.desktop' "$ROOT/system_files/etc/xdg/kdeglobals" && ok "xdg kdeglobals Silk" || bad "xdg kdeglobals"
 grep -q 'LookAndFeelPackage=org.silk.desktop' "$ROOT/system_files/etc/skel/.config/kdeglobals" && ok "skel kdeglobals Silk" || bad "skel kdeglobals"
 [[ -f "$ROOT/system_files/usr/share/anaconda/pixmaps/product-logo.png" ]] && ok "anaconda product-logo" || bad "anaconda product-logo"
+[[ -f "$ROOT/system_files/usr/share/anaconda/pixmaps/background.png" ]] && ok "anaconda background" || bad "anaconda background"
+[[ -f "$ROOT/system_files/usr/share/anaconda/pixmaps/done.png" ]] && ok "anaconda done (owl)" || bad "anaconda done"
+[[ -f "$ROOT/system_files/usr/share/silk/branding/anaconda-bg.png" ]] && ok "branding anaconda-bg.png" || bad "anaconda-bg.png"
+[[ -f "$ROOT/system_files/usr/share/silk/branding/anaconda-done.png" ]] && ok "branding anaconda-done.png" || bad "anaconda-done.png"
+[[ -f "$ROOT/system_files/usr/share/silk/branding/silk-owl.svg" ]] && ok "silk-owl.svg mascot" || bad "silk-owl.svg"
+grep -q 'anaconda-bg.png' "$ROOT/build_files/06-branding.sh" && ok "branding deploys anaconda-bg" || bad "branding anaconda-bg wire"
+grep -q 'SS SILK\|anaconda-done\|Silk Owl\|owl' \
+  "$ROOT/system_files/usr/share/silk/branding/anaconda-bg.svg" \
+  "$ROOT/system_files/usr/share/silk/branding/silk-owl.svg" 2>/dev/null \
+  && ok "owl / SS SILK in branding SVGs" || bad "owl/SS SILK branding SVGs"
+# Kein SS AURORA in Silk-Installer-Assets
+if grep -qiE 'SS AURORA|SS.?AURORA' "$ROOT/system_files/usr/share/silk/branding/"* 2>/dev/null; then
+  bad "SS AURORA still in branding assets"
+else
+  ok "no SS AURORA in branding assets"
+fi
+grep -q 'silk-update --full' "$ROOT/system_files/usr/share/silk/tips.txt" && ok "tips mention silk-update --full" || bad "tips update"
+grep -q 'ghcr.io/wuza0295/silk:latest' "$ROOT/QUICKSTART.md" && ok "QUICKSTART update image" || bad "QUICKSTART update"
 grep -qE 'BGRT|Plymouth-Wasserzeichen' "$ROOT/docs/VM-WINDOWS.md" && ok "docs boot logos" || bad "docs boot logos"
+grep -q 'silk-update --full' "$ROOT/docs/VM-WINDOWS.md" && ok "docs VM update path" || bad "docs VM update"
 # Assets dürfen kein Aurora-Wortmark enthalten
 if grep -qiE '\bAurora\b' "$ROOT/system_files/usr/share/silk/branding/"*.svg 2>/dev/null; then
   bad "Aurora in branding SVGs"

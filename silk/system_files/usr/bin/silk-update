@@ -14,7 +14,12 @@ silk-update – alles aktuell halten
 Ebenen:
   1) Git-Listen (Aliases, Essentials, Gaming) → silk-sync-config
   2) Flatpaks (Steam, LibreOffice, …)        → flatpak update
-  3) Silk-System (Kernel, Silk-Skripte)      → bootc upgrade + Reboot
+  3) Silk-System (Kernel, Branding, Skripte) → bootc upgrade
+     Image: ghcr.io/wuza0295/silk:latest (+ Reboot)
+
+Nach CI-Publish Branding/System als Update:
+  silk-update --full
+  # oder: sudo bootc upgrade && sudo systemctl reboot
 EOF
 }
 

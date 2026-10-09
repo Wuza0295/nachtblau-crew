@@ -100,14 +100,19 @@ Beim EFI-Boot in VirtualBox sieht man oft **zwei** Logos:
 | Logo | Herkunft | Änderbar in Silk? |
 |------|----------|-------------------|
 | **VirtualBox** (Mitte, Spinner) | VirtualBox-EFI-Firmware (BGRT) – Host-Hypervisor, nicht Gast-OS | Nein (VirtualBox-eigene Boot-Grafik) |
-| **Aurora** unten (altes ISO) | Plymouth-Wasserzeichen der Upstream-Basis | Ja – neues Silk-Image ersetzt es durch **Silk** |
+| **Upstream-Marke** unten (altes ISO) | Plymouth-Wasserzeichen der Upstream-Basis | Ja – neues Silk-Image ersetzt es durch **Silk** |
 
-**Neu bauen / neu laden:** Image + ISO mit Silk-Plymouth/`os-release`/Plasma-Splash. Alte `silk-media-latest`-ISOs zeigen noch Aurora unten.
+**Neu bauen / neu laden:** Image + ISO mit Silk-Plymouth/`os-release`/Plasma-Splash. Alte `silk-media-latest`-ISOs zeigen unten noch die Upstream-Marke.
 
-**Laufende VM (Image schon installiert):** nach CI-Publish:
+**Laufende VM (Image schon installiert):** Branding und System als Update einspielen, sobald CI `ghcr.io/wuza0295/silk:latest` veröffentlicht hat:
 
 ```bash
+# empfohlen (Apps + System-Image)
+silk-update --full
+# danach neu starten, falls nicht automatisch gefragt
+
+# oder nur System-Image:
 sudo bootc upgrade && sudo systemctl reboot
 ```
 
-Nur Desktop/Splash nach dem Login (ohne Image-Upgrade) geht teilweise mit `silk-desktop mac` und Silk-Wallpaper – der **Early-Boot**-Plymouth-Wasserzeichen kommt erst mit dem neuen Initramfs im Image.
+Nur Desktop/Splash nach dem Login (ohne Image-Upgrade) geht teilweise mit `silk-desktop mac` und Silk-Wallpaper – der **Early-Boot**-Plymouth-Wasserzeichen und der Installer-Hintergrund (SS SILK + Eulen-Maskottchen) kommen erst mit dem neuen Initramfs/ISO im Image.

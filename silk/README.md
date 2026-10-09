@@ -75,8 +75,8 @@ Beim ersten Login: Stil wählen → **Alltags-Apps automatisch** → optional Ga
 | **Entwickler** | Änderungen in Git → Push → GitHub Actions baut Image |
 | **Registry** | `ghcr.io/<user>/silk:latest` (signiert mit Cosign) |
 | **Erstinstallation** | ISO (optional) oder `bootc switch` von Universal Blue / Bazzite |
-| **Nutzer-Update System** | `sudo bootc upgrade` (+ Reboot) |
-| **Nutzer-Update Apps** | `flatpak update` oder `silk-update` |
+| **Nutzer-Update System** | `silk-update --full` oder `sudo bootc upgrade` (+ Reboot) → `ghcr.io/wuza0295/silk:latest` |
+| **Nutzer-Update Apps** | `silk-update` (ohne `--full`) / `flatpak update` |
 | **Listen ohne Rebuild** | `silk-sync-config` zieht Aliases/Essentials vom Git-`main` |
 
 ### Drei Update-Ebenen
@@ -106,12 +106,22 @@ Repo-URL für Listen: `SILK_CONFIG_URL` (Standard: dieses GitHub-Repo `main/silk
 - CI baut **täglich** neu und zieht Upstream mit `--pull=always`
 - Silk-Layer liegt **oben** auf dem Upstream-Base
 
-### Updates einspielen
+### Updates einspielen (laufende Installation / VM)
+
+Sobald CI das Image nach `ghcr.io/wuza0295/silk:latest` published hat:
 
 ```bash
+silk-update --full
+# oder nur Image:
 sudo bootc upgrade && sudo systemctl reboot
-# oder: ujust update
-# oder: rpm-ostree upgrade && sudo systemctl reboot
+```
+
+Branding (Plymouth „Silk“, Eulen-Maskottchen, Installer ohne Upstream-Schiff-Logo) kommt **als Image-Update**, nicht per `git pull`.
+
+```bash
+# Alternativen zum Image-Update:
+# ujust update
+# rpm-ostree upgrade && sudo systemctl reboot
 ```
 
 ### Upstream vs. Bazzite
