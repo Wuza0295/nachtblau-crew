@@ -116,7 +116,7 @@ $defs = [
 ?>
 <aside class="sidebar" aria-label="<?= e(t('nav.feed')) ?>">
   <a class="sidebar-brand brand" href="<?= e(allxion_url()) ?>" aria-label="Hybrixon">
-    <img class="sidebar-brand-logo brand-logo" src="<?= e(allxion_url('assets/img/logo.svg')) ?>" width="56" height="56" alt="">
+    <img class="sidebar-brand-logo brand-logo" src="<?= e(allxion_url('assets/img/logo.svg')) ?>" width="44" height="44" alt="">
     <span class="brand-text sidebar-brand-text">
       <strong>Hybrixon</strong>
       <small class="brand-tagline"><?= e(ALLXION_TAGLINE) ?></small>
