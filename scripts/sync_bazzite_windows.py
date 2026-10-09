@@ -293,6 +293,13 @@ def main() -> None:
     if args.check:
         raise SystemExit(verify_live(require_windows=args.require_windows))
 
+    if not args.no_upload:
+        # Credentials vor dem Schreiben prüfen — sonst nur lokale Artefakte mit --no-upload
+        sys.path.insert(0, str(ROOT / "scripts"))
+        from webspace_config import require_credentials
+
+        require_credentials()
+
     linux_html, linux_bridge, source = choose_source()
     report = write_platform_files(linux_html, linux_bridge)
     print(f"✓ Artefakte geschrieben (Quelle={source})")
@@ -311,11 +318,6 @@ def main() -> None:
         verify_live(require_windows=False)
         return
 
-    # Credentials früh prüfen, damit der Fehler vor dem Upload-Hinweis kommt
-    sys.path.insert(0, str(ROOT / "scripts"))
-    from webspace_config import require_credentials
-
-    require_credentials()
     print("↑ Windows-Seiten auf den Launcher-Webspace …")
     upload_windows(upload_paths)
     print("Live-Prüfung:")
