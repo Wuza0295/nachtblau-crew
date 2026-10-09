@@ -79,3 +79,15 @@ dnf5 -y install \
 
 # Optional: Latte-Nachfolger / Dock-Hilfen falls verfügbar
 dnf5 -y install plasma-nano 2>/dev/null || true
+
+# Deutsch (Nachtblau): Locale + Übersetzungen für Plasma/Apps
+# Ohne glibc-langpack-de fehlt de_DE in Anaconda/localectl.
+dnf5 -y install \
+  glibc-langpack-de \
+  langpacks-core-de \
+  langpacks-de \
+  hunspell-de \
+  || true
+# KDE-/Plasma-Übersetzungen (Name je nach Fedora-Release)
+dnf5 -y install kde-l10n-de 2>/dev/null || \
+  dnf5 -y install langpacks-kde-de 2>/dev/null || true

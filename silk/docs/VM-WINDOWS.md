@@ -76,3 +76,19 @@ silk-tour --center   # Startzentrum
 
 Release: https://github.com/Wuza0295/nachtblau-crew/releases/tag/silk-media-latest  
 (`Silk-Installer-x86_64.iso.*` · `Silk-VM-x86_64.qcow2.*`)
+
+## Sprache (Deutsch)
+
+Der Anaconda-Installer ist auf **Deutsch (`de_DE`)** voreingestellt (Tastatur DE, Zeitzone Europe/Berlin).
+Das braucht ein **neu gebautes** `Silk-Installer`-ISO (Release `silk-media-latest` nach dem Fix).
+
+**Workaround für eine laufende Installer-Session** (altes ISO ohne Localization):
+
+1. Am GRUB/Boot-Menü `e` drücken und Kernel-Parameter ergänzen:
+   `inst.lang=de_DE.UTF-8`
+2. Mit Ctrl+X starten – die Installer-UI sollte auf Deutsch kommen.
+3. Nach der Installation (falls Desktop noch Englisch):
+   ```bash
+   localectl set-locale LANG=de_DE.UTF-8
+   localectl set-keymap de
+   ```

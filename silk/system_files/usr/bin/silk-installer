@@ -83,10 +83,13 @@ cmd_iso() {
 
 2. ISO auf USB schreiben (z. B. Fedora Media Writer, balenaEtcher, dd)
 
-3. PC vom USB booten → Anaconda-Installer → Silk wird automatisch
-   per Kickstart auf ghcr.io/wuza0295/silk:latest umgestellt.
+3. PC vom USB booten → Anaconda-Installer (Deutsch / de_DE Standard,
+   Sprache wählbar) → Silk wird automatisch per Kickstart auf
+   ghcr.io/wuza0295/silk:latest umgestellt.
 
 4. Nach Installation: silk-setup
+
+Tipp: Fehlt Deutsch im alten ISO, Boot-Parameter: inst.lang=de_DE.UTF-8
 
 Alternativ ohne USB: Von Universal Blue / Bazzite per bootc switch:
   silk-installer switch

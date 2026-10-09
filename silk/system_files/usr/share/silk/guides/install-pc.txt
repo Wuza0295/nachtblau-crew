@@ -3,11 +3,14 @@
 Installation:
   silk-installer              # Interaktiv
   silk-installer switch       # bootc switch
-  silk-installer iso          # USB-Stick
+  silk-installer iso          # USB-Stick (Anaconda: Deutsch/de_DE Standard)
 
 Nach Installation:
   silk-setup
   silk-doctor
+
+Sprache: Installer und System defaulten auf de_DE (Tastatur de).
+Altes ISO ohne Deutsch: Boot-Parameter inst.lang=de_DE.UTF-8
 
 Images:
   AMD/Intel:  ghcr.io/wuza0295/silk:latest
