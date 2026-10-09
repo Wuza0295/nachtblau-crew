@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none" role="img" aria-label="NachtBlau GbR">
+  <defs>
+    <linearGradient id="plate" x1="20" y1="16" x2="108" y2="112">
+      <stop offset="0%" stop-color="#141e2a"/>
+      <stop offset="100%" stop-color="#080d14"/>
+    </linearGradient>
+    <linearGradient id="moon" x1="78" y1="24" x2="102" y2="48">
+      <stop offset="0%" stop-color="#eef2f6"/>
+      <stop offset="100%" stop-color="#9aaaba"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Markenfeld -->
+  <rect x="8" y="8" width="112" height="112" rx="14" fill="url(#plate)"/>
+  <rect x="8.5" y="8.5" width="111" height="111" rx="13.5" stroke="#4d6278" stroke-width="1"/>
+
+  <!-- Siegelring -->
+  <circle cx="64" cy="66" r="40" stroke="#5f758a" stroke-width="0.9" opacity="0.55"/>
+  <circle cx="64" cy="66" r="35.5" stroke="#8fa0b0" stroke-width="0.45" opacity="0.25"/>
+
+  <!-- Mond -->
+  <circle cx="86" cy="34" r="12.5" fill="url(#moon)"/>
+  <circle cx="89.5" cy="30.5" r="9.5" fill="#080d14"/>
+
+  <!-- Eule — geometrisch, frontale Ansicht -->
+  <g transform="translate(64 68)">
+    <!-- Ohren -->
+    <path d="M-13 -30 L-18 -42 L-7 -31 Z" fill="#1a2a3c" stroke="#6d8498" stroke-width="0.8" stroke-linejoin="round"/>
+    <path d="M13 -30 L18 -42 L7 -31 Z" fill="#1a2a3c" stroke="#6d8498" stroke-width="0.8" stroke-linejoin="round"/>
+
+    <!-- Flügel -->
+    <path d="M-32 -4 C-40 10 -34 28 -18 30 C-24 16 -28 4 -32 -4 Z" fill="#101c2a"/>
+    <path d="M32 -4 C40 10 34 28 18 30 C24 16 28 4 32 -4 Z" fill="#101c2a"/>
+
+    <!-- Körper -->
+    <path d="M0 28 C-18 28 -22 10 -20 -6 C-12 -18 12 -18 20 -6 C22 10 18 28 0 28 Z" fill="#1a2a3c"/>
+    <path d="M0 22 C-10 22 -12 10 -11 0 C-6 -8 6 -8 11 0 C12 10 10 22 0 22 Z" fill="#122030" opacity="0.7"/>
+
+    <!-- Kopf -->
+    <circle cx="0" cy="-14" r="19" fill="#1a2a3c" stroke="#6d8498" stroke-width="0.8"/>
+
+    <!-- Augenbrauen -->
+    <path d="M-13 -18 Q0 -24 13 -18" stroke="#8fa0b0" stroke-width="1" stroke-linecap="round" fill="none" opacity="0.65"/>
+
+    <!-- Augen -->
+    <circle cx="-8.5" cy="-14" r="6" fill="#e8edf2"/>
+    <circle cx="8.5" cy="-14" r="6" fill="#e8edf2"/>
+    <circle cx="-8.5" cy="-13.5" r="3.2" fill="#080d14"/>
+    <circle cx="8.5" cy="-13.5" r="3.2" fill="#080d14"/>
+
+    <!-- Schnabel -->
+    <path d="M0 -6 L-3.5 1.5 H3.5 Z" fill="#7a8fa0"/>
+  </g>
+</svg>
