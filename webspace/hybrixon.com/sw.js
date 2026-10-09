@@ -6,7 +6,7 @@ const STATIC_CACHE = 'hybrixon-static-v17';
 const STATIC_PREFIX = 'hybrixon-static-';
 const STATIC_ASSETS = [
   '/manifest.json',
-  '/assets/css/style.css?v=133',
+  '/assets/css/style.css?v=134',
   '/assets/js/app.js?v=123',
   '/assets/img/logo-avatar.png',
   '/assets/img/favicon.svg',
