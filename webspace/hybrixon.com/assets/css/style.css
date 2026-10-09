@@ -4234,6 +4234,9 @@ html {
     width: min(100%, 680px);
     padding-inline: 0.15rem;
   }
+  .media-grid-multi {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  }
   .theme-picker {
     grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
   }
@@ -4254,6 +4257,19 @@ html {
   .topbar-right > a.nav-round[href*="messages.php"],
   .topbar-right > a.nav-round[href*="notifications.php"] {
     display: none;
+  }
+
+  /* Keep Sign up reachable on phones (earlier rule hid all .btn-sm in topbar) */
+  .topbar-right .btn-sm {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--hx-touch-min);
+    min-width: auto;
+    padding: 0.35rem 0.7rem;
+    font-size: 0.78rem;
+    border-radius: 999px;
+    white-space: nowrap;
   }
 
   .topbar-left,
@@ -4322,7 +4338,7 @@ html {
   }
 
   .media-grid-multi {
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .footer {
