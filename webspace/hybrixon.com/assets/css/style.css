@@ -1117,7 +1117,6 @@ body.theme-light .avatar-on-banner {
     width: 2.35rem;
     height: 2.35rem;
   }
-  .topbar-right .btn-sm { display: none; }
   .topbar-left,
   .topbar-right {
     min-height: 2.7rem;
@@ -4260,16 +4259,22 @@ html {
   }
 
   /* Keep Sign up reachable on phones (earlier rule hid all .btn-sm in topbar) */
-  .topbar-right .btn-sm {
-    display: inline-flex;
+  .topbar-right .btn.btn-sm {
+    display: inline-flex !important;
     align-items: center;
     justify-content: center;
     min-height: var(--hx-touch-min);
     min-width: auto;
-    padding: 0.35rem 0.7rem;
-    font-size: 0.78rem;
+    max-width: 7.5rem;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.74rem;
     border-radius: 999px;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .topbar-left {
+    max-width: calc(100% - 8.5rem);
   }
 
   .topbar-left,
