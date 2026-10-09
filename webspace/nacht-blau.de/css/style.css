@@ -121,6 +121,39 @@ a {
   width: 40px;
   height: 40px;
   border-radius: 10px;
+  flex-shrink: 0;
+}
+
+/* Theme-fähiges Logo: hell auf Dunkel, dunkel auf Hell — per data-theme, ohne Flash */
+.theme-logo {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.theme-logo > img {
+  grid-area: 1 / 1;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  transition: opacity 0.2s var(--ease);
+}
+
+.theme-logo > .theme-logo-for-light {
+  opacity: 0;
+  pointer-events: none;
+}
+
+[data-theme="light"] .theme-logo > .theme-logo-for-dark {
+  opacity: 0;
+  pointer-events: none;
+}
+
+[data-theme="light"] .theme-logo > .theme-logo-for-light {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .site-id-name {
@@ -349,6 +382,7 @@ a {
 
 .hero-logo {
   width: min(340px, 100%);
+  aspect-ratio: 1;
   height: auto;
   animation: mark-float 7s ease-in-out infinite;
 }
