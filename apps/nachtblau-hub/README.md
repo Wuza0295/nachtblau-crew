@@ -82,7 +82,9 @@ Der **NachtBlau Lumina Launcher** (Minecraft Java, RAM-Slider, Microsoft-Login) 
 **Play-Pfad auf Bazzite:** Steam → NachtBlau Hub → im Hub Lumina AppImage laden → Microsoft-Login → Server.  
 Alternativ Prism / offizieller Launcher mit der Serveradresse aus dem Hub. Kein neues Client-Projekt nötig.
 
-**Java fehlt (Bazzite):** `apps/nachtblau-hub/linux/Install-Java21-Bazzite.sh` — Temurin 21 nach `~/.local/share/nachtblau/jdk-21`, dann Launcher neu starten. Siehe [linux/README.md](./linux/README.md#java-fehlt-auf-bazzite).
+**Java fehlt (Bazzite):** Einzeiler  
+`curl -fsSL https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/pi-lightweight-desktop-3ddb/apps/nachtblau-hub/linux/Install-Java21-Bazzite.sh | bash`  
+— Temurin 21 nach `~/.local/share/nachtblau/jdk-21`, dann Lumina neu starten, RAM 6–8 GB. Siehe [linux/README.md](./linux/README.md#java-fehlt-auf-bazzite).
 
 Laptop-RAM: **6–8 GB** empfohlen — nicht den Slider auf Maximum (bei 32‑GB-PCs zeigte ≤1.0.10 fälschlich „29 GB“ als Cap). Details: [LAPTOP-OPTIMIERUNG.md](../nachtblau-lumina-launcher/LAPTOP-OPTIMIERUNG.md).
 

@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
 # NachtBlau — Java 21 (Temurin) für Bazzite / Fedora Atomic / Aurora
 #
-# Ohne rpm-ostree-Rechte: User-Space JDK nach
-#   ~/.local/share/nachtblau/jdk-21
-# (optionaler Symlink ~/jdk-21). Schreibt ~/.config/nachtblau/java.env
-# und legt ~/.local/bin/java an, damit Lumina „java“ auf dem PATH findet.
+# Vollständig standalone: kein Repo-Checkout nötig. Temurin kommt von der
+# Adoptium-API; schreibt nur unter $HOME (kein sudo / kein rpm-ostree).
 #
-# Nutzung:
+# Einzeiler (Terminal auf Bazzite als User wuza):
+#   curl -fsSL https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/pi-lightweight-desktop-3ddb/apps/nachtblau-hub/linux/Install-Java21-Bazzite.sh | bash
+#
+# Lokal aus dem Clone:
 #   chmod +x Install-Java21-Bazzite.sh
 #   ./Install-Java21-Bazzite.sh
 #
 # Danach Lumina / Hub komplett schließen und neu starten (auch über Steam).
+# RAM im Lumina-Launcher auf 6–8 GB stellen.
 
 set -euo pipefail
 
@@ -20,7 +22,18 @@ JDK_HOME="$NB_DATA/jdk-21"
 JDK_ALT="$HOME/jdk-21"
 ENV_FILE="$NB_CONFIG/java.env"
 LOCAL_BIN="$HOME/.local/bin"
-ADOPTIUM_API="https://api.adoptium.net/v3/binary/latest/21/ga/linux/x64/jdk/hotspot/normal/eclipse?project=jdk"
+
+# Arch für Adoptium API (Gaming-Bazzite = x64; aarch64 falls Notebook/ARM)
+_nb_arch="$(uname -m 2>/dev/null || echo x86_64)"
+case "$_nb_arch" in
+  x86_64|amd64) ADOPTIUM_OS_ARCH="x64" ;;
+  aarch64|arm64) ADOPTIUM_OS_ARCH="aarch64" ;;
+  *)
+    echo "[nachtblau-java] FEHLER: Nicht unterstützte CPU-Architektur: $_nb_arch (nur x64/aarch64)." >&2
+    exit 1
+    ;;
+esac
+ADOPTIUM_API="https://api.adoptium.net/v3/binary/latest/21/ga/linux/${ADOPTIUM_OS_ARCH}/jdk/hotspot/normal/eclipse?project=jdk"
 
 log()  { echo "[nachtblau-java] $*"; }
 warn() { echo "[nachtblau-java] WARN: $*" >&2; }
@@ -29,6 +42,8 @@ die()  { echo "[nachtblau-java] FEHLER: $*" >&2; exit 1; }
 usage() {
   cat <<EOF
 NachtBlau — Java 21 auf Bazzite (User-Space, ohne sudo)
+
+  curl -fsSL https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/pi-lightweight-desktop-3ddb/apps/nachtblau-hub/linux/Install-Java21-Bazzite.sh | bash
 
   ./Install-Java21-Bazzite.sh                 Temurin 21 installieren / aktualisieren
   ./Install-Java21-Bazzite.sh --check         Nur prüfen, nichts schreiben
@@ -173,7 +188,7 @@ install_via_adoptium() {
   _nb_jdk_tmp="$(mktemp -d "${TMPDIR:-/tmp}/nachtblau-jdk21.XXXXXX")"
   trap 'rm -rf "${_nb_jdk_tmp:-}"; unset _nb_jdk_tmp; trap - RETURN' RETURN
 
-  log "Lade Eclipse Temurin 21 (Adoptium API, linux/x64)…"
+  log "Lade Eclipse Temurin 21 (Adoptium API, linux/${ADOPTIUM_OS_ARCH})…"
   archive="$_nb_jdk_tmp/OpenJDK21.tar.gz"
   if command -v curl >/dev/null 2>&1; then
     curl -fsSL -o "$archive" -L "$ADOPTIUM_API" \
@@ -230,9 +245,31 @@ Optional (System-Layer, braucht Reboot / Admin):
 EOF
 }
 
+print_done_banner() {
+  cat <<EOF
+
+=== Fertig ===
+JAVA_HOME=${JAVA_HOME:-}
+java -version:
+$("$JAVA_HOME/bin/java" -version 2>&1 || true)
+
+Lumina neu starten, RAM 6-8 GB
+
+Nächste Schritte:
+  1) Lumina Launcher komplett schließen (auch über Steam / Hub).
+  2) Neu starten — Fehler „Kein Java gefunden“ sollte weg sein.
+  3) RAM-Slider auf 6–8 GB stellen (Live ist noch 1.0.10; 29 GB ist zu viel).
+  4) SPIELEN & VERBINDEN.
+
+Env laden (falls nötig):
+  source $ENV_FILE
+
+EOF
+}
+
 # --- main ---
 
-log "Bazzite/Fedora Atomic — Java 21 für NachtBlau Lumina"
+log "Bazzite/Fedora Atomic — Java 21 für NachtBlau Lumina (arch=${ADOPTIUM_OS_ARCH})"
 
 if [[ "$FORCE_USERSPACE" -eq 0 ]] && existing="$(resolve_existing_java 2>/dev/null)"; then
   home_guess="$(java_home_of "$existing")" || home_guess="$(cd "$(dirname "$existing")/.." && pwd)"
@@ -247,10 +284,8 @@ if [[ "$FORCE_USERSPACE" -eq 0 ]] && existing="$(resolve_existing_java 2>/dev/nu
   write_env_and_path "$home_guess"
   # shellcheck disable=SC1090
   source "$ENV_FILE"
-  java -version
-  echo ""
-  echo "JAVA_HOME=$JAVA_HOME"
-  echo "Fertig — Launcher neu starten."
+  export PATH="$LOCAL_BIN:$PATH"
+  print_done_banner
   exit 0
 fi
 
@@ -284,23 +319,5 @@ if ! java_version_ok "$JAVA_HOME/bin/java"; then
   die "Installation scheint kaputt — $JAVA_HOME/bin/java -version fehlgeschlagen."
 fi
 
-echo ""
-log "=== Ergebnis ==="
-echo "JAVA_HOME=$JAVA_HOME"
-"$JAVA_HOME/bin/java" -version
-echo ""
-echo "Pfad-Test: $(command -v java || echo "$LOCAL_BIN/java")"
-java -version 2>&1 || "$JAVA_HOME/bin/java" -version
-echo ""
-cat <<EOF
-Nächste Schritte:
-  1) Lumina Launcher komplett schließen (auch über Steam / Hub).
-  2) Neu starten — Fehler „Kein Java gefunden“ sollte weg sein.
-  3) RAM-Slider auf 6–8 GB stellen (Live ist noch 1.0.10; 29 GB ist zu viel).
-  4) SPIELEN & VERBINDEN.
-
-Env laden (falls nötig):
-  source $ENV_FILE
-
-EOF
+print_done_banner
 print_rpm_ostree_hint

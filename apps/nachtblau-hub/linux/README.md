@@ -67,13 +67,22 @@ Alternativen (wenn du schon einen Client hast): Prism Launcher / offizieller Min
 
 ### Java fehlt auf Bazzite
 
-Lumina zeigt rot: *„Kein Java gefunden… Temurin 21“*. Auf Atomic/Bazzite oft kein System-JDK — User-Space reicht:
+Lumina zeigt rot: *„Kein Java gefunden… Temurin 21“*. Auf Atomic/Bazzite oft kein System-JDK — User-Space reicht.
+
+**Einzeiler** (kein Git-Clone nötig — Skript ist standalone):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/pi-lightweight-desktop-3ddb/apps/nachtblau-hub/linux/Install-Java21-Bazzite.sh | bash
+```
+
+Danach: **Lumina neu starten, RAM 6–8 GB**.
+
+Aus dem Clone:
 
 ```bash
 cd ~/nachtblau-crew/apps/nachtblau-hub/linux
 chmod +x Install-Java21-Bazzite.sh
 ./Install-Java21-Bazzite.sh
-# Launcher komplett schließen und neu starten (auch über Steam)
 ```
 
 Das Skript legt Temurin 21 unter `~/.local/share/nachtblau/jdk-21` ab, schreibt
