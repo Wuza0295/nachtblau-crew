@@ -21,12 +21,13 @@ Asset-Cache-Buster zentral in `includes/config.php` (`HYBRIXON_ASSET_CSS` / `_JS
 ## Deploy
 
 ```bash
-./scripts/push-server.sh hybrixon
-# oder FTPS:
-# source /workspace/.env.webspace && python3 /workspace/scripts/sync-one-webspace.py hybrixon.com
+cp .env.webspace.example .env.webspace   # FTP_USER/FTP_PASS eintragen
+set -a && source .env.webspace && set +a
+python3 scripts/hybrixon-smoke.py
+python3 scripts/sync-one-webspace.py hybrixon.com --health-check
 ```
 
-Alte Pfade (`nacht-blau.de/hybrixon/`, `/allxion/`) leiten per 301 hierher.
+Details: [`ENGINE.md`](ENGINE.md). Alte Pfade (`nacht-blau.de/hybrixon/`, `/allxion/`) leiten per 301 hierher.
 
 ## Admin
 
