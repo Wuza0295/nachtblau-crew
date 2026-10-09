@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Impressum — NachtBlau GbR</title>
   <meta name="robots" content="noindex">
-  <meta name="theme-color" content="#0a1220">
+  <meta name="theme-color" content="#07101c">
   <meta name="color-scheme" content="dark light">
   <script>
     (function () {
@@ -13,13 +13,13 @@
       var mode = m === 'light' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', mode);
       var meta = document.querySelector('meta[name="theme-color"]');
-      if (meta) meta.content = mode === 'light' ? '#f7f9fc' : '#0a1220';
+      if (meta) meta.content = mode === 'light' ? '#eef3f9' : '#07101c';
     })();
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=3">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 </head>
 <body>
@@ -29,17 +29,18 @@
       <a href="index.html" class="site-id" aria-label="NachtBlau GbR Startseite">
         <img src="assets/logo.svg" alt="" class="site-id-mark" width="40" height="40">
         <span class="site-id-text">
-          <span class="site-id-name">NachtBlau GbR</span>
-          <span class="site-id-legal">Gesellschaft bürgerlichen Rechts</span>
+          <span class="site-id-name">NachtBlau</span>
+          <span class="site-id-legal">GbR</span>
         </span>
       </a>
       <button type="button" class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="site-nav">Menü</button>
       <nav class="site-nav" id="site-nav" aria-label="Hauptnavigation">
         <a href="index.html">Profil</a>
+        <a href="index.html#projekte">Projekte</a>
         <a href="index.html#gesellschafter">Gesellschafter</a>
         <a href="impressum.html" aria-current="page">Impressum</a>
         <a href="datenschutz.html">Datenschutz</a>
-        <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Darstellung wechseln">Theme</button>
+        <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Darstellung wechseln">Hell / Dunkel</button>
       </nav>
     </div>
   </header>
