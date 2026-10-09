@@ -95,9 +95,32 @@ pnpm open            # Android Studio → aufs Handy
 
 Details: [android/README.md](./android/README.md)
 
+## Sync von der Cloud (Live-Launcher)
+
+Ohne FTPS-Zugangsdaten den öffentlichen Live-Stand holen:
+
+```bash
+pnpm hub:pull-https   # HTTPS → webspace/ → shared/ → linux|windows|android/www
+pnpm hub:status
+pnpm hub:check        # Live-Prüfung (windows.html darf noch 404 sein → Fallback /)
+```
+
+Vollständiger FTPS-Spiegel (alle Domains/Dateien):
+
+```bash
+cp .env.webspace.example .env.webspace   # FTP_USER / FTP_PASS eintragen
+pnpm hub:pull
+```
+
+Bazzite ↔ Windows Projektstand (Git + Fingerabdruck):
+
+```bash
+./scripts/sync/nachtblau-sync.sh          # Bazzite / Linux
+.\scripts\sync\nachtblau-sync.ps1         # Windows
+```
+
 ## Webspace deployen
 
 ```bash
-pnpm webspace:connect
-pnpm hub:push
+pnpm hub:push          # braucht .env.webspace
 ```

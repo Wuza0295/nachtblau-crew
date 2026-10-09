@@ -1,16 +1,18 @@
 {
-  "action": "pull",
-  "updatedAt": "2026-08-06T00:54:00.905168+00:00",
-  "contentHash": "7405bd96b51eb36b",
-  "fileCount": 157,
+  "action": "pull-https",
+  "updatedAt": "2026-10-09T17:22:05.279707+00:00",
+  "contentHash": "129fe5b4d1d555a5",
+  "fileCount": 26,
   "platforms": {
-    "linux": 159,
-    "android": 159,
-    "web": 157
+    "linux": 26,
+    "windows": 26,
+    "android": 26,
+    "web": 26
   },
   "paths": {
     "shared": "apps/nachtblau-hub/shared",
     "linux": "apps/nachtblau-hub/linux/www",
+    "windows": "apps/nachtblau-hub/windows/www",
     "android": "apps/nachtblau-hub/android/www",
     "webspace": "webspace/launcher.nachtblau-interactive.com"
   },
