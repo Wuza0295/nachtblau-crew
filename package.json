@@ -11,7 +11,9 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "db:push": "drizzle-kit generate && drizzle-kit migrate",
-    "db:seed": "tsx server/seed.ts"
+    "db:seed": "tsx server/seed.ts",
+    "webspace:sync:nacht-blau": "python3 scripts/sync-one-webspace.py nacht-blau.de",
+    "webspace:restore:nacht-blau": "python3 scripts/restore-nacht-blau-gbr.py"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1116.0",
