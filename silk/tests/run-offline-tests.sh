@@ -434,6 +434,24 @@ grep -q 'download.virtualbox.org/virtualbox/LATEST.TXT' "$ROOT/windows/Install-S
 grep -Fq 'VirtualBox-[\d\.]+-\d+-Win\.exe' "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 Win.exe pattern" || bad "PS1 Win.exe pattern"
 grep -q '\-\-silent' "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 VBox silent install" || bad "PS1 VBox silent"
 grep -q 'ProgramFiles.*Oracle\\VirtualBox\\VBoxManage\|Oracle\\VirtualBox\\VBoxManage.exe' "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 VBoxManage standard path" || bad "PS1 VBoxManage path"
+# Native stderr must not terminate under ErrorActionPreference Stop (first-run showvminfo)
+grep -q 'function Test-VBoxVmExists' "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 Test-VBoxVmExists" || bad "PS1 Test-VBoxVmExists"
+grep -q 'function Invoke-VBoxManage' "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 Invoke-VBoxManage" || bad "PS1 Invoke-VBoxManage"
+grep -q 'AllowFail' "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 VBox AllowFail" || bad "PS1 VBox AllowFail"
+grep -q "ErrorActionPreference = 'Continue'" "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 VBox EAP Continue" || bad "PS1 VBox EAP Continue"
+if grep -nE 'VBoxManage.*(showvminfo|storageattach).*2>\$null|& \$VBoxManage showvminfo' "$ROOT/windows/Install-SilkVM.ps1" | grep -qvE '^\s*#'; then
+  echo "raw VBoxManage + 2>\$null still present (can throw under Stop EAP):"
+  grep -nE 'VBoxManage.*(showvminfo|storageattach).*2>\$null|& \$VBoxManage showvminfo' "$ROOT/windows/Install-SilkVM.ps1" || true
+  bad "PS1 no raw VBoxManage 2>null"
+else
+  ok "PS1 no raw VBoxManage 2>null"
+fi
+grep -q 'Test-VBoxVmExists' "$ROOT/windows/Install-SilkVM.ps1" && \
+  grep -q 'New-SilkVBoxInstaller' "$ROOT/windows/Install-SilkVM.ps1" && \
+  ok "PS1 Installer uses Test-VBoxVmExists" || bad "PS1 Installer uses Test-VBoxVmExists"
+# Cached ISO under WorkDir must be reused (no ForceDownload re-fetch)
+grep -q 'skip (vorhanden)' "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 download skip if present" || bad "PS1 download skip"
+grep -q 'Bereits vorhanden' "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 ISO assemble skip if present" || bad "PS1 ISO assemble skip"
 grep -q 'SkipVBoxInstall' "$ROOT/windows/Get-SilkVM.ps1" && ok "Get-SilkVM SkipVBoxInstall" || bad "Get-SilkVM SkipVBoxInstall"
 grep -q "\-SkipVBoxInstall" "$ROOT/windows/Get-SilkVM.ps1" && ok "Get-SilkVM forwards SkipVBoxInstall" || bad "Get-SilkVM forwards SkipVBoxInstall"
 grep -q 'SkipVBoxInstall\|winget\|automatisch' "$ROOT/windows/README.md" && ok "windows README auto-VBox" || bad "windows README auto-VBox"

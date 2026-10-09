@@ -98,6 +98,38 @@ function Test-HasVBox {
   return [bool](Find-VBoxManage)
 }
 
+# VBoxManage writes "not found" / attach warnings to stderr. With
+# $ErrorActionPreference = 'Stop', PowerShell turns that into a terminating
+# error even when a non-zero exit is expected (first-run VM check).
+function Invoke-VBoxManage {
+  param(
+    [Parameter(Mandatory)][string]$Exe,
+    [Parameter(Mandatory)][string[]]$VBoxArgs,
+    [switch]$AllowFail
+  )
+  $prev = $ErrorActionPreference
+  $ErrorActionPreference = 'Continue'
+  try {
+    $null = & $Exe @VBoxArgs 2>&1
+    $code = $LASTEXITCODE
+    if ($null -eq $code) { $code = 0 }
+    if (-not $AllowFail -and $code -ne 0) {
+      throw "VBoxManage failed (exit $code): $($VBoxArgs -join ' ')"
+    }
+    return $code
+  } finally {
+    $ErrorActionPreference = $prev
+  }
+}
+
+function Test-VBoxVmExists {
+  param(
+    [Parameter(Mandatory)][string]$Exe,
+    [Parameter(Mandatory)][string]$Name
+  )
+  return ((Invoke-VBoxManage -Exe $Exe -VBoxArgs @('showvminfo', $Name) -AllowFail) -eq 0)
+}
+
 function Get-VirtualBoxWindowsInstallerUrl {
   $latestUrl = 'https://download.virtualbox.org/virtualbox/LATEST.TXT'
   Write-Host "  LATEST.TXT ..."
@@ -464,33 +496,48 @@ function New-SilkVBoxInstaller {
   Ensure-Dir $WorkDir
   $vdi = Join-Path $WorkDir "$VmName.vdi"
 
-  $exists = & $VBoxManage showvminfo $VmName 2>$null
-  if ($LASTEXITCODE -ne 0) {
-    & $VBoxManage createvm --name $VmName --ostype Linux26_64 --register --basefolder $WorkDir | Out-Null
+  if (-not (Test-VBoxVmExists -Exe $VBoxManage -Name $VmName)) {
+    Invoke-VBoxManage -Exe $VBoxManage -VBoxArgs @(
+      'createvm', '--name', $VmName, '--ostype', 'Linux26_64',
+      '--register', '--basefolder', $WorkDir
+    ) | Out-Null
     if (-not (Test-Path -LiteralPath $vdi)) {
-      & $VBoxManage createmedium disk --filename $vdi --size ($DiskGB * 1024) --format VDI | Out-Null
+      Invoke-VBoxManage -Exe $VBoxManage -VBoxArgs @(
+        'createmedium', 'disk', '--filename', $vdi,
+        '--size', "$($DiskGB * 1024)", '--format', 'VDI'
+      ) | Out-Null
     }
-    & $VBoxManage storagectl $VmName --name SATA --add sata --controller IntelAhci | Out-Null
-    & $VBoxManage storageattach $VmName --storagectl SATA --port 0 --device 0 --type hdd --medium $vdi | Out-Null
-    & $VBoxManage storagectl $VmName --name IDE --add ide | Out-Null
+    Invoke-VBoxManage -Exe $VBoxManage -VBoxArgs @(
+      'storagectl', $VmName, '--name', 'SATA', '--add', 'sata', '--controller', 'IntelAhci'
+    ) | Out-Null
+    Invoke-VBoxManage -Exe $VBoxManage -VBoxArgs @(
+      'storageattach', $VmName, '--storagectl', 'SATA', '--port', '0', '--device', '0',
+      '--type', 'hdd', '--medium', $vdi
+    ) | Out-Null
+    Invoke-VBoxManage -Exe $VBoxManage -VBoxArgs @(
+      'storagectl', $VmName, '--name', 'IDE', '--add', 'ide'
+    ) | Out-Null
   }
 
-  & $VBoxManage modifyvm $VmName `
-    --memory $MemMB --cpus $Cpus --firmware efi --vram 128 `
-    --nic1 nat --mouse usbtablet --graphicscontroller vmsvga `
-    --clipboard-mode bidirectional --ioapic on --acpi on `
-    --description 'Silk - Desktop-Betriebssystem' | Out-Null
+  Invoke-VBoxManage -Exe $VBoxManage -VBoxArgs @(
+    'modifyvm', $VmName,
+    '--memory', "$MemMB", '--cpus', "$Cpus", '--firmware', 'efi', '--vram', '128',
+    '--nic1', 'nat', '--mouse', 'usbtablet', '--graphicscontroller', 'vmsvga',
+    '--clipboard-mode', 'bidirectional', '--ioapic', 'on', '--acpi', 'on',
+    '--description', 'Silk - Desktop-Betriebssystem'
+  ) | Out-Null
 
-  & $VBoxManage storageattach $VmName --storagectl IDE --port 0 --device 0 `
-    --type dvddrive --medium $IsoPath 2>$null
-  if ($LASTEXITCODE -ne 0) {
-    & $VBoxManage storageattach $VmName --storagectl IDE --port 0 --device 0 `
-      --type dvddrive --medium $IsoPath --forceunmount | Out-Null
+  $dvdArgs = @(
+    'storageattach', $VmName, '--storagectl', 'IDE', '--port', '0', '--device', '0',
+    '--type', 'dvddrive', '--medium', $IsoPath
+  )
+  if ((Invoke-VBoxManage -Exe $VBoxManage -VBoxArgs $dvdArgs -AllowFail) -ne 0) {
+    Invoke-VBoxManage -Exe $VBoxManage -VBoxArgs ($dvdArgs + @('--forceunmount')) | Out-Null
   }
 
   if ($DoStart) {
     Write-Silk "Starte VirtualBox ..."
-    & $VBoxManage startvm $VmName --type gui
+    Invoke-VBoxManage -Exe $VBoxManage -VBoxArgs @('startvm', $VmName, '--type', 'gui') | Out-Null
   }
   Write-Host "Fertig. In der VM: Silk installieren, dann nach Login silk-tour."
 }
@@ -506,18 +553,27 @@ function New-SilkVBoxReady {
   }
   Write-Silk "VirtualBox VM '$VmName' anlegen (Ready-Disk) ..."
   Ensure-Dir $WorkDir
-  $exists = & $VBoxManage showvminfo $VmName 2>$null
-  if ($LASTEXITCODE -ne 0) {
-    & $VBoxManage createvm --name $VmName --ostype Linux26_64 --register --basefolder $WorkDir | Out-Null
-    & $VBoxManage storagectl $VmName --name SATA --add sata --controller IntelAhci | Out-Null
-    & $VBoxManage storageattach $VmName --storagectl SATA --port 0 --device 0 --type hdd --medium $vdi | Out-Null
+  if (-not (Test-VBoxVmExists -Exe $VBoxManage -Name $VmName)) {
+    Invoke-VBoxManage -Exe $VBoxManage -VBoxArgs @(
+      'createvm', '--name', $VmName, '--ostype', 'Linux26_64',
+      '--register', '--basefolder', $WorkDir
+    ) | Out-Null
+    Invoke-VBoxManage -Exe $VBoxManage -VBoxArgs @(
+      'storagectl', $VmName, '--name', 'SATA', '--add', 'sata', '--controller', 'IntelAhci'
+    ) | Out-Null
+    Invoke-VBoxManage -Exe $VBoxManage -VBoxArgs @(
+      'storageattach', $VmName, '--storagectl', 'SATA', '--port', '0', '--device', '0',
+      '--type', 'hdd', '--medium', $vdi
+    ) | Out-Null
   }
-  & $VBoxManage modifyvm $VmName `
-    --memory $MemMB --cpus $Cpus --firmware efi --vram 128 `
-    --nic1 nat --mouse usbtablet --graphicscontroller vmsvga `
-    --description 'Silk - Desktop-Betriebssystem' | Out-Null
+  Invoke-VBoxManage -Exe $VBoxManage -VBoxArgs @(
+    'modifyvm', $VmName,
+    '--memory', "$MemMB", '--cpus', "$Cpus", '--firmware', 'efi', '--vram', '128',
+    '--nic1', 'nat', '--mouse', 'usbtablet', '--graphicscontroller', 'vmsvga',
+    '--description', 'Silk - Desktop-Betriebssystem'
+  ) | Out-Null
   if ($DoStart) {
-    & $VBoxManage startvm $VmName --type gui
+    Invoke-VBoxManage -Exe $VBoxManage -VBoxArgs @('startvm', $VmName, '--type', 'gui') | Out-Null
   }
 }
 
