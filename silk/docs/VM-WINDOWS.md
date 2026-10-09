@@ -4,9 +4,19 @@ Ziel: **Doppelklick → Silk läuft in einer VM.**
 
 ## Schnellstart (Windows)
 
-1. VirtualBox installieren **oder** Hyper-V aktivieren (Win Pro, Admin)
+### Einzeiler (PowerShell)
+
+Zuerst [VirtualBox](https://www.virtualbox.org/) installieren, dann:
+
+```powershell
+irm https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-connect-multiplatform-fef1/silk/windows/Get-SilkVM.ps1 | iex
+```
+
+### Doppelklick / Repo
+
+1. VirtualBox **oder** Hyper-V (Win Pro, Admin)
 2. Ordner `silk/windows/` öffnen
-3. **`Install-SilkVM.cmd`** doppelklicken (als Admin bei Hyper-V)
+3. **`Install-SilkVM.cmd`** doppelklicken
 
 Das Skript:
 - lädt das Silk-Medium vom Release `silk-media-latest`

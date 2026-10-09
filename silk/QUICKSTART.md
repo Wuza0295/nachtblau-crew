@@ -21,12 +21,14 @@ Controller: stecken / Bluetooth – on the fly.
 
 ### Unter Windows testen (VM)
 
-```text
-silk\windows\Install-SilkVM.cmd
+PowerShell (VirtualBox vorher installieren):
+
+```powershell
+irm https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-connect-multiplatform-fef1/silk/windows/Get-SilkVM.ps1 | iex
 ```
 
-Hyper-V oder VirtualBox – lädt Silk-Medium, legt VM an, startet.  
-Details: [`docs/VM-WINDOWS.md`](docs/VM-WINDOWS.md)
+Oder Doppelklick: `silk\windows\Install-SilkVM.cmd`  
+Details: [`docs/VM-WINDOWS.md`](docs/VM-WINDOWS.md) · [`windows/README.md`](windows/README.md)
 
 ### Unter Bazzite testen (VM)
 
