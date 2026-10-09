@@ -1,6 +1,10 @@
 const { describe, it } = require("node:test");
 const assert = require("node:assert/strict");
-const { resolveHubUrl, isWindowsEntrypoint } = require("./resolve-hub-url.cjs");
+const {
+  resolveHubUrl,
+  isWindowsEntrypoint,
+  isLinuxEntrypoint,
+} = require("./resolve-hub-url.cjs");
 
 const cfg = {
   url: "https://launcher.nachtblau-interactive.com/",
@@ -28,6 +32,13 @@ describe("resolveHubUrl", () => {
     );
   });
 
+  it("fällt von Bazzite/Linux auf Windows zurück wenn linux.html fehlt", () => {
+    assert.equal(
+      resolveHubUrl({ platform: "linux", cfg, failedPreferred: true }),
+      cfg.windowsUrl,
+    );
+  });
+
   it("respektiert NACHTBLAU_HUB_URL", () => {
     assert.equal(
       resolveHubUrl({
@@ -48,5 +59,16 @@ describe("isWindowsEntrypoint", () => {
       true,
     );
     assert.equal(isWindowsEntrypoint(cfg.linuxUrl), false);
+  });
+});
+
+describe("isLinuxEntrypoint", () => {
+  it("erkennt linux.html und MultiViews /linux", () => {
+    assert.equal(isLinuxEntrypoint(cfg.linuxUrl), true);
+    assert.equal(
+      isLinuxEntrypoint("https://launcher.nachtblau-interactive.com/linux"),
+      true,
+    );
+    assert.equal(isLinuxEntrypoint(cfg.windowsUrl), false);
   });
 });

@@ -1,20 +1,29 @@
 /**
  * Gemeinsame Hub-URL für Bazzite/Linux und Windows.
- * Windows fällt auf linux.html zurück, solange windows.html auf dem Webspace fehlt (404).
+ * Bidirektionaler Fallback: Windows → linux.html (falls 404),
+ * Bazzite → windows.html bzw. Web-Root — damit beim OS-Wechsel immer Inhalt da ist.
  */
 function resolveHubUrl({ platform, envUrl, cfg = {}, failedPreferred = false } = {}) {
   if (envUrl) return envUrl;
   const preferred = cfg[`${platform}Url`];
-  const fallbacks = [
-    cfg.linuxUrl,
-    cfg.url,
-    "https://launcher.nachtblau-interactive.com/",
-  ].filter(Boolean);
+  const webRoot = cfg.url || "https://launcher.nachtblau-interactive.com/";
+
+  /** Reihenfolge der Ausweich-URLs je Plattform (ohne preferred). */
+  const fallbackOrder =
+    platform === "windows"
+      ? [cfg.linuxUrl, webRoot, cfg.androidUrl]
+      : platform === "linux"
+        ? [cfg.windowsUrl, webRoot, cfg.androidUrl]
+        : [webRoot, cfg.linuxUrl, cfg.windowsUrl];
+
+  const fallbacks = fallbackOrder.filter(
+    (url) => url && url !== preferred,
+  );
 
   if (failedPreferred) {
-    return fallbacks.find((url) => url && url !== preferred) || fallbacks[0];
+    return fallbacks[0] || webRoot;
   }
-  return preferred || fallbacks[0];
+  return preferred || fallbacks[0] || webRoot;
 }
 
 function isWindowsEntrypoint(url) {
@@ -22,4 +31,9 @@ function isWindowsEntrypoint(url) {
   return /\/windows(\.html?)?(\?|#|$)/i.test(url);
 }
 
-module.exports = { resolveHubUrl, isWindowsEntrypoint };
+function isLinuxEntrypoint(url) {
+  if (!url) return false;
+  return /\/linux(\.html?)?(\?|#|$)/i.test(url);
+}
+
+module.exports = { resolveHubUrl, isWindowsEntrypoint, isLinuxEntrypoint };

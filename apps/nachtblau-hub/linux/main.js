@@ -1,7 +1,7 @@
 const { app, BrowserWindow, ipcMain, shell } = require("electron");
 const path = require("path");
 const fs = require("fs");
-const { resolveHubUrl } = require("../resolve-hub-url.cjs");
+const { resolveHubUrl, isLinuxEntrypoint } = require("../resolve-hub-url.cjs");
 
 function readHubConfig() {
   try {
@@ -14,18 +14,20 @@ function readHubConfig() {
 }
 
 /** Immer Webspace — Linux/Bazzite-Einstieg (gleiche Quelle wie Windows/Android/Browser). */
-function hubUrl() {
+function hubUrl(failedPreferred = false) {
   return resolveHubUrl({
     platform: "linux",
     envUrl: process.env.NACHTBLAU_HUB_URL,
     cfg: readHubConfig(),
+    failedPreferred,
   });
 }
 
 let mainWindow;
+let usedFallback = false;
 
 function createWindow() {
-  const url = hubUrl();
+  const url = hubUrl(false);
   mainWindow = new BrowserWindow({
     width: 1440,
     height: 900,
@@ -38,6 +40,41 @@ function createWindow() {
       contextIsolation: true,
       webviewTag: true,
     },
+  });
+
+  mainWindow.webContents.on(
+    "did-fail-load",
+    (_event, errorCode, _desc, validatedURL) => {
+      if (usedFallback) return;
+      if (errorCode === -3) return; // aborted
+      if (
+        !isLinuxEntrypoint(validatedURL) &&
+        !/\/linux/i.test(validatedURL || "")
+      ) {
+        return;
+      }
+      const fallback = hubUrl(true);
+      if (!fallback || fallback === validatedURL) return;
+      usedFallback = true;
+      console.warn(
+        `[NachtBlau Hub] ${validatedURL} nicht erreichbar (${errorCode}) — Fallback ${fallback}`,
+      );
+      mainWindow.loadURL(fallback);
+    },
+  );
+
+  // HTTP-404 (did-fail-load greift nicht immer): Navigation-Code prüfen
+  mainWindow.webContents.on("did-navigate", (_event, navUrl, httpResponseCode) => {
+    if (usedFallback) return;
+    if (httpResponseCode < 400) return;
+    if (!isLinuxEntrypoint(navUrl) && !/\/linux/i.test(navUrl || "")) return;
+    const fallback = hubUrl(true);
+    if (!fallback || fallback === navUrl) return;
+    usedFallback = true;
+    console.warn(
+      `[NachtBlau Hub] ${navUrl} HTTP ${httpResponseCode} — Fallback ${fallback}`,
+    );
+    mainWindow.loadURL(fallback);
   });
 
   mainWindow.loadURL(url);

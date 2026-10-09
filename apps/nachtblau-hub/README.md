@@ -33,12 +33,12 @@ Details: [linux/README.md](./linux/README.md).
 ## Windows (Notebook)
 
 ```powershell
-git clone -b cursor/bazzite-windows-sync-8c11 https://github.com/Wuza0295/nachtblau-crew.git
+git clone -b cursor/bazzite-windows-sync-5e09 https://github.com/Wuza0295/nachtblau-crew.git
 cd nachtblau-crew\apps\nachtblau-hub\windows
 powershell -ExecutionPolicy Bypass -File .\Install-NachtBlauHub.ps1
 ```
 
-Danach: Shortcut **NachtBlau Hub** oder `pnpm start`. Falls `windows.html` auf dem Webspace noch 404 liefert, lädt die Windows-App automatisch **dieselbe** Bazzite-Seite (`linux.html`).
+Danach: Shortcut **NachtBlau Hub** oder `pnpm start`. Falls `windows.html` auf dem Webspace noch 404 liefert, lädt die Windows-App automatisch **dieselbe** Bazzite-Seite (`linux.html`). Umgekehrt fällt Bazzite bei fehlendem `linux.html` auf Windows bzw. den Web-Root zurück — bidirektionaler OS-Wechsel.
 
 Shortcuts nachziehen: `-SkipInstall` — Details: [windows/README.md](./windows/README.md).
 
@@ -62,7 +62,18 @@ pnpm open            # Android Studio → aufs Handy
 
 Details: [android/README.md](./android/README.md)
 
-## Webspace deployen (windows.html live schalten)
+## Bazzite ↔ Windows (Live-Parität)
+
+```bash
+pnpm hub:check                              # Live: linux OK? windows da?
+pnpm sync:bazzite-windows -- --no-upload    # windows.* aus Live-linux erzeugen
+# mit FTP:
+cp .env.webspace.example .env.webspace      # FTP_USER / FTP_PASS
+pnpm sync:bazzite-windows                   # erzeugen + windows.html hochladen
+pnpm hub:check -- --require-windows         # danach beide Seiten Pflicht
+```
+
+## Webspace deployen (voller Hub-Push)
 
 ```bash
 cp .env.webspace.example .env.webspace   # FTP_USER / FTP_PASS eintragen

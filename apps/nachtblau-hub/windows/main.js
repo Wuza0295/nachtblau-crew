@@ -60,6 +60,20 @@ function createWindow() {
     },
   );
 
+  // HTTP-404 liefert oft did-navigate statt did-fail-load
+  mainWindow.webContents.on("did-navigate", (_event, navUrl, httpResponseCode) => {
+    if (usedFallback) return;
+    if (httpResponseCode < 400) return;
+    if (!isWindowsEntrypoint(navUrl) && !/\/windows/i.test(navUrl || "")) return;
+    const fallback = hubUrl(true);
+    if (!fallback || fallback === navUrl) return;
+    usedFallback = true;
+    console.warn(
+      `[NachtBlau Hub] ${navUrl} HTTP ${httpResponseCode} — Fallback ${fallback}`,
+    );
+    mainWindow.loadURL(fallback);
+  });
+
   mainWindow.loadURL(url);
 }
 

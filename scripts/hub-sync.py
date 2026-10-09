@@ -385,20 +385,39 @@ def status() -> None:
         print("\nNoch kein sync-manifest.json")
 
 
+def check_live(*, require_windows: bool = False) -> int:
+    """Live-Check ohne FTP — delegiert an sync_bazzite_windows.verify_live."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from sync_bazzite_windows import verify_live  # noqa: E402
+
+    return verify_live(require_windows=require_windows)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Sync Hub across Bazzite/Linux, Windows, Android und Webspace"
     )
     parser.add_argument(
         "command",
-        choices=["pull", "sync", "push", "status"],
-        help="pull=FTPS→shared+platforms; sync=webspace mirror→platforms; push=shared→FTPS",
+        choices=["pull", "sync", "push", "status", "check"],
+        help=(
+            "pull=FTPS→shared+platforms; sync=webspace mirror→platforms; "
+            "push=shared→FTPS; check=Live-URLs Bazzite↔Windows"
+        ),
+    )
+    parser.add_argument(
+        "--require-windows",
+        action="store_true",
+        help="Bei check: windows.html als Pflicht (nach Deploy)",
     )
     args = parser.parse_args()
 
     if args.command == "status":
         status()
         return
+
+    if args.command == "check":
+        raise SystemExit(check_live(require_windows=args.require_windows))
 
     if args.command == "pull":
         pull_webspace_launcher()
