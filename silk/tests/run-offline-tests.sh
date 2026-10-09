@@ -80,6 +80,13 @@ for f in \
   docs/PLATFORMS.md \
   system_files/usr/share/silk/wallpapers/manifest.json \
   system_files/usr/share/silk/plasma-apply-wallpaper.js \
+  system_files/usr/share/silk/branding/silk-banner.svg \
+  system_files/usr/share/silk/branding/silk-mark.svg \
+  system_files/usr/share/plymouth/themes/spinner/watermark.png \
+  system_files/usr/share/plasma/look-and-feel/org.silk.desktop/contents/splash/Splash.qml \
+  system_files/usr/share/kde-settings/kde-profile/default/xdg/ksplashrc \
+  system_files/etc/xdg/kdeglobals \
+  build_files/06-branding.sh \
   system_files/etc/skel/.config/kscreenlockerrc \
   system_files/usr/share/silk/app-aliases.json \
   system_files/usr/share/silk/recommended-essentials.txt \
@@ -168,6 +175,46 @@ if grep -qiE 'Aurora Silk|Silk Aurora' "$ROOT/README.md" "$ROOT/silk.env" 2>/dev
   bad "Produktname darf nicht mit Upstream-Markenname kombiniert sein"
 else
   ok "Produktname nur Silk"
+fi
+
+echo "== Branding Assets (Plymouth / Logos / Splash) =="
+[[ -f "$ROOT/build_files/06-branding.sh" ]] && ok "06-branding.sh" || bad "06-branding.sh"
+grep -q '06-branding.sh' "$ROOT/build_files/build.sh" && ok "build.sh wires branding" || bad "build.sh branding"
+bash -n "$ROOT/build_files/06-branding.sh" && ok "06-branding syntax" || bad "06-branding syntax"
+grep -q 'NAME="Silk"' "$ROOT/build_files/06-branding.sh" && ok "branding sets NAME Silk" || bad "branding NAME"
+grep -q 'plymouth/themes/spinner/watermark' "$ROOT/build_files/06-branding.sh" && ok "branding plymouth watermark" || bad "branding plymouth"
+grep -q 'Theme=org.silk.desktop' "$ROOT/build_files/06-branding.sh" && ok "branding ksplash Silk" || bad "branding ksplash"
+[[ -f "$ROOT/system_files/usr/share/plymouth/themes/spinner/watermark.png" ]] && ok "plymouth watermark.png" || bad "plymouth watermark.png"
+[[ -f "$ROOT/system_files/usr/share/plymouth/themes/spinner/kinoite-watermark.png" ]] && ok "kinoite-watermark.png" || bad "kinoite-watermark"
+wm_size="$(file -b "$ROOT/system_files/usr/share/plymouth/themes/spinner/watermark.png" 2>/dev/null || true)"
+echo "$wm_size" | grep -q '128 x 32' && ok "watermark size 128x32" || bad "watermark size ($wm_size)"
+[[ -f "$ROOT/system_files/usr/share/silk/branding/silk-banner.svg" ]] && ok "silk-banner.svg" || bad "silk-banner.svg"
+[[ -f "$ROOT/system_files/usr/share/silk/branding/silk-mark.svg" ]] && ok "silk-mark.svg" || bad "silk-mark.svg"
+[[ -f "$ROOT/system_files/usr/share/pixmaps/fedora-logo.png" ]] && ok "fedora-logo.png override" || bad "fedora-logo.png"
+[[ -f "$ROOT/system_files/usr/share/pixmaps/system-logo.png" ]] && ok "system-logo.png" || bad "system-logo.png"
+[[ -f "$ROOT/system_files/usr/share/icons/hicolor/scalable/places/distributor-logo.svg" ]] && ok "distributor-logo.svg" || bad "distributor-logo"
+[[ -f "$ROOT/system_files/usr/share/plasma/look-and-feel/org.silk.desktop/contents/splash/Splash.qml" ]] && ok "Silk splash Splash.qml" || bad "Splash.qml"
+[[ -f "$ROOT/system_files/usr/share/plasma/look-and-feel/org.silk.desktop/contents/splash/images/silk_logo.svgz" ]] && ok "silk_logo.svgz" || bad "silk_logo.svgz"
+[[ -f "$ROOT/system_files/usr/share/plasma/look-and-feel/org.silk.desktop/contents/defaults" ]] && ok "Silk LAF defaults" || bad "Silk LAF defaults"
+grep -q 'LookAndFeelPackage=org.silk.desktop' "$ROOT/system_files/usr/share/plasma/look-and-feel/org.silk.desktop/contents/defaults" && ok "defaults LookAndFeel Silk" || bad "defaults LookAndFeel"
+grep -q 'Theme=org.silk.desktop' "$ROOT/system_files/usr/share/kde-settings/kde-profile/default/xdg/ksplashrc" && ok "ksplashrc Silk" || bad "ksplashrc"
+grep -q 'Theme=org.silk.desktop' "$ROOT/system_files/etc/skel/.config/ksplashrc" && ok "skel ksplashrc" || bad "skel ksplashrc"
+grep -q 'LookAndFeelPackage=org.silk.desktop' "$ROOT/system_files/etc/xdg/kdeglobals" && ok "xdg kdeglobals Silk" || bad "xdg kdeglobals"
+grep -q 'LookAndFeelPackage=org.silk.desktop' "$ROOT/system_files/etc/skel/.config/kdeglobals" && ok "skel kdeglobals Silk" || bad "skel kdeglobals"
+[[ -f "$ROOT/system_files/usr/share/anaconda/pixmaps/product-logo.png" ]] && ok "anaconda product-logo" || bad "anaconda product-logo"
+grep -qE 'BGRT|Plymouth-Wasserzeichen' "$ROOT/docs/VM-WINDOWS.md" && ok "docs boot logos" || bad "docs boot logos"
+# Assets dürfen kein Aurora-Wortmark enthalten
+if grep -qiE '\bAurora\b' "$ROOT/system_files/usr/share/silk/branding/"*.svg 2>/dev/null; then
+  bad "Aurora in branding SVGs"
+else
+  ok "no Aurora in branding SVGs"
+fi
+if grep -qiE 'aurora_logo|getaurora|Aurora' \
+  "$ROOT/system_files/usr/share/plasma/look-and-feel/org.silk.desktop/contents/splash/Splash.qml" \
+  "$ROOT/system_files/usr/share/kde-settings/kde-profile/default/xdg/ksplashrc" 2>/dev/null; then
+  bad "Aurora refs in Silk splash/ksplash"
+else
+  ok "no Aurora in Silk splash/ksplash"
 fi
 
 echo "== Containerfile Basis =="

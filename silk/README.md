@@ -12,6 +12,8 @@ Für **Wechsler von macOS und Windows**: Optik wählbar, Programme möglichst �
 Produktname: **Silk** / Image: `silk`  
 Der Produktname ist nur **Silk**. Technische Upstream-Images stehen in `Containerfile` / CI (Registry-Tags von Universal Blue).
 
+Branding (Plymouth-Wasserzeichen, `os-release`, Plasma-Splash, Distributor-Logos) liegt unter `system_files/` und wird in `build_files/06-branding.sh` finalisiert – kein Upstream-Produktname auf dem Boot- oder Desktop-Splash. VirtualBox-EFI-Logo in der VM-Mitte ist Host-Firmware (BGRT), nicht Gast-Branding; Details: [`docs/VM-WINDOWS.md`](docs/VM-WINDOWS.md).
+
 **Schnellstart:** [`QUICKSTART.md`](QUICKSTART.md) · **Website-Vorlage:** [`docs/website/index.html`](docs/website/index.html)
 
 ## Desktop-Stil

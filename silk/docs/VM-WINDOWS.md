@@ -92,3 +92,22 @@ Das braucht ein **neu gebautes** `Silk-Installer`-ISO (Release `silk-media-lates
    localectl set-locale LANG=de_DE.UTF-8
    localectl set-keymap de
    ```
+
+## Boot-Bildschirm (VirtualBox + Logos)
+
+Beim EFI-Boot in VirtualBox sieht man oft **zwei** Logos:
+
+| Logo | Herkunft | Änderbar in Silk? |
+|------|----------|-------------------|
+| **VirtualBox** (Mitte, Spinner) | VirtualBox-EFI-Firmware (BGRT) – Host-Hypervisor, nicht Gast-OS | Nein (VirtualBox-eigene Boot-Grafik) |
+| **Aurora** unten (altes ISO) | Plymouth-Wasserzeichen der Upstream-Basis | Ja – neues Silk-Image ersetzt es durch **Silk** |
+
+**Neu bauen / neu laden:** Image + ISO mit Silk-Plymouth/`os-release`/Plasma-Splash. Alte `silk-media-latest`-ISOs zeigen noch Aurora unten.
+
+**Laufende VM (Image schon installiert):** nach CI-Publish:
+
+```bash
+sudo bootc upgrade && sudo systemctl reboot
+```
+
+Nur Desktop/Splash nach dem Login (ohne Image-Upgrade) geht teilweise mit `silk-desktop mac` und Silk-Wallpaper – der **Early-Boot**-Plymouth-Wasserzeichen kommt erst mit dem neuen Initramfs im Image.

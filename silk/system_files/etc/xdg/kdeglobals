@@ -1,0 +1,10 @@
+[General]
+ColorScheme=WhiteSurLight
+Name=Silk
+
+[Icons]
+Theme=WhiteSur
+
+[KDE]
+LookAndFeelPackage=org.silk.desktop
+widgetStyle=Breeze
