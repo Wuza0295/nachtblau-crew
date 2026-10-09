@@ -9,13 +9,13 @@
   "lang": "de",
   "icons": [
     {
-      "src": "/assets/favicon.svg",
+      "src": "/assets/favicon-7e76c5b7.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "/favicon.ico",
+      "src": "/favicon-7e76c5b7.ico",
       "sizes": "16x16 32x32",
       "type": "image/x-icon"
     }
