@@ -9,7 +9,7 @@ Ziel: **Doppelklick → Silk läuft in einer VM.**
 Zuerst [VirtualBox](https://www.virtualbox.org/) installieren, dann:
 
 ```powershell
-irm https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-connect-multiplatform-fef1/silk/windows/Get-SilkVM.ps1 | iex
+powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-connect-multiplatform-fef1/silk/windows/Get-SilkVM.ps1 | iex"
 ```
 
 ### Doppelklick / Repo

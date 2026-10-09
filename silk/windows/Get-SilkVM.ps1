@@ -1,12 +1,11 @@
 # Silk-VM Bootstrap fuer Windows (ohne Git-Clone)
 #
-# In PowerShell (als normaler User, VirtualBox empfohlen):
+# In PowerShell:
 #
 #   irm https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-connect-multiplatform-fef1/silk/windows/Get-SilkVM.ps1 | iex
 #
-# Oder speichern und ausfuehren:
-#   irm .../Get-SilkVM.ps1 -OutFile Get-SilkVM.ps1
-#   powershell -ExecutionPolicy Bypass -File .\Get-SilkVM.ps1
+# Falls ExecutionPolicy stoert, alternativ:
+#   powershell -ExecutionPolicy Bypass -Command "irm …/Get-SilkVM.ps1 | iex"
 #
 param(
   [ValidateSet('Auto', 'HyperV', 'VirtualBox')]
@@ -35,13 +34,21 @@ $ps1 = Join-Path $Tools 'Install-SilkVM.ps1'
 Write-Host "==> Lade Install-SilkVM.ps1 …"
 Invoke-WebRequest -Uri "$Base/Install-SilkVM.ps1" -OutFile $ps1 -UseBasicParsing
 
-$args = @{
-  Backend = $Backend
-  Mode    = $Mode
-  MemMB   = $MemMB
-  Cpus    = $Cpus
-  WorkDir = $Work
-}
+# Von Internet geladene Dateien sind oft "blocked" + ExecutionPolicy RemoteSigned
+try { Unblock-File -LiteralPath $ps1 -ErrorAction SilentlyContinue } catch { }
 
-Write-Host "==> Starte Installation …"
-& $ps1 @args
+Write-Host "==> Starte Installation (ExecutionPolicy Bypass) …"
+$argList = @(
+  '-NoProfile'
+  '-ExecutionPolicy', 'Bypass'
+  '-File', $ps1
+  '-Backend', $Backend
+  '-Mode', $Mode
+  '-MemMB', "$MemMB"
+  '-Cpus', "$Cpus"
+  '-WorkDir', $Work
+)
+$p = Start-Process -FilePath (Get-Process -Id $PID).Path -ArgumentList $argList -Wait -PassThru -NoNewWindow
+if ($p.ExitCode -ne 0) {
+  exit $p.ExitCode
+}

@@ -24,7 +24,7 @@ Controller: stecken / Bluetooth – on the fly.
 PowerShell (VirtualBox vorher installieren):
 
 ```powershell
-irm https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-connect-multiplatform-fef1/silk/windows/Get-SilkVM.ps1 | iex
+powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-connect-multiplatform-fef1/silk/windows/Get-SilkVM.ps1 | iex"
 ```
 
 Oder Doppelklick: `silk\windows\Install-SilkVM.cmd`  

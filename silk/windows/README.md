@@ -10,6 +10,14 @@ Oder Hyper-V (Win Pro): Einstellungen → optionale Features → Hyper-V
 **2. PowerShell öffnen** und ausführen:
 
 ```powershell
+# Empfohlen (umgeht ExecutionPolicy):
+powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-connect-multiplatform-fef1/silk/windows/Get-SilkVM.ps1 | iex"
+```
+
+Oder in geöffneter PowerShell:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 irm https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-connect-multiplatform-fef1/silk/windows/Get-SilkVM.ps1 | iex
 ```
 
