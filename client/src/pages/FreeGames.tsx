@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { trpc } from "@/lib/trpc";
+import type { FreeGame } from "@shared/publicFeeds";
+import { useFreeGames } from "@/lib/publicContent";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,7 +23,7 @@ const TYPES = [
   { value: "beta", label: "Beta Keys" },
 ];
 
-function GameCard({ game }: { game: ReturnType<typeof useGames>[0] }) {
+function GameCard({ game }: { game: FreeGame }) {
   const isExpiringSoon =
     game.endDate &&
     game.endDate !== "N/A" &&
@@ -107,36 +108,11 @@ function GameCard({ game }: { game: ReturnType<typeof useGames>[0] }) {
   );
 }
 
-// Helper type
-function useGames() {
-  return [] as {
-    id: number;
-    title: string;
-    worth: string;
-    thumbnail: string;
-    image: string;
-    description: string;
-    platforms: string;
-    type: string;
-    endDate: string;
-    publishedDate: string;
-    openGiveawayUrl: string;
-    gamerPowerUrl: string;
-    status: string;
-    users: number;
-  }[];
-}
-
 export default function FreeGames() {
   const [platform, setPlatform] = useState("");
   const [type, setType] = useState("");
 
-  const { data, isLoading, refetch, isFetching } = trpc.games.getFreeGames.useQuery({
-    platform: platform || undefined,
-    type: type || undefined,
-  });
-
-  const games = data?.games ?? [];
+  const { games, isLoading, refetch, isFetching } = useFreeGames({ platform, type });
 
   return (
     <div className="py-12">
@@ -215,13 +191,6 @@ export default function FreeGames() {
             Aktualisieren
           </Button>
         </div>
-
-        {/* Error */}
-        {data?.error && (
-          <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/30 text-destructive text-sm mb-6">
-            {data.error}
-          </div>
-        )}
 
         {/* Grid */}
         {isLoading ? (

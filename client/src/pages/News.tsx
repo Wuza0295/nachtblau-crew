@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { trpc } from "@/lib/trpc";
+import { useNewsFeed } from "@/lib/publicContent";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -78,12 +78,7 @@ function ArticleCard({
 export default function News() {
   const [category, setCategory] = useState<Category>("all");
 
-  const { data, isLoading, refetch, isFetching } = trpc.news.getNews.useQuery({
-    category,
-    limit: 20,
-  });
-
-  const articles = data?.articles ?? [];
+  const { articles, isLoading, refetch, isFetching } = useNewsFeed(category, 12);
 
   return (
     <div className="py-12">

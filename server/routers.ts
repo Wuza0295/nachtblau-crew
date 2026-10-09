@@ -20,6 +20,7 @@ import {
   updateUserProfile,
 } from "./db";
 import { socialRouter } from "./routers/social";
+import { FEED_USER_AGENT, NEWS_FEEDS, mergeArticles, parseRssItems } from "@shared/publicFeeds";
 
 // ─── Free Games via GamerPower API ───────────────────────────────────────────
 const gamesRouter = router({
@@ -106,118 +107,25 @@ const newsRouter = router({
       })
     )
     .query(async ({ input }) => {
-      // RSS feeds per category
-      const feeds: Record<string, string[]> = {
-        pc: [
-          "https://www.pcgamer.com/rss/",
-          "https://feeds.feedburner.com/RockPaperShotgun",
-        ],
-        konsolen: [
-          "https://www.eurogamer.net/?format=rss",
-          "https://www.ign.com/articles.rss",
-        ],
-        gaming: [
-          "https://kotaku.com/rss",
-          "https://www.gamespot.com/feeds/news/",
-        ],
-        steam: [
-          "https://store.steampowered.com/feeds/news/",
-          "https://www.pcgamesn.com/feed",
-        ],
-        all: [
-          "https://www.pcgamer.com/rss/",
-          "https://www.eurogamer.net/?format=rss",
-          "https://kotaku.com/rss",
-          "https://store.steampowered.com/feeds/news/",
-        ],
-      };
-
-      const selectedFeeds = feeds[input.category] ?? feeds.all;
+      const selectedFeeds = NEWS_FEEDS[input.category] ?? NEWS_FEEDS.all;
 
       const parseRSSFeed = async (url: string) => {
         try {
           const res = await fetch(url, {
-            headers: { "User-Agent": "NachtBlauCrew/1.0" },
-            signal: AbortSignal.timeout(6000),
+            headers: { "User-Agent": FEED_USER_AGENT },
+            signal: AbortSignal.timeout(8000),
           });
           if (!res.ok) return [];
-          const text = await res.text();
-
-          // Simple RSS parser using regex
-          const items: {
-            title: string;
-            link: string;
-            description: string;
-            pubDate: string;
-            image: string;
-            source: string;
-          }[] = [];
-
-          const sourceName = new URL(url).hostname
-            .replace("www.", "")
-            .replace("feeds.feedburner.com/", "")
-            .split(".")[0];
-
-          const itemRegex = /<item>([\s\S]*?)<\/item>/g;
-          let match;
-          while ((match = itemRegex.exec(text)) !== null) {
-            const item = match[1];
-            const title = (/<title><!\[CDATA\[(.*?)\]\]><\/title>/.exec(item) ||
-              /<title>(.*?)<\/title>/.exec(item))?.[1]?.trim() ?? "";
-            const link = (/<link>(.*?)<\/link>/.exec(item) ||
-              /<guid[^>]*>(.*?)<\/guid>/.exec(item))?.[1]?.trim() ?? "";
-            const desc = (
-              /<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/.exec(item) ||
-              /<description>([\s\S]*?)<\/description>/.exec(item)
-            )?.[1]?.trim() ?? "";
-            const pubDate = (/<pubDate>(.*?)<\/pubDate>/.exec(item))?.[1]?.trim() ?? "";
-
-            // Extract image from enclosure or media:content or description
-            let image = "";
-            const enclosure = /<enclosure[^>]+url="([^"]+)"/.exec(item);
-            const media = /<media:content[^>]+url="([^"]+)"/.exec(item);
-            const imgInDesc = /<img[^>]+src="([^"]+)"/.exec(desc);
-            if (enclosure) image = enclosure[1];
-            else if (media) image = media[1];
-            else if (imgInDesc) image = imgInDesc[1];
-
-            if (title && link) {
-              items.push({
-                title: title.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">"),
-                link,
-                description: desc
-                  .replace(/<[^>]+>/g, "")
-                  .replace(/&amp;/g, "&")
-                  .replace(/&lt;/g, "<")
-                  .replace(/&gt;/g, ">")
-                  .slice(0, 200),
-                pubDate,
-                image,
-                source: sourceName.charAt(0).toUpperCase() + sourceName.slice(1),
-              });
-            }
-          }
-          return items;
+          return parseRssItems(await res.text(), url);
         } catch {
           return [];
         }
       };
 
       const results = await Promise.all(selectedFeeds.map(parseRSSFeed));
-      const allItems = results.flat();
-
-      // Sort by date
-      allItems.sort((a, b) => {
-        const da = a.pubDate ? new Date(a.pubDate).getTime() : 0;
-        const db = b.pubDate ? new Date(b.pubDate).getTime() : 0;
-        return db - da;
-      });
 
       return {
-        articles: allItems.slice(0, input.limit).map((item, idx) => ({
-          id: `${idx}-${Date.now()}`,
-          ...item,
-        })),
+        articles: mergeArticles(results, input.limit),
         error: null,
       };
     }),
