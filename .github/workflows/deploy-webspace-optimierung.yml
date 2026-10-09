@@ -23,8 +23,12 @@ jobs:
           FTP_TLS: "1"
         run: |
           if [ -z "$FTP_USER" ] || [ -z "$FTP_PASS" ]; then
-            echo "::error::FTP_USER / FTP_PASS Secrets fehlen (Repo Settings → Secrets and variables → Actions)."
-            exit 1
+            echo "::warning::FTP_USER / FTP_PASS fehlen — Deploy übersprungen (Secrets unter Settings → Actions setzen)."
+            if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+              echo "::error::Manueller Deploy abgebrochen: FTP Secrets erforderlich."
+              exit 1
+            fi
+            exit 0
           fi
           export FTP_HOST="${FTP_HOST:-w02176b7.kasserver.com}"
           python3 scripts/deploy-webspace-optimierung.py
