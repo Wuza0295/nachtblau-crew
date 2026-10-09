@@ -69,7 +69,7 @@ export default function Navbar() {
             <img
               src={SITE.logoUrl}
               alt="NachtBlau Crew Logo"
-              className="h-10 w-10 object-contain transition-transform duration-300 group-hover:scale-110"
+              className="h-11 w-11 object-contain transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6"
             />
             <div className="hidden sm:block">
               <span

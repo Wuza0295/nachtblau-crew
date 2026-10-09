@@ -227,10 +227,53 @@
   0%, 100% { opacity: 0.3; transform: scale(0.8); }
   50% { opacity: 1; transform: scale(1.2); }
 }
+@keyframes logo-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+@keyframes pixel-pop {
+  0%, 100% { opacity: 0.35; transform: translateY(0) scale(0.85); }
+  50% { opacity: 1; transform: translateY(-4px) scale(1); }
+}
 
 .animate-float { animation: float 4s ease-in-out infinite; }
 .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
 .animate-twinkle { animation: twinkle 3s ease-in-out infinite; }
+.logo-bob { animation: logo-bob 3.4s ease-in-out infinite; }
+.pixel-pop { animation: pixel-pop 2.8s ease-in-out infinite; }
+
+.game-pill {
+  border-radius: 999px;
+  font-family: "Fredoka", "Inter", system-ui, sans-serif;
+  letter-spacing: 0.01em;
+  box-shadow:
+    0 0 0 2px oklch(0.82 0.08 230 / 0.28),
+    0 5px 0 oklch(0.32 0.1 270);
+}
+.game-pill:hover {
+  transform: translateY(-2px);
+}
+.game-pill:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 0 0 2px oklch(0.82 0.08 230 / 0.28),
+    0 3px 0 oklch(0.32 0.1 270);
+}
+
+.game-hud {
+  border-radius: 999px;
+  background:
+    linear-gradient(oklch(0.16 0.045 262), oklch(0.11 0.03 262)) padding-box,
+    linear-gradient(100deg, #bfe6ff, #7c6cff, #ff9bb8) border-box;
+  border: 1.5px solid transparent;
+}
+
+.play-card {
+  border-radius: 1.15rem;
+}
+.play-card:hover {
+  transform: translateY(-6px) rotate(-0.4deg);
+}
 
 /* ── Typography ─────────────────────────────────────────────────────────────── */
 h1, h2, h3, h4, h5, h6 {
