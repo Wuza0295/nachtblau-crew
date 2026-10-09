@@ -1,74 +1,102 @@
 # Sync: Bazzite ↔ Windows ↔ Cloud
 
-Ein **gemeinsamer Git-Stand** (`main`) für NachtBlau Crew, Silk-Website und Windows-Silk-VM-Skripte.
+Alles, was beim Wechsel **Bazzite → Windows** und zurück denselben Stand haben soll: Repo/Silk, Hub, Minecraft-Desktop-Server, Dual-Boot-Spielstände.
 
 ## Schnellbefehle
 
-| System | Befehl |
-|--------|--------|
-| **Bazzite / Linux / WSL** | `./scripts/sync-bazzite-windows.sh` |
-| **Windows (PowerShell)** | `.\scripts\windows\Sync-NachtBlauRepo.ps1` |
-| **Nach Pull: Silk-Website** | `cd Silk-Website && ./start.sh` |
-| **Silk auf Bazzite testen** | `./Silk-Website/scripts/test-silk-on-bazzite.sh --status` |
-| **Silk-VM unter Windows** | `.\silk\windows\Install-SilkVM.ps1` |
+| Bereich | Bazzite / Linux | Windows |
+|---------|-----------------|---------|
+| **Git + Silk-Config** | `./scripts/sync-bazzite-windows.sh` bzw. `pnpm sync:machines` | `.\scripts\windows\Sync-NachtBlauRepo.ps1` |
+| **+ Spielstände** | `./scripts/sync-bazzite-windows.sh --saves` | `.\scripts\windows\Sync-NachtBlauRepo.ps1 -SyncSaves` |
+| **Minecraft-Server (Desktop)** | `pnpm sync:bazzite` / `sudo ./scripts/desktop/nacht-install-bazzite.sh --yes` | `.\scripts\desktop\run-nachtblau-from-windows.ps1 -Yes` |
+| **Hub live (Webspace)** | `pnpm hub:check` · Deploy: `pnpm deploy:windows-hub` (braucht FTP) | Electron: `apps/nachtblau-hub/windows` |
+| **Silk-Website** | `cd Silk-Website && ./start.sh` | wie links oder `-StartSilkWebsite` |
+| **Silk-VM** | — | `.\silk\windows\Install-SilkVM.ps1` |
 
-Optional mit Tests und Website:
-
-```bash
-./scripts/sync-bazzite-windows.sh --test --website
-```
-
-```powershell
-.\scripts\windows\Sync-NachtBlauRepo.ps1 -Test -StartSilkWebsite
-.\scripts\windows\Sync-NachtBlauRepo.ps1 -InstallSilkVm
-```
-
-## Erstes Einrichten
-
-### Bazzite
+## 1. Git / Silk (Repo-Stand)
 
 ```bash
-git clone https://github.com/Wuza0295/nachtblau-crew.git ~/nachtblau-crew
-cd ~/nachtblau-crew
 ./scripts/sync-bazzite-windows.sh
+# optional: --saves --test --website
 ```
-
-### Windows
 
 ```powershell
-git clone https://github.com/Wuza0295/nachtblau-crew.git $env:USERPROFILE\nachtblau-crew
-cd $env:USERPROFILE\nachtblau-crew
 .\scripts\windows\Sync-NachtBlauRepo.ps1
+.\scripts\windows\Sync-NachtBlauRepo.ps1 -SyncSaves -InstallSilkVm
 ```
 
-Für die volle Web-App unter WSL dieselbe Bash-Sync wie auf Bazzite nutzen.
+Macht: `git pull`, `pnpm install`, Linux zusätzlich `silk-sync-config`.
 
-## Was der Sync macht
+## 2. NachtBlau Hub (Webspace)
 
-1. `git fetch` / `git pull --ff-only` auf `main` (oder `SYNC_BRANCH`)
-2. `pnpm install` (falls Node/pnpm vorhanden)
-3. **`silk-sync-config`** (Linux): App-Listen und Aliases von GitHub raw → `~/.local/share/silk`
-4. Hinweise auf Website, Silk-`bootc switch` und Windows-VM
+Eine Live-Quelle: `https://launcher.nachtblau-interactive.com/`
+
+| Gerät | URL |
+|-------|-----|
+| Bazzite | `/linux.html` |
+| Windows | `/windows.html` |
+| Android | `/android.html` |
+
+```bash
+pnpm deploy:prepare          # Artefakte + FTP-Status (kein Fake-Upload)
+pnpm deploy:windows-hub      # braucht FTP_USER/FTP_PASS
+pnpm hub:check -- --require-windows
+```
+
+Credentials: `.env.webspace` (siehe `.env.webspace.example`) oder Cursor-Environment-Secrets.
+
+## 3. Minecraft-Desktop (Java + Bedrock + Geyser)
+
+Gleicher Server-Stand auf Bazzite und Windows (Pi bleibt Referenz). Details: [scripts/desktop/README.md](../scripts/desktop/README.md).
+
+| | Bazzite | Windows |
+|--|---------|---------|
+| Java | `/opt/minecraft-java` :25565 | `C:\NachtBlau\java` |
+| Bedrock | `/opt/minecraft-bedrock` :19132 | `C:\NachtBlau\bedrock` |
+| Geyser | :19134 | :19134 |
+
+## 4. Dual-Boot-Spielstände
+
+Gemeinsamer Sync-Root auf einer Partition, die **beide** OS sehen (typisch NTFS):
+
+```bash
+export NACHTBLAU_SYNC_ROOT=/mnt/nachtblau-sync   # Bazzite: Partition mounten
+pnpm sync:saves            # neuerer Stand gewinnt
+pnpm sync:saves -- status
+```
+
+```powershell
+$env:NACHTBLAU_SYNC_ROOT = 'D:\NachtBlauSync'
+.\scripts\dualboot\Sync-Saves.ps1
+.\scripts\dualboot\Sync-Saves.ps1 -Command status
+```
+
+### Was synchronisiert wird
+
+- Minecraft Java Client: `saves/`, `servers.dat`, optional `options.txt`
+- Desktop-Server: Java-`world` + Ops/Allowlist, Bedrock-`worlds` (falls installiert)
+- Lumina-Launcher-Config (falls vorhanden)
+
+### Grenzen
+
+- Steam/Proton und Steam-Cloud: eigener Mechanismus
+- Bedrock Windows Store Saves: Pfade versionsabhängig, nicht im Manifest
+- Hub-Unlocks (Browser localStorage): folgen dem Webspace, nicht der Partition
+- Nie beide OS gleichzeitig auf dieselben Dateien schreiben (Dual-Boot)
+
+Manifest: [scripts/dualboot/manifest.json](../scripts/dualboot/manifest.json) · Beispiel-Env: [scripts/dualboot/paths.example](../scripts/dualboot/paths.example)
 
 ## Silk: Bazzite vs. Windows
 
 | Ziel | Weg |
 |------|-----|
-| Silk **nativ** auf dem PC | Bazzite: `bootc switch` → siehe [Silk-Website/TEST-SILK.md](../Silk-Website/TEST-SILK.md) |
-| Silk in **VM unter Windows** | [silk/windows/README.md](../silk/windows/README.md) |
-| Windows-.exe **auf Silk/Linux** | [silk/docs/WINDOWS.md](../silk/docs/WINDOWS.md) (`silk-windows`) |
+| Silk nativ | Bazzite `bootc switch` → [Silk-Website/TEST-SILK.md](../Silk-Website/TEST-SILK.md) |
+| Silk-VM unter Windows | [silk/windows/README.md](../silk/windows/README.md) |
+| Windows-.exe auf Silk/Linux | [silk/docs/WINDOWS.md](../silk/docs/WINDOWS.md) |
 
-Zurück von Silk zu Bazzite:
+Zurück zu Bazzite:
 
 ```bash
 sudo bootc switch --enforce-container-sigpolicy ghcr.io/ublue-os/bazzite:stable
 sudo systemctl reboot
 ```
-
-## Webspace / Allxion (optional)
-
-Für identischen App-Stand auf ALL-INKL (Linux/Android im Browser) liegt erweitertes Tooling auf Branch `cursor/full-platform-sync-8676` (`pnpm sync:platforms`). Dafür brauchst du `.env.webspace` mit FTPS-Zugangsdaten.
-
-## Cloud Agent
-
-Änderungen am Repo werden per `git push` auf `main` veröffentlicht. Auf Bazzite und Windows danach einmal den Sync-Befehl oben ausführen.

@@ -11,6 +11,7 @@ REMOTE="${SYNC_REMOTE:-origin}"
 RUN_TESTS=0
 START_WEBSITE=0
 SILK_CONFIG=1
+SYNC_SAVES=0
 
 usage() {
   cat <<'EOF'
@@ -21,6 +22,7 @@ Usage: ./scripts/sync-bazzite-windows.sh [Optionen]
 Optionen:
   --branch NAME     Git-Branch (Standard: aktueller Branch, sonst SYNC_BRANCH oder main)
   --skip-silk-config  Kein silk-sync-config ausführen
+  --saves           Dual-Boot Spielstände syncen (NACHTBLAU_SYNC_ROOT)
   --test            Nach Sync: pnpm test
   --website         Silk-Website lokal starten (start.sh)
   -h, --help        Diese Hilfe
@@ -39,6 +41,7 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     --skip-silk-config) SILK_CONFIG=0; shift ;;
+    --saves) SYNC_SAVES=1; shift ;;
     --test) RUN_TESTS=1; shift ;;
     --website) START_WEBSITE=1; shift ;;
     -h|--help) usage; exit 0 ;;
@@ -94,6 +97,11 @@ if [[ "$SILK_CONFIG" -eq 1 ]]; then
     info "Silk-Konfiguration"
     bash "$SYNC_BIN"
   fi
+fi
+
+if [[ "$SYNC_SAVES" -eq 1 ]]; then
+  info "Dual-Boot Spielstände (NACHTBLAU_SYNC_ROOT=${NACHTBLAU_SYNC_ROOT:-/mnt/nachtblau-sync})"
+  bash "$ROOT/scripts/dualboot/sync-saves.sh" sync
 fi
 
 if [[ "$RUN_TESTS" -eq 1 ]]; then

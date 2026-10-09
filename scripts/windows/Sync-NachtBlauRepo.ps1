@@ -13,6 +13,7 @@ param(
   [string]$Remote = 'origin',
   [switch]$SkipPnpm,
   [switch]$Test,
+  [switch]$SyncSaves,
   [switch]$StartSilkWebsite,
   [switch]$InstallSilkVm
 )
@@ -56,6 +57,11 @@ if (-not $SkipPnpm -and (Test-Path 'package.json')) {
   }
 }
 
+if ($SyncSaves) {
+  Write-Step "Dual-Boot Spielstände (NACHTBLAU_SYNC_ROOT=$($env:NACHTBLAU_SYNC_ROOT))"
+  & (Join-Path $Root 'scripts\dualboot\Sync-Saves.ps1') -Command sync
+}
+
 if ($Test) {
   Write-Step 'pnpm test'
   pnpm test
@@ -89,6 +95,8 @@ Write-Host @"
 
 Nächste Schritte:
   • Silk-VM:     .\silk\windows\Install-SilkVM.ps1
+  • Spielstände: .\scripts\dualboot\Sync-Saves.ps1
+  • Minecraft:   .\scripts\desktop\run-nachtblau-from-windows.ps1 -Yes
   • WSL-Sync:    ./scripts/sync-bazzite-windows.sh
   • Doku:        docs/SYNC-BAZZITE-WINDOWS.md
 
