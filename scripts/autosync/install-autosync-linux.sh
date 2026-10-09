@@ -79,24 +79,40 @@ case "$cmd" in
     exit 0
     ;;
   --enable|"")
+    ensure_env_file() {
+      mkdir -p "$ENV_DIR"
+      if [[ ! -f "$ENV_FILE" ]]; then
+        cp "$SCRIPT_DIR/autosync.env.example" "$ENV_FILE"
+        echo "NACHTBLAU_REPO=$ROOT" >>"$ENV_FILE"
+        echo "→ Env angelegt: $ENV_FILE"
+      elif ! grep -q '^NACHTBLAU_REPO=' "$ENV_FILE"; then
+        echo "NACHTBLAU_REPO=$ROOT" >>"$ENV_FILE"
+      fi
+    }
+
     install_crontab() {
       local line="*/30 * * * * $SCRIPT_DIR/run-autosync.sh >>${XDG_STATE_HOME:-$HOME/.local/state}/nachtblau/autosync.log 2>&1"
       mkdir -p "${XDG_STATE_HOME:-$HOME/.local/state}/nachtblau"
-      (crontab -l 2>/dev/null | grep -v 'run-autosync.sh' || true; echo "$line") | crontab -
+      if ! command -v crontab >/dev/null 2>&1; then
+        echo "⚠ weder systemd --user noch crontab verfügbar." >&2
+        echo "  Units liegen unter: $UNIT_DIR"
+        echo "  Manuell starten: $SCRIPT_DIR/run-autosync.sh"
+        echo "  Auf Bazzite/Desktop: Skript erneut ausführen (dort greift systemd --user)."
+        return 1
+      fi
+      local existing
+      existing="$(crontab -l 2>/dev/null || true)"
+      printf '%s\n' "$(printf '%s\n' "$existing" | grep -v 'run-autosync.sh' || true)" "$line" | crontab -
       echo "✓ Auto-Sync aktiv (crontab alle 30 Min)"
       echo "  Env:  $ENV_FILE"
       echo "  Log:  ~/.local/state/nachtblau/autosync.log"
       echo "  Zeile: $line"
     }
 
+    ensure_env_file
     if ! command -v systemctl >/dev/null; then
       echo "systemd fehlt — Fallback crontab" >&2
-      mkdir -p "$ENV_DIR"
-      if [[ ! -f "$ENV_FILE" ]]; then
-        cp "$SCRIPT_DIR/autosync.env.example" "$ENV_FILE"
-        echo "NACHTBLAU_REPO=$ROOT" >>"$ENV_FILE"
-      fi
-      install_crontab
+      install_crontab || true
       exit 0
     fi
     install_units
@@ -113,7 +129,7 @@ case "$cmd" in
       systemctl --user list-timers --all 2>/dev/null | grep -E 'nachtblau|NEXT' || true
     else
       echo "systemd --user nicht verfügbar — Fallback crontab" >&2
-      install_crontab
+      install_crontab || true
     fi
     ;;
   *)
