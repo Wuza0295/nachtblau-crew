@@ -19,10 +19,10 @@ const HYBRIXON_ENGINE = 'hybrixon-php85-r3';
  * Public asset cache-busters — single source of truth for header/footer/SW.
  * Bump the matching constant when that file changes; keep SW list in sync.
  */
-const HYBRIXON_ASSET_CSS = '128';
+const HYBRIXON_ASSET_CSS = '129';
 const HYBRIXON_ASSET_JS = '123';
-const HYBRIXON_ASSET_SW = '12';
-const HYBRIXON_STATIC_CACHE = 'hybrixon-static-v16';
+const HYBRIXON_ASSET_SW = '13';
+const HYBRIXON_STATIC_CACHE = 'hybrixon-static-v17';
 
 /** Canonical public domain (no scheme) — final home. */
 const HYBRIXON_CANONICAL_HOST = 'hybrixon.com';

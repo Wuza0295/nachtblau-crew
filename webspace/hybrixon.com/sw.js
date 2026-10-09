@@ -2,11 +2,11 @@
  * Keep STATIC_CACHE / asset ?v= in sync with HYBRIXON_STATIC_CACHE and
  * HYBRIXON_ASSET_* in includes/config.php (engine cache-busters).
  */
-const STATIC_CACHE = 'hybrixon-static-v16';
+const STATIC_CACHE = 'hybrixon-static-v17';
 const STATIC_PREFIX = 'hybrixon-static-';
 const STATIC_ASSETS = [
   '/manifest.json',
-  '/assets/css/style.css?v=128',
+  '/assets/css/style.css?v=129',
   '/assets/js/app.js?v=123',
   '/assets/img/logo-avatar.png',
   '/assets/img/favicon.svg',
