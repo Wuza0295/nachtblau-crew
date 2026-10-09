@@ -10,7 +10,7 @@
     </linearGradient>
   </defs>
 
-  <!-- Markenfeld (hell, für dunkle Hintergründe) -->
+  <!-- Markenfeld (hell, fuer dunkle Hintergruende) -->
   <rect x="8" y="8" width="112" height="112" rx="14" fill="url(#plate)"/>
   <rect x="8.5" y="8.5" width="111" height="111" rx="13.5" stroke="#8fa0b0" stroke-width="1"/>
 
@@ -22,17 +22,17 @@
   <circle cx="86" cy="34" r="12.5" fill="url(#moon)"/>
   <circle cx="89.5" cy="30.5" r="9.5" fill="#e8eef6"/>
 
-  <!-- Eule  geometrisch, frontale Ansicht -->
+  <!-- Eule - geometrisch, frontale Ansicht -->
   <g transform="translate(64 68)">
     <!-- Ohren -->
     <path d="M-13 -30 L-18 -42 L-7 -31 Z" fill="#1a2a3c" stroke="#6d8498" stroke-width="0.8" stroke-linejoin="round"/>
     <path d="M13 -30 L18 -42 L7 -31 Z" fill="#1a2a3c" stroke="#6d8498" stroke-width="0.8" stroke-linejoin="round"/>
 
-    <!-- Flügel -->
+    <!-- Fluegel -->
     <path d="M-32 -4 C-40 10 -34 28 -18 30 C-24 16 -28 4 -32 -4 Z" fill="#101c2a"/>
     <path d="M32 -4 C40 10 34 28 18 30 C24 16 28 4 32 -4 Z" fill="#101c2a"/>
 
-    <!-- Körper -->
+    <!-- Koerper -->
     <path d="M0 28 C-18 28 -22 10 -20 -6 C-12 -18 12 -18 20 -6 C22 10 18 28 0 28 Z" fill="#1a2a3c"/>
     <path d="M0 22 C-10 22 -12 10 -11 0 C-6 -8 6 -8 11 0 C12 10 10 22 0 22 Z" fill="#122030" opacity="0.7"/>
 
