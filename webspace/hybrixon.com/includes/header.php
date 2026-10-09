@@ -43,10 +43,7 @@ $ua = (string)($_SERVER['HTTP_USER_AGENT'] ?? '');
 $inHybrixonApp = str_contains($ua, 'HybrixonApp');
 
 if (!headers_sent()) {
-    header('X-Content-Type-Options: nosniff');
-    header('X-Frame-Options: SAMEORIGIN');
-    header('Referrer-Policy: strict-origin-when-cross-origin');
-    header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
+    hybrixon_send_security_headers();
 
     // Expire the legacy trap cookie (old Intent fallback used ?web=1 → stay_web for 30 days).
     if (isset($_COOKIE['hybrixon_stay_web'])) {
@@ -145,7 +142,7 @@ if (!isset($pageUrl)) {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=Oxanium:wght@600;700;800&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="<?= e(allxion_url('assets/css/style.css')) ?>?v=128">
+  <link rel="stylesheet" href="<?= e(hybrixon_asset_url('assets/css/style.css')) ?>">
   <?php
     // Immediate client handoff on first paint (HTML always served so the banner stays).
     $clientAutoApp = hybrixon_should_client_auto_open_app($ua, $forceStayWeb);

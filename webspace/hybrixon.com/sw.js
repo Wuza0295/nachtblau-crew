@@ -1,5 +1,8 @@
-/* Hybrixon service worker — Web Push + background-loaded static shell */
-const STATIC_CACHE = 'hybrixon-static-v15';
+/* Hybrixon service worker — Web Push + background-loaded static shell
+ * Keep STATIC_CACHE / asset ?v= in sync with HYBRIXON_STATIC_CACHE and
+ * HYBRIXON_ASSET_* in includes/config.php (engine cache-busters).
+ */
+const STATIC_CACHE = 'hybrixon-static-v16';
 const STATIC_PREFIX = 'hybrixon-static-';
 const STATIC_ASSETS = [
   '/manifest.json',

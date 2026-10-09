@@ -15,12 +15,21 @@ RewriteEngine On
 </IfModule>
 LimitRequestBody 1073741824
 
-# Basic hardening
+# Basic hardening (+ HSTS when the request is already HTTPS)
 <IfModule mod_headers.c>
   Header set X-Content-Type-Options "nosniff"
   Header set X-Frame-Options "SAMEORIGIN"
   Header set Referrer-Policy "strict-origin-when-cross-origin"
   Header set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+  Header set Cross-Origin-Opener-Policy "same-origin-allow-popups"
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
+</IfModule>
+
+# Long-lived static assets (cache-busted via ?v= from HYBRIXON_ASSET_*).
+<IfModule mod_headers.c>
+  <FilesMatch "\.(css|js|svg|png|jpe?g|webp|woff2?)$">
+    Header set Cache-Control "public, max-age=604800, immutable"
+  </FilesMatch>
 </IfModule>
 
 # www → apex (when domain is live)
