@@ -1,0 +1,20 @@
+# NVIDIA – empfohlene Kernel-Args (als root, einmalig):
+#   rpm-ostree kargs --append=nvidia-drm.modeset=1
+#   rpm-ostree kargs --append=rd.driver.blacklist=nouveau
+#
+# Image wählen (oder: silk-gpu switch):
+#
+#   Turing+ / RTX / GTX 16xx+ (nvidia-open):
+#     sudo bootc switch --enforce-container-sigpolicy ghcr.io/<user>/silk-nvidia-open:latest
+#
+#   Ältere GPUs GTX 9xx / 10xx (proprietärer Treiber):
+#     sudo bootc switch --enforce-container-sigpolicy ghcr.io/<user>/silk-nvidia:latest
+#
+# Prüfen:
+#   silk-gpu status
+#   silk-gpu vulkan
+#   nvidia-smi          # auf NVIDIA-Images
+#
+# Wayland: nvidia-drm.modeset=1 empfohlen.
+# Flatpak Steam: oft flatpak override --user --filesystem=/usr/lib/x86_64-linux-gnu/GL:ro …
+# (Universal-Blue-Images setzen das typischerweise schon).

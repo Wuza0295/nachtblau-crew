@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Silk Installer (Windows)
+Name[de]=Silk-Installer (Windows)
+Comment=Starts Windows .exe via Silk (Bottles) – auto-setup
+Comment[de]=Startet Windows-.exe über Silk (Bottles) – automatisch eingerichtet
+Exec=silk-install %f
+Icon=application-x-ms-dos-executable
+Terminal=false
+Type=Application
+MimeType=application/x-ms-dos-executable;application/x-msi;application/x-msdownload;
+Categories=System;Utility;
+NoDisplay=false

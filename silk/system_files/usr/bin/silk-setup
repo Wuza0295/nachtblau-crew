@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+# silk-setup – maximal einfacher Ersteinstieg (PC, Tablet, Mac, Mobile)
+# Hinweis: Beim Autostart übernimmt silk-tour die UX; silk-setup bleibt
+# für manuelle/Plattform-Pfade und Kompatibilität.
+set -euo pipefail
+
+MARKER="${XDG_CONFIG_HOME:-$HOME/.config}/silk/.setup-done"
+WELCOME_FLAG="${XDG_CONFIG_HOME:-$HOME/.config}/silk/.welcome-shown"
+TOUR_MARKER="${XDG_CONFIG_HOME:-$HOME/.config}/silk/.tour-done"
+mkdir -p "$(dirname "$MARKER")" "$HOME/Applications" "$HOME/.local/share/silk/appimages"
+
+if [[ -f "$MARKER" && "${1:-}" != "--force" ]]; then
+  exit 0
+fi
+
+# Wenn Tour noch nicht lief und wir interaktiv sind → Tour bevorzugen
+if [[ "${SILK_USE_SETUP_DIRECT:-0}" != "1" && ! -f "$TOUR_MARKER" && -x /usr/bin/silk-tour && "${1:-}" != "--force" ]]; then
+  if [[ -n "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ]]; then
+    exec /usr/bin/silk-tour
+  fi
+fi
+
+# Plattform-spezifischer Einstieg (Mac → asahi, Tablet → tablet, …)
+if [[ "${SILK_SKIP_PLATFORM:-0}" != "1" ]]; then
+  platform="$(/usr/bin/silk-platform detect 2>/dev/null || echo pc)"
+  case "$platform" in
+    apple-silicon)
+      /usr/bin/silk-asahi setup && exit 0
+      ;;
+    tablet)
+      /usr/bin/silk-tablet setup && exit 0
+      ;;
+    mobile)
+      /usr/bin/silk-mobile setup && exit 0
+      ;;
+    intel-mac)
+      /usr/bin/silk-asahi intel-mac
+      exit 1
+      ;;
+  esac
+fi
+
+notify-send -a "Silk" "Silk" "Einrichtung für Windows-/Mac-Wechsler…" 2>/dev/null || true
+
+# 1) Optik
+/usr/bin/silk-desktop --ask || /usr/bin/silk-apply-layout mac || true
+/usr/bin/silk-apply-wallpaper || true
+
+flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo || true
+
+# 2) Alltag immer (einfacher Umstieg) – außer SILK_SKIP_ESSENTIALS=1
+if [[ "${SILK_SKIP_ESSENTIALS:-0}" != "1" ]]; then
+  notify-send -a "Silk" "Silk" "Installiere Alltags-Apps (Office, Browser, VLC, …)" 2>/dev/null || true
+  /usr/bin/silk-install --setup-essentials || true
+fi
+
+# 3) Windows-Kompatibilität (Bottles) – ohne Hürde für .exe
+if [[ "${SILK_SKIP_WINDOWS:-0}" != "1" ]]; then
+  if [[ "${SILK_AUTO_WINDOWS:-1}" == "1" ]]; then
+    notify-send -a "Silk" "Silk" "Richte Windows-Programme ein (Bottles)…" 2>/dev/null || true
+    /usr/bin/silk-install --setup-windows || /usr/bin/silk-windows setup || true
+  elif command -v kdialog >/dev/null 2>&1; then
+    if kdialog --yesno "Windows-Programme (.exe) ohne Extra-Schritte ermöglichen?" 2>/dev/null; then
+      /usr/bin/silk-install --setup-windows || true
+    fi
+  fi
+fi
+
+# 3b) GPU + Controller
+/usr/bin/silk-gpu detect 2>/dev/null || true
+/usr/bin/silk-controllers setup 2>/dev/null || true
+if command -v kdialog >/dev/null 2>&1; then
+  gpu="$(/usr/bin/silk-gpu detect 2>/dev/null || true)"
+  if [[ "$gpu" == nvidia ]]; then
+    kdialog --yesno "NVIDIA erkannt. Zum empfohlenen Silk-NVIDIA-Image wechseln?\n(silk-gpu switch)" 2>/dev/null && \
+      /usr/bin/silk-gpu switch || true
+  fi
+fi
+
+# 4) Gaming optional
+if [[ "${SILK_AUTO_GAMING:-0}" == "1" ]]; then
+  /usr/bin/silk-install --setup-gaming || true
+elif command -v kdialog >/dev/null; then
+  if kdialog --yesno "Auch Gaming-Apps (Steam, Epic, Discord, …)?"; then
+    /usr/bin/silk-install --setup-gaming || true
+  fi
+fi
+
+# 5) Distrobox für deb/snap vorbereiten (Hintergrund-freundlich)
+/usr/bin/silk-ensure-boxes || true
+
+# 6) Willkommen
+if [[ ! -f "$WELCOME_FLAG" ]]; then
+  /usr/bin/silk-welcome --center || /usr/bin/silk-welcome || true
+  touch "$WELCOME_FLAG"
+fi
+
+# 7) Optional: Begleitgeräte (iPhone/iPad) anbinden
+if [[ "${SILK_AUTO_CONNECT:-0}" == "1" ]]; then
+  /usr/bin/silk-connect setup || true
+elif command -v kdialog >/dev/null 2>&1; then
+  if kdialog --yesno "Altes iPhone/iPad mit Silk verbinden?\n(Silk Connect – kein natives iOS-OS)" 2>/dev/null; then
+    /usr/bin/silk-connect setup || true
+  fi
+fi
+
+touch "$MARKER" "$TOUR_MARKER"
+notify-send -a "Silk" "Silk" "Fertig! Doppelklick auf .exe startet Windows-Programme (Bottles)." 2>/dev/null || true

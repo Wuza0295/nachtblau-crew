@@ -1,0 +1,16 @@
+# Umstieg von macOS auf Silk (auf PC-Hardware)
+#
+# Silk ersetzt kein macOS auf dem MacBook – es ist Linux für PC/Laptop.
+#
+# Bereits in Silk enthalten:
+#   silk-desktop mac          – Mac-ähnliches Layout (Menüleiste + Dock)
+#   silk-install datei.dmg    – sucht Linux-Flatpak-Alternative
+#   silk-install datei.app    – App-Bundle → Flatpak-Ersatz
+#   App-Aliase: Safari→Firefox, Apple Music→Spotify, …
+#
+# Erstlogin:
+#   silk-setup                – Stil wählen, Essentials, optional Gaming
+#   silk-welcome              – Kurzhilfe
+#
+# Dateitypen:
+#   .dmg / .pkg / .app  →  Flatpak-Gegenstück (kein natives macOS)

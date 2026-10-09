@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Silk Installer (Android)
+Name[de]=Silk-Installer (Android)
+Comment=Installiert Linux-Äquivalent oder APK in Waydroid
+Comment[de]=Sucht Flatpak-Gegenstück oder installiert APK in Waydroid
+Exec=silk-install %f
+Icon=application-vnd.android.package-archive
+Terminal=false
+Type=Application
+MimeType=application/vnd.android.package-archive;
+Categories=System;Utility;
+NoDisplay=false

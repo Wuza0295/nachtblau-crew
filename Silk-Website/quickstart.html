@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Silk – Quickstart</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .doc { max-width: 720px; margin: 0 auto; padding: 32px 24px 64px; }
+    .doc h1 { font-size: 1.75rem; margin-bottom: 8px; }
+    .doc h2 { font-size: 1.2rem; margin: 28px 0 10px; color: #1e40af; }
+    .doc p, .doc li { color: #334155; margin-bottom: 8px; }
+    .doc ul { margin-left: 20px; }
+    .back { display: inline-block; margin-bottom: 20px; color: #2563eb; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="doc">
+    <a class="back" href="index.html">← Zurück zur Startseite</a>
+    <h1>Silk – Installation in 5 Minuten</h1>
+    <p><strong>Voraussetzung:</strong> PC mit UEFI, Internet. Start von Universal Blue (Fedora Atomic, KDE Plasma) oder anderem Bootc-System.</p>
+
+    <h2>1. Image wählen</h2>
+    <ul>
+      <li><strong>AMD / Intel:</strong> <code>ghcr.io/wuza0295/silk:latest</code></li>
+      <li><strong>NVIDIA (Turing/16xx+):</strong> <code>ghcr.io/wuza0295/silk-nvidia-open:latest</code></li>
+    </ul>
+
+    <h2>2. Installieren</h2>
+    <p><strong>AMD / Intel:</strong></p>
+    <pre><code>sudo bootc switch --enforce-container-sigpolicy ghcr.io/wuza0295/silk:latest
+sudo systemctl reboot</code></pre>
+    <p><strong>NVIDIA:</strong></p>
+    <pre><code>sudo bootc switch --enforce-container-sigpolicy ghcr.io/wuza0295/silk-nvidia-open:latest
+sudo systemctl reboot</code></pre>
+
+    <h2>3. Erstlogin</h2>
+    <p><code>silk-tour</code> startet automatisch: Stil wählen → Apps → Windows-.exe → optional Gaming → Startzentrum.</p>
+
+    <h2>Unter Windows als VM testen</h2>
+    <p>Doppelklick: <code>silk/windows/Install-SilkVM.cmd</code> (Hyper-V oder VirtualBox). Details: Doku <code>docs/VM-WINDOWS.md</code>.</p>
+
+    <h2>4. Wichtige Befehle</h2>
+    <pre><code>silk-tour --center
+silk-welcome
+silk-ready status
+silk-install datei.exe
+silk-desktop --ask
+silk-update
+silk-tips
+sudo bootc upgrade</code></pre>
+
+    <h2>Probleme?</h2>
+    <ul>
+      <li><code>bootc switch</code> fehlgeschlagen → <code>--enforce-container-sigpolicy</code> setzen</li>
+      <li>NVIDIA schwarzer Bildschirm → <code>silk-nvidia-open</code> Image nutzen</li>
+      <li>Zurück zum vorherigen Bootc-Image → <code>sudo bootc switch &lt;dein-vorheriges-image&gt;</code> (z. B. Universal-Blue-KDE-Tag aus <code>silk/silk.env</code>)</li>
+    </ul>
+
+    <p><em>Silk ist kein macOS/Windows. Community-Projekt der Nachtblau Crew.</em></p>
+  </div>
+</body>
+</html>

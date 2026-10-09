@@ -1,0 +1,248 @@
+#!/usr/bin/env bash
+# silk-gpu – GPU-Erkennung, Treiber, Vulkan, Image-Empfehlung (AMD / Intel / NVIDIA)
+set -euo pipefail
+
+STATE="/var/lib/silk/gpu"
+SHARE="/usr/share/silk"
+
+usage() {
+  cat <<'EOF'
+silk-gpu – AMD / Intel / NVIDIA voll unterstützen
+
+  silk-gpu status          erkannte GPU(s), Treiber, Vulkan
+  silk-gpu hints           Kernel-Args & Image-Empfehlung
+  silk-gpu detect          Erkennung neu schreiben
+  silk-gpu switch          Zum empfohlenen Silk-Image wechseln
+  silk-gpu vulkan          Vulkan-Info (vulkaninfo Kurz)
+  silk-gpu doctor          Diagnose AMD/NVIDIA/Intel
+
+Images (Firstboot wechselt NVIDIA automatisch):
+  AMD / Intel     → silk:latest              (sofort)
+  NVIDIA Turing+  → silk-nvidia-open:latest  (RTX / GTX 16xx+)
+  NVIDIA älter    → silk-nvidia:latest       (GTX 9xx/10xx, proprietär)
+
+Siehe auch: silk-ready · docs/OUT-OF-BOX.md
+EOF
+}
+
+vendor_label() {
+  case "$1" in
+    amd) echo "AMD" ;;
+    intel) echo "Intel" ;;
+    nvidia) echo "NVIDIA" ;;
+    *) echo "Unbekannt" ;;
+  esac
+}
+
+vendor_from_pci() {
+  case "$1" in
+    0x1002) echo amd ;;
+    0x8086) echo intel ;;
+    0x10de) echo nvidia ;;
+    *) echo unknown ;;
+  esac
+}
+
+repo_org() {
+  local org="${SILK_REPO_ORG:-}"
+  if [[ -z "$org" && -f /usr/share/silk/silk.env ]]; then
+    org="$(grep -E '^REPO_ORGANIZATION=' /usr/share/silk/silk.env | cut -d= -f2- | tr -d '"')"
+  fi
+  echo "${org:-wuza0295}"
+}
+
+# Heuristik: ältere NVIDIA (kein nvidia-open) – Device-IDs grob via pci name / Generation
+nvidia_needs_proprietary() {
+  local name
+  name="$(lspci 2>/dev/null | grep -iE 'VGA|3D|Display' | grep -i nvidia || true)"
+  # Turing+ Keywords / RTX / GTX 16
+  if echo "$name" | grep -qiE 'RTX|GTX 16|TITAN V|Quadro RTX|T[0-9]{3,}|A[0-9]{3,}'; then
+    return 1
+  fi
+  # Explizit alt
+  if echo "$name" | grep -qiE 'GTX 9[0-9]{2}|GTX 10[0-9]{2}|GTX 7[0-9]{2}|GTX 8[0-9]{2}|GTX 6[0-9]{2}|GeForce [4567][0-9]{2}|MX[1-3]|GT [0-9]'; then
+    return 0
+  fi
+  # Unklar → open (modern default)
+  return 1
+}
+
+scan_vendors() {
+  local -a found=()
+  local p v name
+  for p in /sys/class/drm/card[0-9]/device/vendor; do
+    [[ -r "$p" ]] || continue
+    v="$(cat "$p" 2>/dev/null || true)"
+    name="$(vendor_from_pci "$v")"
+    [[ "$name" == unknown ]] && continue
+    found+=("$name")
+  done
+  if ((${#found[@]} == 0)); then
+    # Fallback lspci
+    if lspci 2>/dev/null | grep -qi nvidia; then echo nvidia; return; fi
+    if lspci 2>/dev/null | grep -qi 'AMD/ATI\|Advanced Micro Devices'; then echo amd; return; fi
+    if lspci 2>/dev/null | grep -qi 'Intel.*Graphics\|Intel Corporation.*Display'; then echo intel; return; fi
+    echo unknown
+    return
+  fi
+  local g
+  for g in nvidia amd intel; do
+    for v in "${found[@]}"; do
+      [[ "$v" == "$g" ]] && { echo "$g"; return; }
+    done
+  done
+  echo "${found[0]}"
+}
+
+primary_gpu() {
+  if [[ -r "$STATE" ]]; then
+    cat "$STATE"
+    return
+  fi
+  scan_vendors
+}
+
+detect_and_save() {
+  mkdir -p /var/lib/silk
+  scan_vendors >"$STATE"
+  cat "$STATE"
+}
+
+list_cards() {
+  local card vendor driver model
+  shopt -s nullglob
+  for card in /sys/class/drm/card[0-9]; do
+    [[ -d "$card/device" ]] || continue
+    vendor=""; driver=""; model=""
+    [[ -r "$card/device/vendor" ]] && vendor="$(cat "$card/device/vendor")"
+    [[ -r "$card/device/uevent" ]] && driver="$(grep -E '^DRIVER=' "$card/device/uevent" | cut -d= -f2- || true)"
+    [[ -r "$card/device/device" ]] && model="$(cat "$card/device/device")"
+    printf '%s vendor=%s driver=%s device=%s\n' "$(basename "$card")" "$vendor" "$driver" "$model"
+  done
+  if command -v lspci >/dev/null 2>&1; then
+    echo "--- lspci ---"
+    lspci | grep -iE 'VGA|3D|Display' || true
+  fi
+}
+
+booted_image() {
+  bootc status 2>/dev/null | awk '/^● Booted image:/ {print $4; exit}' || true
+}
+
+recommended_image() {
+  local gpu="$1"
+  local org
+  org="$(repo_org)"
+  case "$gpu" in
+    nvidia)
+      if nvidia_needs_proprietary; then
+        echo "ghcr.io/${org}/silk-nvidia:latest"
+      else
+        echo "ghcr.io/${org}/silk-nvidia-open:latest"
+      fi
+      ;;
+    *) echo "ghcr.io/${org}/silk:latest" ;;
+  esac
+}
+
+vulkan_summary() {
+  if command -v vulkaninfo >/dev/null 2>&1; then
+    vulkaninfo --summary 2>/dev/null | head -40 || vulkaninfo 2>/dev/null | head -20 || true
+  else
+    echo "vulkaninfo fehlt – Paket vulkan-tools im Image"
+  fi
+}
+
+status_cmd() {
+  local gpu cards image current
+  gpu="$(primary_gpu)"
+  echo "Primäre GPU: $(vendor_label "$gpu") ($gpu)"
+  echo
+  echo "Grafikkarten:"
+  list_cards | sed 's/^/  /'
+  echo
+  current="$(booted_image)"
+  [[ -n "$current" ]] && echo "Boot-Image: $current"
+  image="$(recommended_image "$gpu")"
+  echo "Empfohlen:  $image"
+  if [[ "$gpu" == nvidia ]]; then
+    if nvidia_needs_proprietary; then
+      echo "NVIDIA-Typ: ältere GPU → proprietäres Image (silk-nvidia)"
+    else
+      echo "NVIDIA-Typ: Turing+ → nvidia-open Image (silk-nvidia-open)"
+    fi
+    if [[ "$current" != *nvidia* ]]; then
+      echo
+      echo "→ Firstboot wechselt automatisch (oder: silk-gpu switch)"
+    fi
+  fi
+  echo
+  echo "Vulkan (Kurz):"
+  vulkan_summary | sed 's/^/  /' | head -15
+}
+
+hints_cmd() {
+  local gpu="$1"
+  local file=""
+  case "$gpu" in
+    amd) file="${SHARE}/kernel-args-amd.txt" ;;
+    intel) file="${SHARE}/kernel-args-intel.txt" ;;
+    nvidia) file="${SHARE}/kernel-args-nvidia.txt" ;;
+  esac
+  echo "=== $(vendor_label "$gpu") ==="
+  if [[ -n "$file" && -f "$file" ]]; then
+    cat "$file"
+  else
+    echo "Keine GPU erkannt oder keine Hinweise."
+  fi
+  echo
+  [[ -f "${SHARE}/gpu-images.txt" ]] && { echo "=== Image-Varianten ==="; cat "${SHARE}/gpu-images.txt"; }
+}
+
+cmd_switch() {
+  local gpu image
+  gpu="$(primary_gpu)"
+  image="$(recommended_image "$gpu")"
+  echo "GPU: $(vendor_label "$gpu")"
+  echo "Ziel: $image"
+  if ! command -v bootc >/dev/null 2>&1; then
+    echo "bootc fehlt – nur auf Silk/Atomic-Systemen." >&2
+    exit 1
+  fi
+  read -r -p "bootc switch ausführen? [j/N] " ans
+  [[ "${ans,,}" == j || "${ans,,}" == y ]] || exit 0
+  sudo bootc switch --enforce-container-sigpolicy "$image"
+  echo "Fertig. Reboot: sudo systemctl reboot"
+}
+
+cmd_doctor() {
+  status_cmd
+  echo
+  echo "=== Treiber-Module ==="
+  lsmod 2>/dev/null | grep -iE 'amdgpu|nvidia|i915|xe ' || echo "(keine typischen Module geladen – normal in manchen VMs)"
+  echo
+  echo "=== OpenGL ==="
+  if command -v glxinfo >/dev/null 2>&1; then
+    glxinfo 2>/dev/null | grep -E 'OpenGL renderer|OpenGL version' || true
+  else
+    echo "glxinfo optional (mesa-demos)"
+  fi
+  echo
+  hints_cmd "$(primary_gpu)"
+}
+
+main() {
+  local cmd="${1:-status}"
+  case "$cmd" in
+    status) status_cmd ;;
+    detect) detect_and_save ;;
+    hints) hints_cmd "$(primary_gpu)" ;;
+    switch) cmd_switch ;;
+    vulkan) vulkan_summary ;;
+    doctor) cmd_doctor ;;
+    -h|--help) usage ;;
+    *) echo "Unbekannt: $cmd" >&2; usage; exit 1 ;;
+  esac
+}
+
+main "$@"

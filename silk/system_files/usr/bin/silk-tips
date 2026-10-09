@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# silk-tips – sanfte Alltagstipps (Notification / Dialog)
+set -euo pipefail
+
+# shellcheck source=/dev/null
+source /usr/libexec/silk/ux-helpers 2>/dev/null || true
+
+TIPS_FILE="/usr/share/silk/tips.txt"
+# Offline-/Dev-Fallback
+if [[ ! -f "$TIPS_FILE" ]]; then
+  _here="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+  for c in \
+    "$_here/share/silk/tips.txt" \
+    "$(cd "$(dirname "${BASH_SOURCE[0]}")/../../share/silk" 2>/dev/null && pwd)/tips.txt" \
+    "/workspace/silk/system_files/usr/share/silk/tips.txt"
+  do
+    [[ -f "$c" ]] && { TIPS_FILE="$c"; break; }
+  done
+fi
+STATE="${XDG_CONFIG_HOME:-$HOME/.config}/silk/.tips-index"
+mkdir -p "$(dirname "$STATE")"
+
+usage() {
+  cat <<'EOF'
+silk-tips – hilfreiche Kurz-Tipps
+
+  silk-tips            Nächsten Tipp als Notification
+  silk-tips --dialog   Als Dialog (kdialog)
+  silk-tips --list     Alle Tipps
+  silk-tips --reset    Index zurücksetzen
+EOF
+}
+
+load_tips() {
+  [[ -f "$TIPS_FILE" ]] || return 1
+  mapfile -t TIPS < <(grep -v '^[[:space:]]*$' "$TIPS_FILE" || true)
+  ((${#TIPS[@]} > 0))
+}
+
+cmd_show() {
+  local dialog="${1:-0}" idx tip
+  load_tips || { echo "Keine Tipps."; exit 1; }
+  idx=0
+  [[ -f "$STATE" ]] && idx="$(cat "$STATE" 2>/dev/null || echo 0)"
+  [[ "$idx" =~ ^[0-9]+$ ]] || idx=0
+  tip="${TIPS[$((idx % ${#TIPS[@]}))]}"
+  echo $(( (idx + 1) % ${#TIPS[@]} )) >"$STATE"
+  if [[ "$dialog" == 1 ]] && command -v kdialog >/dev/null 2>&1; then
+    kdialog --title "Silk Tipp" --msgbox "$tip" 2>/dev/null || true
+  else
+    if declare -F silk_notify >/dev/null; then
+      silk_notify "Silk Tipp" "$tip"
+    else
+      notify-send -a "Silk" "Silk Tipp" "$tip" 2>/dev/null || echo "$tip"
+    fi
+  fi
+  echo "$tip"
+}
+
+main() {
+  case "${1:-}" in
+    -h|--help) usage ;;
+    --list) load_tips && printf '%s\n' "${TIPS[@]}" ;;
+    --reset) rm -f "$STATE"; echo "Tipps zurückgesetzt." ;;
+    --dialog) cmd_show 1 ;;
+    *) cmd_show 0 ;;
+  esac
+}
+
+main "$@"

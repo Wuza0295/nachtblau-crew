@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# silk-run-exe – startet .exe/.msi über silk-windows (Bottles, Auto-Setup)
+set -euo pipefail
+
+FILE="${1:-}"
+[[ -n "$FILE" && -f "$FILE" ]] || { echo "Usage: silk-run-exe <file.exe>" >&2; exit 1; }
+
+# Einheitlicher Pfad: Auto-Install Bottles + SilkWindows-Flasche
+exec /usr/bin/silk-windows run "$FILE"

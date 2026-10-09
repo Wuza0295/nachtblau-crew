@@ -1,0 +1,3 @@
+# Intel GPU (i915 / Xe): Runtime-PM freundlich
+ACTION=="add", SUBSYSTEM=="pci", DRIVER=="i915", ATTR{power/control}="auto"
+ACTION=="add", SUBSYSTEM=="pci", DRIVER=="xe", ATTR{power/control}="auto"

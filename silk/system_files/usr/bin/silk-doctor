@@ -1,0 +1,149 @@
+#!/usr/bin/env bash
+# silk-doctor – Diagnose für Silk (System, GPU, Connect, Apps)
+set -euo pipefail
+
+PASS=0
+WARN=0
+FAIL=0
+GUI=0
+
+ok()   { echo "  ✓ $*"; PASS=$((PASS + 1)); }
+warn() { echo "  ⚠ $*"; WARN=$((WARN + 1)); }
+bad()  { echo "  ✗ $*"; FAIL=$((FAIL + 1)); }
+
+section() {
+  echo
+  echo "── $* ──"
+}
+
+run_checks() {
+section "System"
+if command -v bootc >/dev/null 2>&1; then
+  if bootc status 2>/dev/null | head -5; then
+    ok "bootc verfügbar"
+  else
+    warn "bootc status fehlgeschlagen"
+  fi
+else
+  warn "bootc nicht installiert (nicht auf Silk-Image?)"
+fi
+
+if command -v rpm-ostree >/dev/null 2>&1; then
+  ok "rpm-ostree vorhanden"
+else
+  warn "rpm-ostree fehlt"
+fi
+
+section "GPU"
+if [[ -x /usr/bin/silk-gpu ]]; then
+  /usr/bin/silk-gpu status 2>/dev/null | sed 's/^/  /' || warn "silk-gpu status"
+  ok "silk-gpu"
+else
+  bad "silk-gpu fehlt"
+fi
+
+section "Hardware / Plattform"
+if [[ -x /usr/bin/silk-hardware ]]; then
+  /usr/bin/silk-hardware status 2>/dev/null | sed 's/^/  /' || true
+  ok "silk-hardware"
+else
+  bad "silk-hardware fehlt"
+fi
+
+section "Flatpak"
+if command -v flatpak >/dev/null 2>&1; then
+  ok "flatpak installiert ($(flatpak list --app 2>/dev/null | wc -l) Apps)"
+  if flatpak remote-list 2>/dev/null | grep -q flathub; then
+    ok "flathub remote"
+  else
+    warn "flathub remote fehlt – flatpak remote-add flathub …"
+  fi
+else
+  bad "flatpak fehlt"
+fi
+
+section "Netzwerk"
+if ping -c1 -W2 1.1.1.1 >/dev/null 2>&1; then
+  ok "Internet erreichbar"
+else
+  warn "Kein Internet (ping 1.1.1.1)"
+fi
+if hostname -I 2>/dev/null | grep -qE '[0-9]+\.[0-9]+'; then
+  ok "Lokale IP: $(hostname -I | awk '{print $1}')"
+else
+  warn "Keine lokale IP"
+fi
+
+section "Silk Connect (Begleitgeräte)"
+if [[ -x /usr/bin/silk-connect ]]; then
+  ok "silk-connect installiert"
+  if [[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/silk/connect/pair-token" ]]; then
+    /usr/bin/silk-connect status 2>/dev/null | sed 's/^/  /' || true
+  else
+    warn "Connect noch nicht eingerichtet – silk-connect setup"
+  fi
+else
+  bad "silk-connect fehlt"
+fi
+
+section "Speicher"
+df -h / 2>/dev/null | tail -1 | awk '{print "  Root: "$3" belegt von "$2" ("$5")"}' || true
+avail="$(df / --output=avail 2>/dev/null | tail -1 | tr -d ' ')"
+if [[ -n "$avail" && "$avail" =~ ^[0-9]+$ && "$avail" -gt 5242880 ]]; then
+  ok "Ausreichend freier Speicher"
+else
+  warn "Wenig freier Speicher auf /"
+fi
+
+section "User-Experience"
+[[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/silk/.tour-done" ]] && ok "Erst-Tour erledigt" || warn "Tour noch offen – silk-tour"
+[[ -x /usr/bin/silk-tour ]] && ok "silk-tour" || bad "silk-tour fehlt"
+[[ -x /usr/bin/silk-tips ]] && ok "silk-tips" || warn "silk-tips fehlt"
+
+section "Silk-Helfer"
+for cmd in silk-install silk-desktop silk-update silk-welcome silk-wallpaper silk-ready; do
+  if [[ -x "/usr/bin/$cmd" ]]; then
+    ok "$cmd"
+  else
+    bad "$cmd fehlt"
+  fi
+done
+}
+
+show_summary() {
+  echo
+  echo "════════════════════════════════════"
+  echo "Ergebnis: $PASS OK, $WARN Warnungen, $FAIL Fehler"
+  echo
+  local tip=""
+  if [[ "$FAIL" -gt 0 ]]; then
+    tip="Tipp: silk-update && silk-sync-config"
+    echo "$tip"
+  elif [[ "$WARN" -gt 0 ]]; then
+    tip="Tipp: silk-tour --center · silk-connect setup · silk-tips"
+    echo "$tip"
+  else
+    tip="Alles wirkt bereit – silk-tour --center fürs Startzentrum."
+    echo "$tip"
+  fi
+
+  if [[ "$GUI" -eq 1 ]] && command -v kdialog >/dev/null 2>&1; then
+    kdialog --title "Silk Diagnose" --msgbox "Ergebnis: $PASS OK, $WARN Warnungen, $FAIL Fehler
+
+$tip
+
+Details im Terminal: silk-doctor" 2>/dev/null || true
+  fi
+
+  [[ "$FAIL" -eq 0 ]]
+}
+
+main() {
+  case "${1:-}" in
+    --gui|-g) GUI=1; run_checks; show_summary ;;
+    -h|--help) echo "silk-doctor [--gui]  – Diagnose"; exit 0 ;;
+    *) run_checks; show_summary ;;
+  esac
+}
+
+main "$@"

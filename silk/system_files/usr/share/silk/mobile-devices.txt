@@ -1,0 +1,22 @@
+# Silk Mobile – Linux-Phones mit guter Community-Unterstützung
+# Stand: 2026 – postmarketOS / Mobian Device-Liste (Auswahl)
+#
+# Format: Hersteller Modell | Status | Hinweis
+# Vollständige Liste: https://postmarketos.org/devices/
+
+Google Pixel 3a/3a XL     | boot   | Häufig für postmarketOS genutzt
+Google Pixel 4a           | boot   | Gute Community
+OnePlus 6/6T                | boot   | Mobian/pmOS beliebt
+PinePhone / PinePhone Pro   | boot   | Native Linux-Hardware
+Librem 5                    | boot   | Purism, Mobian
+Fairphone 4                 | limited| pmOS in Arbeit
+Samsung Galaxy S5 (klte)    | boot   | Klassiker für pmOS
+Xiaomi Poco F1 (beryllium)  | boot   | Snapdragon, gut unterstützt
+Xiaomi Redmi Note 4 (mido)  | boot   | Budget-Gerät
+
+# Nicht unterstützt (nur Connect):
+# Apple iPhone (alle)       | nein   | silk-connect statt natives OS
+# Apple iPad (alle)         | nein   | silk-connect Kiosk-Modus
+
+# Android-Smartphone (ohne Bootloader-Unlock):
+# → Kein Silk Mobile – nutze silk-connect zum Silk-PC

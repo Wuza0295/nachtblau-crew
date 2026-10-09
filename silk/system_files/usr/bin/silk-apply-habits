@@ -1,0 +1,304 @@
+#!/usr/bin/env bash
+# silk-apply-habits – Mac-/Windows-Gewohnheiten je nach Desktop-Stil
+set -euo pipefail
+
+STYLE="${1:-}"
+STYLE_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/silk/desktop-style"
+[[ -z "$STYLE" && -f "$STYLE_FILE" ]] && STYLE="$(tr -d '[:space:]' < "$STYLE_FILE")"
+STYLE="${STYLE:-mac}"
+
+kw6() {
+  # kwriteconfig6 file group key value
+  kwriteconfig6 "$@" 2>/dev/null || kwriteconfig5 "$@" 2>/dev/null || true
+}
+
+# Globale Kurzbefehl-Datei (Plasma 6)
+GSC="${XDG_CONFIG_HOME:-$HOME/.config}/kglobalshortcutsrc"
+KWIN="${XDG_CONFIG_HOME:-$HOME/.config}/kwinrc"
+DOLPHIN="${XDG_CONFIG_HOME:-$HOME/.config}/dolphinrc"
+KDEGLOBALS="${XDG_CONFIG_HOME:-$HOME/.config}/kdeglobals"
+KXKBRC="${XDG_CONFIG_HOME:-$HOME/.config}/kxkbrc"
+SPECTACLE="${XDG_CONFIG_HOME:-$HOME/.config}/spectaclerc"
+KCINPUT="${XDG_CONFIG_HOME:-$HOME/.config}/kcminputrc"
+
+ensure_dirs() {
+  mkdir -p "$(dirname "$GSC")" "$(dirname "$KWIN")"
+}
+
+# --- gemeinsame Basics ---
+apply_common() {
+  # Zwischenablage-Historie (Win+V / Meta+V)
+  kw6 --file plasma-localerc --group Formats --key useSystemEncoding false
+  # Animation leicht snappy
+  kw6 --file kwinrc --group Plugins --key sheetEnabled true
+  kw6 --file kwinrc --group Plugins --key magnifierEnabled false
+  # Übersicht / Present Windows
+  kw6 --file kwinrc --group Plugins --key overviewEnabled true
+  # Dateien: Papierkorb bestätigen
+  kw6 --file dolphinrc --group General --key ConfirmClosingMultipleWindows true
+}
+
+# Meta als „Cmd“-ähnlich für Copy/Paste etc. (Mac) – über Standard-Apps
+# Plasma speichert Shortcuts teils in kglobalshortcutsrc; wir setzen bekannte Keys.
+
+set_shortcut() {
+  # component group key "action,default,custom"
+  local component="$1" key="$2" value="$3"
+  kw6 --file kglobalshortcutsrc --group "$component" --key "$key" "$value"
+}
+
+apply_mac_shortcuts() {
+  # Spotlight → KRunner (Meta+Space)
+  set_shortcut krunner "Run Command" "Meta+Space\tAlt+F2\tMeta+Space"
+  set_shortcut krunner "_k_friendly_name" "KRunner"
+  # Mission Control / Exposé → Overview
+  set_shortcut kwin "Overview" "Meta+F3\tnone\tMeta+F3"
+  set_shortcut kwin "ExposeAll" "Ctrl+F10\tMeta+Ctrl+Up\tnone"
+  set_shortcut kwin "Window Close" "Alt+F4\tMeta+W\tMeta+W"
+  set_shortcut kwin "Window Maximize" "Meta+PgUp\tMeta+Ctrl+F\tnone"
+  set_shortcut kwin "Window Minimize" "Meta+PgDown\tMeta+M\tMeta+M"
+  set_shortcut kwin "Window Operations Menu" "Alt+F3\tMeta+Ctrl+Space\tnone"
+  set_shortcut kwin "Switch to Next Desktop" "Meta+Ctrl+Right\tMeta+Ctrl+Right\tMeta+Ctrl+Right"
+  set_shortcut kwin "Switch to Previous Desktop" "Meta+Ctrl+Left\tMeta+Ctrl+Left\tMeta+Ctrl+Left"
+  # Screenshot wie macOS (annähernd)
+  set_shortcut org_kde_spectacle "FullScreenScreenShot" "Meta+Shift+3\tPrint\tMeta+Shift+3"
+  set_shortcut org_kde_spectacle "RectangularRegionScreenShot" "Meta+Shift+4\tMeta+Shift+Print\tMeta+Shift+4"
+  set_shortcut org_kde_spectacle "CurrentMonitorScreenShot" "Meta+Shift+5\tnone\tMeta+Shift+5"
+  # Sperren
+  set_shortcut ksmserver "Lock Session" "Meta+Ctrl+Q\tMeta+L\tMeta+Ctrl+Q"
+  # Logout / App beenden Feel
+  set_shortcut plasmashell "manage activities" "Meta+Q\tnone\tnone"
+}
+
+apply_windows_shortcuts() {
+  # Startmenü bereits Meta
+  set_shortcut krunner "Run Command" "Meta+R\tAlt+F2\tMeta+R"
+  set_shortcut krunner "_k_friendly_name" "Ausführen"
+  # Explorer
+  set_shortcut plasmashell "activate application launcher" "Meta\tAlt+F1\tMeta"
+  # Meta+E → Dolphin (über eigene custom: plasma kann desktop file nutzen)
+  # Show Desktop
+  set_shortcut kwin "Show Desktop" "Meta+D\tCtrl+F12\tMeta+D"
+  set_shortcut kwin "Overview" "Meta+Tab\tMeta+W\tMeta+Tab"
+  set_shortcut kwin "Window Quick Tile Left" "Meta+Left\tMeta+Left\tMeta+Left"
+  set_shortcut kwin "Window Quick Tile Right" "Meta+Right\tMeta+Right\tMeta+Right"
+  set_shortcut kwin "Window Maximize" "Meta+Up\tMeta+PgUp\tMeta+Up"
+  set_shortcut kwin "Window Minimize" "Meta+Down\tMeta+PgDown\tMeta+Down"
+  set_shortcut kwin "Window Close" "Alt+F4\tAlt+F4\tAlt+F4"
+  # Screenshot Snipping (Win+Shift+S)
+  set_shortcut org_kde_spectacle "RectangularRegionScreenShot" "Meta+Shift+S\tMeta+Shift+Print\tMeta+Shift+S"
+  set_shortcut org_kde_spectacle "FullScreenScreenShot" "Print\tMeta+Print\tPrint"
+  # Lock
+  set_shortcut ksmserver "Lock Session" "Meta+L\tCtrl+Alt+L\tMeta+L"
+  # Zwischenablage-Historie
+  set_shortcut plasmashell "clipboard_action" "Meta+V\tCtrl+Alt+V\tMeta+V"
+  set_shortcut klipper "RepeatLastAction" "Meta+Ctrl+V\tnone\tnone"
+  # Explorer = Dolphin
+  set_shortcut "services/org.kde.dolphin.desktop" "_launch" "Meta+E\tMeta+E\tMeta+E"
+  # Einstellungen
+  set_shortcut "services/systemsettings.desktop" "_launch" "Meta+I\tnone\tMeta+I"
+}
+
+apply_mac_desktop() {
+  # Fensterknöpfe links (wie macOS)
+  kw6 --file kwinrc --group org.kde.kdecoration2 --key ButtonsOnLeft "XIA"
+  kw6 --file kwinrc --group org.kde.kdecoration2 --key ButtonsOnRight ""
+  # Doppelklick Titelleiste = Zoomen/Maximize
+  kw6 --file kwinrc --group Windows --key TitlebarDoubleClickCommand Maximize
+  # Hot Corners: oben links = Übersicht, oben rechts = Desktop
+  kw6 --file kwinrc --group Effect-overview --key BorderActivate 7
+  kw6 --file kwinrc --group ElectricBorders --key TopLeft Overview
+  kw6 --file kwinrc --group ElectricBorders --key TopRight ShowDesktop
+  kw6 --file kwinrc --group ElectricBorders --key BottomLeft None
+  kw6 --file kwinrc --group ElectricBorders --key BottomRight None
+  # Trackpad: natürliches Scrollen (Mac-Feel)
+  kw6 --file kcminputrc --group Mouse --key PointerButtonInvertX false
+  kw6 --file kcminputrc --group Mouse --key PointerButtonInvertY false
+  kw6 --file kcminputrc --group Libinput --key NaturalScroll true
+  # Dolphin: Pfadleiste editierbar, Vorschau, Split optional
+  kw6 --file dolphinrc --group General --key EditableUrl true
+  kw6 --file dolphinrc --group General --key ShowFullPath true
+  kw6 --file dolphinrc --group General --key BrowseThroughArchives true
+  kw6 --file dolphinrc --group MainWindow --key MenuBar Disabled
+  # Globales Menü in Fenstern bevorzugen (AppMenu)
+  kw6 --file kwinrc --group ModifierOnlyShortcuts --key Meta \
+    "org.kde.krunner,/App,org.kde.krunner.App,display"
+  # Fonts etwas „Apple-näher“
+  kw6 --file kdeglobals --group General --key font "Noto Sans,10,-1,5,50,0,0,0,0,0"
+  kw6 --file kdeglobals --group General --key menuFont "Noto Sans,10,-1,5,50,0,0,0,0,0"
+  kw6 --file kdeglobals --group WM --key activeFont "Noto Sans,10,-1,5,57,0,0,0,0,0"
+  # Papierkorb auf Desktop
+  kw6 --file plasma-org.kde.plasma.desktop-appletsrc --group Containments --key trash true || true
+  touch "${XDG_CONFIG_HOME:-$HOME/.config}/silk/habits-mac"
+}
+
+apply_windows_desktop() {
+  # Fensterknöpfe rechts (Windows)
+  kw6 --file kwinrc --group org.kde.kdecoration2 --key ButtonsOnLeft "M"
+  kw6 --file kwinrc --group org.kde.kdecoration2 --key ButtonsOnRight "IAX"
+  kw6 --file kwinrc --group Windows --key TitlebarDoubleClickCommand Maximize
+  # Snap Assist Feel – Kacheln aktiv
+  kw6 --file kwinrc --group ElectricBorders --key Top None
+  kw6 --file kwinrc --group ElectricBorders --key Left None
+  kw6 --file kwinrc --group ElectricBorders --key Right None
+  # Meta öffnet Startmenü (nicht KRunner)
+  kw6 --file kwinrc --group ModifierOnlyShortcuts --key Meta \
+    "org.kde.plasmashell,/PlasmaShell,org.kde.PlasmaShell,activateLauncherMenu"
+  # Dolphin wie Explorer: Menüleiste aus, Details
+  kw6 --file dolphinrc --group General --key EditableUrl true
+  kw6 --file dolphinrc --group General --key ShowFullPathInTitlebar true
+  kw6 --file dolphinrc --group MainWindow --key MenuBar Disabled
+  kw6 --file dolphinrc --group General --key ViewPropsTimestamp nothing || true
+  # Natürliches Scrollen aus (Windows-Standard oft „klassisch“)
+  kw6 --file kcminputrc --group Libinput --key NaturalScroll false
+  # Schrift
+  kw6 --file kdeglobals --group General --key font "Noto Sans,10,-1,5,50,0,0,0,0,0"
+  touch "${XDG_CONFIG_HOME:-$HOME/.config}/silk/habits-windows"
+}
+
+# Favoriten / Standard-Apps-Hinweise in Kickoff (best-effort via plasma config)
+apply_mac_favorites() {
+  local fav="${XDG_CONFIG_HOME:-$HOME/.config}/silk/favorites-mac.txt"
+  cat > "$fav" <<'EOF'
+# Vorgeschlagene Dock-/Start-Apps (Mac-Stil)
+systemsettings
+org.kde.dolphin
+org.mozilla.firefox
+org.libreoffice.LibreOffice
+org.kde.konsole
+org.kde.spectacle
+org.videolan.VLC
+org.mozilla.Thunderbird
+EOF
+}
+
+apply_windows_favorites() {
+  local fav="${XDG_CONFIG_HOME:-$HOME/.config}/silk/favorites-windows.txt"
+  cat > "$fav" <<'EOF'
+# Vorgeschlagene Taskleisten-Apps (Windows-Stil)
+systemsettings
+org.kde.dolphin
+org.mozilla.firefox
+org.libreoffice.LibreOffice
+org.kde.konsole
+org.kde.spectacle
+com.usebottles.bottles
+org.mozilla.Thunderbird
+EOF
+}
+
+# Desktop-Symbole: Dieser PC / Papierkorb (Windows) vs. clean (Mac)
+apply_mac_desktop_icons() {
+  kw6 --file plasma-org.kde.desktop --group General --key showToolbox false
+  # Weniger Desktop-Icons (Mac-Clean)
+  kw6 --file plasma-org.kde.plasma.desktop-appletsrc --group Containments --key showDesktopIcons false || true
+}
+
+apply_windows_desktop_icons() {
+  # Desktop-Icons erwünscht
+  kw6 --file plasma-org.kde.plasma.desktop-appletsrc --group Containments --key showDesktopIcons true || true
+}
+
+write_habit_readme() {
+  local style="$1"
+  local out="${XDG_CONFIG_HOME:-$HOME/.config}/silk/habits-cheatsheet.txt"
+  case "$style" in
+    mac)
+      cat > "$out" <<'EOF'
+Silk – Mac-Gewohnheiten (aktive Tasten)
+
+Meta+Leertaste     Spotlight (Suche)
+Meta+W             Fenster schließen
+Meta+M             Fenster minimieren
+Meta+F3 / Meta+W   Übersicht (Mission Control)
+Meta+Ctrl+←/→      Desktops wechseln
+Meta+Shift+3       Screenshot (ganz)
+Meta+Shift+4       Screenshot (Bereich)
+Meta+Ctrl+Q        Sperren
+Oben links         Hot Corner → Übersicht
+Oben rechts        Hot Corner → Schreibtisch
+
+Datei-Manager: Dolphin mit Pfad & Vorschau
+Fensterknöpfe: links (wie macOS)
+EOF
+      ;;
+    windows11|windows10|tablet)
+      cat > "$out" <<'EOF'
+Silk – Windows-Gewohnheiten (aktive Tasten)
+
+Meta                Startmenü
+Meta+R              Ausführen (Suche)
+Meta+D              Desktop zeigen
+Meta+E              (Tipp: Dolphin im Startmenü / Favoriten)
+Meta+L              Sperren
+Meta+V              Zwischenablage-Verlauf
+Meta+← / →          Fenster andocken
+Meta+↑ / ↓          Maximieren / Minimieren
+Meta+Shift+S        Ausschnitt (Screenshot)
+Druck               Ganzes Bild
+
+Datei-Manager: Dolphin wie Explorer
+Fensterknöpfe: rechts (wie Windows)
+EOF
+      ;;
+  esac
+  echo "Kurzübersicht: $out"
+}
+
+reload_plasma() {
+  # Shortcuts neu laden (best-effort)
+  if command -v qdbus6 >/dev/null 2>&1; then
+    qdbus6 org.kde.KWin /KWin reconfigure 2>/dev/null || true
+    qdbus6 org.kde.kglobalaccel /kglobalaccel org.kde.KGlobalAccel.blockGlobalShortcuts false 2>/dev/null || true
+  else
+    qdbus org.kde.KWin /KWin reconfigure 2>/dev/null || true
+  fi
+  kquitapp6 kglobalaccel 2>/dev/null || kquitapp5 kglobalaccel 2>/dev/null || true
+}
+
+main() {
+  ensure_dirs
+  apply_common
+  case "$STYLE" in
+    mac)
+      apply_mac_shortcuts
+      apply_mac_desktop
+      apply_mac_favorites
+      apply_mac_desktop_icons
+      write_habit_readme mac
+      ;;
+    windows11|win11)
+      apply_windows_shortcuts
+      apply_windows_desktop
+      apply_windows_favorites
+      apply_windows_desktop_icons
+      write_habit_readme windows11
+      STYLE=windows11
+      ;;
+    windows10|win10|windows)
+      apply_windows_shortcuts
+      apply_windows_desktop
+      apply_windows_favorites
+      apply_windows_desktop_icons
+      write_habit_readme windows10
+      STYLE=windows10
+      ;;
+    tablet|touch|2in1)
+      apply_windows_shortcuts
+      apply_windows_desktop
+      apply_windows_favorites
+      write_habit_readme tablet
+      # Touch: größere Scrollbar / Finger
+      kw6 --file kdeglobals --group KDE --key ScrollbarLeftClickNavigatesByPage true
+      STYLE=tablet
+      ;;
+    *)
+      echo "Unbekannter Stil: $STYLE" >&2
+      exit 1
+      ;;
+  esac
+  reload_plasma
+  echo "Gewohnheiten angewendet: $STYLE"
+}
+
+main "$@"

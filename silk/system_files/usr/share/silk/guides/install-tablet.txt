@@ -1,0 +1,13 @@
+# Tablet / 2-in-1 (Touch)
+
+Einrichtung:
+  silk-tablet setup
+  silk-desktop tablet
+
+Features:
+  • Große Touch-Taskleiste
+  • Bildschirmtastatur (Maliit)
+  • KDE Connect für Smartphone
+  • silk-connect für iPad/iPhone
+
+Geräte: Surface, Yoga, Touch-Laptops, Linux-Tablets

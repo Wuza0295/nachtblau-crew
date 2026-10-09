@@ -1,0 +1,8 @@
+# Intel-MacBook – kein natives Silk
+
+Optionen:
+  A) Silk auf neuem PC (silk-desktop mac)
+  B) Experimentell: Fedora/Ubuntu Dual-Boot (ohne Silk-Garantie)
+  C) Mac + Silk-PC per silk-connect / Remote
+
+Befehl: silk-asahi intel-mac

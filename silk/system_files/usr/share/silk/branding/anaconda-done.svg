@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-label="Silk Owls">
+  <defs>
+    <linearGradient id="b1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#7dd3fc"/><stop offset="100%" stop-color="#1e3a5f"/>
+    </linearGradient>
+    <linearGradient id="b2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#93c5fd"/><stop offset="100%" stop-color="#172554"/>
+    </linearGradient>
+  </defs>
+  <!-- left owl (scarf, looking at phone) -->
+  <g transform="translate(70,40)">
+    <path d="M90 70 L70 20 L110 55 Z" fill="#1e3a5f"/>
+    <path d="M170 70 L190 20 L150 55 Z" fill="#1e3a5f"/>
+    <ellipse cx="130" cy="170" rx="78" ry="90" fill="url(#b1)"/>
+    <ellipse cx="130" cy="190" rx="46" ry="50" fill="#e0f2fe"/>
+    <ellipse cx="130" cy="120" rx="60" ry="52" fill="#dbeafe"/>
+    <circle cx="108" cy="114" r="16" fill="#0f172a"/>
+    <circle cx="152" cy="114" r="16" fill="#0f172a"/>
+    <circle cx="113" cy="109" r="5" fill="#fff"/>
+    <circle cx="157" cy="109" r="5" fill="#fff"/>
+    <path d="M130 124 L120 140 L140 140 Z" fill="#f59e0b"/>
+    <!-- pink scarf -->
+    <path d="M80 150 Q130 175 180 150 L175 210 Q130 230 85 210 Z" fill="#f9a8d4" opacity="0.9"/>
+    <!-- white phone -->
+    <rect x="175" y="175" width="36" height="58" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="2"/>
+    <rect x="180" y="183" width="26" height="40" rx="2" fill="#38bdf8"/>
+  </g>
+  <!-- right owl (cape, phone to ear) -->
+  <g transform="translate(300,30)">
+    <path d="M90 70 L70 20 L110 55 Z" fill="#1e3a5f"/>
+    <path d="M170 70 L190 20 L150 55 Z" fill="#1e3a5f"/>
+    <!-- cape -->
+    <path d="M70 140 Q130 120 190 140 L200 250 Q130 280 60 250 Z" fill="#dc2626"/>
+    <ellipse cx="130" cy="170" rx="78" ry="90" fill="url(#b2)"/>
+    <ellipse cx="130" cy="190" rx="46" ry="50" fill="#e0f2fe"/>
+    <ellipse cx="130" cy="120" rx="60" ry="52" fill="#dbeafe"/>
+    <circle cx="108" cy="114" r="16" fill="#0f172a"/>
+    <circle cx="152" cy="114" r="16" fill="#0f172a"/>
+    <circle cx="113" cy="109" r="5" fill="#fff"/>
+    <circle cx="157" cy="109" r="5" fill="#fff"/>
+    <path d="M130 124 L120 140 L140 140 Z" fill="#f59e0b"/>
+    <!-- blue phone to ear -->
+    <rect x="178" y="90" width="32" height="54" rx="6" fill="#2563eb" stroke="#1e3a8a" stroke-width="2" transform="rotate(18 194 117)"/>
+  </g>
+</svg>

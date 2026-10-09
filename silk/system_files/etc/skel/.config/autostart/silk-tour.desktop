@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Silk Tour
+Comment=Geführte Erst-Einrichtung
+Exec=/usr/bin/silk-tour
+Icon=preferences-desktop
+X-KDE-autostart-phase=1
+X-GNOME-Autostart-enabled=true
+Hidden=false
+NoDisplay=true
+OnlyShowIn=KDE;GNOME;

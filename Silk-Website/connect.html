@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Silk Connect – Alte iPhones und iPads mit Silk nutzen." />
+  <title>Silk Connect – Begleitgeräte</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="hero hero-compact">
+  <nav class="nav">
+    <a class="logo" href="index.html">Silk</a>
+    <a href="index.html#features">Features</a>
+    <a href="connect.html">Connect</a>
+    <a href="faq.html">FAQ</a>
+    <a href="https://github.com/Wuza0295/nachtblau-crew">GitHub</a>
+  </nav>
+  <div class="hero-inner">
+    <p class="badge">iPhone · iPad · Android</p>
+    <h1>Silk Connect</h1>
+    <p class="tagline">Alte Apple-Geräte bleiben nutzbar – als Begleiter zu deinem Silk-PC.</p>
+  </div>
+</header>
+
+<section class="disclaimer">
+  <strong>Wichtig:</strong> Silk läuft <em>nicht nativ</em> auf iPhone/iPad.
+  Connect verbindet dein Apple-Gerät per Browser und Remote-Desktop mit Silk –
+  so wird alte Hardware wieder sinnvoll einsetzbar.
+</section>
+
+<section class="section">
+  <h2>So funktioniert's</h2>
+  <div class="grid">
+    <article class="card">
+      <h3>1. Silk-PC einrichten</h3>
+      <pre><code>silk-connect setup
+silk-connect status</code></pre>
+    </article>
+    <article class="card">
+      <h3>2. iPad/iPhone verbinden</h3>
+      <p>Safari → URL aus <code>status</code> → Pairing-Code → „Zum Home-Bildschirm“.</p>
+    </article>
+    <article class="card">
+      <h3>3. Remote-Desktop</h3>
+      <pre><code>flatpak install flathub com.rustdesk.RustDesk
+silk-connect remote</code></pre>
+    </article>
+    <article class="card">
+      <h3>4. Kiosk (altes iPad)</h3>
+      <p>Dauer-Display für Küche/Kalender: <code>silk-connect dashboard</code></p>
+    </article>
+  </div>
+</section>
+
+<section class="section dark">
+  <h2>Funktionen im Dashboard</h2>
+  <ul class="feature-list">
+    <li>Remote-Desktop zum Silk-PC (RustDesk, Parsec, Moonlight)</li>
+    <li>Datei-Sync (Dropbox, Nextcloud, Rclone)</li>
+    <li>Medien-Fernbedienung</li>
+    <li>Hilfe &amp; FAQ für Umsteiger</li>
+    <li>Offline-fähige PWA (Service Worker)</li>
+  </ul>
+</section>
+
+<section class="section muted">
+  <h2>Diagnose</h2>
+  <pre><code>silk-doctor
+silk-connect pair</code></pre>
+  <p><a class="link" href="https://github.com/Wuza0295/nachtblau-crew/blob/main/silk/docs/CONNECT.md">→ Vollständige Connect-Dokumentation</a></p>
+</section>
+
+<footer class="footer">
+  <p class="copy">© Nachtblau Crew · <a href="index.html">Zurück zur Startseite</a></p>
+</footer>
+
+</body>
+</html>

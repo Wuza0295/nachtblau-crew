@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Silk Ready
+Comment=Legacy – Tour übernimmt Einrichtung
+Exec=/usr/libexec/silk/user-ready
+Icon=dialog-ok
+X-GNOME-Autostart-enabled=false
+X-KDE-autostart-phase=2
+Hidden=true
+NoDisplay=true

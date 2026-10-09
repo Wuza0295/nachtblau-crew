@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Silk Installer (AppImage)
+Name[de]=Silk-Installer (AppImage)
+Comment=Installiert Flatpak-Gegenstück oder integriert AppImage
+Exec=silk-install %f
+Icon=application-x-executable
+Terminal=false
+Type=Application
+MimeType=application/vnd.appimage;application/x-iso9660-app;application/x-executable;
+Categories=System;Utility;
+NoDisplay=false

@@ -1,0 +1,195 @@
+#!/usr/bin/env bash
+# Silk System-Firstboot: GPU erkennen, ggf. Image wechseln, Controller/BT bereit
+set -euo pipefail
+
+LIB=/var/lib/silk
+mkdir -p "$LIB" /etc/silk
+
+log() { echo "[silk-firstboot] $*" | tee -a "$LIB/firstboot.log"; }
+
+vendor_from_pci() {
+  case "$1" in
+    0x1002) echo amd ;;
+    0x8086) echo intel ;;
+    0x10de) echo nvidia ;;
+    *) echo unknown ;;
+  esac
+}
+
+scan_gpu() {
+  local -a found=()
+  local p v name
+  for p in /sys/class/drm/card[0-9]/device/vendor; do
+    [[ -r "$p" ]] || continue
+    v="$(cat "$p" 2>/dev/null || true)"
+    name="$(vendor_from_pci "$v")"
+    [[ "$name" == unknown ]] && continue
+    found+=("$name")
+  done
+  if ((${#found[@]} == 0)); then
+    lspci 2>/dev/null | grep -qi nvidia && { echo nvidia; return; }
+    lspci 2>/dev/null | grep -qiE 'AMD/ATI|Advanced Micro Devices' && { echo amd; return; }
+    lspci 2>/dev/null | grep -qi 'Intel Corporation' && { echo intel; return; }
+    echo unknown
+    return
+  fi
+  local g
+  for g in nvidia amd intel; do
+    for v in "${found[@]}"; do
+      [[ "$v" == "$g" ]] && { echo "$g"; return; }
+    done
+  done
+  echo "${found[0]}"
+}
+
+nvidia_needs_proprietary() {
+  local name
+  name="$(lspci 2>/dev/null | grep -iE 'VGA|3D|Display' | grep -i nvidia || true)"
+  if echo "$name" | grep -qiE 'RTX|GTX 16|Quadro RTX|TITAN V'; then
+    return 1
+  fi
+  if echo "$name" | grep -qiE 'GTX 9[0-9]{2}|GTX 10[0-9]{2}|GTX [678][0-9]{2}|GeForce [4567][0-9]{2}'; then
+    return 0
+  fi
+  return 1
+}
+
+repo_org() {
+  local org=""
+  [[ -f /usr/share/silk/silk.env ]] && \
+    org="$(grep -E '^REPO_ORGANIZATION=' /usr/share/silk/silk.env | cut -d= -f2- | tr -d '"' || true)"
+  echo "${org:-wuza0295}"
+}
+
+recommended_image() {
+  local gpu="$1" org
+  org="$(repo_org)"
+  case "$gpu" in
+    nvidia)
+      if nvidia_needs_proprietary; then
+        echo "ghcr.io/${org}/silk-nvidia:latest"
+      else
+        echo "ghcr.io/${org}/silk-nvidia-open:latest"
+      fi
+      ;;
+    *) echo "ghcr.io/${org}/silk:latest" ;;
+  esac
+}
+
+booted_image() {
+  bootc status 2>/dev/null | awk '/^● Booted image:/ {print $4; exit}' || true
+}
+
+image_matches_gpu() {
+  local gpu="$1" current="$2"
+  case "$gpu" in
+    nvidia) [[ "$current" == *nvidia* ]] ;;
+    amd|intel|unknown) [[ "$current" != *nvidia* ]] || [[ -z "$current" ]] ;;
+    *) return 0 ;;
+  esac
+}
+
+detect_hardware() {
+  local arch vendor product dt
+  arch="$(uname -m)"
+  vendor="$(tr -d '\0' </sys/class/dmi/id/sys_vendor 2>/dev/null || true)"
+  product="$(tr -d '\0' </sys/class/dmi/id/product_name 2>/dev/null || true)"
+  dt="$(tr -d '\0' </sys/firmware/devicetree/base/model 2>/dev/null || true)"
+  if [[ "$vendor" == *Apple* ]] || [[ "$product" == Mac* ]] || [[ "$dt" == *Mac* ]]; then
+    if [[ "$arch" == "aarch64" || "$arch" == "arm64" ]]; then echo apple-silicon; return; fi
+    if [[ "$arch" == "x86_64" ]]; then echo intel-mac; return; fi
+  fi
+  echo pc
+}
+
+setup_controllers_system() {
+  log "Controller/Bluetooth bereitstellen…"
+  systemctl enable --now bluetooth.service 2>/dev/null || true
+  udevadm control --reload-rules 2>/dev/null || true
+  udevadm trigger --subsystem-match=usb --subsystem-match=input --subsystem-match=hidraw 2>/dev/null || true
+  if getent group input >/dev/null 2>&1; then
+    local u
+    for u in $(ls /home 2>/dev/null || true); do
+      id "$u" &>/dev/null || continue
+      usermod -aG input "$u" 2>/dev/null || true
+    done
+  fi
+  touch "$LIB/controllers-ready"
+}
+
+# Gibt 0 zurück wenn Reboot ausgelöst wurde (Caller soll firstboot-done NICHT setzen)
+maybe_switch_gpu_image() {
+  local gpu current want
+  gpu="$(cat "$LIB/gpu" 2>/dev/null || echo unknown)"
+  current="$(booted_image)"
+  want="$(recommended_image "$gpu")"
+  echo "$want" >"$LIB/recommended-image"
+
+  if [[ "${SILK_AUTO_GPU_SWITCH:-1}" != "1" ]]; then
+    log "Auto-GPU-Switch aus"
+    return 1
+  fi
+
+  if [[ -f "$LIB/gpu-switch-done" ]]; then
+    log "GPU-Switch bereits erledigt"
+    return 1
+  fi
+
+  if [[ -f "$LIB/gpu-switch-pending" ]]; then
+    if image_matches_gpu "$gpu" "$current"; then
+      rm -f "$LIB/gpu-switch-pending"
+      touch "$LIB/gpu-switch-done"
+      log "GPU-Image nach Reboot OK ($current)"
+      return 1
+    fi
+    log "Pending Switch, Image noch nicht passend – erneut versuchen"
+  fi
+
+  if image_matches_gpu "$gpu" "$current"; then
+    touch "$LIB/gpu-switch-done"
+    log "GPU-Image passt ($current)"
+    return 1
+  fi
+
+  if ! command -v bootc >/dev/null 2>&1; then
+    log "kein bootc"
+    touch "$LIB/gpu-switch-done"
+    return 1
+  fi
+
+  if [[ "$gpu" == unknown ]]; then
+    touch "$LIB/gpu-switch-done"
+    return 1
+  fi
+
+  log "Auto-Switch → $want"
+  touch "$LIB/gpu-switch-pending"
+  if bootc switch --enforce-container-sigpolicy "$want"; then
+    log "Switch OK, Reboot…"
+    # firstboot-done erst NACH dem Reboot setzen (pending bleibt)
+    systemd-run --on-active=2s /sbin/reboot 2>/dev/null || \
+      systemctl reboot 2>/dev/null || true
+    return 0
+  fi
+  log "Switch fehlgeschlagen"
+  rm -f "$LIB/gpu-switch-pending"
+  return 1
+}
+
+log "Start $(date -Is)"
+gpu="$(scan_gpu)"
+echo "$gpu" >"$LIB/gpu"
+log "GPU: $gpu"
+detect_hardware >"$LIB/hardware"
+log "Hardware: $(cat "$LIB/hardware")"
+setup_controllers_system
+
+if maybe_switch_gpu_image; then
+  # Reboot läuft – Unit beenden ohne firstboot-done
+  log "Warte auf Reboot…"
+  exit 0
+fi
+
+touch "$LIB/firstboot-done"
+log "Firstboot fertig – auspacken und loslegen"
+exit 0

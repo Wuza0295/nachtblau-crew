@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Silk Welcome
+Exec=silk-welcome
+Icon=help-about
+X-KDE-autostart-phase=2
+X-GNOME-Autostart-enabled=false
+Hidden=true
+NoDisplay=true
+OnlyShowIn=KDE;GNOME;
