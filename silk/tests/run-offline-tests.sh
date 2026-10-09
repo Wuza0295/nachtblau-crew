@@ -421,6 +421,23 @@ grep -q 'virtualbox.org' "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 VirtualBo
 grep -q 'Enable-WindowsOptionalFeature' "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 Hyper-V enable hint" || bad "PS1 Hyper-V enable"
 grep -q 'Silk-Installer-x86_64.iso' "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 ISO download" || bad "PS1 ISO"
 grep -q 'silk-media-latest' "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 release tag" || bad "PS1 release"
+# Auto-install VirtualBox when no hypervisor (unpack-and-go)
+grep -q 'SkipVBoxInstall' "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 SkipVBoxInstall switch" || bad "PS1 SkipVBoxInstall"
+grep -q 'function Find-VBoxManage' "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 Find-VBoxManage" || bad "PS1 Find-VBoxManage"
+grep -q 'function Register-VBoxManagePath' "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 Register-VBoxManagePath" || bad "PS1 Register-VBoxManagePath"
+grep -q 'function Install-VirtualBoxAuto' "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 Install-VirtualBoxAuto" || bad "PS1 Install-VirtualBoxAuto"
+grep -q 'function Get-VirtualBoxWindowsInstallerUrl' "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 VBox installer URL helper" || bad "PS1 VBox installer URL"
+grep -q 'Oracle.VirtualBox' "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 winget Oracle.VirtualBox" || bad "PS1 winget Oracle.VirtualBox"
+grep -q 'accept-package-agreements' "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 winget accept agreements" || bad "PS1 winget agreements"
+grep -q 'choco install virtualbox' "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 choco virtualbox fallback" || bad "PS1 choco fallback"
+grep -q 'download.virtualbox.org/virtualbox/LATEST.TXT' "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 Oracle LATEST.TXT" || bad "PS1 Oracle LATEST.TXT"
+grep -Fq 'VirtualBox-[\d\.]+-\d+-Win\.exe' "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 Win.exe pattern" || bad "PS1 Win.exe pattern"
+grep -q '\-\-silent' "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 VBox silent install" || bad "PS1 VBox silent"
+grep -q 'ProgramFiles.*Oracle\\VirtualBox\\VBoxManage\|Oracle\\VirtualBox\\VBoxManage.exe' "$ROOT/windows/Install-SilkVM.ps1" && ok "PS1 VBoxManage standard path" || bad "PS1 VBoxManage path"
+grep -q 'SkipVBoxInstall' "$ROOT/windows/Get-SilkVM.ps1" && ok "Get-SilkVM SkipVBoxInstall" || bad "Get-SilkVM SkipVBoxInstall"
+grep -q "\-SkipVBoxInstall" "$ROOT/windows/Get-SilkVM.ps1" && ok "Get-SilkVM forwards SkipVBoxInstall" || bad "Get-SilkVM forwards SkipVBoxInstall"
+grep -q 'SkipVBoxInstall\|winget\|automatisch' "$ROOT/windows/README.md" && ok "windows README auto-VBox" || bad "windows README auto-VBox"
+grep -q 'winget\|SkipVBoxInstall\|bei Bedarf' "$ROOT/QUICKSTART.md" && ok "QUICKSTART auto-VBox" || bad "QUICKSTART auto-VBox"
 # Windows PowerShell 5.1 mis-parses mojibake from UTF-8 ellipsis/arrows; keep .ps1 ASCII-only
 ps1_non_ascii=0
 for ps1 in "$ROOT/windows/Install-SilkVM.ps1" "$ROOT/windows/Get-SilkVM.ps1"; do

@@ -10,6 +10,7 @@
   .\Install-SilkVM.ps1
   .\Install-SilkVM.ps1 -Backend VirtualBox -Mode Ready
   .\Install-SilkVM.ps1 -Backend HyperV -Mode Installer -MemMB 8192 -Cpus 4
+  .\Install-SilkVM.ps1 -SkipVBoxInstall
 #>
 [CmdletBinding()]
 param(
@@ -27,7 +28,9 @@ param(
   [string]$ReleaseRepo = 'Wuza0295/nachtblau-crew',
   [string]$ReleaseTag = 'silk-media-latest',
   [switch]$NoStart,
-  [switch]$ForceDownload
+  [switch]$ForceDownload,
+  # Auto: do not try winget/choco/Oracle installer when no hypervisor is found
+  [switch]$SkipVBoxInstall
 )
 
 $ErrorActionPreference = 'Stop'
@@ -48,7 +51,10 @@ function Get-NoHypervisorHelp {
   return @'
 Kein Hypervisor gefunden.
 
-Option A - VirtualBox (einfach, kein Admin):
+Automatische VirtualBox-Installation ist fehlgeschlagen oder wurde abgebrochen
+(-SkipVBoxInstall). Bitte manuell:
+
+Option A - VirtualBox (einfach):
   1. Installieren: https://www.virtualbox.org/
   2. Danach erneut (Auto waehlt VirtualBox):
      powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-connect-multiplatform-fef1/silk/windows/Get-SilkVM.ps1 | iex"
@@ -64,9 +70,130 @@ Oder Skript speichern und:
 '@
 }
 
+function Find-VBoxManage {
+  $cmd = Get-Command VBoxManage -ErrorAction SilentlyContinue
+  if ($cmd) { return $cmd.Source }
+  $candidates = @(
+    (Join-Path ${env:ProgramFiles} 'Oracle\VirtualBox\VBoxManage.exe')
+    (Join-Path ${env:ProgramFiles(x86)} 'Oracle\VirtualBox\VBoxManage.exe')
+  )
+  foreach ($c in $candidates) {
+    if ($c -and (Test-Path -LiteralPath $c)) { return $c }
+  }
+  return $null
+}
+
+function Register-VBoxManagePath {
+  $vbox = Find-VBoxManage
+  if (-not $vbox) { return $false }
+  $dir = Split-Path -Parent $vbox
+  $parts = $env:Path -split ';' | Where-Object { $_ }
+  if ($parts -notcontains $dir) {
+    $env:Path = "$dir;$env:Path"
+  }
+  return $true
+}
+
+function Test-HasVBox {
+  return [bool](Find-VBoxManage)
+}
+
+function Get-VirtualBoxWindowsInstallerUrl {
+  $latestUrl = 'https://download.virtualbox.org/virtualbox/LATEST.TXT'
+  Write-Host "  LATEST.TXT ..."
+  $ver = (Invoke-WebRequest -Uri $latestUrl -UseBasicParsing).Content.Trim()
+  if (-not $ver) { throw 'VirtualBox LATEST.TXT leer' }
+  $indexUrl = "https://download.virtualbox.org/virtualbox/$ver/"
+  Write-Host "  Index $ver ..."
+  $index = (Invoke-WebRequest -Uri $indexUrl -UseBasicParsing).Content
+  $m = [regex]::Match($index, 'VirtualBox-[\d\.]+-\d+-Win\.exe')
+  if (-not $m.Success) {
+    throw "VirtualBox Windows-Installer nicht in $indexUrl gefunden"
+  }
+  return "$indexUrl$($m.Value)"
+}
+
+function Install-VirtualBoxFromOracle {
+  param([string]$DestDir)
+  Ensure-Dir $DestDir
+  $url = Get-VirtualBoxWindowsInstallerUrl
+  $name = Split-Path $url -Leaf
+  $dest = Join-Path $DestDir $name
+  Write-Host "  Download $name ..."
+  Download-File -Url $url -Dest $dest
+  Write-Silk "Starte VirtualBox-Installer (still wenn moeglich) ..."
+  $argsSilent = @('--silent', '--ignore-reboot')
+  $p = Start-Process -FilePath $dest -ArgumentList $argsSilent -Wait -PassThru
+  if ($p.ExitCode -eq 0 -and (Test-HasVBox)) { return $true }
+  # Fallback: UI (User kann abbrechen -> ExitCode != 0)
+  Write-Host "  Silent fehlgeschlagen (Exit $($p.ExitCode)) - starte UI ..."
+  $p2 = Start-Process -FilePath $dest -Wait -PassThru
+  if ($p2.ExitCode -eq 0 -and (Test-HasVBox)) { return $true }
+  return $false
+}
+
+function Install-VirtualBoxAuto {
+  param([string]$DestDir)
+  Write-Silk "Kein Hypervisor gefunden - installiere VirtualBox automatisch ..."
+
+  # 1) winget (least friction on modern Windows)
+  $winget = Get-Command winget -ErrorAction SilentlyContinue
+  if ($winget) {
+    Write-Host "  Versuch: winget Oracle.VirtualBox ..."
+    try {
+      & $winget.Source install --id Oracle.VirtualBox -e --accept-package-agreements --accept-source-agreements
+      Register-VBoxManagePath | Out-Null
+      if (Test-HasVBox) {
+        Write-Host "  VirtualBox via winget OK"
+        return $true
+      }
+    } catch {
+      Write-Host "  winget fehlgeschlagen: $($_.Exception.Message)"
+    }
+  } else {
+    Write-Host "  winget nicht gefunden"
+  }
+
+  # 2) chocolatey if present
+  $choco = Get-Command choco -ErrorAction SilentlyContinue
+  if ($choco) {
+    Write-Host "  Versuch: choco install virtualbox ..."
+    try {
+      & $choco.Source install virtualbox -y
+      Register-VBoxManagePath | Out-Null
+      if (Test-HasVBox) {
+        Write-Host "  VirtualBox via chocolatey OK"
+        return $true
+      }
+    } catch {
+      Write-Host "  chocolatey fehlgeschlagen: $($_.Exception.Message)"
+    }
+  } else {
+    Write-Host "  chocolatey nicht gefunden"
+  }
+
+  # 3) Oracle Windows installer (download + silent/UI)
+  Write-Host "  Versuch: Oracle VirtualBox Windows-Installer ..."
+  try {
+    if (Install-VirtualBoxFromOracle -DestDir $DestDir) {
+      Register-VBoxManagePath | Out-Null
+      if (Test-HasVBox) {
+        Write-Host "  VirtualBox via Oracle-Installer OK"
+        return $true
+      }
+    }
+  } catch {
+    Write-Host "  Oracle-Download/Install fehlgeschlagen: $($_.Exception.Message)"
+  }
+
+  Register-VBoxManagePath | Out-Null
+  return (Test-HasVBox)
+}
+
 function Resolve-Backend {
   param([string]$Wanted)
-  $hasVBox = [bool](Get-Command VBoxManage -ErrorAction SilentlyContinue)
+  $hasVBox = Test-HasVBox
+  if ($hasVBox) { Register-VBoxManagePath | Out-Null }
   $hasHyperV = $false
   try {
     if (Get-Command Get-VM -ErrorAction SilentlyContinue) {
@@ -126,6 +253,14 @@ PowerShell als Administrator starten und erneut:
 
 Oder VirtualBox installieren (kein Admin): https://www.virtualbox.org/
 '@
+  }
+  # Auto + kein Hypervisor: VirtualBox automatisch installieren
+  if (-not $SkipVBoxInstall) {
+    $tools = Join-Path $WorkDir 'tools'
+    if (Install-VirtualBoxAuto -DestDir $tools) {
+      Register-VBoxManagePath | Out-Null
+      if (Test-HasVBox) { return 'VirtualBox' }
+    }
   }
   throw (Get-NoHypervisorHelp)
 }
@@ -322,7 +457,9 @@ function New-SilkHyperVReady {
 
 function New-SilkVBoxInstaller {
   param([string]$IsoPath)
-  $VBoxManage = (Get-Command VBoxManage).Source
+  Register-VBoxManagePath | Out-Null
+  $VBoxManage = Find-VBoxManage
+  if (-not $VBoxManage) { throw 'VBoxManage nicht gefunden nach VirtualBox-Setup.' }
   Write-Silk "VirtualBox VM '$VmName' anlegen (Installer) ..."
   Ensure-Dir $WorkDir
   $vdi = Join-Path $WorkDir "$VmName.vdi"
@@ -360,7 +497,9 @@ function New-SilkVBoxInstaller {
 
 function New-SilkVBoxReady {
   param([string]$QcowPath)
-  $VBoxManage = (Get-Command VBoxManage).Source
+  Register-VBoxManagePath | Out-Null
+  $VBoxManage = Find-VBoxManage
+  if (-not $VBoxManage) { throw 'VBoxManage nicht gefunden nach VirtualBox-Setup.' }
   $vdi = Join-Path $WorkDir 'Silk-VM-x86_64.vdi'
   if (-not (Test-Path -LiteralPath $vdi) -or $ForceDownload) {
     Convert-QcowToVdi -Qcow $QcowPath -Vdi $vdi | Out-Null

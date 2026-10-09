@@ -14,13 +14,14 @@ Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All
 powershell -ExecutionPolicy Bypass -Command "& ([scriptblock]::Create((irm https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-connect-multiplatform-fef1/silk/windows/Get-SilkVM.ps1))) -Backend HyperV -Mode Installer"
 ```
 
-**VirtualBox** (zuerst [VirtualBox](https://www.virtualbox.org/) installieren):
+**VirtualBox / Auto** (installiert VirtualBox bei Bedarf):
 
 ```powershell
 powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-connect-multiplatform-fef1/silk/windows/Get-SilkVM.ps1 | iex"
 ```
 
-`Backend=Auto` (Standard): VirtualBox wenn `VBoxManage` vorhanden, sonst Hyper-V.
+`Backend=Auto` (Standard): VirtualBox wenn `VBoxManage` vorhanden, sonst Hyper-V;
+fehlt beides → Auto-Install (winget / chocolatey / Oracle). Opt-out: `-SkipVBoxInstall`.
 
 ### Doppelklick / Repo
 
@@ -52,6 +53,7 @@ powershell -ExecutionPolicy Bypass -File .\Install-SilkVM.ps1 -Mode Ready -Backe
 | `-Mode Ready` | Fertige Disk (schneller, Konvertierung nötig) |
 | `-MemMB 4096` `-Cpus 2` | Ressourcen |
 | `-NoStart` | Nur anlegen, nicht starten |
+| `-SkipVBoxInstall` | Auto: kein automatischer VirtualBox-Install |
 
 Arbeitsverzeichnis: `%USERPROFILE%\Silk-VMs`
 

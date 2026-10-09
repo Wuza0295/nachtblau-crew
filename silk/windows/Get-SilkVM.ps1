@@ -19,7 +19,8 @@ param(
   [string]$Mode = 'Installer',
 
   [int]$MemMB = 4096,
-  [int]$Cpus = 2
+  [int]$Cpus = 2,
+  [switch]$SkipVBoxInstall
 )
 
 $ErrorActionPreference = 'Stop'
@@ -55,6 +56,7 @@ $argList = @(
   '-Cpus', "$Cpus"
   '-WorkDir', $Work
 )
+if ($SkipVBoxInstall) { $argList += '-SkipVBoxInstall' }
 $p = Start-Process -FilePath (Get-Process -Id $PID).Path -ArgumentList $argList -Wait -PassThru -NoNewWindow
 if ($p.ExitCode -ne 0) {
   exit $p.ExitCode

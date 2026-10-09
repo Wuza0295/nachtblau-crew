@@ -5,6 +5,8 @@ Ziel: **ein Befehl / Doppelklick -> Silk-VM**.
 ## Schnellstart (ohne Git)
 
 Backend **Auto** (Standard): VirtualBox wenn `VBoxManage` da ist, sonst Hyper-V.
+Fehlt beides, versucht Auto VirtualBox zu installieren (winget → chocolatey → Oracle-Installer).
+Opt-out: `-SkipVBoxInstall`.
 
 ### A) Hyper-V (Windows Pro, Admin-PowerShell)
 
@@ -20,14 +22,15 @@ Nach Neustart (als Administrator):
 powershell -ExecutionPolicy Bypass -Command "& ([scriptblock]::Create((irm https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-connect-multiplatform-fef1/silk/windows/Get-SilkVM.ps1))) -Backend HyperV -Mode Installer"
 ```
 
-### B) VirtualBox (Home / kein Admin)
+### B) VirtualBox (Home / Auto installiert bei Bedarf)
 
-1. Installieren: https://www.virtualbox.org/  
-2. PowerShell:
+Einzeiler reicht oft (Auto installiert VirtualBox wenn noetig):
 
 ```powershell
 powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/Wuza0295/nachtblau-crew/cursor/silk-connect-multiplatform-fef1/silk/windows/Get-SilkVM.ps1 | iex"
 ```
+
+Manuell: https://www.virtualbox.org/ — danach denselben Befehl.
 
 Oder in geoeffneter PowerShell:
 
@@ -86,7 +89,7 @@ silk-tour --center
 
 | Symptom | Fix |
 |---------|-----|
-| Kein Hypervisor | VirtualBox installieren **oder** Hyper-V aktivieren (siehe A/B oben) |
+| Kein Hypervisor | Auto versucht VirtualBox-Install; sonst manuell (A/B) oder `-SkipVBoxInstall` |
 | ExecutionPolicy | `powershell -ExecutionPolicy Bypass -File ...` |
 | Hyper-V Rechte | PowerShell/CMD **als Administrator** |
 | Download bricht ab | Skript erneut starten (setzt fort) |
