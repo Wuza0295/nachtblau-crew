@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <title>NachtBlau Lumina Launcher</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="bg" aria-hidden="true">
+    <div class="stars"></div>
+    <div class="aurora"></div>
+    <div class="voxel-grid"></div>
+    <div class="terrain">
+      <div class="terrain-layer terrain-grass"></div>
+      <div class="terrain-layer terrain-dirt"></div>
+      <div class="terrain-layer terrain-stone"></div>
+    </div>
+    <div class="vignette"></div>
+  </div>
+
+  <main class="shell">
+    <header class="hero">
+      <div class="owl-frame">
+        <img class="owl" src="owl-icon.png" width="112" height="112" alt="NachtBlau Lumina">
+        <span class="owl-glow"></span>
+      </div>
+      <p class="kicker">NachtBlau Crew · Minecraft</p>
+      <h1 class="brand">
+        <span class="brand-nachtblau">NachtBlau</span>
+        <span class="brand-lumina">Lumina</span>
+      </h1>
+      <p class="lead">Microsoft anmelden — Minecraft starten — direkt auf dem Server landen.</p>
+    </header>
+
+    <section class="play" aria-label="Spielen">
+      <div class="status" id="status" aria-live="polite">
+        <div class="status-dot" id="status-dot" aria-hidden="true"></div>
+        <div class="status-text">
+          <p class="status-label" id="status-label">Serverstatus wird geladen …</p>
+          <p class="status-meta" id="status-meta"></p>
+        </div>
+      </div>
+
+      <p class="addr" id="addr-line">drake-intra.tun.ply.gg:58820 · Java</p>
+
+      <div class="account" id="account-box">
+        <div class="profile-row">
+          <div class="skin-frame" aria-hidden="true">
+            <img class="skin-bust" id="skin-bust" alt="" width="64" height="64" hidden>
+            <div class="skin-fallback" id="skin-fallback">NB</div>
+          </div>
+          <div class="profile-text">
+            <p class="account-state" id="account-state">Nicht angemeldet</p>
+            <p class="account-hint" id="account-hint">Benötigt Minecraft: Java Edition auf dem Microsoft-Konto.</p>
+          </div>
+        </div>
+      </div>
+
+      <section class="news" id="news" aria-label="NachtBlau News">
+        <p class="news-kicker">NachtBlau News</p>
+        <div class="news-list" id="news-list">
+          <p class="news-empty">News werden geladen …</p>
+        </div>
+      </section>
+
+      <div class="update-banner hidden" id="update-banner" role="status" aria-live="polite">
+        <p class="update-banner-title" id="update-banner-title">Update verfügbar</p>
+        <p class="update-banner-meta" id="update-banner-meta"></p>
+        <div class="update-banner-progress hidden" id="update-banner-progress">
+          <div class="progress-bar"><div class="progress-fill" id="update-progress-fill"></div></div>
+        </div>
+        <div class="update-banner-actions">
+          <button type="button" class="btn btn-primary" id="btn-update-action">Update laden</button>
+          <button type="button" class="btn btn-ghost" id="btn-update-check">Erneut prüfen</button>
+        </div>
+      </div>
+      <p class="update-line" id="update-line">Launcher-Update: …</p>
+
+      <div class="ram">
+        <label for="ram">RAM: <strong id="ram-value">6</strong> GB</label>
+        <input type="range" id="ram" min="2" max="12" step="1" value="6">
+        <p class="ram-hint" id="ram-hint">Empfohlen für Laptop: 6–8 GB (mehr bringt selten FPS)</p>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn btn-primary" id="btn-main">Mit Microsoft anmelden</button>
+        <button type="button" class="btn btn-ghost" id="btn-discord">Discord</button>
+        <button type="button" class="btn btn-ghost hidden" id="btn-logout">Abmelden</button>
+      </div>
+
+      <div class="progress hidden" id="progress-wrap">
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+        <p class="progress-text" id="progress-text">Vorbereitung …</p>
+      </div>
+
+      <div class="login-paste hidden" id="login-paste" aria-live="polite">
+        <p class="login-paste-title" id="login-paste-title">Microsoft-Login</p>
+        <p class="login-paste-hint" id="login-paste-hint">
+          Bitte im Microsoft-Fenster anmelden — der Code wird automatisch übernommen.
+        </p>
+        <div id="login-paste-manual" class="hidden">
+          <label class="login-paste-label" for="login-paste-input">Fallback: Redirect-URL einfügen</label>
+          <textarea
+            id="login-paste-input"
+            class="login-paste-input"
+            rows="2"
+            placeholder="https://login.live.com/oauth20_desktop.srf?code=…"
+            spellcheck="false"
+            autocomplete="off"
+          ></textarea>
+          <div class="login-paste-actions">
+            <button type="button" class="btn btn-primary" id="btn-paste-submit">Code übernehmen</button>
+            <button type="button" class="btn btn-ghost" id="btn-paste-cancel">Abbrechen</button>
+          </div>
+        </div>
+        <div class="login-paste-actions" id="login-cancel-only">
+          <button type="button" class="btn btn-ghost" id="btn-login-cancel">Abbrechen</button>
+        </div>
+      </div>
+
+      <p class="toast hidden" id="toast" role="status"></p>
+      <p class="footnote">Bedrock/Geyser: <code>drake-shrank.tun.ply.gg:63573</code> · Whitelist über Discord <code>/whitelist</code></p>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

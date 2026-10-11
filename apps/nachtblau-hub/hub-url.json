@@ -1,0 +1,9 @@
+{
+  "url": "https://launcher.nachtblau-interactive.com/",
+  "linuxUrl": "https://launcher.nachtblau-interactive.com/linux.html",
+  "windowsUrl": "https://launcher.nachtblau-interactive.com/windows.html",
+  "androidUrl": "https://launcher.nachtblau-interactive.com/android.html",
+  "label": "NachtBlau Hub — Webspace",
+  "piLanHost": "192.168.178.33",
+  "piWanHost": "89.247.164.165"
+}

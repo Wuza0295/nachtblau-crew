@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=NachtBlau Lumina Launcher
+Comment=NachtBlau Lumina — Minecraft Java Launcher
+Exec=nachtblau-lumina-launcher %U
+Icon=nachtblau-lumina-launcher
+Terminal=false
+Type=Application
+Categories=Game;
+StartupWMClass=NachtBlau Lumina Launcher
+Keywords=Minecraft;NachtBlau;Lumina;

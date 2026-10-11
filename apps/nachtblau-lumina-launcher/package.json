@@ -1,0 +1,23 @@
+{
+  "name": "nachtblau-lumina-launcher",
+  "version": "1.0.11",
+  "description": "NachtBlau Lumina — Minecraft Java Launcher mit Microsoft-Login, Direktconnect und Auto-Update",
+  "homepage": "https://launcher.nachtblau-interactive.com/downloads/",
+  "main": "src/main.js",
+  "author": "NachtBlau Crew <hello@nachtblau-interactive.com>",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test test/memory.test.js",
+    "test:memory": "node --test test/memory.test.js"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9",
+    "minecraft-launcher-core": "^3.18.2",
+    "msmc": "^5.0.5"
+  },
+  "devDependencies": {
+    "electron": "^33.4.11"
+  }
+}
