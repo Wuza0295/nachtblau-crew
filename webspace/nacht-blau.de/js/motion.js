@@ -1,6 +1,9 @@
 const sections = document.querySelectorAll(".section");
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-if ("IntersectionObserver" in window && sections.length) {
+if (reduceMotion) {
+  sections.forEach((section) => section.classList.add("is-visible"));
+} else if ("IntersectionObserver" in window && sections.length) {
   const observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
@@ -10,7 +13,7 @@ if ("IntersectionObserver" in window && sections.length) {
         }
       });
     },
-    { threshold: 0.16, rootMargin: "0px 0px -8% 0px" }
+    { threshold: 0.14, rootMargin: "0px 0px -6% 0px" }
   );
 
   sections.forEach((section) => observer.observe(section));
