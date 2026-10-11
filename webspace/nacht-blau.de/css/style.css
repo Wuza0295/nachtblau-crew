@@ -1,4 +1,4 @@
-/* nb-css-rev3-20261011 */
+/* nb-css-rev4-20261011 */
 /* NachtBlau Projekt — Politur: Marke zuerst, Full-Bleed, wenig Chrome */
 :root,
 [data-theme="dark"] {
@@ -118,9 +118,9 @@ a {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 0.85rem 1.25rem;
   padding: 0.75rem 0;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .site-id {
@@ -129,6 +129,8 @@ a {
   gap: 0.65rem;
   text-decoration: none;
   color: inherit;
+  min-width: 0;
+  flex-shrink: 1;
   transition: opacity 0.2s var(--ease);
 }
 
@@ -196,8 +198,9 @@ a {
 .site-nav {
   display: flex;
   align-items: center;
-  gap: 0.2rem 1rem;
-  flex-wrap: wrap;
+  gap: 0.15rem 0.85rem;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
 }
 
 .site-nav a {
@@ -260,11 +263,13 @@ a {
   color: var(--text);
 }
 
-@media (max-width: 760px) {
+/* Hamburger früher, bevor Nav-Links gequetscht werden */
+@media (max-width: 1024px) {
   .header-row {
     display: grid;
     grid-template-columns: 1fr auto;
     align-items: center;
+    flex-wrap: wrap;
   }
 
   .nav-toggle {
@@ -278,6 +283,7 @@ a {
     width: 100%;
     flex-direction: column;
     align-items: flex-start;
+    flex-wrap: wrap;
     padding: 0.45rem 0 0.7rem;
     gap: 0.55rem;
   }
@@ -363,28 +369,43 @@ a {
 
 .hero-stage {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(200px, 0.8fr);
-  gap: clamp(1.75rem, 4.5vw, 3.5rem);
+  grid-template-columns: minmax(0, 1.15fr) minmax(160px, 0.7fr);
+  gap: clamp(1.25rem, 3.5vw, 3rem);
   align-items: center;
 }
 
 .hero-copy {
   min-width: 0;
+  max-width: 100%;
+  container-type: inline-size;
+  container-name: hero-copy;
   animation: rise 0.9s var(--ease) both;
 }
 
 .hero-brand {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: clamp(2.85rem, 7.2vw, 5.1rem);
-  line-height: 0.92;
-  letter-spacing: -0.04em;
+  /* Fallback ohne Container Queries */
+  font-size: clamp(2.4rem, 3.6vw + 1rem, 4.85rem);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
   margin-bottom: 1.15rem;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: visible;
   background: linear-gradient(118deg, #c4e0ff 6%, #6eb6ff 46%, #f0f6fc 94%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  white-space: nowrap;
+  /* Sicherheit für letztes Glyph bei background-clip */
+  padding-inline-end: 0.1em;
+}
+
+@supports (font-size: 1cqi) {
+  .hero-brand {
+    /* An Spaltenbreite binden, damit „NachtBlau“ nie geclippt wird */
+    font-size: clamp(2.4rem, 14.5cqi, 4.85rem);
+  }
 }
 
 [data-theme="light"] .hero-brand {
@@ -395,7 +416,7 @@ a {
 
 .hero-lead {
   color: var(--text-muted);
-  font-size: 1.12rem;
+  font-size: clamp(1rem, 0.3vw + 0.95rem, 1.12rem);
   line-height: 1.6;
   margin-bottom: 1.75rem;
   max-width: 33rem;
@@ -450,11 +471,13 @@ a {
 .hero-mark {
   display: flex;
   justify-content: flex-end;
+  min-width: 0;
   animation: rise 1.05s var(--ease) 0.12s both;
 }
 
 .hero-logo {
-  width: min(360px, 100%);
+  width: min(320px, 100%);
+  max-width: 100%;
   aspect-ratio: 1;
   height: auto;
   animation: mark-float 7.5s ease-in-out infinite;
@@ -465,21 +488,31 @@ a {
   filter: drop-shadow(0 14px 28px color-mix(in oklab, #2f5f8a 18%, transparent));
 }
 
-@media (max-width: 900px) {
+/* Zwischen Desktop und Stack: Logo schrumpfen */
+@media (max-width: 1280px) and (min-width: 1101px) {
+  .hero-logo {
+    width: min(250px, 100%);
+  }
+}
+
+/* Früher auf 1 Spalte, bevor Text und Logo kollidieren */
+@media (max-width: 1100px) {
   .hero {
     align-items: center;
     padding: 3.75rem 0 3.25rem;
-    min-height: min(90vh, 780px);
+    min-height: min(88vh, 760px);
   }
 
   .hero-stage {
     grid-template-columns: 1fr;
     text-align: center;
     justify-items: center;
+    gap: clamp(1.25rem, 4vw, 2rem);
   }
 
   .hero-brand {
-    white-space: normal;
+    /* Volle Containerbreite → cqi ≈ Viewport; zusätzlich vw-Ceiling */
+    font-size: clamp(2.5rem, min(14.5cqi, 9vw), 4.4rem);
   }
 
   .hero-lead {
@@ -497,7 +530,31 @@ a {
   }
 
   .hero-logo {
-    width: min(210px, 56vw);
+    width: min(220px, 48vw);
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    padding: 2.75rem 0 2.5rem;
+    min-height: auto;
+  }
+
+  .hero-brand {
+    font-size: clamp(2.2rem, min(13cqi, 10.5vw), 3rem);
+  }
+
+  .hero-logo {
+    width: min(180px, 52vw);
+  }
+
+  .hero-actions {
+    width: 100%;
+  }
+
+  .hero-actions .btn {
+    flex: 1 1 auto;
+    min-width: min(100%, 10rem);
   }
 }
 
