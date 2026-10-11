@@ -300,7 +300,8 @@ a {
   display: grid;
   align-items: center;
   padding: 5.5rem 0 4.5rem;
-  overflow: hidden;
+  /* Kein overflow:hidden — sonst clippt die Marke am Spaltenrand */
+  overflow: visible;
   isolation: isolate;
 }
 
@@ -308,6 +309,7 @@ a {
   position: absolute;
   inset: 0;
   z-index: -1;
+  overflow: hidden;
   background:
     radial-gradient(ellipse 95% 72% at 72% 8%, color-mix(in oklab, #2a5f9a 46%, transparent), transparent 60%),
     radial-gradient(ellipse 50% 42% at 10% 78%, color-mix(in oklab, #123255 55%, transparent), transparent 56%),
@@ -376,19 +378,18 @@ a {
 
 .hero-copy {
   min-width: 0;
+  width: 100%;
   max-width: 100%;
-  container-type: inline-size;
-  container-name: hero-copy;
   animation: rise 0.9s var(--ease) both;
 }
 
 .hero-brand {
   font-family: var(--font-display);
   font-weight: 800;
-  /* Fallback ohne Container Queries */
-  font-size: clamp(2.4rem, 3.6vw + 1rem, 4.85rem);
-  line-height: 1.05;
-  letter-spacing: -0.035em;
+  /* Etwas Luft zum Spaltenrand — „NachtBlau“ bleibt vollständig */
+  font-size: clamp(2.35rem, 3.2vw + 0.85rem, 4.35rem);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
   margin-bottom: 1.15rem;
   max-width: 100%;
   white-space: nowrap;
@@ -397,15 +398,10 @@ a {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  /* Sicherheit für letztes Glyph bei background-clip */
-  padding-inline-end: 0.1em;
-}
-
-@supports (font-size: 1cqi) {
-  .hero-brand {
-    /* An Spaltenbreite binden, damit „NachtBlau“ nie geclippt wird */
-    font-size: clamp(2.4rem, 14.5cqi, 4.85rem);
-  }
+  /* Glyph-Rand bei background-clip / negativem Tracking */
+  padding-inline: 0.02em 0.12em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
 
 [data-theme="light"] .hero-brand {
@@ -488,10 +484,14 @@ a {
   filter: drop-shadow(0 14px 28px color-mix(in oklab, #2f5f8a 18%, transparent));
 }
 
-/* Zwischen Desktop und Stack: Logo schrumpfen */
+/* Zwischen Desktop und Stack: Logo schrumpfen, Marke kleiner */
 @media (max-width: 1280px) and (min-width: 1101px) {
   .hero-logo {
-    width: min(250px, 100%);
+    width: min(230px, 100%);
+  }
+
+  .hero-brand {
+    font-size: clamp(2.35rem, 2.6vw + 0.9rem, 3.6rem);
   }
 }
 
@@ -504,15 +504,22 @@ a {
   }
 
   .hero-stage {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     text-align: center;
-    justify-items: center;
+    justify-items: stretch;
     gap: clamp(1.25rem, 4vw, 2rem);
   }
 
+  .hero-copy,
+  .hero-mark {
+    width: 100%;
+    max-width: 36rem;
+    margin-inline: auto;
+    justify-self: center;
+  }
+
   .hero-brand {
-    /* Volle Containerbreite → cqi ≈ Viewport; zusätzlich vw-Ceiling */
-    font-size: clamp(2.5rem, min(14.5cqi, 9vw), 4.4rem);
+    font-size: clamp(2.4rem, 7vw, 3.75rem);
   }
 
   .hero-lead {
@@ -526,6 +533,7 @@ a {
 
   .hero-mark {
     order: -1;
+    display: flex;
     justify-content: center;
   }
 
@@ -541,7 +549,7 @@ a {
   }
 
   .hero-brand {
-    font-size: clamp(2.2rem, min(13cqi, 10.5vw), 3rem);
+    font-size: clamp(2.15rem, 9.5vw, 2.85rem);
   }
 
   .hero-logo {
