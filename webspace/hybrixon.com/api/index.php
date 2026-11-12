@@ -2,8 +2,9 @@
 declare(strict_types=1);
 
 /**
- * Hybrixon JSON API — session-cookie auth for the Vite SPA.
+ * Hybrixon JSON API — session-cookie auth for the PHP portal + app clients.
  * ALL-INKL compatible: pure PHP, no Node runtime required.
+ * (No SPA rewrite — keeps the existing PHP pages as the source of truth.)
  */
 
 require_once dirname(__DIR__) . '/includes/config.php';
@@ -14,8 +15,8 @@ require_once dirname(__DIR__) . '/includes/dm.php';
 require_once dirname(__DIR__) . '/includes/hosting_monitor.php';
 
 header('Content-Type: application/json; charset=utf-8');
-header('X-Content-Type-Options: nosniff');
 header('Cache-Control: no-store');
+hybrixon_send_security_headers();
 
 hybrixon_enforce_canonical_host();
 
@@ -129,6 +130,10 @@ try {
                 'php' => $detailed['php'],
                 'phpMin' => $detailed['phpMin'],
                 'sqlite' => $detailed['sqlite'],
+                'schemaVersion' => $detailed['schemaVersion'] ?? null,
+                'schemaExpected' => $detailed['schemaExpected'] ?? null,
+                'composerVendor' => (bool)($detailed['composerVendor'] ?? false),
+                'assets' => $detailed['assets'] ?? null,
                 'hosting' => [
                     'provider' => $detailed['provider'],
                     'verdict' => $detailed['verdict'],

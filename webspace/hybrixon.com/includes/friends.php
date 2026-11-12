@@ -8,17 +8,44 @@ function friends_pair(int $a, int $b): array
     return $a < $b ? [$a, $b] : [$b, $a];
 }
 
+/**
+ * Request-scoped accepted-friend ids for one user (avoids feed N+1).
+ * Pass $bust=true after friendship writes.
+ *
+ * @return array<int, true>
+ */
+function friends_accepted_set(int $userId, bool $bust = false): array
+{
+    static $sets = [];
+    if ($bust) {
+        unset($sets[$userId]);
+        return [];
+    }
+    if ($userId <= 0) {
+        return [];
+    }
+    if (!isset($sets[$userId])) {
+        $stmt = allxion_db()->prepare(
+            "SELECT CASE WHEN user_a = ? THEN user_b ELSE user_a END AS friend_id
+             FROM friendships
+             WHERE status = 'accepted' AND (user_a = ? OR user_b = ?)"
+        );
+        $stmt->execute([$userId, $userId, $userId]);
+        $map = [];
+        foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $id) {
+            $map[(int)$id] = true;
+        }
+        $sets[$userId] = $map;
+    }
+    return $sets[$userId];
+}
+
 function friends_are_friends(int $a, int $b): bool
 {
     if ($a <= 0 || $b <= 0 || $a === $b) {
         return false;
     }
-    [$x, $y] = friends_pair($a, $b);
-    $stmt = allxion_db()->prepare(
-        "SELECT 1 FROM friendships WHERE user_a = ? AND user_b = ? AND status = 'accepted'"
-    );
-    $stmt->execute([$x, $y]);
-    return (bool)$stmt->fetchColumn();
+    return isset(friends_accepted_set($a)[$b]);
 }
 
 function friends_request_status(int $me, int $other): ?array
@@ -70,6 +97,10 @@ function friends_send_request(int $fromId, int $toId): array
            status = excluded.status,
            updated_at = datetime('now')"
     )->execute([$a, $b, $fromId, $status]);
+    if ($auto) {
+        friends_accepted_set($fromId, true);
+        friends_accepted_set($toId, true);
+    }
     require_once __DIR__ . '/notifications.php';
     if ($auto) {
         notifications_create($fromId, 'friend_accept', $toId);
@@ -95,6 +126,8 @@ function friends_respond(int $me, int $other, bool $accept): array
             "UPDATE friendships SET status = 'accepted', updated_at = datetime('now')
              WHERE user_a = ? AND user_b = ?"
         )->execute([$a, $b]);
+        friends_accepted_set($me, true);
+        friends_accepted_set($other, true);
         require_once __DIR__ . '/notifications.php';
         notifications_create((int)$row['requester_id'], 'friend_accept', $me);
     } else {
@@ -111,6 +144,8 @@ function friends_remove(int $me, int $other): void
     allxion_db()->prepare(
         'DELETE FROM friendships WHERE user_a = ? AND user_b = ?'
     )->execute([$a, $b]);
+    friends_accepted_set($me, true);
+    friends_accepted_set($other, true);
 }
 
 function friends_cancel_outgoing(int $me, int $other): void

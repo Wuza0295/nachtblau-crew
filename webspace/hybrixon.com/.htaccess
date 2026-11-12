@@ -15,12 +15,32 @@ RewriteEngine On
 </IfModule>
 LimitRequestBody 1073741824
 
-# Basic hardening
+# Basic hardening (+ HSTS when the request is already HTTPS)
 <IfModule mod_headers.c>
   Header set X-Content-Type-Options "nosniff"
   Header set X-Frame-Options "SAMEORIGIN"
   Header set Referrer-Policy "strict-origin-when-cross-origin"
   Header set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+  Header set Cross-Origin-Opener-Policy "same-origin-allow-popups"
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
+</IfModule>
+
+# Long-lived static assets (cache-busted via ?v= from HYBRIXON_ASSET_*).
+# Use "always" so proxies/CDN don't drop the header; Expires as fallback.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(css|js|svg|png|jpe?g|webp|woff2?)$">
+    Header always set Cache-Control "public, max-age=604800, immutable"
+  </FilesMatch>
+</IfModule>
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css "access plus 7 days"
+  ExpiresByType application/javascript "access plus 7 days"
+  ExpiresByType image/svg+xml "access plus 7 days"
+  ExpiresByType image/png "access plus 7 days"
+  ExpiresByType image/jpeg "access plus 7 days"
+  ExpiresByType image/webp "access plus 7 days"
+  ExpiresByType font/woff2 "access plus 30 days"
 </IfModule>
 
 # www → apex (when domain is live)

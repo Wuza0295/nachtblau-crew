@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         (string)($_POST['birthdate'] ?? ''),
         !empty($_POST['terms_ok']),
         !empty($_POST['privacy_ok']),
-        (string)($_POST['theme'] ?? 'light'),
+        (string)($_POST['theme'] ?? 'ocean'),
         (string)($_POST['postal_code'] ?? ''),
         (string)($_POST['city'] ?? '')
     );
@@ -32,8 +32,8 @@ $pageTitle = 'Registrieren · Hybrixon';
 $activeNav = 'register';
 require __DIR__ . '/includes/header.php';
 $regTheme = (string)($_POST['theme'] ?? hybrixon_active_theme(null));
-if (!in_array($regTheme, ['light', 'dark'], true)) {
-    $regTheme = 'light';
+if (!hybrixon_theme_valid($regTheme)) {
+    $regTheme = 'ocean';
 }
 ?>
 
@@ -75,10 +75,11 @@ if (!in_array($regTheme, ['light', 'dark'], true)) {
 
     <label>Darstellung
       <select name="theme">
-        <option value="light" <?= $regTheme === 'light' ? 'selected' : '' ?>>Light Mode</option>
-        <option value="dark" <?= $regTheme === 'dark' ? 'selected' : '' ?>>Dark Mode</option>
+        <?php foreach (hybrixon_themes() as $themeId => $themeLabel): ?>
+          <option value="<?= e($themeId) ?>" <?= $regTheme === $themeId ? 'selected' : '' ?>><?= e($themeLabel) ?></option>
+        <?php endforeach; ?>
       </select>
-      <span class="hint">Vor dem Login ist Light Standard; nach dem Login gilt deine Auswahl.</span>
+      <span class="hint">Vor dem Login ist Light Standard; nach dem Login gilt deine Auswahl. Später jederzeit unter Einstellungen änderbar.</span>
     </label>
 
     <label class="check">

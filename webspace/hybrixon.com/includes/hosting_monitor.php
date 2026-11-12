@@ -204,6 +204,16 @@ function hybrixon_hosting_snapshot(bool $detailed = false, bool $scanUploads = f
         $score -= 10;
     }
 
+    $vendorOk = is_file(ALLXION_ROOT . '/vendor/autoload.php');
+    if (!$vendorOk) {
+        $signals[] = [
+            'level' => 'warn',
+            'code' => 'composer_vendor_missing',
+            'message' => 'Composer vendor/ fehlt — Web Push (minishlink/web-push) ist deaktiviert bis composer install.',
+        ];
+        $score -= 5;
+    }
+
     $score = max(0, min(100, $score));
     $hasCritical = false;
     $hasWarn = false;
@@ -245,12 +255,28 @@ function hybrixon_hosting_snapshot(bool $detailed = false, bool $scanUploads = f
         $metrics['uploadBucket'] = $uploadBytes >= 10_737_418_240 ? 'xl' : ($uploadBytes >= 2_147_483_648 ? 'l' : ($uploadBytes >= 500_000_000 ? 'm' : 's'));
     }
 
+    $schemaVersion = 0;
+    try {
+        $schemaVersion = (int)$pdo->query('PRAGMA user_version')->fetchColumn();
+    } catch (Throwable) {
+        $schemaVersion = 0;
+    }
+
     return [
         'provider' => 'all-inkl',
-        'engine' => 'hybrixon-php85',
+        'engine' => HYBRIXON_ENGINE,
         'php' => PHP_VERSION,
         'phpMin' => HYBRIXON_MIN_PHP,
         'sqlite' => extension_loaded('pdo_sqlite'),
+        'schemaVersion' => $schemaVersion,
+        'schemaExpected' => defined('HYBRIXON_SCHEMA_VERSION') ? HYBRIXON_SCHEMA_VERSION : null,
+        'composerVendor' => $vendorOk,
+        'assets' => [
+            'css' => HYBRIXON_ASSET_CSS,
+            'js' => HYBRIXON_ASSET_JS,
+            'sw' => HYBRIXON_ASSET_SW,
+            'staticCache' => HYBRIXON_STATIC_CACHE,
+        ],
         'metrics' => $metrics,
         'signals' => $signals,
         'verdict' => $verdict,

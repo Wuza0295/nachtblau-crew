@@ -32,6 +32,7 @@ $verdictClass = match ($verdict) {
   <div class="pill-row" style="margin:0.75rem 0 1rem;">
     <a class="pill" href="<?= e(allxion_url('admin/')) ?>">← Admin</a>
     <span class="pill">Score <?= (int)$snap['score'] ?>/100</span>
+    <span class="pill"><?= e((string)$snap['engine']) ?></span>
     <span class="pill"><?= e((string)$snap['php']) ?></span>
     <span class="pill"><?= e((string)$snap['provider']) ?></span>
   </div>
@@ -51,6 +52,9 @@ $verdictClass = match ($verdict) {
     <li>Uploads: <?= e((string)$snap['metrics']['uploadHuman']) ?></li>
     <li>Frei (Daten-Partition): <?= e((string)($snap['metrics']['freeHuman'] ?? 'n/a')) ?></li>
     <li>Health-Latenz: <?= (int)$snap['metrics']['latencyMs'] ?> ms</li>
+    <li>Schema: <?= (int)($snap['schemaVersion'] ?? 0) ?> / erwartet <?= (int)($snap['schemaExpected'] ?? 0) ?></li>
+    <li>Composer vendor: <?= !empty($snap['composerVendor']) ? 'ok' : 'fehlt' ?></li>
+    <li>Assets: CSS v<?= e((string)($snap['assets']['css'] ?? '?')) ?>, JS v<?= e((string)($snap['assets']['js'] ?? '?')) ?>, SW v<?= e((string)($snap['assets']['sw'] ?? '?')) ?></li>
     <li>Stand: <?= e((string)$snap['checkedAt']) ?></li>
   </ul>
 </section>
