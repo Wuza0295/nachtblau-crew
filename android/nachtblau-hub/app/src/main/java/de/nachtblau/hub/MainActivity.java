@@ -37,10 +37,10 @@ import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
     private static final String APP_URL =
-            "https://launcher.nachtblau-interactive.com/android.html";
+            "https://nachtblau-minecraft.bloodyangel0295.chatgpt.site/launcher";
     private static final Set<String> IN_APP_HOSTS = new HashSet<>(Arrays.asList(
-            "launcher.nachtblau-interactive.com",
-            "www.launcher.nachtblau-interactive.com"
+            "nachtblau-minecraft.bloodyangel0295.chatgpt.site",
+            "www.nachtblau-minecraft.bloodyangel0295.chatgpt.site"
     ));
 
     private WebView webView;
@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
         settings.setAllowContentAccess(true);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
-        settings.setUserAgentString(settings.getUserAgentString() + " NachtBlauHub/1.0");
+        settings.setUserAgentString(settings.getUserAgentString() + " Lumina/1.0");
 
         CookieManager cookies = CookieManager.getInstance();
         cookies.setAcceptCookie(true);
