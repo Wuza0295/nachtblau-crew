@@ -468,11 +468,32 @@ SQL;
     if (!$includeAdult) {
         $sql .= ' AND p.is_adult = 0';
     }
+    $viewerId = $viewer ? (int)$viewer['id'] : 0;
+
+    // Narrow friends/following scopes in SQL when possible (fewer rows + less PHP filter).
+    if ($viewerId > 0 && $scope === 'following' && !$onlyUserId) {
+        $followIds = array_keys(social_following_set($viewerId));
+        $followIds[] = $viewerId;
+        $sql .= ' AND p.user_id IN (' . implode(',', array_map('intval', $followIds)) . ')';
+    } elseif ($viewerId > 0 && $scope === 'friends' && !$onlyUserId) {
+        require_once __DIR__ . '/friends.php';
+        $friendIds = array_keys(friends_accepted_set($viewerId));
+        $friendIds[] = $viewerId;
+        $sql .= ' AND p.user_id IN (' . implode(',', array_map('intval', $friendIds)) . ')';
+    }
+
     $pool = $shortsOnly ? max(80, $limit * 5) : ($limit * 4);
     $sql .= ' ORDER BY p.created_at DESC LIMIT ' . $pool;
     $rows = allxion_db()->query($sql)->fetchAll();
 
-    $viewerId = $viewer ? (int)$viewer['id'] : 0;
+    // Warm request caches once so privacy/block checks are O(1) per row.
+    if ($viewerId > 0) {
+        social_blocked_set($viewerId);
+        social_following_set($viewerId);
+        require_once __DIR__ . '/friends.php';
+        friends_accepted_set($viewerId);
+    }
+
     $out = [];
     foreach ($rows as $row) {
         $authorId = (int)$row['user_id'];

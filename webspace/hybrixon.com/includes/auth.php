@@ -11,23 +11,57 @@ function allxion_cookie_path(): string
     return allxion_base_path() === '' ? '/' : allxion_base_path() . '/';
 }
 
-/** Active UI theme: logged-in preference, else guest cookie, else light. */
+/** @return array<string, string> theme id => label */
+function hybrixon_themes(): array
+{
+    return [
+        'light' => 'Light',
+        'dark' => 'Dark',
+        'aurora' => 'Aurora',
+        'ocean' => 'Ocean',
+        'ember' => 'Ember',
+        'violet' => 'Violet',
+        'forest' => 'Forest',
+        'rose' => 'Rose',
+        'noir' => 'Noir',
+        'midnight' => 'Midnight',
+        'sand' => 'Sand',
+        'slate' => 'Slate',
+        'neon' => 'Neon',
+        'coral' => 'Coral',
+        'mist' => 'Mist',
+        'mono' => 'Mono',
+        'lavender' => 'Lavender',
+        'copper' => 'Copper',
+        'arctic' => 'Arctic',
+        'ink' => 'Ink',
+        'lime' => 'Lime',
+        'system' => 'System',
+    ];
+}
+
+function hybrixon_theme_valid(string $theme): bool
+{
+    return isset(hybrixon_themes()[$theme]);
+}
+
+/** Active UI theme: logged-in preference, else guest cookie, else ocean (Option C). */
 function hybrixon_active_theme(?array $user = null): string
 {
-    if ($user && in_array((string)($user['theme'] ?? ''), ['light', 'dark'], true)) {
+    if ($user && hybrixon_theme_valid((string)($user['theme'] ?? ''))) {
         return (string)$user['theme'];
     }
     $cookie = (string)($_COOKIE['hybrixon_theme'] ?? '');
-    if (in_array($cookie, ['light', 'dark'], true)) {
+    if (hybrixon_theme_valid($cookie)) {
         return $cookie;
     }
-    return 'light';
+    return 'ocean';
 }
 
 function hybrixon_set_theme_cookie(string $theme): void
 {
-    if (!in_array($theme, ['light', 'dark'], true)) {
-        $theme = 'light';
+    if (!hybrixon_theme_valid($theme)) {
+        $theme = 'ocean';
     }
     $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
     setcookie('hybrixon_theme', $theme, [
@@ -82,7 +116,7 @@ function hybrixon_set_brand_cookie(string $style): void
 function hybrixon_sync_ui_cookies(array $user): void
 {
     $theme = (string)($user['theme'] ?? 'light');
-    if (in_array($theme, ['light', 'dark'], true)) {
+    if (hybrixon_theme_valid($theme)) {
         hybrixon_set_theme_cookie($theme);
     }
     $brand = (string)($user['brand_style'] ?? 'logo_text');
@@ -414,7 +448,7 @@ function allxion_register(
     string $birthdate,
     bool $termsOk = false,
     bool $privacyOk = false,
-    string $theme = 'light',
+    string $theme = 'ocean',
     string $postalCode = '',
     string $city = ''
 ): array
@@ -425,7 +459,7 @@ function allxion_register(
 
     $username = trim($username);
     $email = trim(mb_strtolower($email));
-    $theme = in_array($theme, ['light', 'dark'], true) ? $theme : 'light';
+    $theme = hybrixon_theme_valid($theme) ? $theme : 'ocean';
     $postalCode = trim($postalCode);
     $city = trim($city);
     $errors = [];

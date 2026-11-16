@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 return [
     'nav.feed' => 'Akış',
+    'nav.explore' => 'Keşfet',
     'nav.reels' => 'Reels',
     'nav.stories' => 'Hikayeler',
     'nav.groups' => 'Gruplar',

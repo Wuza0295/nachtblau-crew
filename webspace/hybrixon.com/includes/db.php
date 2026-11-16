@@ -4,7 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/config.php';
 
 // Increment whenever allxion_migrate() gains schema/data migrations.
-const HYBRIXON_SCHEMA_VERSION = 2026081101;
+const HYBRIXON_SCHEMA_VERSION = 2026100901;
 
 function allxion_db(): PDO
 {
@@ -586,6 +586,26 @@ SQL);
              age_provider = CASE WHEN age_provider IS NULL OR age_provider = 'none' THEN 'admin' ELSE age_provider END
          WHERE is_admin = 1"
     );
+
+    // Feed / social hot paths — cheap CREATE INDEX IF NOT EXISTS (idempotent).
+    $pdo->exec(<<<'SQL'
+CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_posts_user_created ON posts(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_posts_moderation_created ON posts(moderation_status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_posts_type_created ON posts(post_type, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_reactions_post_kind ON reactions(post_id, kind);
+CREATE INDEX IF NOT EXISTS idx_comments_post ON comments(post_id);
+CREATE INDEX IF NOT EXISTS idx_follows_following ON follows(following_id);
+CREATE INDEX IF NOT EXISTS idx_friendships_status ON friendships(status);
+CREATE INDEX IF NOT EXISTS idx_user_blocks_blocked ON user_blocks(blocked_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_unread ON notifications(user_id, is_read, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_stories_expires ON stories(expires_at);
+CREATE INDEX IF NOT EXISTS idx_stories_user_expires ON stories(user_id, expires_at);
+CREATE INDEX IF NOT EXISTS idx_dm_messages_thread ON dm_messages(thread_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_post_media_post ON post_media(post_id, sort_order);
+CREATE INDEX IF NOT EXISTS idx_remember_tokens_user ON remember_tokens(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_ip_log_user ON user_ip_log(user_id, id DESC);
+SQL);
 
     require_once __DIR__ . '/legal.php';
     require_once __DIR__ . '/official.php';
