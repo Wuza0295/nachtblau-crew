@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
-"""Upload Hybrixon static assets to ALL-INKL FTPS (CSS + JS).
-
-After upload, verifies that https://hybrixon.com/ serves the same app.js bytes
-(CSRF fix). If the live site still serves an older copy, the KAS/FTP login likely
-does not own the hybrixon.com document root (only a stray /hybrixon.com/assets tree).
-"""
+"""Upload Hybrixon static assets to ALL-INKL FTPS and verify both live files."""
 
 from __future__ import annotations
 
@@ -40,9 +35,12 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
-def fetch_live_app_js_sha() -> tuple[str, int]:
-    url = f"https://{DOMAIN}/assets/js/app.js?deploy-check=1"
-    req = urllib.request.Request(url, headers={"Cache-Control": "no-cache"})
+def fetch_live_asset_sha(rel: Path, local_sha: str) -> tuple[str, int]:
+    url = f"https://{DOMAIN}/{rel.as_posix()}?deploy-check={local_sha}"
+    req = urllib.request.Request(
+        url,
+        headers={"Cache-Control": "no-cache, no-store", "Pragma": "no-cache"},
+    )
     with urllib.request.urlopen(req, timeout=60) as resp:
         data = resp.read()
     return hashlib.sha256(data).hexdigest(), len(data)
@@ -67,26 +65,22 @@ def main() -> None:
             with local.open("rb") as fh:
                 ftp.storbinary(f"STOR {rel.name}", fh)
         print(f"✓ Assets deployed → https://{DOMAIN}/")
-        js_local = root / "assets/js/app.js"
-        local_sha = sha256_file(js_local)
-        try:
-            live_sha, live_len = fetch_live_app_js_sha()
-        except Exception as exc:
-            print(
-                f"Warnung: Live-Check für app.js fehlgeschlagen ({exc}).",
-                file=sys.stderr,
-            )
-            return
-        if live_sha != local_sha:
-            print(
-                f"Warnung: Live app.js weicht ab (lokal sha256={local_sha[:16]}…, "
-                f"live sha256={live_sha[:16]}…, live {live_len} bytes).\n"
-                f"Dieser FTP-Account liefert vermutlich nicht den Document Root von "
-                f"https://{DOMAIN}/ — bitte Hybrixon-KAS/FTP-Zugang prüfen.",
-                file=sys.stderr,
-            )
-            sys.exit(2)
-        print("✓ Live app.js stimmt mit dem Upload überein (CSRF-Fix aktiv).")
+        for rel in ASSETS:
+            local_sha = sha256_file(root / rel)
+            try:
+                live_sha, live_len = fetch_live_asset_sha(rel, local_sha)
+            except Exception as exc:
+                print(f"Fehler: Live-Prüfung für {rel} fehlgeschlagen ({exc}).", file=sys.stderr)
+                sys.exit(2)
+            if live_sha != local_sha:
+                print(
+                    f"Fehler: Live-Datei {rel} weicht ab "
+                    f"(lokal sha256={local_sha[:16]}…, live sha256={live_sha[:16]}…, "
+                    f"live {live_len} bytes). Falscher Document Root oder CDN-Cache.",
+                    file=sys.stderr,
+                )
+                sys.exit(2)
+            print(f"✓ Live-Datei {rel} stimmt bytegenau mit dem Upload überein.")
     finally:
         try:
             ftp.quit()
