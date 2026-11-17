@@ -1,0 +1,8 @@
+{
+  "enabled": false,
+  "sdk_id": "",
+  "api_key": "",
+  "age_threshold": 18,
+  "buffer_years": 5,
+  "note": "KJM-positiv bewertetes Konzept (Yoti). Keys hier eintragen und enabled=true setzen. Niemals committen."
+}

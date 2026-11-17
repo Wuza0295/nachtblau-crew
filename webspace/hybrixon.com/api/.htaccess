@@ -1,0 +1,5 @@
+Options -MultiViews
+RewriteEngine On
+# Route all /api/* into the PHP 8.5 JSON front controller
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.php [L,QSA]
