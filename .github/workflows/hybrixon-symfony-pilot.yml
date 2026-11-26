@@ -25,7 +25,7 @@ jobs:
           coverage: none
           tools: composer:v2
       - name: Resolve locked pilot dependencies
-        run: composer update --no-interaction --prefer-dist
+        run: composer install --no-interaction --prefer-dist --no-progress
       - name: Validate Composer metadata
         run: composer validate --no-check-publish
       - name: Verify PHP runtime
@@ -68,14 +68,7 @@ jobs:
             --write-out '%{http_code}' http://127.0.0.1:8001/does-not-exist)
           test "$missing_code" = "404"
 
-          if grep -Eiq 'Stack trace|/vendor/|Fatal error' /tmp/hybrixon-post.json /tmp/hybrixon-missing.json; then
+          if grep -Eiq 'Stack trace:|Fatal error:|in [^[:space:]]*/vendor/|#[0-9]+ ' /tmp/hybrixon-post.json /tmp/hybrixon-missing.json; then
             echo "Production error response leaks debug details"
             exit 1
           fi
-      - name: Upload resolved lockfile
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: hybrixon-symfony-pilot-composer-lock
-          path: experiments/hybrixon-symfony-pilot/composer.lock
-          if-no-files-found: error
