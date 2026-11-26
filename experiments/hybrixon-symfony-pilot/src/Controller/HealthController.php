@@ -13,7 +13,6 @@ final class HealthController
         return new JsonResponse([
             'ok' => true,
             'engine' => 'hybrixon-symfony-pilot-7.4',
-            'php' => PHP_VERSION,
             'mode' => 'isolated-pilot',
         ]);
     }
