@@ -7,6 +7,9 @@ on:
       - '.github/workflows/hybrixon-symfony-pilot.yml'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   health-route:
     runs-on: ubuntu-24.04
@@ -14,22 +17,24 @@ jobs:
       run:
         working-directory: experiments/hybrixon-symfony-pilot
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Set up PHP 8.5 and Composer
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
         with:
           php-version: '8.5'
           coverage: none
           tools: composer:v2
-      - name: Install locked pilot dependencies
-        run: composer install --no-interaction --prefer-dist
+      - name: Resolve locked pilot dependencies
+        run: composer update --no-interaction --prefer-dist
       - name: Validate Composer metadata
         run: composer validate --no-check-publish
-      - name: Start pilot and verify GET /health
+      - name: Verify PHP runtime
+        run: php -r 'if (!str_starts_with(PHP_VERSION, "8.5")) { exit(1); } echo "PHP ".PHP_VERSION.PHP_EOL;'
+      - name: Start production-mode pilot and verify HTTP behavior
         shell: bash
         run: |
           set -euo pipefail
-          APP_ENV=test APP_DEBUG=1 APP_SECRET=ci-pilot-secret \
+          APP_ENV=prod APP_DEBUG=0 APP_SECRET=ci-pilot-secret \
             php -S 127.0.0.1:8001 -t public public/index.php >/tmp/hybrixon-pilot.log 2>&1 &
           server_pid=$!
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
@@ -38,23 +43,39 @@ jobs:
           for attempt in $(seq 1 20); do
             http_code=$(curl --silent --show-error --output /tmp/hybrixon-health.json \
               --write-out '%{http_code}' http://127.0.0.1:8001/health || true)
-            if [ "$http_code" = "200" ]; then
-              break
-            fi
+            if [ "$http_code" = "200" ]; then break; fi
             sleep 1
           done
-
           if [ "$http_code" != "200" ]; then
-            echo "Health endpoint returned HTTP ${http_code:-no-response}"
+            echo "GET /health returned HTTP ${http_code:-no-response}"
             cat /tmp/hybrixon-pilot.log
             cat /tmp/hybrixon-health.json 2>/dev/null || true
             exit 1
           fi
 
-          cat /tmp/hybrixon-health.json
           jq -e '
             .ok == true and
             .engine == "hybrixon-symfony-pilot-7.4" and
-            (.php | startswith("8.5")) and
-            .mode == "isolated-pilot"
+            .mode == "isolated-pilot" and
+            (has("php") | not)
           ' /tmp/hybrixon-health.json
+
+          post_code=$(curl --silent --show-error --output /tmp/hybrixon-post.json \
+            --write-out '%{http_code}' --request POST http://127.0.0.1:8001/health)
+          test "$post_code" = "405"
+
+          missing_code=$(curl --silent --show-error --output /tmp/hybrixon-missing.json \
+            --write-out '%{http_code}' http://127.0.0.1:8001/does-not-exist)
+          test "$missing_code" = "404"
+
+          if grep -Eiq 'Stack trace|/vendor/|Fatal error' /tmp/hybrixon-post.json /tmp/hybrixon-missing.json; then
+            echo "Production error response leaks debug details"
+            exit 1
+          fi
+      - name: Upload resolved lockfile
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hybrixon-symfony-pilot-composer-lock
+          path: experiments/hybrixon-symfony-pilot/composer.lock
+          if-no-files-found: error
