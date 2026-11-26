@@ -1,0 +1,52 @@
+name: Hybrixon Symfony pilot
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/hybrixon-symfony-pilot/**'
+      - '.github/workflows/hybrixon-symfony-pilot.yml'
+  workflow_dispatch:
+
+jobs:
+  health-route:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: experiments/hybrixon-symfony-pilot
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up PHP 8.5 and Composer
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+      - name: Resolve and install pilot dependencies
+        run: composer install --no-interaction --prefer-dist
+      - name: Validate Composer metadata
+        run: composer validate --no-check-publish
+      - name: Start pilot and verify GET /health
+        shell: bash
+        run: |
+          set -euo pipefail
+          APP_ENV=test APP_DEBUG=1 APP_SECRET=ci-pilot-secret \
+            php -S 127.0.0.1:8001 -t public public/index.php >/tmp/hybrixon-pilot.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+
+          response=''
+          for attempt in $(seq 1 20); do
+            if response=$(curl --fail --silent http://127.0.0.1:8001/health); then
+              break
+            fi
+            sleep 1
+          done
+
+          test -n "$response"
+          printf '%s\n' "$response"
+          printf '%s' "$response" | jq -e '
+            .ok == true and
+            .engine == "hybrixon-symfony-pilot-7.4" and
+            (.php | startswith("8.5")) and
+            .mode == "isolated-pilot"
+          '
