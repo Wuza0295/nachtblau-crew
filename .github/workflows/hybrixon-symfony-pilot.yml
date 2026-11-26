@@ -25,7 +25,7 @@ jobs:
           coverage: none
           tools: composer:v2
       - name: Resolve locked pilot dependencies
-        run: composer install --no-interaction --prefer-dist --no-progress
+        run: composer update --no-interaction --prefer-dist --no-progress
       - name: Validate Composer metadata
         run: composer validate --no-check-publish
       - name: Audit locked Composer dependencies
@@ -74,3 +74,11 @@ jobs:
             echo "Production error response leaks debug details"
             exit 1
           fi
+
+      - name: Upload resolved lockfile
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hybrixon-symfony-pilot-composer-lock
+          path: experiments/hybrixon-symfony-pilot/composer.lock
+          if-no-files-found: error
