@@ -21,7 +21,7 @@ jobs:
           php-version: '8.5'
           coverage: none
           tools: composer:v2
-      - name: Resolve and install pilot dependencies
+      - name: Install locked pilot dependencies
         run: composer install --no-interaction --prefer-dist
       - name: Validate Composer metadata
         run: composer validate --no-check-publish
@@ -58,11 +58,3 @@ jobs:
             (.php | startswith("8.5")) and
             .mode == "isolated-pilot"
           ' /tmp/hybrixon-health.json
-
-      - name: Upload resolved Composer lock for reproducibility
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: hybrixon-symfony-pilot-composer-lock
-          path: experiments/hybrixon-symfony-pilot/composer.lock
-          if-no-files-found: error
