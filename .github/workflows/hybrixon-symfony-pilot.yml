@@ -34,19 +34,27 @@ jobs:
           server_pid=$!
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
 
-          response=''
+          http_code=''
           for attempt in $(seq 1 20); do
-            if response=$(curl --fail --silent http://127.0.0.1:8001/health); then
+            http_code=$(curl --silent --show-error --output /tmp/hybrixon-health.json \
+              --write-out '%{http_code}' http://127.0.0.1:8001/health || true)
+            if [ "$http_code" = "200" ]; then
               break
             fi
             sleep 1
           done
 
-          test -n "$response"
-          printf '%s\n' "$response"
-          printf '%s' "$response" | jq -e '
+          if [ "$http_code" != "200" ]; then
+            echo "Health endpoint returned HTTP ${http_code:-no-response}"
+            cat /tmp/hybrixon-pilot.log
+            cat /tmp/hybrixon-health.json 2>/dev/null || true
+            exit 1
+          fi
+
+          cat /tmp/hybrixon-health.json
+          jq -e '
             .ok == true and
             .engine == "hybrixon-symfony-pilot-7.4" and
             (.php | startswith("8.5")) and
             .mode == "isolated-pilot"
-          '
+          ' /tmp/hybrixon-health.json
