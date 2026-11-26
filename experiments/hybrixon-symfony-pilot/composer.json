@@ -23,8 +23,5 @@
     },
     "sort-packages": true
   },
-  "license": "proprietary",
-  "conflict": {
-    "symfony/*": ">=8.0"
-  }
+  "license": "proprietary"
 }
