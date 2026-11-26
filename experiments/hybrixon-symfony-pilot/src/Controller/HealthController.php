@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\\Controller;
+namespace App\Controller;
 
-use Symfony\\Component\\HttpFoundation\\JsonResponse;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 final class HealthController
 {
