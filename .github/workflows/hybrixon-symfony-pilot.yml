@@ -58,3 +58,11 @@ jobs:
             (.php | startswith("8.5")) and
             .mode == "isolated-pilot"
           ' /tmp/hybrixon-health.json
+
+      - name: Upload resolved Composer lock for reproducibility
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hybrixon-symfony-pilot-composer-lock
+          path: composer.lock
+          if-no-files-found: warn
